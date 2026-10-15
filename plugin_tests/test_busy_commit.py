@@ -122,11 +122,11 @@ class ApprovalAuthorityBusyTests(BusyAssertions, unittest.TestCase):
         with reading(self.database()):
             error = self.refused(lambda: self.authorize(self.signed))
         self.assertIn(error.code, ('approval_store_unavailable', 'approval_receipt_time'))
-        self.assertEqual(rows(self.authority, 'SELECT count(*) FROM expired'), [(0,)])
+        self.assertEqual(rows(self.authority, 'SELECT count(*) FROM expired_v2'), [(0,)])
         self.assertEqual(self.consumed(), [])
         self.assert_rolled_back(self.authority.root)
         self.assertEqual(self.refused(lambda: self.authorize(self.signed)).code, 'approval_receipt_time')
-        self.assertEqual(rows(self.authority, 'SELECT count(*) FROM expired'), [(1,)])
+        self.assertEqual(rows(self.authority, 'SELECT count(*) FROM expired_v2'), [(1,)])
 
 
 class AdoptionBusyTests(BusyAssertions, adoption_tests.AdoptionFixture):

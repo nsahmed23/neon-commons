@@ -342,6 +342,7 @@ def _tables(policy):
         db.execute('CREATE TABLE IF NOT EXISTS adoption_operations (operation_id TEXT PRIMARY KEY, manifest_sha256 TEXT NOT NULL, verification_id TEXT UNIQUE NOT NULL, verification_dispatches INTEGER NOT NULL DEFAULT 0, verification_status TEXT NOT NULL DEFAULT \'not_started\', verification_outcome TEXT)')
         db.execute('CREATE TABLE IF NOT EXISTS approval_transcripts (operation_id TEXT PRIMARY KEY, receipt_json TEXT NOT NULL, receipt_sha256 TEXT NOT NULL, consumed_at INTEGER NOT NULL)')
         db.execute(validity.table_sql(_EXPIRED_TABLE))
+        db.execute(validity.table_v2_sql(_EXPIRED_TABLE))
         db.execute(_AUTHORIZATIONS_SQL)
 
 

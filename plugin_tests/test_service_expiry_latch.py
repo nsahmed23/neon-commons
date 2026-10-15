@@ -104,7 +104,7 @@ class ServiceFixture(unittest.TestCase):
         return self.rows('SELECT operation_id FROM consumed')
 
     def latched(self):
-        return self.table_rows('SELECT issuer, nonce, operation_id, expires_at FROM service_expired')
+        return self.table_rows('SELECT issuer, nonce, operation_id, expires_at FROM service_expired_v2')
 
     def table_rows(self, sql):
         """Rows of a table the controller creates on first use; none when it was never created."""

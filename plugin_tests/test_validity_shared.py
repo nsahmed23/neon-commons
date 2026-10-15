@@ -35,6 +35,8 @@ class ToyStoreTests(unittest.TestCase):
         with self.connect() as db:
             db.execute(validity.table_sql('latched'))
             db.execute(validity.table_sql('latched_other'))
+            db.execute(validity.table_v2_sql('latched'))
+            db.execute(validity.table_v2_sql('latched_other'))
         self.start = 1_800_000_000
         self.clocks = Clocks(self.start)
         for target, name, function in ((time, 'time', self.clocks.time), (clock, 'monotonic', self.clocks.monotonic)):
@@ -59,8 +61,9 @@ class ToyStoreTests(unittest.TestCase):
                               capacity_code='toy_capacity', private_code='toy_not_private')
 
     def latched(self, table='latched'):
+        """The expiry records the section wrote: the version 2 table (nothing writes version 1 any more)."""
         with self.connect() as db:
-            return db.execute('SELECT issuer, nonce, operation_id, request_sha256, expires_at FROM ' + table).fetchall()
+            return db.execute('SELECT issuer, nonce, operation_id, request_sha256, expires_at FROM ' + table + '_v2').fetchall()
 
     def refused(self, call):
         with self.assertRaises(AppError) as raised:
@@ -78,7 +81,8 @@ class ToyStoreTests(unittest.TestCase):
             db.execute("INSERT INTO latched_other VALUES ('i','n','o','r',1,1,1)")
             db.execute('COMMIT')
         self.assertEqual(self.latched(), [])
-        self.assertEqual(len(self.latched('latched_other')), 1)
+        with self.connect() as db:  # the caller's own insert, made in the transaction the section handed over
+            self.assertEqual(db.execute('SELECT count(*) FROM latched_other').fetchone(), (1,))
 
     def test_a_reached_expiry_is_recorded_in_the_named_table_and_refused(self):
         self.clocks.elapse(LIFETIME + 1)
@@ -174,6 +178,34 @@ class ToyStoreTests(unittest.TestCase):
         self.assertFalse(self.judged_open(unrelated, 'r' * 64))
         with self.connect() as db:
             self.assertEqual(db.execute('SELECT count(*) FROM latched').fetchone(), (1,))  # kept, not rewritten
+
+    def test_a_version_1_row_keeps_latching_its_artifact_in_every_domain_after_another_domain_judged_it(self):
+        with self.connect() as db:  # a pre-upgrade row: no domain, the identity it stores
+            db.execute("INSERT INTO latched VALUES ('issuer-1', ?, 'operation-1', ?, ?, 1, 1)",
+                       ('a' * 32, 'r' * 64, self.start + LIFETIME))
+        family_a = validity.Store(self.root, self.connect, 'latched', fail, domain='family-a')
+        family_b = validity.Store(self.root, self.connect, 'latched', fail, domain='family-b')
+        self.assertTrue(self.judged_open(self.payload, 'r' * 64, store=family_b))  # the clock is open; the old row refuses
+        with self.connect() as db:
+            self.assertEqual(db.execute('SELECT domain, issuer, nonce, operation_id, request_sha256 FROM latched_v2').fetchall(),
+                             [('family-b', 'issuer-1', 'a' * 32, 'operation-1', 'r' * 64)])
+        clock.reset_process_anchor()  # a restart between the two judgments
+        self.assertTrue(self.judged_open(self.payload, 'r' * 64, store=family_a))  # still refused by the other domain
+        self.assertTrue(self.judged_open(self.payload, 'r' * 64, store=family_b))
+        with self.connect() as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM latched').fetchone(), (1,))  # the old row is never rewritten
+
+    def test_nothing_writes_a_version_1_row_any_more(self):
+        self.clocks.elapse(LIFETIME + 1)
+        self.assertTrue(self.judged_open(self.payload, 'r' * 64))
+        with self.connect() as db:
+            self.assertEqual(db.execute('SELECT count(*) FROM latched').fetchone(), (0,))  # the version 1 table is legacy only
+        self.assertEqual(len(self.latched()), 1)
+
+    def test_the_payload_must_name_its_operation(self):
+        bare = {key: value for key, value in self.payload.items() if key != 'operation_id'}
+        with self.assertRaises(KeyError):
+            self.enter(bare)
 
     def test_the_cap_counts_the_version_1_rows_and_the_version_2_rows(self):
         with self.connect() as db:

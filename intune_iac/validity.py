@@ -39,9 +39,9 @@ OPEN, CLOSED, HELD = 'open', 'closed', 'clock_moved_backward'
 def table_sql(table):
     """The statement that creates a (version 1) expiry table. The name is a source literal checked here, never input.
 
-    Version 1 is keyed by (issuer, nonce) alone, so it cannot tell two artifacts apart that reuse the pair. It is kept: its
-    rows are never deleted or rewritten, they are still consulted (matched on the full identity they store) and the
-    section still writes its rows there. The judgment's own key is the version 2 table (table_v2_sql)."""
+    Version 1 is keyed by (issuer, nonce) alone, so it cannot tell two artifacts apart that reuse the pair. It is legacy
+    only: rows made before the upgrade are never deleted or rewritten and are consulted permanently (matched on the full
+    identity they store, in every domain), and nothing writes a new one. The judgment's own key is the version 2 table."""
     if type(table) is not str or not _TABLE.fullmatch(table):
         raise ValueError('An expiry table name is a short lowercase identifier.')
     return ('CREATE TABLE IF NOT EXISTS ' + table + ' (issuer TEXT NOT NULL, nonce TEXT NOT NULL, operation_id TEXT NOT NULL, '
@@ -67,39 +67,27 @@ def _has(db, table):
     return bool(db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone())
 
 
-def _legacy(db, table, where='', params=()):
-    """The version 1 rows that have no version 2 twin. A row with a twin was written by this code and is judged by the
-    twin, which names its domain; one without a twin is an old row, and the identity it stores is all there is to match."""
-    if not _has(db, table):
-        return 'SELECT 1 WHERE 0', ()
-    twin = ''
-    if _has(db, v2_table(table)):
-        twin = (' AND NOT EXISTS (SELECT 1 FROM ' + v2_table(table) + ' AS new WHERE new.issuer=old.issuer AND '
-                'new.nonce=old.nonce AND new.operation_id=old.operation_id AND new.request_sha256=old.request_sha256)')
-    return 'FROM ' + table + ' AS old WHERE 1=1' + where + twin, params
-
-
 def latched(db, table, domain, payload, request_sha256):
     """Whether the exact artifact has an expiry record: plain reads, no write. A version 2 row must carry this domain and
-    the artifact's issuer, nonce, operation and request digest; an old version 1 row counts when the identity it stores
-    (the same four, it stores no domain) is this artifact's."""
+    the artifact's issuer, nonce, operation and request digest. A version 1 row is a pre-upgrade record: it stores no
+    domain, so it latches the artifact whose full stored identity (the same four fields) it carries, in every domain,
+    permanently. Nothing writes version 1 rows any more, so every one of them is pre-upgrade and none can be mistaken for
+    a mirror of a later judgment."""
     table_sql(table)
-    # A payload that names no operation matches no record; recording one (in the section) still requires the field.
-    identity = (payload['issuer'], payload['nonce'], payload.get('operation_id', ''), request_sha256)
+    identity = (payload['issuer'], payload['nonce'], payload['operation_id'], request_sha256)
     if _has(db, v2_table(table)) and db.execute(
             'SELECT 1 FROM ' + v2_table(table) + ' WHERE domain=? AND issuer=? AND nonce=? AND operation_id=? AND request_sha256=?',
             (domain,) + identity).fetchone():
         return True
-    query, params = _legacy(db, table, ' AND issuer=? AND nonce=? AND operation_id=? AND request_sha256=?', identity)
-    return bool(db.execute('SELECT 1 ' + query if query.startswith('FROM') else query, params).fetchone())
+    return _has(db, table) and bool(db.execute(
+        'SELECT 1 FROM ' + table + ' WHERE issuer=? AND nonce=? AND operation_id=? AND request_sha256=?', identity).fetchone())
 
 
 def _recorded(db, table):
-    """How many expiry records the store holds: version 2 rows, plus version 1 rows that have no version 2 twin."""
+    """How many expiry records the store holds: the version 2 rows and the pre-upgrade version 1 rows."""
     count = db.execute('SELECT count(*) FROM ' + v2_table(table)).fetchone()[0]
-    query, params = _legacy(db, table)
-    if query.startswith('FROM'):
-        count += db.execute('SELECT count(*) ' + query, params).fetchone()[0]
+    if _has(db, table):
+        count += db.execute('SELECT count(*) FROM ' + table).fetchone()[0]
     return count
 
 
@@ -236,8 +224,6 @@ def _judged(store, floor, payload, request_sha256, deadline):
                 row = (payload['issuer'], payload['nonce'], payload['operation_id'], request_sha256,
                        payload['expires_at'], int(reading['effective']), int(reading['wall']))
                 db.execute('INSERT OR IGNORE INTO ' + v2_table(store.table) + ' VALUES (?,?,?,?,?,?,?,?)', (store.domain,) + row)
-                if _has(db, store.table):  # the version 1 table is kept written for readers that still look there
-                    db.execute('INSERT OR IGNORE INTO ' + store.table + ' VALUES (?,?,?,?,?,?,?)', row)
                 db.execute('COMMIT')
                 _sync(store.root)
                 closed = True

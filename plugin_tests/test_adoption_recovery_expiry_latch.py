@@ -94,7 +94,7 @@ class RecoveryFixture(unittest.TestCase):
             connection.close()
 
     def latched(self):
-        return self.rows('SELECT issuer, nonce, operation_id, expires_at FROM adoption_expired')
+        return self.rows('SELECT issuer, nonce, operation_id, expires_at FROM adoption_expired_v2')
 
     def receipt(self, **changes):
         return old_contracts.RecoveryPlanContracts.signed(

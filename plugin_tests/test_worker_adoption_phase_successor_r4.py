@@ -158,7 +158,7 @@ class PhaseAtomicConsumptionTests(PhaseAncestorFixture):
         subject.policy=types.SimpleNamespace(root=self.root,connection=lambda:sqlite3.connect(self.root/'authority.sqlite3'),event=lambda *args:None)
         subject._check=lambda:None;calls=[];subject._dispatch=lambda *args:calls.append('host-boundary') or {'status':'injected-no-native'}
         runtime=object.__new__(bridge.RecoveryPlanRuntime);phase=types.SimpleNamespace(identifier='selected',database_snapshot=lambda db:({},None,None))
-        payload={'issuer':'fixture','key_id':'key','nonce':'new-spent-nonce','expires_at':int(time.time())+600};facts={'fresh_observation':{'identity_binding_sha256':'identity'}}
+        payload={'issuer':'fixture','key_id':'key','operation_id':'new-plan','nonce':'new-spent-nonce','expires_at':int(time.time())+600};facts={'fresh_observation':{'identity_binding_sha256':'identity'}}
         with patch.object(bridge.RecoveryPlanRuntime,'check',return_value=None),patch.object(bridge,'_completion',return_value=facts),patch.object(bridge,'_binding',return_value=self.binding),patch.object(bridge,'_verify',return_value=payload),patch.object(bridge.service,'_host_spec',return_value=types.SimpleNamespace(job_root=native,broker_root=proxy)),patch.object(bridge,'_original_row',return_value=None),patch.object(bridge,'_phase_from_binding',return_value=phase),patch.object(bridge,'_held_phase',return_value=None),patch.object(bridge.service,'_scopes',return_value=['scope']),patch.object(bridge.service,'_controller_identity',return_value='fixture-start'):
             if failure:
                 with self.assertRaises(sqlite3.DatabaseError):subject.run({'payload':'injected'},runtime=runtime,completion={})

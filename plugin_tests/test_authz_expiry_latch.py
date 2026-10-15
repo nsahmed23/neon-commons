@@ -81,7 +81,7 @@ class ReceiptExpiryLatchTests(unittest.TestCase):
         early = self.receipt(issued_at=self.start, expires_at=self.start + 30, nonce=nonce)
         self.clocks.wall = self.start + 40
         self.assertEqual(self.refused(lambda: self.authorize(early)).code, 'approval_receipt_time')
-        self.assertEqual(len(rows(self.authority, 'SELECT * FROM expired')), 1)
+        self.assertEqual(len(rows(self.authority, 'SELECT * FROM expired_v2')), 1)
         other = dict(self.request, operation_id=str(uuid.uuid4()))  # another operation, same issuer and nonce
         later = self.receipt(request=other, issued_at=self.start, expires_at=self.start + LIFETIME, nonce=nonce)
         with self.authorize(later, request=other, guard=aa.make_laboratory_guard(other, lambda: None)):
@@ -91,7 +91,7 @@ class ReceiptExpiryLatchTests(unittest.TestCase):
     def test_the_expiry_is_recorded_in_the_authority_store_and_latches_without_the_clock_record(self):
         self.clocks.elapse(LIFETIME + 1)
         self.refused(lambda: self.authorize(self.signed))
-        recorded = rows(self.authority, 'SELECT issuer, nonce, operation_id, expires_at FROM expired')
+        recorded = rows(self.authority, 'SELECT issuer, nonce, operation_id, expires_at FROM expired_v2')
         self.assertEqual(recorded, [('operator-issuer', self.signed['payload']['nonce'],
                                      self.request['operation_id'], self.expires)])
         # The latch alone refuses: remove the recorded time and read a time before the expiry.
@@ -106,7 +106,7 @@ class ReceiptExpiryLatchTests(unittest.TestCase):
         forged['signature'] = forged['signature'][:-4] + 'AAAA'
         self.clocks.elapse(LIFETIME + 1)
         self.assertEqual(self.refused(lambda: self.authorize(forged)).code, 'approval_receipt_time')
-        self.assertEqual(rows(self.authority, 'SELECT count(*) FROM expired'), [(0,)])
+        self.assertEqual(rows(self.authority, 'SELECT count(*) FROM expired_v2'), [(0,)])
 
     def test_a_backward_step_before_the_expiry_holds_verification_and_says_how_to_recover(self):
         self.clocks.elapse(30)
@@ -121,7 +121,7 @@ class ReceiptExpiryLatchTests(unittest.TestCase):
             self.assertIn('restart', error.message)
             self.restart()  # the hold survives a restart: it comes from the recorded time
         self.assertEqual(self.consumed(), [])
-        self.assertEqual(rows(self.authority, 'SELECT count(*) FROM expired'), [(0,)])
+        self.assertEqual(rows(self.authority, 'SELECT count(*) FROM expired_v2'), [(0,)])
         self.clocks.wall = self.start + 31  # recovery: the clock reads at or after the recorded time
         with self.authorize(self.signed): pass
 
@@ -137,7 +137,7 @@ class ReceiptExpiryLatchTests(unittest.TestCase):
         self.restart()
         self.assertEqual(self.refused(lambda: self.authorize(self.signed)).code, 'approval_receipt_time')
         self.assertEqual(self.consumed(), [])
-        self.assertEqual(len(rows(self.authority, 'SELECT * FROM expired')), 1)
+        self.assertEqual(len(rows(self.authority, 'SELECT * FROM expired_v2')), 1)
 
     def test_an_entered_permit_cannot_dispatch_after_the_expiry_even_when_the_clock_steps_back(self):
         with self.assertRaises(RuntimeError):
@@ -150,7 +150,7 @@ class ReceiptExpiryLatchTests(unittest.TestCase):
                 self.assertEqual(rows(self.authority, 'SELECT * FROM executions'), [])
                 raise RuntimeError('stop')
         self.assertEqual(self.consumed(), [(self.request['operation_id'], 'interrupted')])
-        self.assertEqual(len(rows(self.authority, 'SELECT * FROM expired')), 1)
+        self.assertEqual(len(rows(self.authority, 'SELECT * FROM expired_v2')), 1)
 
     def test_an_entered_permit_is_held_by_a_backward_step_before_the_expiry(self):
         self.clocks.elapse(30)
@@ -162,7 +162,7 @@ class ReceiptExpiryLatchTests(unittest.TestCase):
                 self.assertEqual(rows(self.authority, 'SELECT * FROM executions'), [])
                 raise RuntimeError('stop')
         self.assertEqual(self.consumed(), [(self.request['operation_id'], 'interrupted')])
-        self.assertEqual(rows(self.authority, 'SELECT count(*) FROM expired'), [(0,)])
+        self.assertEqual(rows(self.authority, 'SELECT count(*) FROM expired_v2'), [(0,)])
 
 
 class JourneyExpiryLatchTests(unittest.TestCase):
@@ -355,7 +355,7 @@ class RevokedSignerTests(unittest.TestCase):
         self.clocks.elapse(LIFETIME + 1)
         for signed in (first, second):
             self.assertEqual(self.refused(lambda: self.authorize(signed)).code, 'approval_receipt_time')
-        self.assertEqual(rows(self.authority, 'SELECT count(*) FROM expired'), [(0,)])
+        self.assertEqual(rows(self.authority, 'SELECT count(*) FROM expired_v2'), [(0,)])
 
     def test_the_expired_table_is_capped_like_the_consumed_table(self):
         first = self.receipt(issued_at=self.start, expires_at=self.start + LIFETIME)
@@ -364,7 +364,7 @@ class RevokedSignerTests(unittest.TestCase):
         with patch.object(aa, 'MAX_EXPIRED', 1):
             self.assertEqual(self.refused(lambda: self.authorize(first)).code, 'approval_receipt_time')
             self.assertEqual(self.refused(lambda: self.authorize(second)).code, 'approval_store_capacity')
-        self.assertEqual(rows(self.authority, 'SELECT count(*) FROM expired'), [(1,)])
+        self.assertEqual(rows(self.authority, 'SELECT count(*) FROM expired_v2'), [(1,)])
 
 
 FORK = multiprocessing.get_context('fork')
@@ -461,7 +461,7 @@ class ConcurrentLatchTests(unittest.TestCase):
         self.assertEqual(b_result, ('refused', 'approval_receipt_time'))
         self.assertEqual(self.consumed(), [])
         self.assertEqual(self.executions(), [])
-        self.assertEqual(len(rows(self.authority, 'SELECT * FROM expired')), 1)
+        self.assertEqual(len(rows(self.authority, 'SELECT * FROM expired_v2')), 1)
 
     def test_an_expiry_latched_between_the_last_check_and_consumption_refuses_the_entry(self):
         paused, release = FORK.Event(), FORK.Event()

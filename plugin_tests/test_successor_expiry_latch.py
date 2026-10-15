@@ -110,7 +110,7 @@ class SuccessorFixture(unittest.TestCase):
 
     def latched(self):
         try:
-            return self.rows('SELECT issuer, nonce, operation_id, expires_at FROM successor_expired')
+            return self.rows('SELECT issuer, nonce, operation_id, expires_at FROM successor_expired_v2')
         except sqlite3.OperationalError:
             return []
 

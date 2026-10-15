@@ -277,6 +277,18 @@ WORKER_INVENTORY = (
                'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
                'validity.py': '0e56c680c28414520d5fecf0f0645b5a436f4eb7360e112e24a3b7a4046b68b8',
                'clock.py': 'd7e379c4f226dd08a62212cf7dd492bbe7405cd9425723d399540687d8773d3c'}},
+    {'label': 'authz-c-legacy-expiry-rows-kept',
+     'files': {'protected_worker.py': '191c0c7549c8fcd1b9cfa2ff43311bdc23282f9e3d357602268a113f170d5299',
+               'protected.py': '186ee85bc5228f71360477442207bf4bb0591ca2338e6b38dd3177b368412e14',
+               'provider_execution.py': '653e4191156444fd05a0937c8c3a5f5a6c6097fa07e9cb5f34a1278cdb2a7731',
+               'approval_authority.py': '97d13b0d57b7679b50425c44f2d14562324070f4dff9b2807d591db0ef1a4960',
+               'provider_journey.py': 'dfba89eaf20dfa42c423fcecc2f8fea6bf75d9f2e50ee24d05996307efa9c371',
+               'azure_backend.py': '83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab',
+               'execution.py': 'd77a3c1519621bcc04c74034d4cfb55c4e0b5fadde74e50980c36b1d520feadd',
+               'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
+               'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
+               'validity.py': '6e6b1c17da420006584bdde1cea72b751ab7a473c8eafa3ea7b717fe62299112',
+               'clock.py': 'd7e379c4f226dd08a62212cf7dd492bbe7405cd9425723d399540687d8773d3c'}},
 )
 
 _HEX = re.compile(r'[0-9a-f]{64}\Z')

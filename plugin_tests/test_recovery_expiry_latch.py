@@ -175,7 +175,7 @@ class RecoveryFixture(unittest.TestCase):
 
     def latched(self):
         try:
-            return self.rows('SELECT issuer, nonce, operation_id, expires_at FROM recovery_expired')
+            return self.rows('SELECT issuer, nonce, operation_id, expires_at FROM recovery_expired_v2')
         except sqlite3.OperationalError:
             return []
 
@@ -309,7 +309,7 @@ class ExecuteLatchTests:
             try:
                 tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
                 self.assertFalse(any(name.startswith('recovery_expired') for name in tables) and
-                                 connection.execute('SELECT count(*) FROM recovery_expired').fetchone()[0])
+                                 connection.execute('SELECT count(*) FROM recovery_expired_v2').fetchone()[0])
             finally:
                 connection.close()
         self.assert_nothing_happened()

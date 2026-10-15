@@ -207,7 +207,7 @@ class AdoptionFixture(unittest.TestCase):
         return self.rows('SELECT operation_id FROM consumed')
 
     def latched(self):
-        return self.rows('SELECT issuer, nonce, operation_id, expires_at FROM adoption_expired')
+        return self.rows('SELECT issuer, nonce, operation_id, expires_at FROM adoption_expired_v2')
 
     def job_row(self):
         return self.rows('SELECT status, cancelled, dispatches FROM jobs')[0]
