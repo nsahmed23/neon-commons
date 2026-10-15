@@ -20,6 +20,7 @@ import tempfile
 import time
 from uuid import UUID
 
+from . import clock
 from .io import AppError, canonical, digest, parse_json, sync_directory
 from .host_capabilities import require_profile
 from .observation_contract import BASE, FIELDS, MAX_OBJECTS
@@ -371,6 +372,10 @@ class WorkbenchStore:
         require_profile('workbench_store')
         from .modeled_service import ModeledService
         self._require_v2()
+        # Record the wall clock this collection saw (never the observed_at stamp, which is untrusted input) before any
+        # SQLite transaction opens; the floor lock is released before the run begins. A record that cannot be made
+        # leaves the mark as it was, and inspect keeps holding on it.
+        self._clock_reading(bind=True)
         observed_at = _timestamp(observed_at)
         if fault not in (None,'deny','throttle','cross-origin','loop','partial','after-first-object','missing-coverage','before-publish'):
             _fail('workbench_fault_invalid')
@@ -613,15 +618,37 @@ class WorkbenchStore:
             if row: deployment = parse_json(row[0])
         return self._health(deployment,now,max_age_seconds)
 
-    def _current_observation(self, db, row, attempt, health, now, max_age_seconds):
+    def _clock_reading(self, *, bind):
+        """(raw wall, effective time, clock reasons) for one freshness judgement.
+
+        The effective time is intune_iac.clock.Floor's: it never goes back, so evidence that aged out of its window
+        cannot read fresh again after a backward wall step. bind=True records the reading in clock.json beside the
+        database (under the floor lock, released on return); bind=False records nothing. A record that cannot be
+        read, or a binding reading that cannot be written, leaves the raw wall as the effective time and says
+        clock_floor_invalid, which holds the observation stale.
+        """
+        raw = _timestamp()
+        floor = clock.Floor(self.root / 'clock.json')
+        try:
+            reading = floor.observe(raw) if bind else floor.peek(raw)
+        except OSError:
+            return raw, raw, ['clock_floor_invalid']
+        except AppError as error:
+            if not error.code.startswith('clock_'): raise
+            return raw, raw, ['clock_floor_invalid']
+        return raw, reading['effective'], (['clock_moved_backward'] if reading['backward'] else [])
+
+    def _current_observation(self, db, row, attempt, health, now, max_age_seconds, effective=None, clock_reasons=()):
         obj = self._observation(db,row)
         object_attempt = attempt if self.schema_version==1 else self._object_attempt(db,row['object_id'],row['domain'])
         object_success = db.execute('SELECT * FROM collection_runs WHERE run_id=?',(row['run_id'],)).fetchone()
         last_good = object_attempt is not None and object_attempt['status']!='complete'
-        age = max(0,now-row['observed_at'])
+        # Age is judged on the effective time when the caller has one; a stamp ahead of the raw wall is still refused
+        # on the raw wall, so an effective time ahead of the wall never blesses a future stamp.
+        age = max(0,(now if effective is None else effective)-row['observed_at'])
         # Each condition that makes the observation stale is kept by name, so a reader can say which held.
         reasons = ((['later_collection_not_complete'] if last_good else []) + (['older_than_window'] if age>max_age_seconds else [])
-                   + (['stamped_after_now'] if row['observed_at']>now else []))
+                   + (['stamped_after_now'] if row['observed_at']>now else []) + list(clock_reasons))
         # What a later collection would do to this current observation, by the ordering rule of _publish: from the
         # same modeled service it becomes current (same_service); a capture stamped later than this store's clock
         # at its import gives way to any own collection (any_collection); otherwise an imported capture is
@@ -802,10 +829,14 @@ class WorkbenchStore:
             if len(canonical(result))>MAX_QUERY_BYTES: _fail('workbench_query_limit')
             return result
 
-    def inspect(self, object_id):
-        """Inspect exactly one current/pending object, independent of estate size."""
+    def inspect(self, object_id, *, bind=False):
+        """Inspect exactly one current/pending object, independent of estate size.
+
+        Read-only by default. bind=True is for the one caller that acts on the answer (a binding proposal): it records
+        the clock reading it judged on, so a refused stale decision still raises the durable mark.
+        """
         _identity(object_id)
-        now = _timestamp()
+        now, effective, clock_reasons = self._clock_reading(bind=bind)
         with self._connection() as db, self._query_budget(db):
             db.execute('BEGIN')
             attempt,success = self._latest(db)
@@ -817,7 +848,7 @@ class WorkbenchStore:
                     (object_id,)).fetchone()
             if row is not None:
                 health = self._collection_health(db,success,now,3600)
-                value = self._current_observation(db,row,attempt,health,now,3600)
+                value = self._current_observation(db,row,attempt,health,now,3600,effective,clock_reasons)
             elif self.schema_version==2 and db.execute("""SELECT 1 FROM run_scope_objects s JOIN run_details d USING(run_id)
                     WHERE s.object_id=? AND d.evidence_class IN ('graph_capture_unverified',
                     'graph_authenticated_observation','graph_reader_laboratory','graph_reader_attempt') LIMIT 1""",(object_id,)).fetchone():

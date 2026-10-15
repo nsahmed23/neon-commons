@@ -199,7 +199,7 @@ def _check_cited_intent(store, object_id, desired, context):
                        'the edited repository and cite the new intent.')
 
 
-def _observation_problem(store, object_id, tenant, service_root, snapshot, observation=None):
+def _observation_problem(store, object_id, tenant, service_root, snapshot, observation=None, binding=False):
     """Why the newest observation cannot ground a proposal: (code, reason, observation), or (None, None, observation).
 
     The code is what propose refuses with. The reason names which check failed, because one code covers several
@@ -208,8 +208,9 @@ def _observation_problem(store, object_id, tenant, service_root, snapshot, obser
     blocker with the same code the submission would meet.
     """
     # An advisory caller may pass the observation it already shows, so one screen judges freshness once; propose
-    # reads its own under the service lock.
-    observation = store.inspect(object_id) if observation is None else observation
+    # reads its own under the service lock. A binding reading is recorded before the verdict, so a refused stale
+    # decision still raises the store's durable clock mark; an advisory one records nothing.
+    observation = store.inspect(object_id, bind=binding) if observation is None else observation
     if observation['tenant_id'] != tenant:
         return 'maintenance_observation_incomplete', 'tenant_mismatch', observation
     if observation.get('coverage') != 'complete':
@@ -301,7 +302,7 @@ def _propose(store_root, service_root, object_id, desired_path, output, *, conte
         store = _store(store_root)
         if context:
             _check_cited_intent(store, object_id, desired, context_value)
-        problem, _, observation = _observation_problem(store, object_id, tenant, service_root, snapshot)
+        problem, _, observation = _observation_problem(store, object_id, tenant, service_root, snapshot, binding=True)
         if problem:
             _fail(problem)
         before = service.readback(tenant_id=tenant)

@@ -727,6 +727,7 @@ plugin_tests/test_native_convergence_epoch.py
 plugin_tests/test_native_host_contract_r4.py
 plugin_tests/test_native_pin_profiles_epoch.py
 plugin_tests/test_native_smoke_observation_epoch.py
+plugin_tests/test_observation_clock_freshness.py
 plugin_tests/test_observation_jobs_r4.py
 plugin_tests/test_observation_reader_r4.py
 plugin_tests/test_oracle_edge_types.py
