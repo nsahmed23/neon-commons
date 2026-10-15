@@ -127,6 +127,7 @@ contracts/observed-inventory.schema.json
 contracts/operation.schema.json
 contracts/production-field-accounting.schema.json
 contracts/session-state.schema.json
+contracts/simulation-result.schema.json
 contracts/source-lock.schema.json
 corrections/BUILD-START-HERE.md
 corrections/CORRECTION-SPEC.md
@@ -522,7 +523,12 @@ intune_iac/repository.py
 intune_iac/repository_entry.py
 intune_iac/runner.py
 intune_iac/service_cli.py
+intune_iac/sim_eval.py
+intune_iac/sim_filters.py
 intune_iac/sim_model.py
+intune_iac/sim_profile.py
+intune_iac/sim_result.py
+intune_iac/sim_settings.py
 intune_iac/synthetic.py
 intune_iac/target.py
 intune_iac/validity.py
@@ -812,6 +818,7 @@ plugin_tests/fixtures/pre_pin_migration/session/session.json
 plugin_tests/fixtures/pre_pin_migration/session/session.json.repository-context.7afc87cf3f7641e8bafde059edb3b335.json
 plugin_tests/fixtures/worker_service_tls_client.c
 plugin_tests/signing_fixture.py
+plugin_tests/sim_cases.py
 plugin_tests/sim_support.py
 plugin_tests/test_adoption_expiry_latch.py
 plugin_tests/test_adoption_lab.py
@@ -917,6 +924,8 @@ plugin_tests/test_restricted_hashes.py
 plugin_tests/test_runner.py
 plugin_tests/test_security_audit_completion.py
 plugin_tests/test_security_boundaries_completion.py
+plugin_tests/test_sim_evaluator.py
+plugin_tests/test_sim_filters.py
 plugin_tests/test_sim_snapshot.py
 plugin_tests/test_source_linkage_r4.py
 plugin_tests/test_stack_input.py

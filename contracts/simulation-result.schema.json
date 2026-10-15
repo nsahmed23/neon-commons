@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:intune-workbench:simulation-result:v1",
+  "title": "Proposed Workbench simulation result contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "simulation_id", "input_binding", "evidence_class", "coverage", "cohorts", "findings", "live_execution_authorized", "endpoint_effective"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "simulation_id": {"type": "string", "minLength": 1},
+    "input_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["realm_id", "snapshot_sha256", "desired_source_sha256", "semantics_sha256"],
+      "properties": {
+        "realm_id": {"type": "string", "minLength": 1},
+        "snapshot_sha256": {"$ref": "#/$defs/sha256"},
+        "desired_source_sha256": {"$ref": "#/$defs/sha256"},
+        "semantics_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "evidence_class": {"enum": ["synthetic_snapshot_simulation", "approved_snapshot_simulation", "native_binaries_simulated_services"]},
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["universe", "snapshot_complete", "outside_snapshot_population", "unresolved_reasons"],
+      "properties": {
+        "universe": {"enum": ["captured_devices", "complete_declared_synthetic_fleet", "complete_declared_tenant_snapshot"]},
+        "snapshot_complete": {"type": "boolean"},
+        "outside_snapshot_population": {"enum": ["none_within_declared_scope", "unknown"]},
+        "unresolved_reasons": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    },
+    "cohorts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["cohort_id", "kind", "lower", "upper", "unit", "scope"],
+        "properties": {
+          "cohort_id": {"type": "string"},
+          "kind": {"enum": ["before", "after", "added", "removed", "retained", "conflict_overlap"]},
+          "lower": {"type": "integer", "minimum": 0},
+          "upper": {"type": ["integer", "null"], "minimum": 0},
+          "unit": {"enum": ["unique_devices", "user_device_contexts"]},
+          "scope": {"enum": ["observed_universe", "whole_declared_universe"]},
+          "ring_id": {"type": ["string", "null"]},
+          "reason_refs": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "certainty", "message", "source_refs", "permitted_next_action"],
+        "properties": {
+          "id": {"type": "string"},
+          "kind": {"enum": ["blast_radius", "filter_inversion", "exclusion_removed", "equivalent_overlap", "predicted_configuration_conflict", "potential_conflict", "defined_precedence", "unknown_semantics", "unsupported_target", "coverage_gap"]},
+          "certainty": {"enum": ["definite_under_model", "possible", "unknown"]},
+          "message": {"type": "string"},
+          "source_refs": {"type": "array", "items": {"type": "string"}},
+          "permitted_next_action": {"type": "string"}
+        }
+      }
+    },
+    "live_execution_authorized": {"const": false},
+    "endpoint_effective": {"const": false}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+  "$comment": "Consumers must additionally enforce lower <= upper when upper is finite, L subset U, source-reference integrity, and no finite whole-tenant upper bound when the outside-snapshot population is unknown. Null upper means unbounded/unknown, not zero. This is a proposal, not an existing shipped schema."
+}
