@@ -47,10 +47,12 @@ WORD_CELLS = 18
 EDGE_STYLES = {
     'assignment': {'dash': 'none', 'name': 'assignment', 'meaning': 'the policy is assigned to the group or target at the end'},
     'exclusion': {'dash': '8 5', 'name': 'exclusion', 'meaning': 'the policy excludes the group at the end'},
-    'filter': {'dash': '2 4', 'name': 'filter', 'meaning': 'an assignment filter applies to the policy'},
+    'filter': {'dash': '1 4', 'name': 'filter',
+               'meaning': 'an assignment filter applies to one assignment, not to the policy: the line under the filter says '
+                          'which ("applies to"), and the line under that assignment names the filter ("+ filter")'},
     'setting': {'dash': '10 4 2 4', 'name': 'setting', 'meaning': 'the policy holds the setting at the end'},
     'scope_tag': {'dash': '14 6', 'name': 'scope tag', 'meaning': 'the policy carries the scope tag at the end'},
-    'generated_from': {'dash': '1 3', 'name': 'generated', 'meaning': 'the policy was generated from the file at the end'},
+    'generated_from': {'dash': '4 3', 'name': 'generated', 'meaning': 'the policy was generated from the file at the end'},
     'repository': {'dash': '12 4 2 4 2 4', 'name': 'repository', 'meaning': 'the repository scope the engineer selected'},
     'other': {'dash': '6 6 1 6', 'name': 'other relation', 'meaning': 'a relation the read model named; the detail states it'},
 }
@@ -124,6 +126,7 @@ SCRIPT = """
   var items = Array.prototype.slice.call(svg.querySelectorAll('.node'));
   var details = Array.prototype.slice.call(doc.querySelectorAll('.detail'));
   var zoomText = doc.getElementById('zoom-level');
+  var panKey = doc.getElementById('key-pan');
   var base = svg.getAttribute('viewBox').split(' ').map(Number);
   var levels = [1, 1.5, 2, 3, 4];
   var level = 0;
@@ -157,6 +160,8 @@ SCRIPT = """
     view[1] = Math.max(base[1], Math.min(view[1], base[1] + base[3] - view[3]));
     svg.setAttribute('viewBox', view.join(' '));
     zoomText.textContent = 'Zoom ' + Math.round(levels[level] * 100) + '%';
+    // The pan keys are listed only while the drawing is larger than the view, that is, zoomed in.
+    panKey.hidden = level === 0;
   }
 
   function zoom(next) {
@@ -541,7 +546,9 @@ def _legend():
 def _state_detail(node):
     if not node['state_applies']:
         return _t('no operation state applies to a %s' % node['kind_word'])
-    return _t('operation %s (recorded by the read model); workbench state %s' % (node['operation'], node['state']))
+    # The words the terminal map shows: the operation the read model recorded, and nothing else. The workbench's own
+    # state word is the mark, not a second claim, and is never printed as "unknown" beside a word the read model gave.
+    return _t('operation %s (recorded by the read model)' % node['operation'])
 
 
 def _details(graph, labels):
@@ -628,7 +635,8 @@ def render_page(graph, *, mode_class=None, tenant=None, observed_at=None, tree_l
         body_live = (' data-live="1" data-snapshot="%s" data-poll="%d"' % (_t(live['snapshot']), live['poll_seconds'] * 1000))
     else:
         status = ('STATIC FILE: this page does not update itself. It shows revision %s, %s. To see a newer snapshot, '
-                  'write the file again or use live mode.' % (revision[:12], ('observed ' + _t(when)) if when else 'observation time unknown'))
+                  'write the file again or use live mode: from a shell, run the same workbench companion command with --serve '
+                  'instead of --out.' % (revision[:12], ('observed ' + _t(when)) if when else 'observation time unknown'))
         note = 'This file was written once; nothing on it reads the workbench again.'
         body_live = ''
     lines = _bounded(tree_lines if tree_lines is not None else _tree(graph))
@@ -672,7 +680,8 @@ def render_page(graph, *, mode_class=None, tenant=None, observed_at=None, tree_l
         '<li>Home: follow the connector to the other end (from the policy to its first neighbour, from any item to the policy).</li>'
         '<li>Enter, Space: select the focused item and show its detail.</li>'
         '<li>Escape: select the policy again.</li>'
-        '<li>Left, Right, Page Up, Page Down: pan the drawing.</li>'
+        '<li id="key-pan" hidden>Left, Right, Page Up, Page Down: pan the drawing while it is zoomed in. At 100%% the whole '
+        'drawing is in view and nothing pans.</li>'
         '<li>+ zoom in, - zoom out, 0 fit the whole drawing; the buttons do the same.</li></ul></section>\n'
         '<section id="text-alternative" aria-labelledby="h-text"><h2 id="h-text">Text alternative: the relationship tree</h2>'
         '<pre>%s</pre></section>\n</main>\n<script>%s</script>\n</body>\n</html>\n'

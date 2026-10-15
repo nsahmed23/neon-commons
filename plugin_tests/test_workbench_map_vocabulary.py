@@ -259,5 +259,85 @@ class KeyLineTests(MapTruth):
         self.assertTrue(help_line(60, lead=('a actions',), map_keys=True).startswith('? help | a actions'))
 
 
+class PageTruthTests(MapTruth):
+    """Item 4: the page says what the map says about the filter and the policy state, names the live command and lists
+    the pan keys only where something pans."""
+
+    def page(self, value=None, **kw):
+        from intune_iac.companion_page import render_page
+        return render_page(self.graph(self.value if value is None else value, **kw), mode_class='synthetic_local_process_only',
+                           tenant=self.truth['tenant_id'], observed_at='2026-10-15T12:00:00Z')
+
+    def section(self, text, ident):
+        from plugin_tests.test_companion_page import section
+        return section(text, ident)
+
+    def test_the_legend_says_a_filter_applies_to_one_assignment_not_to_the_policy(self):
+        from intune_iac.companion_page import EDGE_STYLES
+        legend = self.section(self.page(), 'legend')
+        meaning = EDGE_STYLES['filter']['meaning']
+        self.assertIn('one assignment', meaning)
+        self.assertIn('applies to', meaning)
+        self.assertNotIn('applies to the policy', meaning)
+        self.assertNotIn('applies to the policy', legend)
+        self.assertIn(meaning, legend.replace('&quot;', '"'))
+
+    def test_every_relation_has_its_own_line_pattern_in_the_legend_and_in_the_drawing(self):
+        from intune_iac.companion_page import EDGE_STYLES, _swatch
+        dashes = [style['dash'] for style in EDGE_STYLES.values()]
+        swatches = [_swatch(dash) for dash in dashes]
+        self.assertEqual(len(set(dashes)), len(dashes), dashes)
+        self.assertEqual(len(set(swatches)), len(swatches), dict(zip(EDGE_STYLES, swatches)))
+        self.assertNotEqual(_swatch(EDGE_STYLES['filter']['dash']), _swatch(EDGE_STYLES['generated_from']['dash']))
+        legend = self.section(self.page(), 'legend')
+        for swatch in swatches:
+            self.assertEqual(legend.count('<span class="swatch">%s</span>' % swatch), 1, swatch)
+
+    def test_the_page_states_the_policy_operation_as_the_map_does_and_never_workbench_state_unknown(self):
+        from intune_iac.workbench_screens import map_lines
+        for state in (None, 'expired', 'prepared', 'succeeded_verified', 'dispatched', 'running'):
+            graph = self.graph(states={self.object_id: state} if state else None, freshness='fresh')
+            page = self.page(states={self.object_id: state} if state else None, freshness='fresh')
+            policy = next(node for node in graph['nodes'] if node['kind'] == 'policy')
+            first = self.section(page, 'detail-list').split('</li>')[0]
+            self.assertIn('operation %s' % policy['operation'], first, state)
+            self.assertNotIn('workbench state', page, state)
+            self.assertNotIn('workbench state unknown', page)
+            map_text = ' '.join(map_lines(graph, 100, 'unicode'))
+            self.assertIn('operation %s' % policy['operation'], map_text, state)
+        # The page and the map say the same two things of the common case: nothing is recorded, and nothing else is claimed.
+        none = self.section(self.page(), 'detail-list').split('</li>')[0]
+        self.assertIn('operation none recorded (recorded by the read model)', none)
+        self.assertNotIn('unknown', none)
+
+    def test_use_live_mode_names_the_command(self):
+        page = self.page()
+        status = self.section(page, 'live')
+        self.assertIn('use live mode', status)
+        for part in ('from a shell', 'workbench companion', '--serve', 'instead of --out'):
+            self.assertIn(part, status)
+        # The live page does not ask for a mode it already has.
+        live = self.page_live()
+        self.assertNotIn('use live mode', self.section(live, 'live'))
+
+    def page_live(self):
+        from intune_iac.companion_page import render_page
+        return render_page(self.graph(freshness='fresh'), mode_class='synthetic_local_process_only', observed_at='2026-10-15T12:00:00Z',
+                           live={'snapshot': 'snapshot', 'poll_seconds': 3, 'idle_seconds': 1800})
+
+    def test_the_pan_keys_are_listed_only_while_the_drawing_is_zoomed_in(self):
+        for page in (self.page(), self.page_live()):
+            keys = self.section(page, 'keys')
+            item = re.search(r'<li id="key-pan"([^>]*)>([^<]*)</li>', keys)
+            self.assertIsNotNone(item, keys)
+            self.assertIn('hidden', item.group(1), 'at 100% the whole drawing is in view and nothing pans')
+            self.assertIn('Left, Right, Page Up, Page Down', item.group(2))
+            self.assertIn('zoomed', item.group(2))
+            script = page.split('<script>')[1]
+            # The script shows the line when the zoom level is above 100% and hides it again at 100%.
+            self.assertRegex(script, r"getElementById\('key-pan'\)")
+            self.assertRegex(script, r'panKey\.hidden = level === 0')
+
+
 if __name__ == '__main__':
     unittest.main()
