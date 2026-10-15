@@ -221,7 +221,7 @@ class ApprovalLatchTests(SuccessorFixture):
 
 
 class PreimageFreshnessTests(unittest.TestCase):
-    """The 30 second age of the service preimage is carried on the monotonic clock from the first sight of it."""
+    """The 30 second age of the service preimage is carried by the capture itself, on the monotonic clock."""
 
     def setUp(self):
         self.start = time.time()
@@ -230,9 +230,6 @@ class PreimageFreshnessTests(unittest.TestCase):
             patcher = patch.object(target, name, side_effect=function)
             patcher.start()
             self.addCleanup(patcher.stop)
-        seen = getattr(successor, '_PREIMAGE_SEEN', {})  # the first-sight map of this process, empty for each test
-        seen.clear()
-        self.addCleanup(seen.clear)
         capture = 'c' * 64
         self.manifest = {'profile': 'native_docker_laboratory_protocol', 'tenant_id': 't', 'object_ids': ['o'],
             'precondition_binding': {'preimage_capture_sha256': capture, 'identity': {'who': 'reader'},
@@ -242,32 +239,54 @@ class PreimageFreshnessTests(unittest.TestCase):
             'source': {'raw_observed': {'raw': 1}}}
         self.source = {'evidence_class': 'graph_reader_laboratory', 'source_authenticity_verified': False,
                        'identity': {'who': 'reader'}, 'identity_observation_sha256': 'i' * 64}
-        self.captured = object.__new__(reader_api.CapturedObservation)
-        self.captured.cancelled = False
         patcher = patch.object(reader_api.CapturedObservation, 'verified', lambda captured: (self.batch, self.source))
         patcher.start()
         self.addCleanup(patcher.stop)
 
-    def check(self):
-        return successor._service_preimage(self.captured, self.manifest)
+    def capture(self):
+        """A capability made by this process now, as the reader makes one (the constructor is sealed)."""
+        return reader_api.CapturedObservation(reader_api._CAPTURE, 'capture.json', self.batch, self.source, False)
 
     def test_a_fresh_preimage_is_admitted(self):
         self.clocks.elapse(10)
-        self.assertEqual(self.check()['capture_sha256'], 'c' * 64)
+        self.assertEqual(successor._service_preimage(self.capture(), self.manifest)['capture_sha256'], 'c' * 64)
 
     def test_a_stale_preimage_stays_stale_after_the_wall_clock_steps_back(self):
         self.clocks.elapse(10)
-        self.check()  # first sight, ten seconds old
+        captured = self.capture()  # ten seconds old when made
+        successor._service_preimage(captured, self.manifest)
         self.clocks.elapse(100)  # real time passes: the capture is now 110 seconds old
         self.clocks.step(-100)  # the wall clock claims it is 10 seconds old again
         with self.assertRaises(AppError) as raised:
-            self.check()
+            successor._service_preimage(captured, self.manifest)
         self.assertEqual(raised.exception.code, 'successor_service_preimage_binding')
+
+    def test_a_preimage_stays_stale_however_long_it_is_kept(self):
+        # No bounded process map decides freshness: the age is on the capture, so a long wait cannot forget it.
+        self.clocks.elapse(10)
+        captured = self.capture()
+        successor._service_preimage(captured, self.manifest)
+        self.clocks.elapse(301)
+        self.clocks.step(-301)
+        with self.assertRaises(AppError) as raised:
+            successor._service_preimage(captured, self.manifest)
+        self.assertEqual(raised.exception.code, 'successor_service_preimage_binding')
+        self.clocks.elapse(3000)
+        self.clocks.step(-3000)
+        with self.assertRaises(AppError):
+            successor._service_preimage(captured, self.manifest)
+
+    def test_a_capture_that_another_process_made_is_refused_whatever_the_wall_clock_says(self):
+        self.clocks.elapse(10)
+        captured = self.capture()
+        object.__setattr__(captured, '_pid', captured._pid + 1)  # as a copy carried into a restarted process would be
+        with self.assertRaises(AppError):
+            successor._service_preimage(captured, self.manifest)
 
     def test_a_preimage_dated_ahead_of_the_clock_is_refused(self):
         self.clocks.step(-5)
         with self.assertRaises(AppError):
-            self.check()
+            successor._service_preimage(self.capture(), self.manifest)
 
 
 if __name__ == '__main__':

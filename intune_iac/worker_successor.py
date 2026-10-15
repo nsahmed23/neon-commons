@@ -22,7 +22,6 @@ SIGNATURE_DOMAIN = b'intune-workbench:worker-service-successor-transfer:v2\x00'
 DOMAIN = SIGNATURE_DOMAIN.rstrip(b'\x00').decode()  # the transfer approval's domain, part of its expiry key
 EXPIRED_TABLE = 'successor_expired'  # in the original job's store, beside successor_transfers
 PREIMAGE_FRESH_SECONDS = 30
-_PREIMAGE_SEEN = {}  # capture digest -> (monotonic time, age in seconds) at this process's first sight of it
 
 
 def _fail(code):
@@ -55,15 +54,13 @@ def _original(job, db):
             'cancelled': bool(row[1]), 'outcome_sha256': digest(outcome), 'scopes': owners}
 
 
-def _preimage_age(batch):
-    """The age of a process-held capture: the wall age, or the age at this process's first sight of it plus the monotonic
-    time since, whichever is older. A wall clock that steps back after the window has elapsed cannot make it fresh again.
-    A capture dated ahead of the wall clock has a negative wall age and is refused by the caller."""
-    wall_age, now = time.time() - batch['observed_at'], time.monotonic()
-    for key in [key for key, (seen, age) in _PREIMAGE_SEEN.items() if age + now - seen > 10 * PREIMAGE_FRESH_SECONDS]:
-        del _PREIMAGE_SEEN[key]  # long stale: it can never be fresh again, and the map stays small
-    seen, first_age = _PREIMAGE_SEEN.setdefault(batch['capture_sha256'], (now, wall_age))
-    return wall_age if wall_age < 0 else max(wall_age, first_age + now - seen)
+def _preimage_age(captured, batch):
+    """The age of a process-held capture: the wall age, or the capture's own carried age (its age when this process made
+    it plus the monotonic time since), whichever is older. A wall clock that steps back, however long after, cannot make it
+    fresh again, and no bounded map decides it; a capture from another process is refused. A capture dated ahead of the
+    wall clock has a negative wall age and is refused by the caller."""
+    wall_age = time.time() - batch['observed_at']
+    return wall_age if wall_age < 0 else max(wall_age, captured.carried_age())
 
 
 def _service_preimage(captured, manifest):
@@ -74,7 +71,7 @@ def _service_preimage(captured, manifest):
     live = manifest['profile'] == 'azure_public_pilot'
     expected_class = 'graph_authenticated_observation' if live else 'graph_reader_laboratory'
     if (captured.cancelled or type(batch.get('observed_at')) not in (int, float)
-            or not 0 <= _preimage_age(batch) <= PREIMAGE_FRESH_SECONDS
+            or not 0 <= _preimage_age(captured, batch) <= PREIMAGE_FRESH_SECONDS
             or batch.get('tenant_id') != manifest['tenant_id'] or [batch.get('object_id')] != manifest['object_ids']
             or batch.get('capture_sha256') != expected.get('preimage_capture_sha256')
             or source.get('evidence_class') != expected_class or source.get('source_authenticity_verified') is not live

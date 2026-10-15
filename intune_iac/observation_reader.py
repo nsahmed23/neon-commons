@@ -259,7 +259,8 @@ def _bind(spec, credential, transport, clock, duration, seal):
 
 
 class CapturedObservation:
-    __slots__ = ('_path', '_batch', '_source', '_digest', '_source_digest', '_storage', '_pid', 'cancelled')
+    __slots__ = ('_path', '_batch', '_source', '_digest', '_source_digest', '_storage', '_pid', 'cancelled', '_born',
+                 '_born_age')
 
     def __init__(self, seal, path, batch, source, cancelled, *, storage=None):
         if seal is not _CAPTURE:
@@ -267,9 +268,20 @@ class CapturedObservation:
         self._path, self._batch, self._source = path, batch, source
         self._digest, self._source_digest = digest(batch), digest(source)
         self._storage, self._pid, self.cancelled = storage, os.getpid(), cancelled
+        # The capability carries its own age: when this process made it (monotonic) and how old the read already was.
+        observed = batch.get('observed_at') if type(batch) is dict else None
+        self._born = time.monotonic()
+        self._born_age = max(0.0, time.time() - observed) if type(observed) in (int, float) else 0.0
 
     def __reduce_ex__(self, protocol):
         raise TypeError('Captured observation capabilities cannot be serialized.')
+
+    def carried_age(self):
+        """Seconds since the read, by this capability's own monotonic clock: the age when it was made plus the time
+        since. A wall clock that steps back cannot make it younger; a capability from another process is refused."""
+        if self._pid != os.getpid():
+            _fail('reader_capture_changed')
+        return self._born_age + (time.monotonic() - self._born)
 
     def verified(self):
         if (self._pid != os.getpid() or digest(self._batch) != self._digest
