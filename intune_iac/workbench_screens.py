@@ -584,6 +584,17 @@ def filter_lines(choices, focus, current, width):
     return lines
 
 
+def filter_words(filters):
+    """The estate filters in words: what was searched and which filters apply, or that none do."""
+    applied = []
+    for key, item in (filters or {}).items():
+        if item in (None, '', [], {}):
+            continue
+        applied.append('search "%s"' % safe_text(str(item)) if key == 'query' else
+                       '%s %s' % (str(key).replace('_', ' '), _as_words(item)))
+    return 'Filters: %s.' % '; '.join(applied) if applied else 'No filters applied.'
+
+
 def baseline_words(baseline):
     """A comparison baseline in words: what it is, its identities shortened, its time readable; never a JSON dump."""
     if not isinstance(baseline, dict):
@@ -1260,7 +1271,8 @@ def relationship_lines(value, width, rules='ascii'):
     ownership = value.get('ownership_evidence') if isinstance(value.get('ownership_evidence'), dict) else {}
     lines.append('OWNERSHIP')
     reason = ownership.get('reason')
-    lines += word_wrap('  ' + tree[1] + pad('writer', 13) + str(value.get('ownership', 'unknown')) + (': ' + str(reason) if reason else ''), width)
+    lines += word_wrap('  ' + tree[1] + pad('writer', 13) + _as_words(value.get('ownership', 'unknown'))
+                       + (' (%s)' % _as_words(reason) if reason else ''), width)
     return lines
 
 
@@ -1326,7 +1338,15 @@ def _matrix(counts, width):
     per = max(1, -(-targeted // MAX_CELLS))
     cells = ''.join(symbol * -(-count // per) for (symbol, _), count in zip(CELLS, counts[2:]))
     row = max(1, min(50, width - 6))
-    lines = ['    [' + cells[start:start + row] + ']' for start in range(0, len(cells), row)]
+    if len(cells) <= row:
+        lines = ['    [' + cells + ']']
+    else:
+        # Wrapped rows say which devices (or cells) they hold, so a second row never reads as a second bar.
+        unit = 'devices' if per == 1 else 'cells'
+        size = len('%s %d-%d ' % (unit, len(cells), len(cells)))
+        row = max(1, min(50, width - 6 - size))
+        lines = ['    %s[%s]' % (pad('%s %d-%d' % (unit, start + 1, min(start + row, len(cells))), size),
+                                 cells[start:start + row]) for start in range(0, len(cells), row)]
     scale = 'each cell is 1 device' if per == 1 else 'each cell is up to %d devices; exact counts above' % per
     return lines + word_wrap('    ' + '  '.join('%s %s' % pair for pair in CELLS), width) + word_wrap('    ' + scale, width)
 
@@ -1382,7 +1402,7 @@ def _object_health(row, health, width):
     if health.get('as_of') is not None:
         capture = health.get('capture') if isinstance(health.get('capture'), dict) else {}
         lines += word_wrap('  Evidence %s | as of %s | cohort %s%s' % (
-            health.get('evidence_class'), health.get('as_of'), health.get('cohort_version'),
+            evidence_words(health.get('evidence_class')), _when(health.get('as_of')), health.get('cohort_version'),
             ' | capture incomplete' if capture.get('truncated') or capture.get('access_errors') else ''), width)
         denominator = '  Denominator %s targeted of %s eligible, %s excluded' % (health.get('targeted'), health.get('eligible'), health.get('excluded'))
         if health.get('membership_conflicts'):
@@ -1412,8 +1432,8 @@ def _collection_lines(value, width):
     for label, key in (('Last success', 'last_success'), ('Last attempt', 'last_attempt')):
         run = value.get(key)
         if isinstance(run, dict):
-            lines += word_wrap('%s %s | run %s | %s | error %s' % (label, run.get('completed_at') or run.get('started_at'),
-                               run.get('run_id'), run.get('status'), run.get('error_code') or 'none'), width)
+            lines += word_wrap('%s %s | run %s | %s | error %s' % (label, _when(run.get('completed_at') or run.get('started_at')),
+                               run.get('run_id'), _as_words(run.get('status')), run.get('error_code') or 'none'), width)
         else:
             lines += word_wrap(label + ' not recorded', width)
     if value.get('retained_last_good'):
@@ -1820,7 +1840,7 @@ def families_lines(value, width):
     source = value.get('source') or {}
     lines += word_wrap('From %s (sha256 %s); live qualification: %s.' % (
         source.get('path'), str(source.get('sha256'))[:12],
-        ', '.join(sorted({str(row.get('live')) for row in value.get('families') or []})) or 'unknown'), width)
+        ', '.join(sorted({_as_words(row.get('live')) for row in value.get('families') or []})) or 'unknown'), width)
     for row in value.get('families') or []:
         lines.append('')
         lines += word_wrap(str(row.get('family')), width)
@@ -2024,19 +2044,43 @@ KNOWN_NEXT = {
 
 
 # Where 'clear' could be read as more than the check establishes, the area says what was checked.
-AREA_CLEAR = {'device_evidence': 'clear: the capture is complete and its cohort consistent; h shows how many devices '
-                                 'reported'}
+AREA_CLEAR = {'device_evidence': 'capture complete and cohort consistent; whether devices reported is not judged here '
+                                 '(h shows the counts)'}
 CHECK_WORDS = {'clear': 'clear', 'attention': 'needs attention', 'not_recorded': 'no repository intent recorded',
                'not_imported': 'no device evidence imported',
                'explained_by_collection': 'stale; explained by the failed collection above',
                'partly_checked': 'partly checked: the read bound was reached', 'unavailable': 'could not be read'}
 
 
+def evidence_detail_words(evidence):
+    """A signal's evidence in words: names spaced, times readable, identities shortened, reasons in words; the
+    exact values stay in the typed details and the raw record."""
+    parts = []
+    for key, item in evidence.items():
+        if item in (None, [], {}) or key == 'scope':
+            continue
+        label = str(key).replace('_', ' ')
+        if key == 'snapshot_id' and isinstance(item, str):
+            parts.append('snapshot ' + item[:12])
+        elif str(key).endswith('_at') and isinstance(item, str):
+            parts.append('%s %s' % (label, _when(item)))
+        elif key == 'freshness_reasons' and isinstance(item, list):
+            parts.append('%s: %s' % (label, ', '.join(FRESHNESS_REASON_WORDS.get(reason, _as_words(reason)) for reason in item)))
+        elif isinstance(item, list):
+            parts.append('%s: %s' % (label, ', '.join(_as_words(entry) if isinstance(entry, str) else _value(entry) for entry in item)))
+        elif isinstance(item, bool):
+            parts.append('%s %s' % (label, 'yes' if item else 'no'))
+        else:
+            parts.append('%s %s' % (label, item if isinstance(item, str) else _value(item)))
+    return '; '.join(parts)
+
+
 def diagnostics_lines(value, width):
     """What needs attention for one policy: each observed fact, its evidence and the next step; then what is clear."""
     signals = [signal for signal in value.get('signals') or [] if isinstance(signal, dict)]
     partial = any(state in ('partly_checked', 'unavailable') for state in (value.get('checked') or {}).values())
-    summary = (_plural(len(signals), 'signal') + (' need attention' if len(signals) != 1 else ' needs attention') if signals
+    summary = (_plural(len(signals), 'signal') + (' need attention' if len(signals) != 1 else ' needs attention')
+               + '; reporting completeness and ownership are reviewed in the maintenance queue (m)' if signals
                else 'no signal, but some areas were not fully read' if partial
                else 'no signal in the areas checked below; reporting completeness and ownership are reviewed in the '
                     'maintenance queue (m)')
@@ -2047,8 +2091,7 @@ def diagnostics_lines(value, width):
         lines += word_wrap('[!] %s  %s' % (signal.get('area'), signal.get('code')), width)
         lines += _labelled('  Observed', str(signal.get('observed')), width, 12)
         evidence = signal.get('evidence') if isinstance(signal.get('evidence'), dict) else {}
-        shown = ', '.join('%s %s' % (key, _value(item) if not isinstance(item, str) else item) for key, item in evidence.items()
-                          if item not in (None, [], {}) and key not in ('scope',))
+        shown = evidence_detail_words(evidence)
         if shown:
             lines += _labelled('  Evidence', shown, width, 12)
         lines += _labelled('  Next', str(signal.get('next_step')), width, 12)

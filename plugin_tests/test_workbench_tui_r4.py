@@ -317,7 +317,7 @@ class VisualPTYTests(unittest.TestCase):
     def test_global_filter_pages_and_resume_preserve_declared_scope(self):
         self.launch('--no-color'); self.launched()
         self.key(b':views-page 3 0 Privacy unknown complete_fresh -\r')
-        self.assertIn(b'Global filters:', self.output)
+        self.assertIn(b'Filters: search "Privacy"', self.output)
         self.assertIn(b'Matching objects: 8 / inventory: 8', self.output)
         self.key(b'n')
         context = json.loads((self.store.root / 'workspace-context.json').read_text())

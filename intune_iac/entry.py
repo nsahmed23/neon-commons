@@ -175,7 +175,8 @@ def _store_item(root, directory, rel):
             'freshness': overview.get('freshness'), 'coverage': overview.get('coverage'),
             'intents': [{'object_id': row['data'].get('target_object_id'), 'repository': row['data'].get('scope', {}).get('repository'),
                          'artifact_id': row['artifact_id']} for row in intents],
-            'operations': len(operations),
+            # Operations, not their journal records (item 17).
+            'operations': len({row.get('operation_id') for row in operations}),
             'states': _states(total > 0, qualified='synthetic_only' if overview.get('evidence_class') in (None, 'synthetic') else 'not_qualified',
                               reason=None if total else 'no_observations')}
 
@@ -399,7 +400,10 @@ def _summary(item):
     if kind == 'wizard_session':
         return 'step %s%s | output %s' % (item.get('step'), ' (' + item['conflict_reason'] + ')' if item.get('conflict_reason') else '', item.get('output'))
     if kind == 'journey_session':
-        return '%s | next %s | %s of 17 stages verify' % (item.get('lifecycle'), item.get('next_state'), item.get('verified'))
+        words = lambda value: str(value).replace('_', ' ')
+        state = words(item.get('lifecycle')) + ('' if item.get('next_state') in (None, item.get('lifecycle'))
+                                              else ' | next ' + words(item.get('next_state')))
+        return '%s | %s of 17 stages verified as completed' % (state, item.get('verified'))
     if kind == 'guided_session':
         return '%s | %s' % (item.get('lifecycle'), item.get('saved_state'))
     if kind == 'export':
@@ -437,7 +441,8 @@ def start_lines(value, width):
             for index, part in enumerate(word_wrap(text, max(10, width - len(label)))):
                 lines.append((label if index == 0 else ' ' * len(label)) + part)
             states = item['states']
-            configured = 'configured' if states.get('configured') else 'not configured: ' + str(states.get('configured_reason', 'incomplete')).replace('_', ' ')
+            # Usable here, offline; "configured" read as if a live connection were set up (item 15).
+            configured = 'usable here' if states.get('configured') else 'not usable here: ' + str(states.get('configured_reason', 'incomplete')).replace('_', ' ')
             words = ' | '.join(['discovered', configured, STATE_WORDS.get(states['authenticated'], states['authenticated']),
                                 STATE_WORDS.get(states['qualified'], states['qualified'])])
             for part in word_wrap(words, max(10, width - len(label))):

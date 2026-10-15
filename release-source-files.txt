@@ -822,6 +822,7 @@ plugin_tests/test_workbench_store.py
 plugin_tests/test_workbench_tui_r4.py
 plugin_tests/test_workbench_vendor_lineage.py
 plugin_tests/test_workbench_views_r4.py
+plugin_tests/test_workbench_words.py
 plugin_tests/test_worker_adoption_ownership_r4.py
 plugin_tests/test_worker_adoption_phase_successor_r4.py
 plugin_tests/test_worker_adoption_plan_observation_r4.py

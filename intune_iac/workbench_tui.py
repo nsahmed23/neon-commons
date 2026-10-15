@@ -1092,19 +1092,26 @@ class Workspace:
             rows.extend(queue_lines(value, width))
         elif self.tab == 6 and value.get('schema_version') == 'workbench-four-views/1':
             rows.append('[REPOSITORY / OBSERVED / PROPOSED / COVERAGE]')
-            for label in ('repository', 'observed', 'proposed'):
-                facet = value.get(label, {})
-                field(label.capitalize(), facet.get('status', 'unknown') if isinstance(facet, dict) else 'unknown')
+            # Each line a statement: what is recorded, qualified or fresh, never a bare yes or no (item 28).
+            for label, key in (('Repository intent', 'repository'), ('Observation', 'observed'), ('Proposal', 'proposed')):
+                facet = value.get(key, {})
+                field(label, str(facet.get('status', 'unknown')).replace('_', ' ') if isinstance(facet, dict) else 'unknown')
             coverage = value.get('coverage', {})
             if isinstance(coverage, dict):
                 for label, key in (('Observation coverage', 'observation'), ('Management', 'management'),
-                                   ('State tracked', 'state_tracked'), ('Mapping', 'mapping'), ('Platform qualified', 'platform_qualified')):
+                                   ('State tracked', 'state_tracked'), ('Mapping', 'mapping')):
                     item = coverage.get(key, 'unknown')
                     field(label, item.replace('_', ' ') if isinstance(item, str) else item)
+                said = lambda item, yes, no, unknown: yes if item is True else no if item is False else unknown
+                field('Platform qualification', said(coverage.get('platform_qualified'), 'qualified', 'not qualified',
+                                                     'not recorded'))
                 own = coverage.get('ownership', {})
                 if isinstance(own, dict):
-                    field('Ownership scope complete', own.get('declared_scope_complete', 'unknown'))
-                    field('Ownership freshness', own.get('fresh', 'unknown'))
+                    field('Ownership', '%s; %s' % (
+                        said(own.get('declared_scope_complete'), 'declared scope complete', 'declared scope not complete',
+                             'declared scope not recorded'),
+                        said(own.get('fresh'), 'ownership index fresh', 'ownership index not fresh',
+                             'ownership index freshness not recorded')))
             repository = value.get('repository', {})
             if isinstance(repository, dict) and isinstance(repository.get('freshness'), dict):
                 field('Repository freshness', repository['freshness'].get('status', 'unknown'))
@@ -1188,7 +1195,8 @@ class Workspace:
                      + list(wrap('> focus, * pinned selection | Settings Catalog policies; :families shows every family '
                                  'with its support disposition.', width)))
             if isinstance(self.value.get('filters'), dict):
-                lines.extend(wrap('Global filters: ' + json.dumps(self.value['filters'], ensure_ascii=False), width))
+                from .workbench_screens import filter_words
+                lines.extend(wrap(filter_words(self.value['filters']), width))
                 page = self.value.get('pagination', {})
                 lines.extend(wrap('Matching objects: %s / inventory: %s | page offset: %s' %
                     (page.get('total_objects', 'unknown'), self.value.get('total_inventory_objects', 'unknown'), page.get('offset', 'unknown')), width))
@@ -1285,8 +1293,7 @@ class Workspace:
         ellipsis = '…' if getattr(self, 'rules', 'ascii') == 'unicode' else '...'
         # A view without its own evidence class shows the selected policy's, never a bare "unknown".
         facts = getattr(self, 'facts', {}) if getattr(self, 'selected', None) else {}
-        scope = (self.value.get('evidence_class') or facts.get('evidence_class')
-                 or 'evidence class not stated')
+        scope = self._scope(facts)
         from .workbench_screens import mode_word
         footer = status_line(str(scope), min(self.scroll + 1, len(data)), min(self.scroll + available, len(data)), len(data),
                              width, ellipsis, short=mode_word(scope) if scope in MODE_CLASSES else None)
@@ -1326,6 +1333,13 @@ class Workspace:
                          for i, line in enumerate(frame)]
         self.stdout.write('\x1b[H' + '\r\n'.join(painted) + '\x1b[J')
         self.stdout.flush()
+
+    def _scope(self, facts):
+        """The evidence class for the status row: the result's own, else the selected policy's; an estate page
+        (a search or a filter of the estate) has the estate's class, learned from its observations (item 26)."""
+        value = self.value if isinstance(self.value, dict) else {}
+        estate = self.tab == 0 and isinstance(value.get('objects'), list) and getattr(self, 'mode_class', None)
+        return value.get('evidence_class') or facts.get('evidence_class') or estate or 'evidence class not stated'
 
     def _prompt_line(self, width, ellipsis):
         """The command bar with its cursor while a command is typed, otherwise the notice."""

@@ -17,6 +17,10 @@ def body(**changes):
     value = copy.deepcopy(BODY); value.update(changes); return value
 
 
+# One row of the device matrix: optionally the devices (or cells) it holds, then the cells in brackets.
+import re as _re  # noqa: E402
+MATRIX_ROW = _re.compile(r'^    (?:(?:devices|cells) \d+-\d+ +)?\[([#x~?.]+)\]$')
+
 class ChangeLinesTests(unittest.TestCase):
     def fits(self, lines, width):
         for line in lines:
@@ -304,7 +308,7 @@ class RelationshipLinesTests(unittest.TestCase):
         self.assertIn('  |-- scope tag    "0"', lines)
         self.assertIn('generated    /work/generated/' + POLICY_ID + '  [historical_local_adoption]', joined)
         self.assertIn('repository   /work/repository  orgs/reference/dev / intune-reference  [local_literal_repository_read]', joined)
-        self.assertIn('writer       unknown: ownership_index_missing', joined)
+        self.assertIn('writer       unknown (ownership index missing)', joined)
         for line in lines:
             self.assertLessEqual(cell_width(line), 140, line)
 
@@ -348,7 +352,8 @@ class EstateScreensTests(unittest.TestCase):
         joined = '\n'.join(lines)
         self.assertEqual(lines[0], '[HEALTH AND REPORTING]')
         self.assertIn('8 of 100 targeted devices reported success at execution; 92 without a fresh report', joined)
-        matrix = [line for line in lines if line.startswith('    [')]
+        # Wrapped rows lead with the devices they hold ("devices 51-100 [...]"); the cells sit between the brackets.
+        matrix = [match.group(1) for match in (MATRIX_ROW.match(line) for line in lines) if match]
         self.assertEqual(sum(line.count('#') for line in matrix), 8)
         self.assertEqual(sum(line.count('.') for line in matrix), 92)
         self.assertIn('each cell is 1 device', joined)
@@ -590,7 +595,7 @@ class DiagnosticsLinesTests(unittest.TestCase):
         self.assertIn('Windows Privacy Pilot (' + POLICY_ID + ') | 1 signal needs attention', joined)
         self.assertIn('[!] operations  operation_outcome_unknown', joined)
         self.assertIn('  Observed  Operation b6b3679d was dispatched', joined)
-        self.assertIn('  Evidence  operation_id b6b3679d, operation_root /work/op, error_code model_response_lost', joined)
+        self.assertIn('  Evidence  operation id b6b3679d; operation root /work/op; error code model_response_lost', joined)
         self.assertNotIn("{'x': 1}", joined)
         self.assertIn('  Next      reconcile /work/op', joined)
         self.assertIn('  repository       no repository intent recorded', joined)
@@ -606,7 +611,7 @@ class DiagnosticsLinesTests(unittest.TestCase):
         self.assertIn('no signal in the areas checked below', text)
         self.assertIn('the maintenance queue (m)', text)
         self.assertNotIn('nothing needs attention', text)
-        self.assertIn('device evidence clear: the capture is complete and its cohort consistent; h shows how many devices reported', text)
+        self.assertIn('device evidence capture complete and cohort consistent; whether devices reported is not judged here (h shows the counts)', text)
 
     def test_partly_checked_and_unreadable_areas_are_not_shown_as_clear(self):
         from intune_iac.workbench_screens import diagnostics_lines
@@ -878,7 +883,7 @@ class EstateScreenEdgeTests(unittest.TestCase):
         self.assertIn('800 of 1000 targeted devices reported success at execution; 30 reported failure; 20 pending; 150 without a fresh report', joined.replace('\n  ', ' '))
         self.assertIn('Not counted as fresh success: 150 missing', joined)
         self.assertIn('each cell is up to 3 devices; exact counts above', joined.replace('\n    ', ' '))
-        matrix = ''.join(line[5:-1] for line in lines if line.startswith('    ['))
+        matrix = ''.join(match.group(1) for match in (MATRIX_ROW.match(line) for line in lines) if match)
         self.assertEqual((matrix.count('#'), matrix.count('x'), matrix.count('~'), matrix.count('.')), (267, 10, 7, 50))
         self.assert_aligned(lines, ['execution', '1000', '850', '800', '30', '20', '0', '150'], 'NONE')
         self.assertIn('TGT targeted', joined)
