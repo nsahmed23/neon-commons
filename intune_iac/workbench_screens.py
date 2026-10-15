@@ -1029,7 +1029,14 @@ def refresh_result_lines(value, width, header=True):
                            'they remain inspectable (4 History, 5 Plan).' % previous[:12], width)
     elif not recorded:
         lines += word_wrap('No new intent was recorded; this is the latest intent already.', width)
-    lines += word_wrap('Press 9 to compare it with the repository now.', width)
+    # A value outside the capability map is said here, when it is recorded, with the explanation a proposal gives.
+    if isinstance(data.get('desired'), dict) and (data.get('consumer') or {}).get('status') == 'verified':
+        from .workbench_repository import capability_explanation
+        problem = capability_explanation(data['desired'])
+        if problem:
+            lines += word_wrap('%s A proposal from this intent will be refused; change that setting in the stack '
+                               'input to a supported value and refresh again.' % problem, width)
+    lines += word_wrap('9 reads the repository again and compares it with this intent.', width)
     return lines
 
 

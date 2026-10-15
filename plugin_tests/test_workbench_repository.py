@@ -281,3 +281,36 @@ class CapabilityWordsTests(unittest.TestCase):
         from reference.validation import capability_errors, capability_findings
         self.assertEqual(capability_findings([], 'windows10', 'mdm')[0]['reason'], 'no_settings')
         self.assertEqual(capability_errors([], 'windows10', 'mdm'), ['unqualified_setting_capability'])
+
+
+class RefreshCapabilityWordsTests(unittest.TestCase):
+    """Journey 28 run 3, frames 84 to 87: a refresh that records an unsupported value says so at once."""
+    RESOURCE_ADDRESS = RepositoryOwnedChangeTests.RESOURCE_ADDRESS
+    setUp = RepositoryOwnedChangeTests.setUp
+    import_intent = RepositoryOwnedChangeTests.import_intent
+
+    def test_the_refresh_result_names_the_unsupported_value(self):
+        from intune_iac.workbench_repository import refresh_intent
+        from intune_iac.workbench_screens import refresh_result_lines
+        self.import_intent()
+        document = yaml.safe_load((self.repo / STACK).read_text())
+        instance = document['components']['terraform']['intune-reference']['vars']['policies'][KEY]['settings']['settings'][0]['settingInstance']
+        instance['choiceSettingValue']['value'] = instance['settingDefinitionId'] + '_1'
+        (self.repo / STACK).write_text(yaml.safe_dump(document))
+        value = refresh_intent(self.store, OBJECT, 'b' * 40)
+        text = ' '.join(' '.join(refresh_result_lines(value, 200)).split())
+        self.assertIn(instance['settingDefinitionId'] + '_1', text)
+        self.assertIn('A proposal from this intent will be refused', text)
+        self.assertNotIn('Press 9', text)
+
+    def test_a_supported_refresh_says_nothing_about_capability(self):
+        from intune_iac.workbench_repository import refresh_intent
+        from intune_iac.workbench_screens import refresh_result_lines
+        self.import_intent()
+        document = yaml.safe_load((self.repo / STACK).read_text())
+        policy = document['components']['terraform']['intune-reference']['vars']['policies'][KEY]
+        policy['description'] = 'Synthetic reference; a supported edit.'
+        (self.repo / STACK).write_text(yaml.safe_dump(document))
+        value = refresh_intent(self.store, OBJECT, 'c' * 40)
+        text = ' '.join(' '.join(refresh_result_lines(value, 200)).split())
+        self.assertNotIn('will be refused', text)
