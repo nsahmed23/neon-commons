@@ -890,6 +890,7 @@ plugin_tests/test_pre_pin_migration.py
 plugin_tests/test_preservation_audit.py
 plugin_tests/test_process_cleanup.py
 plugin_tests/test_production.py
+plugin_tests/test_protected_census_released.py
 plugin_tests/test_protected_completion.py
 plugin_tests/test_protected_worker_r4.py
 plugin_tests/test_provider_completion.py
