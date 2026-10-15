@@ -259,6 +259,17 @@ class _Index:
     def user_contexts(self, contexts):
         return frozenset(c for c in contexts if c >= self.n)
 
+    def reachable_contexts(self, target):
+        """User contexts a user-scoped setting of this policy may reach: its user-domain contexts plus every
+        context on a device it may target directly (a device-assigned policy reaches that device's users)."""
+        by_device = {}
+        for j, pos in enumerate(self.ctx_dev):
+            by_device.setdefault(pos, []).append(self.n + j)
+        reach = {c for c in target.upper if c >= self.n}
+        for pos in (c for c in target.upper if c < self.n):
+            reach.update(by_device.get(pos, ()))
+        return frozenset(reach)
+
     def device_ids(self, device_positions):
         return frozenset(self.dev_ids[p] for p in device_positions)
 
@@ -574,6 +585,17 @@ def _pair(idx, profile, finding, cohort, scope, pid, other, inst_a, inst_b, afte
     ta, tb = idx.target(after[pid]), idx.target(after[other])
     da_l, da_u, db_l, db_u = idx.devices(ta.lower), idx.devices(ta.upper), idx.devices(tb.lower), idx.devices(tb.upper)
     lower, upper = da_l & db_l, da_u & db_u
+    unit, shown_lower, shown_upper = 'unique_devices', len(lower), len(upper)
+    if inst_a.key[3] == 'user':
+        # A user-scoped setting lands on user contexts, not devices. Only a user-domain context both policies
+        # definitely reach is a definite overlap; a shared device or a device-level assignment is only possible.
+        lower = idx.user_contexts(ta.lower) & idx.user_contexts(tb.lower)
+        if ta.contexts_unbounded or tb.contexts_unbounded:
+            shown_upper = None
+        else:
+            upper = idx.reachable_contexts(ta) & idx.reachable_contexts(tb)
+            shown_upper = len(upper)
+        unit, shown_lower = 'user_device_contexts', len(lower)
     first, second = sorted((pid, other))
     ordered = (inst_a, inst_b) if first == pid else (inst_b, inst_a)
     outcome = sim_settings.classify(profile, ordered[0], ordered[1], lower, upper)
@@ -584,7 +606,9 @@ def _pair(idx, profile, finding, cohort, scope, pid, other, inst_a, inst_b, afte
     refs.append('profile:definitions/' + inst_a.canonical_id)
     where = f'{inst_a.path}' + (f' item {inst_a.item}' if inst_a.item else '')
     values = f'{value_text_pair(ordered)}'
-    overlap = f'unique devices in definite overlap {len(lower)}, in possible overlap {len(upper)}'
+    words = 'user-device contexts' if unit == 'user_device_contexts' else 'unique devices'
+    overlap = (f'{words} in definite overlap {shown_lower}, in possible overlap '
+               f'{"unbounded" if shown_upper is None else shown_upper}')
     fid = None
     if outcome.kind:
         fid = f'{outcome.kind}:{first}:{second}:{tag}'
@@ -597,7 +621,7 @@ def _pair(idx, profile, finding, cohort, scope, pid, other, inst_a, inst_b, afte
             message = f'Policies {first} and {second} on {where}: {values}; {overlap}; {outcome.detail}.'
         finding(fid, outcome.kind, outcome.certainty, message, refs)
     if outcome.admitted:
-        cohort(f'conflict:{first}:{second}:{tag}', 'conflict_overlap', 'unique_devices', len(lower), len(upper),
+        cohort(f'conflict:{first}:{second}:{tag}', 'conflict_overlap', unit, shown_lower, shown_upper,
                [fid] if fid else [])
 
 

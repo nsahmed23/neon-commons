@@ -323,6 +323,41 @@ class Sim13To16SettingsConflicts(unittest.TestCase):
         self.assertEqual(findings(out, 'predicted_configuration_conflict'), [])
         self.assertIn('synthetic-doc:precedence-1', findings(out, 'defined_precedence')[0]['message'])
 
+    USER_SCOPED = {'definitions': {s.DEF: {'scope': 'user', 'canonical': s.DEF, 'conflict_rule': 'different_value_conflicts'}}}
+
+    def shared_device_world(self):
+        return snap([s.device('d')], [s.group('gU1', 'user'), s.group('gU2', 'user')],
+                    [s.member('gU1', 'u1', 'user'), s.member('gU2', 'u2', 'user')],
+                    users=[s.user('u1'), s.user('u2')], contexts=[s.context('u1', 'd'), s.context('u2', 'd')])
+
+    def test_sim_15_user_scoped_settings_on_disjoint_user_contexts_of_a_shared_device_are_not_a_conflict(self):
+        doc = self.shared_device_world()
+        doc['policies'] = [s.policy('p1', [s.include('gU1')], [s.choice(s.DEF, V1)])]
+        _, out = simulate(doc, add(s.policy('p2', [s.include('gU2')], [s.choice(s.DEF, V2)])), profile(self.USER_SCOPED))
+        self.assertEqual(findings(out, 'predicted_configuration_conflict'), [])
+        self.assertEqual(findings(out, 'potential_conflict'), [])
+        overlap = [c for c in out['cohorts'] if c['kind'] == 'conflict_overlap']
+        self.assertEqual([(c['unit'], c['lower'], c['upper']) for c in overlap], [('user_device_contexts', 0, 0)])
+
+    def test_sim_15_user_scoped_settings_on_the_same_user_context_are_a_definite_conflict(self):
+        doc = self.shared_device_world()
+        doc['policies'] = [s.policy('p1', [s.include('gU1')], [s.choice(s.DEF, V1)])]
+        _, out = simulate(doc, add(s.policy('p2', [s.include('gU1')], [s.choice(s.DEF, V2)])), profile(self.USER_SCOPED))
+        predicted = findings(out, 'predicted_configuration_conflict')
+        self.assertEqual(len(predicted), 1)
+        self.assertEqual(predicted[0]['certainty'], 'definite_under_model')
+        overlap = [c for c in out['cohorts'] if c['kind'] == 'conflict_overlap']
+        self.assertEqual([(c['unit'], c['lower'], c['upper']) for c in overlap], [('user_device_contexts', 1, 1)])
+
+    def test_sim_15_a_user_scoped_setting_assigned_to_a_device_is_only_a_possible_overlap(self):
+        doc = snap([s.device('d')], [s.group('gU1', 'user'), s.group('gD')],
+                   [s.member('gU1', 'u1', 'user'), s.member('gD', 'd')],
+                   users=[s.user('u1')], contexts=[s.context('u1', 'd')])
+        doc['policies'] = [s.policy('p1', [s.include('gU1')], [s.choice(s.DEF, V1)])]
+        _, out = simulate(doc, add(s.policy('p2', [s.include('gD')], [s.choice(s.DEF, V2)])), profile(self.USER_SCOPED))
+        self.assertEqual(findings(out, 'predicted_configuration_conflict'), [])
+        self.assertEqual(len(findings(out, 'potential_conflict')), 1)
+
 
 class Sim17IdentityAndMissingRelationships(unittest.TestCase):
     def test_sim_17_same_display_name_different_ids_stay_distinct(self):
