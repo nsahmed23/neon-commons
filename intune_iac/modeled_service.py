@@ -4,14 +4,18 @@ Only explicit synthetic captures are admitted. The raw-capture projector is
 independent of the production normalizer/serializer. Service state and modeled
 requests live in one atomically replaced snapshot under a cooperative lock.
 This models supported semantics/faults, not Microsoft Graph authorization or
-service timing, and is not a hostile-host containment boundary.
+service timing, and is not a hostile-host containment boundary. Its one timing
+control is an explicit synthetic latency (INTUNE_IAC_MODELED_LATENCY_SECONDS)
+for exercising an interrupt inside a running call; it is recorded per request.
 """
 from __future__ import annotations
 
 from collections import Counter
 import copy
 import fcntl
+import math
 import os
+import time
 from pathlib import Path
 import stat
 from urllib.parse import urlsplit
@@ -27,10 +31,32 @@ MAX_REQUESTS = 4096
 MAX_VISIBILITY_DELAY_READS = 16
 MAX_STATE_BYTES = 8 * 1024 * 1024
 FAULTS = frozenset({None, 'deny', 'throttle', 'lost-response', 'after-policy', 'cross-origin', 'loop'})
+LATENCY_VARIABLE = 'INTUNE_IAC_MODELED_LATENCY_SECONDS'
+MAX_LATENCY_SECONDS = 30
+# Injectable for tests.
+sleep = time.sleep
 
 
 def _fail(code):
     raise AppError(code, 'Synthetic service evidence is incomplete, changed, or outside the supported model.')
+
+
+def _latency():
+    """Synthetic latency per modeled request, in seconds: off unless LATENCY_VARIABLE is set (0 to 30).
+
+    It exists to exercise an interrupt inside a call that is really running: the request waits after its durable
+    write and before its answer, the boundary where a dispatched change is not yet acknowledged.
+    """
+    raw = os.environ.get(LATENCY_VARIABLE, '').strip()
+    if not raw:
+        return 0.0
+    try:
+        value = float(raw)
+    except ValueError:
+        _fail('model_latency_invalid')
+    if not math.isfinite(value) or not 0 <= value <= MAX_LATENCY_SECONDS:
+        _fail('model_latency_invalid')
+    return value
 
 
 def _uuid(value):
@@ -226,6 +252,7 @@ class ModeledService:
         try:
             if len(canonical(body)) > 1024 * 1024: _fail('model_request_limit')
         except (TypeError, ValueError, RecursionError): _fail('model_request_invalid')
+        latency = _latency()
         lock = _safe(self.root / 'service.lock')
         fd = os.open(lock, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
         try:
@@ -241,6 +268,8 @@ class ModeledService:
             record = {'sequence': len(state['requests']) + 1, 'method': method, 'path': path,
                 'request_body': copy.deepcopy(body), 'if_match': if_match, 'before_sha256': before,
                 'fault': fault, 'status': None, 'revision_before': state['revision'], 'evidence_class': 'modeled_request'}
+            if latency:
+                record['latency_seconds'] = latency
             status, response, mutation = 400, {'error': 'unsupported_request'}, False
             response_revision = state['revision']
             if tenant_id != state['current']['tenant_id']:
@@ -310,6 +339,9 @@ class ModeledService:
             # state before commit if the next reader could not admit it.
             if len(canonical(state)) + 1 > MAX_STATE_BYTES: _fail('model_state_limit')
             write_json(self.path, state)
+            if latency:
+                # Durable, not yet answered: an interrupt here leaves a dispatched change unacknowledged.
+                sleep(latency)
             if record['response_lost']: _fail('model_response_lost')
             return {'status': status, 'body': response, 'revision': response_revision, 'model_only': True}
         finally:
