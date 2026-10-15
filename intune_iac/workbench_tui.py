@@ -1222,11 +1222,18 @@ class Workspace:
                              and judged.get('state') in ('closed', 'closed_recorded'))
             bound = value.get('repository')
             context_changed = isinstance(bound, dict) and bool(bound.get('context_changed'))
-            for label, key in (('Operation', 'operation_id'), ('Tenant', 'tenant_id'), ('Object', 'object_id'),
+            for label, key in (('Operation', 'operation_id'), ('Operation directory', 'operation_root'),
+                               ('Tenant', 'tenant_id'), ('Object', 'object_id'),
                                ('Status', 'status'), ('Plan SHA-256', 'saved_plan_sha256'),
                                ('Review digest (execute needs it)', 'approval_digest'), ('Expiry', 'expires_at'),
                                ('Evidence class', 'evidence_class')):
                 item = value.get(key, 'unknown')
+                if key == 'operation_root':
+                    # The directory every later command names, quoted as it is typed; a review without one prints no row.
+                    if isinstance(item, str) and item != 'unknown':
+                        from .workbench_diagnostics import command_arg
+                        field(label, command_arg(item))
+                    continue
                 if key == 'approval_digest' and window_closed:
                     # The window is the row below and the next step is the lifecycle line's, so neither is said here.
                     field('Review digest', 'not offered; execute can no longer run this plan.')

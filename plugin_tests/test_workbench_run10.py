@@ -11,7 +11,9 @@ import re
 import unittest
 
 from plugin_tests import test_workbench_companion as companion_tests
+from plugin_tests import test_workbench_states as states_tests
 from plugin_tests.test_workbench_map_truth import MARK, MapTruth
+from plugin_tests.test_workbench_run9 import CommandRows, text_of
 
 GENERATED = {'relation': 'generated_from', 'target_id': '/home/nsahm/work/journey 29/generated/22222222-2222-4222-8222-222222222222.tf',
              'details': {}, 'assertion_class': 'historical_local_adoption'}
@@ -247,3 +249,46 @@ class DeliveryFirstActionTests(unittest.TestCase):
             self.assertLess(kinds.index('deployment-record'), kinds.index('collect'), kinds)
         finally:
             case.doCleanups()
+
+
+OPERATION_DIRECTORY = '/w/journey 28 run 10/operation-22222222-132179e8da71'
+
+
+class PlanDirectoryTests(CommandRows, unittest.TestCase):
+    """Item 6: the plan review prints the operation's directory and the execute row carries the real path."""
+    surface = states_tests.RefusalCauseTests.workspace
+
+    def review(self, **kw):
+        import time
+        value = {'operation_id': 'f728f2751b5c4009bd8b28a5af2f5fc6', 'operation_root': OPERATION_DIRECTORY,
+                 'object_id': states_tests.OBJECT, 'tenant_id': states_tests.TENANT, 'status': 'prepared',
+                 'approval_digest': 'd' * 64, 'saved_plan_sha256': 'b' * 64, 'expires_at': time.time() + 200,
+                 'evidence_class': 'synthetic_local_process_and_modeled_service_only'}
+        return dict(value, **kw)
+
+    def rows(self, value, width=118):
+        workspace = self.surface()
+        workspace.tab, workspace.value = 4, value
+        return workspace._summary_lines(width)
+
+    def test_the_plan_review_prints_the_operation_directory(self):
+        for width in (80, 118):
+            text = text_of(self.rows(self.review(), width))
+            self.assertIn("Operation directory: '%s'" % OPERATION_DIRECTORY, text, width)
+
+    def test_the_execute_row_carries_the_real_path_alone(self):
+        for width in (80, 118):
+            rows = self.rows(self.review(), width)
+            self.assert_command_alone(rows, "execute '%s' DIGEST" % OPERATION_DIRECTORY)
+            self.assertNotIn('OPERATION_DIR', text_of(rows), width)
+
+    def test_a_path_with_a_line_break_cannot_start_a_row_of_its_own(self):
+        rows = self.rows(self.review(operation_root='/w/op\n  rm -rf /'))
+        self.assertEqual([row for row in rows if row.lstrip().startswith('rm -rf')], [])
+
+    def test_a_review_without_a_directory_keeps_the_template_and_prints_no_row(self):
+        value = self.review()
+        del value['operation_root']
+        rows = self.rows(value)
+        self.assertNotIn('Operation directory', text_of(rows))
+        self.assert_command_alone(rows, 'execute OPERATION_DIR DIGEST')

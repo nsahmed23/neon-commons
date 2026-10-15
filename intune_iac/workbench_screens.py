@@ -12,7 +12,7 @@ import json
 import re
 
 from .workbench_diagnostics import (CLOCK_HOLD_CAUSES, CLOCK_HOLD_REASONS, CLOCK_HOLD_STEPS, clock_hold, CLOCK_HOLD_WORDS,
-                                    clock_times, with_clock_times)
+                                    clock_times, command_arg, with_clock_times)
 from .workbench_tui import cell_width, fit, pad, safe_text
 from .graph_projection import DISTINCT_KINDS, KIND_WORDS
 
@@ -655,8 +655,10 @@ def lifecycle_next(tab, value, now, eligibility=None):
             # The Approval window row states the fact; this line refers to it rather than say it again.
             return 'Prepare a proposal again (a: actions); Expiry and Approval window above say why'
         # The command stands on its own row after the sentence, so a copied row carries no words (run 9, frame 18).
+        # The real directory when the review names it (a review always does); the template only where it does not.
+        operation = command_arg(value['operation_root']) if isinstance(value.get('operation_root'), str) else 'OPERATION_DIR'
         return ('approve and run it with the review digest (6 Execution shows the result). Command:' + COMMAND_BREAK
-                + '  execute OPERATION_DIR DIGEST')
+                + '  execute %s DIGEST' % operation)
     if status == 'outcome_unknown':
         return 'Reconcile it (a: actions; it never replays the change); v shows every delivery stage'
     return 'v shows every delivery stage of this operation'
