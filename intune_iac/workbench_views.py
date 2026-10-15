@@ -384,7 +384,10 @@ def _record_local_deployment(store,operation,intent_id):
     return store.record_artifact('deployment_receipt',None,{'schema_version':'workbench-deployment-record/1','tenant_id':store.tenant_id,
         'target_object_id':proof['object_id'],'intent_id':intent_id,'scope':intent['data']['scope'],'proof':proof,
         'recorded_at':time.time(),'evidence_class':'verified_local_modeled_deployment','baseline_admissible':True,
-        'platform_qualified':False,'cloud_authority':False,'execution_authorized':False})
+        'platform_qualified':False,'cloud_authority':False,'execution_authorized':False},
+        # Every refusal above has already passed. The same proof for the same intent is the same deployment, so the store
+        # returns the record it holds; recorded_at differs on every call and is not part of that identity.
+        once_by=('$.proof.operation_id',proof['operation_id'],('recorded_at',)))
 
 
 def _deployment(store,object_id,scope,*,_native_reader=None):

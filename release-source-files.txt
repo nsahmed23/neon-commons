@@ -959,6 +959,7 @@ plugin_tests/test_workbench_companion.py
 plugin_tests/test_workbench_dictionary_capacity.py
 plugin_tests/test_workbench_dictionary_taxonomy_r4.py
 plugin_tests/test_workbench_delivery.py
+plugin_tests/test_workbench_deployment_once.py
 plugin_tests/test_workbench_diagnostics.py
 plugin_tests/test_workbench_diff.py
 plugin_tests/test_workbench_effects.py

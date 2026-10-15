@@ -1077,8 +1077,14 @@ class WorkbenchStore:
             'recorded_at':_iso(row['recorded_at']),'evidence_class':'caller_asserted_artifact',
             'cloud_authority':False,'execution_authorized':False}
 
-    def record_artifact(self, kind, object_id, data, *, expected_prior=_UNSPECIFIED_PRIOR):
-        """Append immutable inert provenance; this never grants execution authority."""
+    def record_artifact(self, kind, object_id, data, *, expected_prior=_UNSPECIFIED_PRIOR, once_by=None):
+        """Append immutable inert provenance; this never grants execution authority.
+
+        once_by=(json_path, value, ignored_fields) makes the write idempotent for a record whose data carries a field
+        that differs on every call (a time). Inside the same write transaction, the earliest existing record of this kind
+        whose data at json_path equals value, and which equals this data apart from the ignored top-level fields, is
+        returned with created False. Two concurrent writers therefore create one record.
+        """
         self._require_v2()
         if type(kind) is not str or kind not in _ARTIFACT_KINDS or type(data) is not dict:_fail('workbench_artifact_invalid')
         if object_id is not None:_identity(object_id)
@@ -1120,6 +1126,14 @@ class WorkbenchStore:
                         latest = value['artifact_id']
                 if latest != expected_prior:
                     _fail('workbench_queue_conflict')
+            if once_by is not None:
+                path,value,ignored=once_by
+                comparable={k:v for k,v in parse_json(body).items() if k not in ignored}
+                for candidate in db.execute('SELECT * FROM artifacts WHERE tenant_id=? AND kind=? AND object_id IS ? AND json_extract(data_json,?)=? ORDER BY sequence',
+                                            (self.tenant_id,kind,object_id,path,value)):
+                    existing=self._artifact(candidate)
+                    if {k:v for k,v in existing['data'].items() if k not in ignored}==comparable:
+                        return {**existing,'created':False}
             previous=db.execute('SELECT * FROM artifacts WHERE artifact_id=?',(artifact_id,)).fetchone()
             if previous:return {**self._artifact(previous),'created':False}
             db.execute('INSERT INTO artifacts(artifact_id,tenant_id,kind,object_id,data_json,recorded_at) VALUES(?,?,?,?,?,?)',
