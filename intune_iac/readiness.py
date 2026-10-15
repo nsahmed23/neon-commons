@@ -247,8 +247,8 @@ def _tools_host(operation, f):
 # Repository and IaC target ---------------------------------------------------------------------------------------
 
 REPOSITORY_ACTION = ('Run %s start REPOSITORY_DIRECTORY from a Git checkout that holds atmos.yaml with at least one selectable '
-                     'stack and component; to enter a repository you maintain, run: %s workbench terminal --root STORE and enter '
-                     'repository-entry REPOSITORY' % (PROGRAM, PROGRAM))
+                     'stack and component; to enter a repository you maintain, run: %s workbench repository-entry --root STORE '
+                     '--repo REPOSITORY (in the workspace: :repository-entry REPOSITORY)' % (PROGRAM, PROGRAM))
 
 
 def _gap_text(repository):
@@ -434,12 +434,13 @@ def _secret_row(operation, f):
                'There is no insecure-storage detection, expiry, renewal or revocation display, and no secure-reference adapter '
                '(for example 1Password) yet.']
     if operation == 'discover':
-        action = ('Provide the read token only to the one %s capture command, through the environment variable named by '
-                  '--token-env, from your approved secret manager; never on a command line (the flag takes the name, not the value).'
-                  % PROGRAM)
+        action = ('Provide the read token only to this one command: %s capture --tenant TENANT_ID --policy POLICY --output NEW_DIR '
+                  '--token-env TOKEN_VARIABLE_NAME (through the environment variable that flag names, from your approved secret '
+                  'manager; never on a command line, because the flag takes the name, not the value).' % PROGRAM)
     else:
-        action = ('Use the inherited file-descriptor route of %s target authenticate (--provider-secret-fd and --backend-secret-fd; '
-                  'a secret is never accepted as an argument); there is no secure-reference route yet.' % PROGRAM)
+        action = ('Use the inherited file-descriptor route: %s target authenticate --input TARGET_JSON --provider-secret-fd FD '
+                  '--backend-secret-fd FD (a secret is never accepted as an argument); there is no secure-reference route yet.'
+                  % PROGRAM)
     return _row(operation, 'secret_input', 'Exceptional secret input', 'unknown', {}, missing, action, 'administrator')
 
 

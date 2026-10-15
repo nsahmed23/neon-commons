@@ -142,11 +142,8 @@ class ReadinessTests(unittest.TestCase):
         self.assertEqual(adopt['repository']['state'], 'missing')
         self.assertIn('atmos.yaml', ' '.join(adopt['repository']['missing']))
         self.assertIn('intune-iac start', adopt['repository']['next_action'])
-        self.assertIn('intune-iac workbench terminal --root STORE', adopt['repository']['next_action'])
-        self.assertIn('repository-entry REPOSITORY', adopt['repository']['next_action'])
-        # There is no workbench repository-entry subcommand and no --repo flag on it.
-        self.assertNotIn('workbench repository-entry', adopt['repository']['next_action'])
-        self.assertNotIn('--repo ', adopt['repository']['next_action'])
+        self.assertIn('intune-iac workbench repository-entry --root STORE --repo REPOSITORY', adopt['repository']['next_action'])
+        self.assertIn(':repository-entry REPOSITORY', adopt['repository']['next_action'])
         self.assertEqual(adopt['iac_target']['state'], 'missing')
         self.assertEqual(value['operations']['adopt']['status'], 'missing')
 
@@ -573,6 +570,80 @@ class ReadinessTests(unittest.TestCase):
         text = ' '.join(self.full()['not_established'])
         for phrase in ('Working-directory access', 'GitHub', 'Environment variables', 'expiry'):
             self.assertIn(phrase, text)
+
+    # every command the model prints must be one the product accepts
+
+    STOP_WORDS = frozenset({'and', 'then', 'or', 'from', 'to', 'with', 'for', 'as', 'that', 'is', 'the', 'in', 'on', 'by'})
+
+    def printed_commands(self, text):
+        """Each intune-iac command line in a next_action, cut where the sentence goes on, with placeholders as printed."""
+        commands = []
+        for chunk in text.split('intune-iac ')[1:]:
+            tokens = []
+            for token in chunk.split():
+                if token.lower() in self.STOP_WORDS or token.startswith('('):
+                    break
+                tokens.append(token.rstrip('.,;:'))
+                if token[-1] in '.,;:)':
+                    break
+            commands.append(tokens)
+        return commands
+
+    def model_variants(self):
+        packages = doctor_report(missing_packages=('jsonschema',))
+        hidden_repository = repository_item(component='deviceconfigurationpolicybaseline')
+        not_git = repository_item(revision=None)
+        not_git['states'] = states(configured=False); not_git['states']['configured_reason'] = 'not_a_git_repository'
+        no_executables = {'atmos': False, 'tofu': False, 'pwsh': False, 'codex': False, 'claude': False}
+        yield self.model()
+        yield self.full()
+        yield self.full(context_item())
+        yield self.full(repository_item(), context_item())
+        yield self.full(repository_item(), context_item(stack='reference-dev'))
+        yield self.full(repository_item(), context_item(), export_item())
+        yield self.full(hidden_repository, context_item())
+        yield self.full(not_git, context_item())
+        yield self.full(context_item(tenant='contoso.onmicrosoft.com'))
+        yield self.full(context_item(tenant=TENANT), export_item(tenant=OTHER_TENANT))
+        yield self.full(context_item(tenant=TENANT), export_item(tenant='contoso.onmicrosoft.com'))
+        yield self.full(repository_item(), context_item(), doctor=packages)
+        yield self.full(repository_item(), context_item(), doctor=doctor_report(executables=no_executables))
+        yield self.full(repository_item(), context_item(), doctor=doctor_report(cloud_apply='available'))
+        yield self.full(context_item(), doctor=doctor_report(production_capture='unavailable_on_platform'))
+        yield self.full(repository_item(), context_item(), host=host_report(unsupported=('protected_worker', 'graph_observer')))
+        yield self.model(survey_of(repository_item(), context_item()), None, None)
+
+    def test_every_command_the_model_prints_is_accepted_by_the_product_parser(self):
+        import contextlib
+        import io
+        from intune_iac import cli
+        parser = cli.parser()
+        seen, checked = set(), 0
+        for value in self.model_variants():
+            for operation in value['operations'].values():
+                texts = [row['next_action'] for row in operation['rows']] + [item['next_action'] for item in operation['blockers']]
+                for text in texts:
+                    for tokens in self.printed_commands(text):
+                        # An inherited file descriptor is an integer; FD is the placeholder as printed.
+                        argv = ['3' if token == 'FD' else token for token in tokens]
+                        seen.add(' '.join(argv))
+                        with contextlib.redirect_stderr(io.StringIO()) as err:
+                            try:
+                                parser.parse_args(argv)
+                            except SystemExit:
+                                self.fail('the product parser rejects the printed command: intune-iac %s\n%s' % (' '.join(tokens), err.getvalue()))
+                        checked += 1
+        firsts = {command.split()[0] for command in seen}
+        self.assertTrue({'start', 'doctor', 'capture', 'target', 'repository', 'wizard', 'workbench'} <= firsts, firsts)
+        self.assertGreater(checked, 40)
+
+    def test_the_command_extractor_cuts_sentences_and_finds_every_command(self):
+        text = ('If you rely on a pinned executable, pass it with intune-iac wizard --session SESSION --journey, or intune-iac '
+                'repository native --root R --executable PATH; then run: intune-iac doctor')
+        self.assertEqual(self.printed_commands(text), [['wizard', '--session', 'SESSION', '--journey'],
+                                                      ['repository', 'native', '--root', 'R', '--executable', 'PATH'], ['doctor']])
+        self.assertEqual(self.printed_commands('Run: intune-iac start DIRECTORY and pass its result.'), [['start', 'DIRECTORY']])
+        self.assertEqual(self.printed_commands('No command here.'), [])
 
     # the real producers
 
