@@ -523,6 +523,7 @@ intune_iac/runner.py
 intune_iac/service_cli.py
 intune_iac/synthetic.py
 intune_iac/target.py
+intune_iac/validity.py
 intune_iac/windows_capture.py
 intune_iac/windows_capture_writer.py
 intune_iac/windows_directory.py
@@ -910,6 +911,7 @@ plugin_tests/test_synthetic_completion.py
 plugin_tests/test_target.py
 plugin_tests/test_terminal_interrupt_r4.py
 plugin_tests/test_terminal_security_epoch.py
+plugin_tests/test_validity_shared.py
 plugin_tests/test_verifier_contract.py
 plugin_tests/test_visibility_recovery.py
 plugin_tests/test_windows_capture_r4.py

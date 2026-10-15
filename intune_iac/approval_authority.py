@@ -27,7 +27,7 @@ import threading
 import time
 import uuid
 
-from . import clock
+from . import validity
 from .io import AppError, canonical, digest, parse_json
 from .protected import _path, _sha, _supervise, _sync
 
@@ -200,7 +200,7 @@ def _connection(authority):
         connection.close()
 
 
-MAX_EXPIRED = 100000
+MAX_EXPIRED = validity.MAX_EXPIRED
 
 
 def _consume(authority, payload, request_sha256, deadline=None):
@@ -253,78 +253,24 @@ class ApprovalAuthority:
                 db.execute('BEGIN IMMEDIATE')
                 db.execute('CREATE TABLE IF NOT EXISTS consumed (issuer TEXT NOT NULL, nonce TEXT NOT NULL, operation_id TEXT NOT NULL UNIQUE, request_sha256 TEXT NOT NULL, consumed_at INTEGER NOT NULL, status TEXT NOT NULL, PRIMARY KEY(issuer,nonce))')
                 db.execute('CREATE TABLE IF NOT EXISTS revoked (issuer TEXT NOT NULL, key_id TEXT NOT NULL, PRIMARY KEY(issuer,key_id))')
-                db.execute('CREATE TABLE IF NOT EXISTS expired (issuer TEXT NOT NULL, nonce TEXT NOT NULL, operation_id TEXT NOT NULL, request_sha256 TEXT NOT NULL, expires_at INTEGER NOT NULL, judged_at INTEGER NOT NULL, wall INTEGER NOT NULL, PRIMARY KEY(issuer,nonce))')
+                db.execute(validity.table_sql('expired'))
                 db.execute('CREATE TABLE IF NOT EXISTS executions (operation_id TEXT PRIMARY KEY, request_sha256 TEXT NOT NULL, dispatched_at INTEGER NOT NULL, outcome_sha256 TEXT)')
                 db.execute('COMMIT')
             _sync(self.root)
         except (sqlite3.Error, OSError): _fail('approval_store_unavailable')
 
     def hold_if_clock_behind(self):
-        """Explain a backward step before an unauthenticated input is refused for its wall-relative time.
+        """Explain a backward step before an unauthenticated input is refused for its wall-relative time (the shared,
+        read-only check: it records nothing, so unauthenticated input cannot move the recorded time)."""
+        validity.hold_if_clock_behind(self.root)
 
-        This runs before authentication, so it only reads the persisted high-water mark (a rename replaces the file,
-        so a lockless read is whole) and records nothing: not the file, not this process's anchor. A damaged or
-        unreadable record falls through to the caller's original refusal, never to acceptance. The recorded time is
-        written only inside _critical, after authentication."""
-        try: recorded = clock.Floor(self.root/'clock.json').high_water()
-        except AppError: return
-        wall = time.time()
-        if recorded is None or type(wall) not in (int, float): return
-        self._hold_if_backward({'wall': wall, 'floor': recorded, 'effective': max(wall, recorded),
-                                'backward': wall < recorded - clock.TOLERANCE_SECONDS})
-
-    @contextmanager
     def _critical(self, payload, request_sha256, deadline=None, expired_code='approval_expired'):
-        """The one critical section for an approval's validity. Lock order: the recorded-time lock, then a SQLite write
-        transaction; neither is released between the final window judgment and the caller's commit. A reached expiry
-        (the effective time, this process's monotonic deadline, or an earlier record) is recorded and refused here; a
-        backward step is held. Otherwise it yields the open transaction and the caller commits its insert inside it,
-        so no other process can latch the expiry between the judgment and the effect."""
-        floor = clock.Floor(self.root/'clock.json')
-        # Lock order: the store directory, then the recorded-time lock, then the SQLite write transaction. The
-        # recorded-time lock is per inode, so deleting clock.lock would let a second process lock a new file; the
-        # directory is the one object that cannot be replaced under a running critical section.
-        directory = os.open(self.root, os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
-        try:
-            opened, current = os.fstat(directory), os.stat(self.root)
-            if (opened.st_dev, opened.st_ino) != (current.st_dev, current.st_ino): _fail('approval_store_not_private')
-            _private(self.root, directory=True)
-            fcntl.flock(directory, fcntl.LOCK_EX)
-            closed = yield from self._judged(floor, payload, request_sha256, deadline)
-        finally:
-            os.close(directory)
-        if closed: _fail(expired_code)
-
-    def _judged(self, floor, payload, request_sha256, deadline):
-        closed = False
-        with floor.locked():
-            reading = floor.observe_locked(time.time())
-            with _connection(self) as db:
-                db.execute('BEGIN IMMEDIATE')
-                if (reading['wall'] >= payload['expires_at'] or reading['effective'] >= payload['expires_at']
-                        or (deadline is not None and time.monotonic() >= deadline)
-                        or db.execute('SELECT 1 FROM expired WHERE issuer=? AND nonce=?', (payload['issuer'],payload['nonce'])).fetchone()):
-                    if db.execute('SELECT count(*) FROM expired').fetchone()[0] >= MAX_EXPIRED:
-                        _fail('approval_store_capacity')
-                    db.execute('INSERT OR IGNORE INTO expired VALUES (?,?,?,?,?,?,?)',
-                               (payload['issuer'],payload['nonce'],payload['operation_id'],request_sha256,
-                                payload['expires_at'],int(reading['effective']),int(reading['wall'])))
-                    db.execute('COMMIT')
-                    _sync(self.root)
-                    closed = True
-                else:
-                    self._hold_if_backward(reading)
-                    yield db
-        return closed
-
-    def _hold_if_backward(self, reading):
-        """A backward step means validity cannot be established, so the approval is held, not judged."""
-        if reading['backward']:
-            raise AppError('clock_moved_backward',
-                           "Approval held: this host's clock reads %d, earlier than the time %d this approval store recorded, "
-                           'so whether the approval is still valid cannot be established. Correct the host clock, or wait until '
-                           'it reads at or after the recorded time, then restart; verifying again does not clear this.'
-                           % (reading['wall'], reading['floor']))
+        """The one critical section for an approval's validity, shared with every other authorization store (see
+        intune_iac.validity): the judgment, the recorded time, the expiry record and the caller's commit are one step.
+        The store is this authority's root directory, its connection and its expired table."""
+        store = validity.Store(self.root, lambda: _connection(self), 'expired', _fail, capacity=MAX_EXPIRED,
+                               capacity_code='approval_store_capacity', private_code='approval_store_not_private')
+        return validity.critical(store, payload, request_sha256, deadline, expired_code)
 
     def revoke_key(self, issuer, key_id):
         """Administrative host action; persistent and effective for active permits."""
