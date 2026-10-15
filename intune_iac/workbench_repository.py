@@ -224,7 +224,9 @@ def propose_from_intent(store_root, service_root, object_id, output):
     output = Path(output).absolute()
     written = []
     try:
-        return _propose_from_intent(store, store_root, service_root, object_id, output, written)
+        result = _propose_from_intent(store, store_root, service_root, object_id, output, written)
+        # Additive, as a restore proposal does: the review says which input files this call wrote, read from the disk.
+        return dict(result, files_written=[str(path) for path in written if path.exists()])
     except AppError as error:
         # The input files this call wrote, and whether an operation directory now exists: read, not assumed.
         error.effects = dict(error.effects or {}, files_written=[str(path) for path in written if path.exists()],
