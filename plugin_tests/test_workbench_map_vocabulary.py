@@ -14,6 +14,7 @@ directories only.
 import re
 import unittest
 
+from intune_iac.workbench_tui import cell_width
 from plugin_tests.test_workbench_map import MARK
 from plugin_tests.test_workbench_map_truth import MapTruth
 
@@ -108,7 +109,6 @@ class ViewportCutTests(MapTruth):
 
     def test_every_cut_row_ends_with_an_ellipsis_and_no_uncut_row_claims_one(self):
         from intune_iac.workbench_screens import MAP_GUTTER, MAP_WIDTH, viewport_row
-        from intune_iac.workbench_tui import cell_width
         for rules, ellipsis in self.ELLIPSIS.items():
             rows = self.full_rows(rules)
             for content in (40, 56, 70, MAP_WIDTH + 2):
@@ -337,6 +337,72 @@ class PageTruthTests(MapTruth):
             # The script shows the line when the zoom level is above 100% and hides it again at 100%.
             self.assertRegex(script, r"getElementById\('key-pan'\)")
             self.assertRegex(script, r'panKey\.hidden = level === 0')
+
+
+class LegendTests(MapTruth):
+    """Item 5: where the legend has room it names every mark it shows and what the no-state word means; narrower forms
+    say where the rest are listed, and the help lists them. The text depends on the width (and the rules), never a state."""
+    MARKS = ('verified', 'running', 'queued', 'waiting', 'blocked', 'failed', 'cancelled', 'unknown', 'expired', 'prepared',
+             'none recorded')
+
+    def legend_rows(self, width, rules='unicode', **kw):
+        from intune_iac.workbench_screens import PinnedRow
+        lines, _ = self.rows(width=width, rules=rules, **kw)
+        return [str(line) for line in lines if isinstance(line, PinnedRow) and not line.startswith('FOCUS')]
+
+    def test_where_it_fits_the_legend_names_each_mark_and_says_what_the_dash_means(self):
+        for width in (116, 160, 196):
+            rows = self.legend_rows(width)
+            self.assertLessEqual(len(rows), 2, (width, rows))
+            text = ' '.join(rows)
+            for word in self.MARKS:
+                self.assertIn(word, text, (width, word))
+            self.assertRegex(text, r'\[ \] — means the kind has no operation state')
+            self.assertIn('> focus * selected', text)
+
+    def test_at_120_columns_the_legend_is_two_rows_and_at_80_one(self):
+        self.assertEqual(len(self.legend_rows(116)), 2)
+        self.assertEqual(len(self.legend_rows(76)), 1)
+        self.assertEqual(len(self.legend_rows(210)), 1)
+
+    def test_every_width_gives_rows_that_fit_and_a_form_that_is_honest_about_what_it_leaves_out(self):
+        for rules in ('unicode', 'ascii'):
+            for width in range(56, 210, 3):
+                rows = self.legend_rows(width, rules)
+                text = ' '.join(rows)
+                place = (rules, width, rows)
+                self.assertTrue(rows, place)
+                self.assertTrue(all(cell_width(row) <= width for row in rows), place)
+                missing = [word for word in self.MARKS if word not in text]
+                if missing:
+                    self.assertIn('? help', text, place)
+                self.assertNotIn('named beside each node', text, place)
+                self.assertEqual(sum('> focus' in row for row in rows), 1, place)
+                if width >= 76:
+                    # Wide enough for one row that says what a no-state row means.
+                    self.assertIn('no operation state', text, place)
+
+    def test_the_legend_depends_on_the_width_and_the_rules_never_on_a_state(self):
+        for rules in ('unicode', 'ascii'):
+            for width in (56, 76, 101, 116, 160, 200):
+                base = self.legend_rows(width, rules)
+                for word in ('expired', 'prepared', 'succeeded_verified', 'dispatched'):
+                    again = self.legend_rows(width, rules, graph=self.graph(states={self.object_id: word}, freshness='fresh'))
+                    self.assertEqual(again, base, (rules, width, word))
+
+    def test_the_legend_defines_the_word_the_rows_show_for_no_state(self):
+        from intune_iac.workbench_screens import MAP_NO_STATE
+        for rules in ('unicode', 'ascii'):
+            self.assertIn('[ ] %s means the kind has no operation state' % MAP_NO_STATE[rules], ' '.join(self.legend_rows(116, rules)))
+            lines, rows = self.rows(rules=rules, width=116)
+            self.assertTrue(any(row.rstrip().endswith(MAP_NO_STATE[rules]) for row in rows))
+
+    def test_the_help_lists_every_mark_the_legend_leaves_to_it_and_the_no_state_words(self):
+        from intune_iac.workbench_screens import help_lines
+        text = ' '.join(' '.join(help_lines(100, map_keys=True)).split())
+        for word in self.MARKS:
+            self.assertIn(word, text)
+        self.assertRegex(text, r'\[ \] with — \((--|n/a)[^)]*\) means the kind has no operation state')
 
 
 if __name__ == '__main__':

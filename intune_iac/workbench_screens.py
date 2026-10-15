@@ -1460,6 +1460,9 @@ HELP_WORDS = (
 )
 
 
+# What a node row of a kind that has no operation shows in the state column, by the rules in use: never a state word.
+MAP_NO_STATE = {'ascii': '--', 'unicode': '—'}
+
 # Named only where a relationship map can be shown (a selected policy and a window with room for it).
 HELP_MAP_KEYS = (
     ('Map', 'on Relationships (3) Up, Down move to the next or previous node; Enter opens the Inspector on the policy, '
@@ -1467,7 +1470,8 @@ HELP_MAP_KEYS = (
     ('Left, Right', 'pan the map when it is wider than the window'),
     ('Home', "follow the focused node's edge to its other end; from the policy, to its first neighbour"),
     ('Marks', 'x verified, + running, . queued, : waiting, ! blocked, # failed, - cancelled, ? unknown, ~ expired, o prepared, '
-              '_ none recorded: only a policy has one, beside the word the read model recorded; a dash and [ ] mean no state applies'),
+              '_ none recorded: only a policy has one, beside the word the read model recorded. [ ] with %s (%s in ASCII) '
+              'means the kind has no operation state, and a node with it shows no state at all' % (MAP_NO_STATE['unicode'], MAP_NO_STATE['ascii'])),
 )
 
 
@@ -1775,21 +1779,32 @@ MAP_RELATION_WIDTH = 10
 # What fits a label column after a kind word, for the kinds whose labels are cut around an ellipsis.
 MAP_DISTINCT_WIDTH = 27
 MAP_DISTINCT_KINDS = DISTINCT_KINDS
-MAP_NO_STATE = {'ascii': '--', 'unicode': '—'}
 # No glyph of the tree is also a mark: the ASCII branch is a bar and a dash, never "+", which is the running mark.
 MAP_GLYPHS = {'ascii': {'branch': '|- ', 'last': '`- ', 'guide': '|  ', 'arrow': ' -> '},
               'unicode': {'branch': '├─ ', 'last': '└─ ', 'guide': '│  ', 'arrow': ' ─→ '}}
 # The one table of kind words, shared with the projection and the page (graph_projection owns it).
 MAP_KIND_WORDS = KIND_WORDS
-# Legends by the width they fit, longest first. Fixed text: it depends on the width alone, never on a state. A tier that
-# cannot name every mark that can appear says where the rest are listed.
-MAP_LEGENDS = (
-    '[x] verified [+] running [.] queued [:] waiting [!] blocked [#] failed [-] cancelled [?] unknown [~] expired '
-    '[o] prepared [_] none recorded [ ] no state | > focus * selected',
-    '[x] [+] [.] [:] [!] [#] [-] [?] [~] [o] [_] [ ] marks, named beside each node; ? help | > focus * selected',
-    '> focus * selected | marks: ? help lists them',
-    '> focus * selected',
-)
+# The marks a node row can carry, in words, and the focus and selection marks of the gutter.
+MAP_STATE_LEGEND = ('[x] verified', '[+] running', '[.] queued', '[:] waiting', '[!] blocked', '[#] failed', '[-] cancelled',
+                    '[?] unknown')
+MAP_OPERATION_LEGEND = ('[~] expired', '[o] prepared', '[_] none recorded')
+MAP_FOCUS_LEGEND = '> focus * selected'
+
+
+def map_legends(rules='ascii'):
+    """The legend's forms by the rows they take, widest first, as tuples of rows. Fixed text: a form depends on the width
+    (the first whose every row fits) and on the rules (the word a no-state row shows), never on a state. The forms that
+    can hold every mark name each one and say what the no-state word means; the narrower ones keep saying where the rest
+    are listed (the help screen, which lists them all), and the narrowest says only the gutter's marks."""
+    word = MAP_NO_STATE.get(rules, MAP_NO_STATE['ascii'])
+    states, operations = ' '.join(MAP_STATE_LEGEND), ' '.join(MAP_OPERATION_LEGEND)
+    return (
+        ('%s %s | [ ] %s means the kind has no operation state | %s' % (states, operations, word, MAP_FOCUS_LEGEND),),
+        (states, '%s | [ ] %s means the kind has no operation state | %s' % (operations, word, MAP_FOCUS_LEGEND)),
+        ('%s | %s means no operation state | marks: ? help' % (MAP_FOCUS_LEGEND, word),),
+        ('%s | marks: ? help lists them' % MAP_FOCUS_LEGEND,),
+        (MAP_FOCUS_LEGEND,),
+    )
 
 
 class PinnedRow(str):
@@ -1846,8 +1861,9 @@ def _map_label(node, shorts, prefixes):
     return identifier
 
 
-def _map_legend(width):
-    return next((text for text in MAP_LEGENDS if cell_width(text) <= width), MAP_LEGENDS[-1])
+def _map_legend(width, rules='ascii'):
+    forms = map_legends(rules)
+    return next((form for form in forms if all(cell_width(row) <= width for row in form)), forms[-1])
 
 
 def _map_cell(prefix, node, label, label_width, ellipsis, rules='ascii'):
@@ -1961,7 +1977,7 @@ def map_lines(graph, width, rules='ascii', focus=None, selected=None, prefixes=N
                                       + '    ' + notes[edge['target']]))
         if cut:
             lines.append(_map_row('   ' + guide + glyph['last'] + '%d more not drawn; the tree below lists them' % cut))
-    lines.append(PinnedRow(_map_legend(width)))
+    lines.extend(PinnedRow(row) for row in _map_legend(width, rules))
     identity, detail = _focus_lines(graph, nodes[focus], width)
     return lines + identity + detail
 

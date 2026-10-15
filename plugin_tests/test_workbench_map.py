@@ -171,14 +171,15 @@ class MapLinesTests(Fixture):
         self.assertTrue(all(ord(char) < 0x80 for char in text), [char for char in text if ord(char) >= 0x80])
         self.assertTrue(any(ord(char) >= 0x80 for char in '\n'.join(self.lines(rules='unicode'))))
 
-    def test_the_legend_is_one_row_that_depends_only_on_the_width(self):
+    def test_the_legend_depends_only_on_the_width(self):
         for width in (76, 116):
             legends = [[row for row in self.lines(width) if '> focus' in row] for _ in STATES]
             self.assertTrue(all(len(found) == 1 for found in legends))
             self.assertLessEqual(cell_width(legends[0][0]), width)
         text = ' '.join(self.lines(116))
+        # One row holds every mark and the no-state word from the width of its text (204 cells); two rows hold them below.
         for word in ('verified', 'running', 'queued', 'waiting', 'blocked', 'failed', 'cancelled', 'unknown'):
-            self.assertIn(word, [part for row in self.lines(200) if '> focus' in row for part in row.split()])
+            self.assertIn(word, [part for row in self.lines(210) if '> focus' in row for part in row.split()])
         self.assertIn('* selected', text)
 
     def test_focus_and_selection_are_distinct_marks(self):

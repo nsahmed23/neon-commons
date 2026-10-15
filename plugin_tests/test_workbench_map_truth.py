@@ -160,26 +160,30 @@ class LegendTests(MapTruth):
     MARKS = ('verified', 'running', 'queued', 'waiting', 'blocked', 'failed', 'cancelled', 'unknown', 'expired', 'prepared',
              'none recorded')
 
-    def legend(self, width):
-        lines, _ = self.rows(width=width)
-        return [line for line in lines if '> focus' in line]
+    def legend(self, width, **kw):
+        """The legend's rows: the pinned rows above the FOCUS rows (one row, or two where the width holds every mark)."""
+        from intune_iac.workbench_screens import PinnedRow
+        lines, _ = self.rows(width=width, **kw)
+        return [str(line) for line in lines if isinstance(line, PinnedRow) and not line.startswith('FOCUS')]
 
-    def test_the_legend_is_one_row_that_depends_on_the_width_alone(self):
+    def test_the_legend_is_one_or_two_rows_that_depend_on_the_width_alone(self):
         for width in (40, 56, 76, 101, 116, 160):
             found = self.legend(width)
-            self.assertEqual(len(found), 1, width)
-            self.assertLessEqual(cell_width(found[0]), width)
-            again = self.rows(self.graph(states={self.object_id: 'expired'}), width=width)[0]
-            self.assertEqual([line for line in again if '> focus' in line], found, 'a state does not change the legend')
+            self.assertIn(len(found), (1, 2), width)
+            self.assertEqual(sum('> focus' in row for row in found), 1, width)
+            self.assertTrue(all(cell_width(row) <= width for row in found), (width, found))
+            again = self.legend(width, graph=self.graph(states={self.object_id: 'expired'}))
+            self.assertEqual(again, found, 'a state does not change the legend')
 
     def test_the_legend_never_drops_a_mark_that_can_appear_without_saying_so(self):
         for width in (56, 70, 76, 101, 116, 160):
-            legend = self.legend(width)[0]
+            legend = ' '.join(self.legend(width))
             missing = [word for word in self.MARKS if word not in legend]
             if missing:
                 self.assertIn('? help', legend, (width, missing))
-        self.assertTrue(all(word in self.legend(200)[0] for word in self.MARKS))
-        self.assertIn('[ ] no state', self.legend(200)[0])
+        wide = ' '.join(self.legend(200))
+        self.assertTrue(all(word in wide for word in self.MARKS))
+        self.assertIn('[ ] — means the kind has no operation state', wide)
 
     def test_the_help_lists_every_mark(self):
         from intune_iac.workbench_screens import help_lines
