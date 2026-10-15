@@ -50,14 +50,15 @@ MAX_EXPIRED = validity.MAX_EXPIRED
 _EXPIRED_TABLE = 'adoption_expired'
 
 
-def _critical(policy, payload, manifest_sha256, deadline=None):
+def _critical(policy, payload, manifest_sha256, deadline=None, *, fail=None, expired_code='adoption_signature_expired'):
     """The shared validity critical section (intune_iac.validity) on this adoption policy's own store: its authority
     root, its database and its adoption_expired table. The final window judgment, the recorded time, the expiry record
     and the caller's commit are one step. The payload must come from a receipt that authenticated: an expiry row is
-    written for it. A reached expiry is refused here with adoption_signature_expired; a backward step is held."""
-    store = validity.Store(policy.root, policy.connection, _EXPIRED_TABLE, _fail, capacity=MAX_EXPIRED,
+    written for it. A reached expiry is refused here with expired_code (the caller's own time refusal); a backward step
+    is held. The recovery-plan approvals in worker_adoption_reconcile share this store, table and section."""
+    store = validity.Store(policy.root, policy.connection, _EXPIRED_TABLE, fail or _fail, capacity=MAX_EXPIRED,
         capacity_code='adoption_store_capacity', private_code='adoption_store_not_private', create=True)
-    return validity.critical(store, payload, manifest_sha256, deadline, 'adoption_signature_expired')
+    return validity.critical(store, payload, manifest_sha256, deadline, expired_code)
 
 
 def _deadline(payload):

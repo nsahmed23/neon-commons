@@ -812,6 +812,7 @@ plugin_tests/fixtures/worker_service_tls_client.c
 plugin_tests/signing_fixture.py
 plugin_tests/test_adoption_expiry_latch.py
 plugin_tests/test_adoption_lab.py
+plugin_tests/test_adoption_recovery_expiry_latch.py
 plugin_tests/test_approval_authority_v5.py
 plugin_tests/test_approval_independent_v5.py
 plugin_tests/test_artifact_path_race_r4.py

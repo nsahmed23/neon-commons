@@ -384,13 +384,27 @@ def _verify(policy,manifest,receipt):
             or type(payload['nonce']) is not str or not re.fullmatch('[0-9a-f]{32}',payload['nonce'])):_fail('adoption_recovery_signature_binding')
     now=int(time.time())
     if (type(payload['issued_at']) is not int or type(payload['expires_at']) is not int or
-            not manifest['prepared_at']<=payload['issued_at']<=now+5 or not now<payload['expires_at']<=manifest['expires_at']):_fail('adoption_recovery_signature_expired')
+            not manifest['prepared_at']<=payload['issued_at']<=now+5 or not payload['expires_at']<=manifest['expires_at']):_fail('adoption_recovery_signature_expired')
+    try:_authenticate(policy,manifest,payload,receipt,signature_domain)
+    except AppError:
+        # An expired receipt that does not authenticate is refused as the time error it always was and records nothing.
+        if now>=payload['expires_at']:_fail('adoption_recovery_signature_expired')
+        raise
+    # Authenticated: the window is judged in the shared critical section, so a reached expiry is recorded and refused and
+    # stays closed after a backward clock step and a restart (see worker_adoption._critical).
+    with adoption._critical(policy,payload,digest(manifest),adoption._deadline(payload),fail=_fail,expired_code='adoption_recovery_signature_expired'):pass
+    return payload
+
+
+def _authenticate(policy,manifest,payload,receipt,signature_domain):
     if any(type(payload[k]) is not str for k in ('issuer','key_id','approver_id')):_fail('adoption_recovery_signer_invalid')
     signer=policy.approvers.get((payload['issuer'],payload['key_id']))
     if not signer or signer['approver_id']!=payload['approver_id'] or manifest['profile'] not in signer['profiles']:_fail('adoption_recovery_signer_invalid')
     try:signature=base64.b64decode(receipt['signature'],validate=True)
     except (TypeError,ValueError):_fail('adoption_recovery_signature_invalid')
     if len(signature)!=64 or base64.b64encode(signature).decode()!=receipt['signature']:_fail('adoption_recovery_signature_invalid')
+    with policy.connection() as db:
+        if db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?',(payload['issuer'],payload['key_id'])).fetchone():_fail('adoption_recovery_signer_revoked')
     fd=os.open(protected._path(policy.verifier.executable),os.O_RDONLY|os.O_NOFOLLOW);primary=None
     try:
         with os.fdopen(os.dup(fd),'rb') as stream:
@@ -411,7 +425,13 @@ def _verify(policy,manifest,receipt):
         except BaseException as secondary:
             if primary is None:raise
             adoption._secondary(primary,secondary,'signature descriptor cleanup')
-    return payload
+
+
+def _record_expiry_of(job,receipt):
+    """Record a reached expiry for a receipt that authenticates, before the caller refuses for the manifest's own window
+    (judged on the bare clock ahead of everything else). A receipt that does not authenticate records nothing."""
+    try:_verify(job.policy,job.manifest,receipt)
+    except (AppError,OSError):pass
 
 
 def _tables(policy):
@@ -485,18 +505,23 @@ def prepare_job(root,*,original,manifest,policy_path):
 
 
 class _Permit:
-    def __init__(self,job,payload,runtime):self.job,self.payload,self.runtime=job,payload,runtime;self.pid=os.getpid();self.active=True
+    def __init__(self,job,payload,runtime):self.job,self.payload,self.runtime=job,payload,runtime;self.pid=os.getpid();self.active=True;self.deadline=adoption._deadline(payload)
     def check_active(self):
         if not self.active or self.pid!=os.getpid():_fail('adoption_recovery_permit_inactive')
-        self.job._check();self.runtime.check(self.job.manifest)
+        try:self.job._check()
+        except AppError as error:
+            if error.code=='adoption_recovery_plan_expired':adoption._record_expiry(self.job.policy,self.payload,self.job.sha256,self.deadline)
+            raise
+        self.runtime.check(self.job.manifest)
         phase=_phase_from_binding(self.job.original,self.job.manifest['recovery_binding']) if _is_phase(self.job.manifest) else None
-        with self.job.policy.connection() as db:
+        # The final window judgment (the effective time, this permit's monotonic deadline, an earlier expiry record) and the
+        # job's state are read in one critical section; nothing is inserted, so a permit that is still valid changes no record.
+        with adoption._critical(self.job.policy,self.payload,self.job.sha256,self.deadline,fail=_fail,expired_code='adoption_recovery_plan_expired') as db:
             if phase is not None:_phase_transaction(db,self.job.original,self.job.manifest,phase=phase,current_id=self.job.identifier)
             row=db.execute('SELECT status,cancelled,dispatches,controller_pid,controller_start FROM adoption_recovery_plans WHERE operation_id=?',(self.job.identifier,)).fetchone()
             used=db.execute('SELECT manifest_sha256 FROM consumed WHERE operation_id=?',(self.job.identifier,)).fetchone()
             revoked=db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?',(self.payload['issuer'],self.payload['key_id'])).fetchone()
         if row!=('running',0,1,os.getpid(),service._controller_identity(os.getpid())) or used!=(self.job.sha256,) or revoked:_fail('adoption_recovery_permit_revoked')
-        if int(time.time())>=self.payload['expires_at']:_fail('adoption_recovery_plan_expired')
 
 
 class RecoveryPlanJob:
@@ -556,7 +581,11 @@ class RecoveryPlanJob:
             self.policy.event(db,self.original.identifier,'adoption_recovery_plan_stopped_no_replay',{'operation_id':self.identifier,'host':result,'ownership_released':False});db.execute('COMMIT')
         return self.status()
     def run(self,signed,*,runtime,completion):
-        receipt=_copy(signed);self._check()
+        receipt=_copy(signed)
+        try:self._check()
+        except AppError as error:
+            if error.code=='adoption_recovery_plan_expired':_record_expiry_of(self,receipt)
+            raise
         if threading.current_thread() is not threading.main_thread() or type(runtime) is not RecoveryPlanRuntime:_fail('adoption_recovery_runtime_required')
         runtime.check(self.manifest);facts=_completion(self.original,completion)
         if _binding(facts,original=self.original)!=self.manifest['recovery_binding'] or facts['fresh_observation']['identity_binding_sha256']!=self.manifest['identity_binding_sha256']:_fail('adoption_recovery_precondition_changed')
