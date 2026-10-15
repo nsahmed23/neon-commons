@@ -359,7 +359,9 @@ def survey(directory):
         if item:
             items.append(item)
     sessions = list(items)
-    for directory_path in dirs:
+    # The surveyed directory itself is examined too (its own path is "."), so start on a repository, a store or an
+    # operation sees it; _walk lists subdirectories only.
+    for directory_path in [root, *dirs]:
         rel = directory_path.relative_to(root).as_posix()
         if (directory_path / 'observations.sqlite3').is_file():
             items.append(_store_item(root, directory_path, rel))
