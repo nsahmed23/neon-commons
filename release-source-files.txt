@@ -809,6 +809,7 @@ plugin_tests/test_approval_independent_v5.py
 plugin_tests/test_artifact_path_race_r4.py
 plugin_tests/test_artifact_vault_r4.py
 plugin_tests/test_atmos_audit.py
+plugin_tests/test_authz_expiry_latch.py
 plugin_tests/test_azure_backend_r4.py
 plugin_tests/test_blob_lease_independent_v5.py
 plugin_tests/test_blob_lease_v5.py
