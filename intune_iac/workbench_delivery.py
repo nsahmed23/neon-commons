@@ -124,11 +124,14 @@ def _deployment(store, plan, journal, repository):
     receipts = [row for row in store.artifacts(kind='deployment_receipt')
                 if isinstance(row['data'].get('proof'), dict) and row['data']['proof'].get('operation_id') == plan['operation_id']]
     if receipts:
-        latest = receipts[-1]['data']
-        return {'stage': 'deployment_record', 'status': 'done', 'artifact_id': receipts[-1]['artifact_id'],
-                'intent_id': latest.get('intent_id'), 'recorded_at': receipts[-1]['recorded_at'],
-                'evidence_class': latest.get('evidence_class'), 'baseline_admissible': latest.get('baseline_admissible'),
-                'platform_qualified': latest.get('platform_qualified'),
+        # The earliest record is the deployment's record. Later ones exist only in stores written before a deployment
+        # was recorded once; they stay readable and are counted, never rewritten or hidden.
+        earliest = receipts[0]['data']
+        return {'stage': 'deployment_record', 'status': 'done', 'artifact_id': receipts[0]['artifact_id'],
+                'intent_id': earliest.get('intent_id'), 'recorded_at': receipts[0]['recorded_at'],
+                'evidence_class': earliest.get('evidence_class'), 'baseline_admissible': earliest.get('baseline_admissible'),
+                'platform_qualified': earliest.get('platform_qualified'),
+                **({'record_count': len(receipts)} if len(receipts) > 1 else {}),
                 # The views recheck the bound context bytes, so a record whose context changed is no longer admitted.
                 **({'context_changed': True} if repository.get('context_changed') else {})}
     if repository.get('context_changed'):
@@ -224,6 +227,16 @@ def _when(epoch):
 
 
 def _next_action(stages, operation_root, store_root):
+    """The one step that moves the change forward, followed by a note when this operation has several deployment records."""
+    action = _next_step(stages, operation_root, store_root)
+    count = stages['deployment_record'].get('record_count')
+    if count:
+        action += (' This operation has %d deployment records, made before a deployment was recorded only once; '
+                   'stage 7 shows the earliest.' % count)
+    return action
+
+
+def _next_step(stages, operation_root, store_root):
     """The one step that moves the change forward, with the real paths. The review digest is never filled in: the
     engineer copies it from the review they approve."""
     approval, readback, reconciliation = stages['approval'], stages['readback'], stages['reconciliation']

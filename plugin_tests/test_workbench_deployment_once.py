@@ -157,5 +157,54 @@ class RefusalsAndOtherProofsTests(Fixture, unittest.TestCase):
         self.assertEqual(len(self.receipts()), 1 + len(different))
 
 
+class DuplicateRecordsStayReadableTests(Fixture, unittest.TestCase):
+    """Records made before the fix, one operation recorded more than once, are read, not rewritten."""
+
+    def duplicates(self, extra=1):
+        import copy
+        self.executed()
+        first = self.record()
+        for n in range(extra):
+            data = copy.deepcopy(first['data'])
+            data['recorded_at'] += 100 * (n + 1)
+            self.assertTrue(self.store.record_artifact('deployment_receipt', None, data)['created'])
+        return first
+
+    def stage(self):
+        from intune_iac.workbench_delivery import delivery
+        value = delivery(self.operation)
+        return value, {stage['stage']: stage for stage in value['stages']}['deployment_record']
+
+    def test_delivery_shows_the_earliest_record_and_the_count_when_there_are_several(self):
+        first = self.duplicates(extra=2)
+        self.assertEqual(len(self.receipts()), 3)
+        value, stage = self.stage()
+        self.assertEqual((stage['status'], stage['artifact_id'], stage['recorded_at']),
+                         ('done', first['artifact_id'], first['recorded_at']))
+        self.assertEqual(stage['record_count'], 3)
+        self.assertIn('3 deployment records', value['next_action'])
+        self.assertIn('earliest', value['next_action'])
+
+    def test_one_record_says_nothing_about_a_count(self):
+        self.executed()
+        first = self.record()
+        value, stage = self.stage()
+        self.assertEqual(stage['artifact_id'], first['artifact_id'])
+        self.assertNotIn('record_count', stage)
+        self.assertNotIn('deployment records', value['next_action'])
+        self.assertNotIn('earliest', value['next_action'])
+
+    def test_recording_again_over_older_duplicates_returns_the_earliest_and_adds_none(self):
+        first = self.duplicates()
+        again = self.record()
+        self.assertEqual((again['created'], again['artifact_id']), (False, first['artifact_id']))
+        self.assertEqual(len(self.receipts()), 2)
+
+    def test_the_stage_for_the_deployment_guided_action_reads_the_same_earliest_record(self):
+        from intune_iac.workbench_delivery import deployment_stage
+        first = self.duplicates()
+        self.assertEqual(deployment_stage(str(self.operation))['artifact_id'], first['artifact_id'])
+
+
 if __name__ == '__main__':
     unittest.main()
