@@ -112,11 +112,20 @@ def _operation_records(store, object_id):
 
 
 def _newest_operation(records):
-    """The policy's newest operation as its records and journal say: store status, journal status, readback."""
+    """The policy's newest operation as its records and journal say: store status, journal status, readback.
+
+    The store registers an operation again at each later event (a refused execute, a reconcile), so the newest is
+    the one whose first registration is the latest (the one prepared last), in the state of its latest
+    registration; a later event on an older operation does not make that one the newest.
+    """
     from . import maintenance
     if not records:
         return None
-    record = records[-1]
+    first, latest = {}, {}
+    for position, item in enumerate(records):
+        first.setdefault(item['operation_id'], position)
+        latest[item['operation_id']] = item
+    record = latest[max(first, key=first.get)]
     state = {'operation_id': record['operation_id'], 'status': record.get('status'), 'journal_status': None,
              'classification': None, 'recorded_at': record.get('recorded_at'), 'operation_root': record.get('operation_root')}
     try:

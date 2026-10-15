@@ -582,3 +582,19 @@ class ApprovalWindowStateTests(unittest.TestCase):
         self.assertEqual(OPERATION_FROM_SIGNAL['operation_approval_held'], 'held')
         strip = context_strip(TENANT, OBJECT, {'name': 'P', 'operation': 'held'}, 200, 'synthetic')
         self.assertIn('OPERATION held', strip)
+
+
+class NewestOperationTests(unittest.TestCase):
+    """Journey 28 run 3, frames 75 and 77: a later event on an older operation does not make it the newest."""
+
+    def test_the_newest_is_the_one_prepared_last_in_its_latest_state(self):
+        from intune_iac.workbench_diagnostics import _newest_operation
+        records = [{'operation_id': 'a' * 32, 'status': 'prepared', 'recorded_at': 'T1', 'operation_root': None},
+                   {'operation_id': 'b' * 32, 'status': 'prepared', 'recorded_at': 'T2', 'operation_root': None},
+                   {'operation_id': 'a' * 32, 'status': 'prepared', 'recorded_at': 'T3', 'operation_root': None},
+                   {'operation_id': 'b' * 32, 'status': 'reconciled', 'recorded_at': 'T4', 'operation_root': None},
+                   {'operation_id': 'a' * 32, 'status': 'prepared', 'recorded_at': 'T5', 'operation_root': None}]
+        newest = _newest_operation(records)
+        self.assertEqual(newest['operation_id'], 'b' * 32)
+        self.assertEqual(newest['status'], 'reconciled')
+        self.assertEqual(newest['recorded_at'], 'T4')
