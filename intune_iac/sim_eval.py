@@ -95,6 +95,9 @@ class _Index:
             record = self.snapshot.filter_by_id.get(filter_id)
             if record is None:
                 self._filters[filter_id] = (None, 'missing_filter:' + filter_id)
+            elif record.platform != 'windows10':
+                # Only Windows Settings Catalog policies are evaluated; another platform's filter is unknown here.
+                self._filters[filter_id] = (None, f'filter_unsupported:{filter_id}:platform_{record.platform}')
             else:
                 parsed = parse_filter(record.expression.value, self.profile, record.expression.presence)
                 problem = None if parsed.ast is not None else f'filter_unsupported:{filter_id}:{parsed.reason}'

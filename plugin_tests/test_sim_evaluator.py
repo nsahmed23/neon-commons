@@ -498,5 +498,22 @@ class ReasonsReachCoverage(unittest.TestCase):
             self.assertIn('missing_filter:' + s.uid('filter/' + name), message)
 
 
+class FilterPlatform(unittest.TestCase):
+    """Fable finding 5: a filter for another platform is unknown for a Windows policy, never applicable."""
+
+    def test_a_filter_for_another_platform_is_unknown_and_named(self):
+        doc = world(devices=('a',), members=('a',), filters=[s.filt('mac', 'device.model -eq "M1"', platform='macOS')])
+        doc['devices'][0]['properties'] = {'model': 'M1'}
+        result, out = simulate(doc, add(s.policy('p', [s.include('gA', 'include', 'mac')], settings=[])))
+        self.assertEqual(after_sets(result, 'p'), (frozenset(), devs('a')))
+        self.assertIn(f'filter_unsupported:{s.uid("filter/mac")}:platform_macOS', out['coverage']['unresolved_reasons'])
+
+    def test_a_windows_filter_is_still_evaluated(self):
+        doc = world(devices=('a',), members=('a',), filters=[s.filt('win', 'device.model -eq "M1"')])
+        doc['devices'][0]['properties'] = {'model': 'M1'}
+        result, _ = simulate(doc, add(s.policy('p', [s.include('gA', 'include', 'win')], settings=[])))
+        self.assertEqual(after_sets(result, 'p'), (devs('a'), devs('a')))
+
+
 if __name__ == '__main__':
     unittest.main()
