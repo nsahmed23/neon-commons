@@ -57,12 +57,12 @@ def _fail(code):
 
 class BrokerGuard:
     def __init__(self, seal, execution_binding_sha256, recheck, binding=None, inflight=None):
-        if seal is not _SEAL or not callable(recheck) or not (inflight is None or callable(inflight)):
+        if seal is not _SEAL or not callable(recheck) or not callable(inflight):
             _fail('broker_host_guard_required')
         self.execution_binding_sha256, self.recheck, self.binding = execution_binding_sha256, recheck, binding
-        # The in-flight check: cancellation and revocation only, never the approval's window. A guard that names none
-        # uses its recheck for both.
-        self.inflight = inflight or recheck
+        # The in-flight check: cancellation and revocation only, never the approval's window. Every guard names one (an
+        # explicit no-op where there is no revocable state): it must not default to the recheck, which judges the window.
+        self.inflight = inflight
         self.pid = os.getpid()
         self._deadlines = {}
 
@@ -107,11 +107,11 @@ class BrokerGuard:
         if self.inflight() is not None: _fail('broker_guard_contract')
 
 
-def laboratory_guard(execution_binding_sha256, recheck, inflight=None):
+def laboratory_guard(execution_binding_sha256, recheck, inflight):
     return BrokerGuard(_SEAL, execution_binding_sha256, recheck, inflight=inflight)
 
 
-def live_guard(execution_binding_sha256, *, binding, recheck, inflight=None):
+def live_guard(execution_binding_sha256, *, binding, recheck, inflight):
     """Trusted service API only. Recheck must enforce actual signed job authority.
 
     Identity authentication alone grants no mutation permission. This factory is

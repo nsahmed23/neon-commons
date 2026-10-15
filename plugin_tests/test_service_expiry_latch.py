@@ -69,7 +69,7 @@ class ServiceFixture(unittest.TestCase):
                         patch.object(service.host, 'directory_binding',
                                      side_effect=lambda root: {'sha256': 's' * 64 if root == self.spec.source_root else 'c' * 64}),
                         patch.object(service.ServiceJob, 'status', return_value={'status': 'modeled-dispatch'}),
-                        patch.object(service.broker, "laboratory_guard", side_effect=lambda binding, recheck, inflight=None: object()),
+                        patch.object(service.broker, "laboratory_guard", side_effect=lambda binding, recheck, inflight: object()),
                         patch.object(service.broker, 'EgressBroker',
                                      side_effect=lambda *args, **kwargs: types.SimpleNamespace(native_recovery_record=dict)),
                         patch.object(service.broker, 'UnixBrokerServer',

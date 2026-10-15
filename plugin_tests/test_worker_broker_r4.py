@@ -98,7 +98,7 @@ class BrokerTests(unittest.TestCase):
         self.active = True
         def check():
             if not self.active: raise AppError('fixture_cancelled', 'Synthetic controller cancellation.')
-        self.guard = wb.laboratory_guard(self.policy['execution_binding_sha256'], check)
+        self.guard = wb.laboratory_guard(self.policy['execution_binding_sha256'], check, check)
         self.upstream = wb.LaboratoryUpstream(self.upstream_server.server_port, self.cert)
         self.broker = wb.EgressBroker(self.policy, journal=self.root / 'journal.sqlite3', guard=self.guard, upstream=self.upstream)
         self.server = wb.UnixBrokerServer(self.root / 'egress.sock', self.broker, certificate=self.cert, private_key=self.key)

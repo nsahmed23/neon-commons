@@ -74,7 +74,7 @@ class BrokerWindowTests(unittest.TestCase):
                         'body_sha256': sha256(self.form).hexdigest(), 'role': 'provider', 'audience': 'graph',
                         'effect': 'oauth', 'max_attempts': 30}]}
         self.calls, self.rechecks = [], []
-        self.guard = wb.laboratory_guard(self.policy['execution_binding_sha256'], lambda: self.rechecks.append('recheck'))
+        self.guard = wb.laboratory_guard(self.policy['execution_binding_sha256'], lambda: self.rechecks.append('recheck'), lambda: None)
         upstream = object.__new__(wb.LaboratoryUpstream)
         patcher = patch.object(wb.LaboratoryUpstream, 'request', self.upstream_request)
         patcher.start()
@@ -124,7 +124,7 @@ class BrokerWindowTests(unittest.TestCase):
         def recheck():
             if state['cancelled']:
                 raise AppError('fixture_cancelled', 'Synthetic cancellation.')
-        guard = wb.laboratory_guard(self.policy['execution_binding_sha256'], recheck)
+        guard = wb.laboratory_guard(self.policy['execution_binding_sha256'], recheck, recheck)
         broker = wb.EgressBroker(self.policy, journal=self.root / 'other.sqlite3', guard=guard, upstream=object.__new__(wb.LaboratoryUpstream))
 
         def upstream_then_cancel(host, method, target, headers, body, *, timeout):

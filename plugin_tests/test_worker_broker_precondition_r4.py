@@ -47,7 +47,7 @@ class BrokerPreconditionTests(unittest.TestCase):
         value['routes']=[template]+mutations
         def guard():
             if cancel_after_read and len(transport.requests)>7:raise AppError('controller_cancelled','Fixture cancellation after actual read.')
-        broker=wb.EgressBroker(value,journal=self.root/'native.sqlite3',guard=wb.laboratory_guard('a'*64,guard),
+        broker=wb.EgressBroker(value,journal=self.root/'native.sqlite3',guard=wb.laboratory_guard('a'*64,guard,guard),
             upstream=self.upstream,credentials=vault,precondition=None if omit else gate)
         response=broker.handle(template['host'],'POST',template['path'],template['headers'],form)
         token=json.loads(response.body)['access_token']
