@@ -1374,8 +1374,12 @@ def relationship_lines(value, width, rules='ascii'):
     return lines
 
 
-def history_lines(value, width):
-    """Observations newest first, each with what changed since the one before it on this page."""
+def history_lines(value, width, current=None):
+    """Observations newest first, each with what changed since the one before it on this page.
+
+    current: the run and time of the observation the store treats as current (from the last read of the policy);
+    its row is marked, and a row stamped later than it is marked as not current.
+    """
     from .workbench_diff import field_changes
     lines = ['[OBSERVATION HISTORY]']
     page = value.get('pagination') if isinstance(value.get('pagination'), dict) else {}
@@ -1386,13 +1390,21 @@ def history_lines(value, width):
     lines += word_wrap('%s | this page %d from offset %s' % (
         _plural(total, 'observation') if isinstance(total, int) else 'unknown number of observations', len(items), page.get('offset', value.get('offset', 0))), width)
     if value.get('order') == 'observed_at_desc_observation_id_desc':
-        lines += word_wrap('Newest first; n shows older observations, p shows newer observations.', width)
+        lines += word_wrap('Newest first by observation time (a capture stamped ahead of this host\'s clock sorts above '
+                           'later collections; the current observation is marked); n shows older observations, p '
+                           'shows newer observations.', width)
     lines += word_wrap('Observation time is when collection saw the configuration; it does not establish who changed it or when.', width)
     for index, item in enumerate(items):
         lines.append('')
-        lines += word_wrap('%s | run %s | %s | snapshot %s' % (
+        mark = ''
+        if isinstance(current, dict) and current.get('run_id') is not None:
+            if item.get('run_id') == current.get('run_id'):
+                mark = ' | current'
+            elif str(item.get('observed_at') or '') > str(current.get('observed_at') or ''):
+                mark = ' | not current: stamped later than the current observation (2 says why)'
+        lines += word_wrap('%s | run %s | %s | snapshot %s%s' % (
             _when(item.get('observed_at'), 'unknown'), item.get('run_id', 'unknown'), item.get('coverage', 'unknown'),
-            str(item.get('snapshot_id', 'unknown'))[:12]), width)
+            str(item.get('snapshot_id', 'unknown'))[:12], mark), width)
         lines += word_wrap('  %s | changed at %s | attribution %s' % (
             item.get('evidence_class', 'evidence unknown'), item.get('changed_at') or 'unknown', item.get('attribution') or 'unknown'), width)
         accounting = item.get('field_accounting') if isinstance(item.get('field_accounting'), dict) else {}

@@ -1027,7 +1027,9 @@ class Workspace:
                       'not in the capture' if integrity == 'verified_local_bytes' else 'not read: the bytes did not verify')
         elif self.tab == 3 and isinstance(value.get('history'), list):
             from .workbench_screens import history_lines
-            rows.extend(history_lines(value, width))
+            facts = self.facts if getattr(self, 'facts', None) and self.facts.get('object_id') == value.get('object_id') else {}
+            observation = (facts.get('states') or {}).get('observation') if isinstance(facts.get('states'), dict) else None
+            rows.extend(history_lines(value, width, current=observation if isinstance(observation, dict) else None))
         elif self.tab == 3 and value.get('schema_version') == 'workbench-protected-adoption-history/1':
             rows.append('[PROTECTED STATE-ONLY ADOPTION HISTORY]')
             field('Object', value.get('object_id', 'unknown'))

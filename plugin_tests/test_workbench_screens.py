@@ -1051,3 +1051,25 @@ class NarrowWindowTests(unittest.TestCase):
                          'SYNTHETIC | TENANT 11111111 | POLICY 22222222 | OP unknown')
         self.assertEqual(context_strip(TENANT, POLICY, facts, 48, 'synthetic'),
                          'SYNTHETIC | T 11111111 | P 22222222 | OP unknown')
+
+
+class HistoryCurrentTests(unittest.TestCase):
+    """Journey 28 run 3, frame 64: the page says what its order is and which observation is current."""
+    VALUE = {'object_id': POLICY_ID, 'order': 'observed_at_desc_observation_id_desc',
+             'history': [{'observed_at': '2026-10-15T05:27:14Z', 'run_id': 4, 'body': body()},
+                         {'observed_at': '2026-10-15T05:12:16Z', 'run_id': 5, 'body': body()}]}
+
+    def test_the_current_observation_and_a_later_stamped_one_are_marked(self):
+        from intune_iac.workbench_screens import history_lines
+        lines = history_lines(self.VALUE, 160, current={'run_id': 5, 'observed_at': '2026-10-15T05:12:16Z'})
+        joined = '\n'.join(lines)
+        self.assertIn('Newest first by observation time', joined)
+        run4 = next(line for line in lines if '| run 4 |' in line)
+        run5 = next(line for line in lines if '| run 5 |' in line)
+        self.assertIn('current', run5)
+        self.assertIn('not current: stamped later than the current observation', run4)
+
+    def test_without_a_known_current_observation_nothing_is_marked(self):
+        from intune_iac.workbench_screens import history_lines
+        joined = '\n'.join(history_lines(self.VALUE, 160))
+        self.assertNotIn('not current', joined)
