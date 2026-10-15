@@ -18,7 +18,7 @@ import stat
 import time
 import uuid
 
-from . import approval_authority as aa, protected, provider_execution as pe
+from . import approval_authority as aa, implementation_history as history, protected, provider_execution as pe
 from .io import AppError, canonical, digest, load_json, parse_json
 from .provider_journey import _bounded_private_json, _outside_repository, _private, _absolute
 
@@ -259,20 +259,25 @@ class WorkerJob:
             recorded, current = self.manifest['implementation_files'], _implementation()
         except (AppError, OSError) as error:
             return {'relation': 'not_established', 'failure_code': getattr(error, 'code', type(error).__name__)}
+        found['worker_relation'] = history.worker_relation(recorded, current)['relation']
         found['worker_files_changed'] = sorted(name for name in set(recorded) | set(current) if recorded.get(name) != current.get(name))
         return found
 
     def check(self, *, active=False, implementation='current'):
         """The job's attestation and, unless implementation='recorded', the current-implementation comparison.
 
-        'recorded' is for observation only (reconcile): an implementation the inventory does not recognise is refused,
-        and the worker's own file comparison is relaxed only for a request recorded under a recognised earlier
-        implementation. Dispatch never passes it."""
+        'recorded' is for observation only (reconcile). Both implementations the job recorded are judged against the
+        inventories: the protected request's digest must not be unknown, and the worker's own file set must equal the
+        current one or be a registered worker release. A recognised protected upgrade never waives the worker
+        comparison. Dispatch never passes it."""
         if implementation not in ('current', 'recorded'): raise ValueError('implementation must be current or recorded')
         self._attestation()
-        relation = protected.implementation_relation(self.manifest['native_request'])['relation'] if implementation == 'recorded' else 'same'
-        if relation == 'unknown': _fail('implementation_unknown')
-        if relation != 'known_earlier' and self.manifest['implementation_files'] != _implementation(): _fail('worker_implementation_changed')
+        if implementation == 'recorded' and protected.implementation_relation(self.manifest['native_request'])['relation'] == 'unknown':
+            _fail('implementation_unknown')
+        recorded_files, current_files = self.manifest['implementation_files'], _implementation()
+        if recorded_files != current_files and (
+                implementation != 'recorded' or history.worker_relation(recorded_files, current_files)['relation'] != 'known_earlier'):
+            _fail('worker_implementation_changed')
         admission = self.policy.executors.get(self.executor.root)
         if (not admission or admission['manifest_sha256'] != self.manifest['executor_manifest_sha256'] or
                 admission['context_sha256'] != digest(_context(self.manifest['context'])) or

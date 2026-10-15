@@ -30,7 +30,27 @@ FROZEN_ATMOS_FILES = {
     'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
     'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
 }
+FROZEN_WORKER_FILES = {
+    'protected_worker.py': '1a2a0e48b84b8b30980cb9c743bb82835dfe59945edb857f8eb4c43c4045dc1b',
+    'protected.py': '79e167f7f4fdb1246f07a2589256890552b07480fba5bedce28f7c9f64dc1c43',
+    'provider_execution.py': '653e4191156444fd05a0937c8c3a5f5a6c6097fa07e9cb5f34a1278cdb2a7731',
+    'approval_authority.py': '7770a65bf142491768cd74a10871e601ea0ffabeed1afbe21315e1d03fbe7c0e',
+    'provider_journey.py': 'ba263a361a70a8c30d5e6d025a06baaa104b77c6b46faaae4220c7579cb9f4b7',
+    'azure_backend.py': '83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab',
+    'execution.py': '642a182551839da471a1e3ac3d60b4fde666637cfcf851013ea2f5d5e81e2e72',
+    'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
+    'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
+}
 LABEL = 'ce27913-pre-pin-migration'
+P3B_LABEL = 'pin-migration-p3b'
+P3B_DIGEST = 'c22f9086f4c9e3d00c83193703f74e78fe60054ac4b0051b2de00f2d4ec73798'
+P3B_PROTECTED_FILES = dict(FROZEN_PROTECTED_FILES, **{'protected.py': '3f1fc433999ad7606866f3587c39e0c1d7d9ffcc3b62831cd24fb670660c7636'})
+P3B_ATMOS_FILES = dict(FROZEN_ATMOS_FILES, **{
+    'journey_native_atmos.py': '35d09602c49cb09b518643485c76f5dca75272da3ee5f95a57c8f1e6e57ea2ff',
+    'protected.py': '3f1fc433999ad7606866f3587c39e0c1d7d9ffcc3b62831cd24fb670660c7636'})
+P3B_WORKER_FILES = dict(FROZEN_WORKER_FILES, **{
+    'protected_worker.py': '7c2e92351298df585748edbc1c0418320a15a19db936b50449d0b29298019a4c',
+    'protected.py': '3f1fc433999ad7606866f3587c39e0c1d7d9ffcc3b62831cd24fb670660c7636'})
 
 
 def frozen_digests():
@@ -49,12 +69,25 @@ class InventoryPinTests(unittest.TestCase):
     def test_protected_inventory_holds_exactly_the_pinned_entries(self):
         self.assertEqual(
             [dict(entry) for entry in history.PROTECTED_INVENTORY],
-            [{'label': LABEL, 'implementation_sha256': FROZEN_DIGEST, 'files': FROZEN_PROTECTED_FILES}])
+            [{'label': LABEL, 'implementation_sha256': FROZEN_DIGEST, 'files': FROZEN_PROTECTED_FILES},
+             {'label': P3B_LABEL, 'implementation_sha256': P3B_DIGEST, 'files': P3B_PROTECTED_FILES}])
 
     def test_native_atmos_inventory_holds_exactly_the_pinned_entries(self):
         self.assertEqual(
             [dict(entry) for entry in history.NATIVE_ATMOS_INVENTORY],
-            [{'label': LABEL, 'files': FROZEN_ATMOS_FILES}])
+            [{'label': LABEL, 'files': FROZEN_ATMOS_FILES}, {'label': P3B_LABEL, 'files': P3B_ATMOS_FILES}])
+
+    def test_worker_inventory_holds_exactly_the_pinned_entries(self):
+        self.assertEqual(
+            [dict(entry) for entry in history.WORKER_INVENTORY],
+            [{'label': LABEL, 'files': FROZEN_WORKER_FILES}, {'label': P3B_LABEL, 'files': P3B_WORKER_FILES}])
+
+    def test_each_entry_names_only_its_own_component_set(self):
+        for inventory, components in ((history.PROTECTED_INVENTORY, history.PROTECTED_COMPONENTS),
+                                      (history.NATIVE_ATMOS_INVENTORY, history.NATIVE_ATMOS_COMPONENTS),
+                                      (history.WORKER_INVENTORY, history.WORKER_COMPONENTS)):
+            for entry in inventory:
+                self.assertEqual(set(entry['files']), set(components), entry['label'])
 
     def test_component_sets_are_the_bound_file_sets(self):
         self.assertEqual(history.PROTECTED_COMPONENTS, ('protected.py', 'execution.py', 'io.py', 'native_pins.py'))
@@ -131,6 +164,68 @@ class RelationTests(unittest.TestCase):
         for value in (None, [], {}, dict(FROZEN_ATMOS_FILES, extra='e' * 64),
                       {k: v for k, v in FROZEN_ATMOS_FILES.items() if k != 'io.py'}):
             self.assertEqual(history.native_atmos_relation(value, current)['relation'], 'unknown', value)
+
+
+class WorkerInventoryTests(unittest.TestCase):
+    def test_worker_component_set_is_the_set_protected_worker_binds(self):
+        from intune_iac import protected_worker
+        self.assertEqual(history.WORKER_COMPONENTS, tuple(protected_worker._implementation()))
+
+    def test_first_worker_entry_is_the_pinned_release_and_is_listed_under_the_same_label(self):
+        first = dict(history.WORKER_INVENTORY[0])
+        self.assertEqual(first, {'label': LABEL, 'files': FROZEN_WORKER_FILES})
+        # Its protected.py is the protected inventory's first entry: one release, two views of it.
+        self.assertEqual(first['files']['protected.py'], FROZEN_PROTECTED_FILES['protected.py'])
+
+    def test_worker_relation_same_known_earlier_and_unknown(self):
+        current = dict(FROZEN_WORKER_FILES, **{'io.py': 'c' * 64})
+        self.assertEqual(history.worker_relation(current, current)['relation'], 'same')
+        earlier = history.worker_relation(FROZEN_WORKER_FILES, current)
+        self.assertEqual((earlier['relation'], earlier['inventory_label']), ('known_earlier', LABEL))
+        self.assertEqual(earlier['bound_components'], list(history.WORKER_COMPONENTS))
+        drifted = dict(FROZEN_WORKER_FILES, **{'provider_execution.py': 'd' * 64})
+        self.assertEqual(history.worker_relation(drifted, current)['relation'], 'unknown')
+        for value in (None, {}, dict(FROZEN_WORKER_FILES, extra='e' * 64)):
+            self.assertEqual(history.worker_relation(value, current)['relation'], 'unknown', value)
+
+
+class ReleaseRegistrationTests(unittest.TestCase):
+    """A release that changes a bound file must register the digest it ships, or the records it makes read as unknown
+    after the next change. Each test says exactly what to append."""
+
+    def assert_registered(self, inventory_name, inventory, recorded_value, files):
+        registered = [entry['files'] for entry in inventory]
+        if files not in registered:
+            lines = ['    {\'label\': \'<release label>\',']
+            if inventory_name == 'PROTECTED_INVENTORY':
+                lines.append('     \'implementation_sha256\': %r,' % recorded_value)
+            lines.append("     'files': {\n%s}}," % ',\n'.join('               %r: %r' % item for item in files.items()))
+            self.fail('The current implementation is not registered in %s. Append this entry to it in '
+                      'intune_iac/implementation_history.py (never edit or remove an existing entry), then add it to the '
+                      'pinned lists in plugin_tests/test_implementation_history.py:\n%s'
+                      % (inventory_name, '\n'.join(lines)))
+
+    def test_the_current_protected_implementation_is_registered(self):
+        from intune_iac import protected
+        files = protected._implementation_files()
+        self.assert_registered('PROTECTED_INVENTORY', history.PROTECTED_INVENTORY, history.protected_digest(files), files)
+
+    def test_the_current_native_atmos_implementation_is_registered(self):
+        from intune_iac import journey_native_atmos
+        files = journey_native_atmos._implementation()
+        self.assert_registered('NATIVE_ATMOS_INVENTORY', history.NATIVE_ATMOS_INVENTORY, digest(files), files)
+
+    def test_the_current_worker_implementation_is_registered(self):
+        from intune_iac import protected_worker
+        files = protected_worker._implementation()
+        self.assert_registered('WORKER_INVENTORY', history.WORKER_INVENTORY, digest(files), files)
+
+    def test_the_failure_message_says_what_to_append(self):
+        with self.assertRaises(AssertionError) as raised:
+            self.assert_registered('PROTECTED_INVENTORY', history.PROTECTED_INVENTORY, 'f' * 64, {'io.py': 'e' * 64})
+        message = str(raised.exception)
+        for part in ('PROTECTED_INVENTORY', 'intune_iac/implementation_history.py', 'implementation_sha256', 'f' * 64, 'e' * 64, 'Append'):
+            self.assertIn(part, message)
 
 
 if __name__ == '__main__':

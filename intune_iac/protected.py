@@ -740,6 +740,19 @@ def implementation_relation(request):
     return history.protected_relation(recorded,_implementation_sha256())
 
 
+def _implementation_gate(request, implementation):
+    """The implementation comparison alone: request shape, then 'current' (equal to the implementation now) or
+    'recorded' (not unknown to the inventory). It reads nothing from any executor, so a caller can run it before
+    touching one. Returns the checked snapshot of the request."""
+    request=_json_snapshot(request);_request_shape(request)
+    claimed=request['bindings']['implementation_sha256'];current=_implementation_sha256()
+    if implementation=='current':
+        if claimed!=current:raise ImplementationChanged(claimed,current)
+    elif history.protected_relation(claimed,current)['relation']==history.UNKNOWN:
+        raise AppError('implementation_unknown','The implementation this record names is neither the current one nor in the inventory of released implementations, so it cannot be read as history.')
+    return request
+
+
 def _validate_request(request, executor, *, fresh=True, state=True, implementation='current'):
     _purpose(implementation,fresh)
     _require_executor(executor); request=_json_snapshot(request);_request_shape(request)
@@ -749,11 +762,7 @@ def _validate_request(request, executor, *, fresh=True, state=True, implementati
     if type(request['created_at'])is not int or type(request['expires_at'])is not int or not 1<=request['expires_at']-request['created_at']<=300:_fail('invalid_expiry')
     # The implementation comes before the window and every read of the executor: a request from before an upgrade is
     # refused by name without touching a clock file or any other state.
-    claimed=request['bindings']['implementation_sha256'];current=_implementation_sha256()
-    if implementation=='current':
-        if claimed!=current:raise ImplementationChanged(claimed,current)
-    elif history.protected_relation(claimed,current)['relation']==history.UNKNOWN:
-        raise AppError('implementation_unknown','The implementation this record names is neither the current one nor in the inventory of released implementations, so it cannot be read as history.')
+    _implementation_gate(request,implementation)
     if fresh: _window(request,executor)
     if type(request['bindings'])is not dict or set(request['bindings'])!=_BINDING_KEYS or request['binding_sha256']!=digest(request['bindings']):_fail('invalid_binding')
     if request!=load_json(_path(executor.root/'preparation.json')):_fail('request_changed')
@@ -827,6 +836,8 @@ def validate_native_operation(request, *, executor, require_fresh=False, require
 
 def approve_synthetic_operation(request, *, executor):
     if type(executor)is not SyntheticExecutor:_fail('wrong_approval_mode')
+    # The implementation comes before any read of the executor, so an upgrade is named, not masked by its state.
+    request=_implementation_gate(request,'current')
     if (executor.root/'consumed.json').exists():_fail('approval_already_consumed')
     return _LocalGrant(_validate_request(request,executor,implementation='current'),_SECRET)
 
@@ -834,6 +845,7 @@ def approve_synthetic_operation(request, *, executor):
 def approve_native_local_operation(request, *, executor):
     """Explicit local-test approval only; there is no cloud approval constructor."""
     if type(executor)is not NativeLocalExecutor:_fail('wrong_approval_mode')
+    request=_implementation_gate(request,'current')
     if (executor.root/'consumed.json').exists():_fail('approval_already_consumed')
     return _LocalGrant(_validate_request(request,executor,implementation='current'),_SECRET)
 

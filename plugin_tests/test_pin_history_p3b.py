@@ -569,15 +569,23 @@ class WorkerReportsTheRelationTests(unittest.TestCase):
         with patch.object(worker.WorkerJob, '_apply', lost):
             self.assertEqual(self.job().run(self.receipt())['status'], 'outcome_unknown')
 
-    def upgraded(self, *, recognised=True):
+    def upgraded(self, *, recognised=True, worker_recognised=False):
+        """recognised: the protected inventory holds the recorded digest. worker_recognised: the worker inventory holds
+        the job's recorded worker files (a release registers both). The branch registers its own current digests, so
+        the current files are first taken out of both inventories: the job below was prepared under them."""
         recorded_files = protected._implementation_files()
         recorded = history.protected_digest(recorded_files)
-        inventory = history.PROTECTED_INVENTORY
+        recorded_worker = worker._implementation()
+        inventory = tuple(e for e in history.PROTECTED_INVENTORY if e['files'] != recorded_files)
         if recognised:
             inventory = inventory + ({'label': 'test-release', 'implementation_sha256': recorded, 'files': recorded_files},)
+        worker_inventory = tuple(e for e in history.WORKER_INVENTORY if e['files'] != recorded_worker)
+        if worker_recognised:
+            worker_inventory = worker_inventory + ({'label': 'test-release', 'files': recorded_worker},)
         stack = [patch.object(protected, '_implementation_files', return_value=dict(recorded_files, **{'io.py': 'c' * 64})),
-                 patch.object(worker, '_implementation', return_value=dict(worker._implementation(), **{'protected.py': 'f' * 64})),
-                 patch.object(history, 'PROTECTED_INVENTORY', inventory)]
+                 patch.object(worker, '_implementation', return_value=dict(recorded_worker, **{'protected.py': 'f' * 64})),
+                 patch.object(history, 'PROTECTED_INVENTORY', inventory),
+                 patch.object(history, 'WORKER_INVENTORY', worker_inventory)]
         for item in stack:
             item.start()
             self.addCleanup(item.stop)
@@ -603,7 +611,7 @@ class WorkerReportsTheRelationTests(unittest.TestCase):
     def test_reconcile_after_an_unknown_outcome_observes_only_and_reports_the_relation(self):
         self.lost_response_dispatch()
         after = self.state()
-        recorded = self.upgraded()
+        recorded = self.upgraded(worker_recognised=True)
         result = self.job().reconcile()
         self.assertTrue(result['desired_state_observed'])
         self.assertFalse(result['execution_confirmed'])
@@ -629,14 +637,91 @@ class WorkerReportsTheRelationTests(unittest.TestCase):
         self.assertEqual(raised.exception.code, 'implementation_unknown')
         self.assertEqual(len(self.job().status()['events']), before)
 
+    def test_recorded_reconcile_refuses_unpinned_worker_only_drift(self):
+        # A known protected upgrade must not waive the comparison of the worker's own bound files (review F2).
+        self.lost_response_dispatch()
+        self.upgraded()  # the protected relation becomes known_earlier; the worker files are not registered
+        changed = dict(worker._implementation(), **{'provider_execution.py': 'e' * 64})
+        with patch.object(worker, '_implementation', return_value=changed):
+            with self.assertRaises(AppError) as raised:
+                self.job().reconcile()
+        self.assertEqual(raised.exception.code, 'worker_implementation_changed')
+
+    def test_recorded_reconcile_accepts_a_registered_worker_release(self):
+        self.lost_response_dispatch()
+        self.upgraded(worker_recognised=True)
+        recorded = worker._implementation()  # the patched current set; the job recorded the real files
+        events = len(self.job().status()['events'])
+        drifted = dict(recorded, **{'provider_execution.py': 'e' * 64})
+        with patch.object(worker, '_implementation', return_value=drifted):
+            result = self.job().reconcile()  # the recorded files are a registered release: observation only
+        self.assertEqual(result['implementation']['worker_relation'], 'known_earlier')
+        self.assertEqual(len(self.job().status()['events']), events + 1)
+
+    def worker_relation(self, registered):
+        self.prepare()
+        if registered is not None:
+            self.upgraded(worker_recognised=registered)
+        return self.job().status()['implementation']['worker_relation']
+
+    def test_status_reports_the_worker_relation_same(self):
+        self.assertEqual(self.worker_relation(None), 'same')
+
+    def test_status_reports_the_worker_relation_unknown_when_unregistered(self):
+        self.assertEqual(self.worker_relation(False), 'unknown')
+
+    def test_status_reports_the_worker_relation_known_earlier_when_registered(self):
+        self.assertEqual(self.worker_relation(True), 'known_earlier')
+
     def test_a_changed_worker_file_with_the_same_protected_digest_still_refuses_reconcile(self):
         self.lost_response_dispatch()
-        patcher = patch.object(worker, '_implementation', return_value=dict(worker._implementation(), **{'io.py': 'f' * 64}))
-        patcher.start()
-        self.addCleanup(patcher.stop)
+        recorded = worker._implementation()
+        unregistered = tuple(e for e in history.WORKER_INVENTORY if e['files'] != recorded)
+        for patcher in (patch.object(worker, '_implementation', return_value=dict(recorded, **{'io.py': 'f' * 64})),
+                        patch.object(history, 'WORKER_INVENTORY', unregistered)):
+            patcher.start()
+            self.addCleanup(patcher.stop)
         with self.assertRaises(AppError) as raised:
             self.job().reconcile()
         self.assertEqual(raised.exception.code, 'worker_implementation_changed')
+
+
+class ApprovalChecksTheImplementationFirstTests(unittest.TestCase):
+    """Both approvals look at the implementation before any read of the executor (review F3)."""
+
+    def refused(self, approve, make_executor):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / 'executor'
+            synthetic = protected.create_synthetic_executor(root, initial_value={'a': 1}, desired_value={'a': 2})
+            request = protected.prepare_native_operation(synthetic)
+            write_json(root / 'consumed.json', {'present': True})
+            executor = synthetic if make_executor is None else object.__new__(make_executor)
+            executor.root = root
+            changed = dict(protected._implementation_files(), **{'io.py': 'c' * 64})
+            with patch.object(protected, '_implementation_files', return_value=changed):
+                with self.assertRaises(AppError) as raised:
+                    approve(request, executor=executor)
+            return raised.exception
+
+    def test_synthetic_approval_names_the_upgrade_before_it_reports_consumption(self):
+        error = self.refused(protected.approve_synthetic_operation, None)
+        self.assertEqual(error.code, 'evidence_changed')
+        self.assertIn('upgrade', error.message)
+
+    def test_native_approval_names_the_upgrade_before_it_reports_consumption(self):
+        error = self.refused(protected.approve_native_local_operation, protected.NativeLocalExecutor)
+        self.assertEqual(error.code, 'evidence_changed')
+        self.assertIn('upgrade', error.message)
+
+    def test_with_the_same_implementation_a_consumed_approval_is_still_reported_as_consumed(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / 'executor'
+            executor = protected.create_synthetic_executor(root, initial_value={'a': 1}, desired_value={'a': 2})
+            request = protected.prepare_native_operation(executor)
+            write_json(root / 'consumed.json', {'present': True})
+            with self.assertRaises(AppError) as raised:
+                protected.approve_synthetic_operation(request, executor=executor)
+            self.assertEqual(raised.exception.code, 'approval_already_consumed')
 
 
 class ProtectedPurposeWiringTests(unittest.TestCase):
@@ -650,7 +735,11 @@ class ProtectedPurposeWiringTests(unittest.TestCase):
         def spy(request, executor, **options):
             seen.append(options.get('implementation', 'current'))
             raise RuntimeError('stop at the first validation')
-        with patch.object(protected, '_validate_request', spy):
+
+        def gate_spy(request, implementation):
+            seen.append('gate:' + implementation)
+            return request
+        with patch.object(protected, '_validate_request', spy), patch.object(protected, '_implementation_gate', gate_spy):
             try:
                 call(executor)
             except RuntimeError:
@@ -658,8 +747,11 @@ class ProtectedPurposeWiringTests(unittest.TestCase):
         return seen
 
     def test_approval_execution_and_a_new_second_plan_validate_the_current_implementation(self):
-        self.assertEqual(self.purposes(protected.SyntheticExecutor, lambda e: protected.approve_synthetic_operation({}, executor=e)), ['current'])
-        self.assertEqual(self.purposes(protected.NativeLocalExecutor, lambda e: protected.approve_native_local_operation({}, executor=e)), ['current'])
+        # An approval checks the implementation first (the gate), then validates the whole request.
+        self.assertEqual(self.purposes(protected.SyntheticExecutor, lambda e: protected.approve_synthetic_operation({}, executor=e)),
+                         ['gate:current', 'current'])
+        self.assertEqual(self.purposes(protected.NativeLocalExecutor, lambda e: protected.approve_native_local_operation({}, executor=e)),
+                         ['gate:current', 'current'])
         self.assertEqual(self.purposes(protected.SyntheticExecutor,
                                        lambda e: protected.execute_native_operation({}, '/nonexistent-state', executor=e, approval=None)), ['current'])
         self.assertEqual(self.purposes(protected.NativeLocalExecutor, lambda e: protected.verify_native_convergence(e, {})), ['current'])

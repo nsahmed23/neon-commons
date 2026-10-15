@@ -220,6 +220,8 @@ def adopt(store, session_path, output):
         _fail('workbench_adoption_path_overlap')
     checkpoint = root / 'adoption.json'
     if not root.exists():
+        # The policy was chosen from an earlier read of the output; creating anything needs the relation itself.
+        if finding['relation'] != 'same': _not_current(finding)
         root.mkdir(mode=0o700); sync_directory(root.parent)
         journal = {'schema_version': VERSION, 'store_root': str(store.root), 'handoff_root': str(root),
                    'binding': binding, 'binding_sha256': digest(binding), 'status': 'preparing',
@@ -240,6 +242,10 @@ def adopt(store, session_path, output):
                 or type(journal['artifact_ids']) is not dict):
             _fail('workbench_adoption_checkpoint_changed')
         if journal['status'] == 'complete': return dict(_result(store, root, journal, capture, expected), implementation=finding)
+        # The completeness that chose the policy was read before the lock. What decides whether anything is created is
+        # this journal: an incomplete handoff of a journey whose relation is not same is refused before any service,
+        # collection or artifact exists, whatever the earlier read said.
+        if finding['relation'] != 'same': _not_current(finding)
         if {p.name for p in root.iterdir()} - {'adoption.json','adoption.lock','service'}:
             _fail('workbench_adoption_unexpected_file')
         service_root = root / 'service'
