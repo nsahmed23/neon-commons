@@ -1526,7 +1526,8 @@ class Workspace:
         self.hscroll = max(0, min(getattr(self, 'hscroll', 0), widest - content))
         # A map taller than the pane keeps its legend and the focused node's rows in view: they are drawn under the
         # scrolling part, which gives up the rows they take.
-        from .workbench_screens import MAP_GUTTER, PinnedRow
+        from .workbench_screens import MAP_GUTTER, PinnedRow, viewport_row
+        ellipsis = '…' if getattr(self, 'rules', 'ascii') == 'unicode' else '...'
         pinned = [line for line in data if isinstance(line, PinnedRow)]
         if pinned and len(data) > available and len(pinned) < available:
             data = [line for line in data if not isinstance(line, PinnedRow)]
@@ -1542,12 +1543,12 @@ class Workspace:
         self.scroll = max(0, min(self.scroll, max(0, len(data) - room)))
         visible = data[self.scroll:self.scroll + room]
         mapped = {index for index, line in enumerate(visible) if isinstance(line, MapLine)}
-        # The marks of the first MAP_GUTTER cells stay where they are; the rest of a map row pans.
-        shown = [slice_cells(line, 0, MAP_GUTTER) + slice_cells(line, MAP_GUTTER + self.hscroll, content - MAP_GUTTER)
+        # The marks of the first MAP_GUTTER cells stay where they are; the rest of a map row pans, and a row the window
+        # cuts says so with an ellipsis, so a cut word is never read as a whole one.
+        shown = [viewport_row(line, self.hscroll, content, MAP_GUTTER, ellipsis)
                  if index in mapped else line
                  for index, line in enumerate(visible)] + pinned
         status = self._context_strip(width)
-        ellipsis = '…' if getattr(self, 'rules', 'ascii') == 'unicode' else '...'
         # A view without its own evidence class shows the selected policy's, never a bare "unknown".
         facts = getattr(self, 'facts', {}) if getattr(self, 'selected', None) else {}
         scope = self._scope(facts)

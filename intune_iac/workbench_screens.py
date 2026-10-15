@@ -1721,6 +1721,41 @@ def slice_cells(text, start, cells):
     return ''.join(result)
 
 
+def _has_ink(text, low, high):
+    """Whether a character that is not blank space lies, wholly or partly, in the cells low to high of text."""
+    position = 0
+    for char in text:
+        size = cell_width(char)
+        if position < high and position + size > low and not char.isspace():
+            return True
+        position += size
+        if position >= high:
+            break
+    return False
+
+
+def viewport_row(text, hscroll, cells, gutter, ellipsis):
+    """One map row as the pane's horizontal viewport shows it: the `gutter` cells (the focus and selection marks) where
+    they are, then the part of the row from `hscroll` cells past the gutter, `cells` cells wide in all.
+
+    A row the window cuts says so. When more of the row lies to the right of the window, the last cells are the ellipsis;
+    when the window starts past some of the row, the first cells after the gutter are the ellipsis. Blank space is not a
+    continuation, so a row that is only padded past the edge, or has nothing left of the window, claims nothing. This is
+    what keeps a state word cut to "no" from reading as the word "no"."""
+    room = max(0, cells - gutter)
+    start = gutter + hscroll
+    body = slice_cells(text, start, room)
+    cut_left = hscroll > 0 and _has_ink(text, gutter, start)
+    cut_right = _has_ink(text, start + room, cell_width(text))
+    size = cell_width(ellipsis)
+    if cut_right:
+        body = pad(body, room)
+        body = slice_cells(body, 0, max(0, room - size)) + ellipsis
+    if cut_left:
+        body = ellipsis + slice_cells(body, size, max(0, room - size))
+    return slice_cells(text, 0, gutter) + body
+
+
 # The relationship map: fixed geometry from topology and stable identity only. Every node cell is a mark, a label and
 # the state word padded to one width, in the same columns on every row and at every window size, so a state change
 # changes the mark and the word, never a coordinate. A window narrower than the map pans it (Left, Right); the first

@@ -96,5 +96,100 @@ class OneWordOneMeaningTests(MapTruth):
         self.assertNotRegex(page.split('id="legend"')[1].split('</section>')[0].replace('SOURCE AND LINEAGE', ''), r'\bsources?\b')
 
 
+class ViewportCutTests(MapTruth):
+    """Item 2: a row the pane cuts says so, at the right edge and, once panned, at the left."""
+    ELLIPSIS = {'unicode': '…', 'ascii': '...'}
+
+    def full_rows(self, rules):
+        return self.rows(self.graph(self.value, freshness='fresh'), rules=rules)[1]
+
+    def body_rows(self, ws):
+        return [row[2:-2].rstrip() for row in self.plain(ws) if row.startswith(('│', '|'))]
+
+    def test_every_cut_row_ends_with_an_ellipsis_and_no_uncut_row_claims_one(self):
+        from intune_iac.workbench_screens import MAP_GUTTER, MAP_WIDTH, viewport_row
+        from intune_iac.workbench_tui import cell_width
+        for rules, ellipsis in self.ELLIPSIS.items():
+            rows = self.full_rows(rules)
+            for content in (40, 56, 70, MAP_WIDTH + 2):
+                for hscroll in range(0, max(1, MAP_WIDTH - content + 1), 3):
+                    for row in rows:
+                        shown = viewport_row(row, hscroll, content, MAP_GUTTER, ellipsis)
+                        place = (rules, content, hscroll, str(row))
+                        self.assertLessEqual(cell_width(shown), content, place)
+                        beyond = str(row)[MAP_GUTTER + hscroll + content - MAP_GUTTER:].strip()
+                        before = str(row)[MAP_GUTTER:MAP_GUTTER + hscroll].strip() if hscroll else ''
+                        if beyond:
+                            self.assertTrue(shown.endswith(ellipsis), place)
+                            self.assertEqual(cell_width(shown), content, place)
+                        else:
+                            tail = shown[MAP_GUTTER + (len(ellipsis) if before else 0):].rstrip()
+                            self.assertFalse(tail.endswith(ellipsis) and not str(row).rstrip().endswith(ellipsis), place)
+                        edge = shown[MAP_GUTTER:MAP_GUTTER + len(ellipsis)]
+                        self.assertEqual(edge == ellipsis, bool(before), place)
+                        self.assertEqual(shown[:MAP_GUTTER], str(row)[:MAP_GUTTER], 'the gutter is never touched')
+
+    def test_at_60x20_the_policy_word_and_the_group_identifiers_end_with_an_ellipsis(self):
+        for rules, ellipsis in self.ELLIPSIS.items():
+            body = self.body_rows(self.workspace((60, 20), rules=rules))
+            policy = next(row for row in body if row.startswith('>*'))
+            group = next(row for row in body if 'exclusion' in row)
+            self.assertTrue(policy.endswith(ellipsis), policy)
+            self.assertTrue(group.endswith(ellipsis), group)
+            self.assertNotRegex(group, r'identity 46e$')
+            note = next(row for row in body if 'applies to b564fc9a' in row)
+            self.assertFalse(note.endswith(ellipsis), note)
+
+    def test_panned_right_a_row_that_starts_before_the_edge_begins_with_an_ellipsis_after_the_gutter(self):
+        for rules, ellipsis in self.ELLIPSIS.items():
+            ws = self.workspace((60, 20), rules=rules)
+            ws.hscroll = 8
+            body = self.body_rows(ws)
+            policy = next(row for row in body if row.startswith('>*'))
+            self.assertEqual(policy[3:3 + len(ellipsis)], ellipsis, policy)
+            self.assertRegex(policy[:3], r'^[> ][* ] ')
+            # The policy word is cut at the right edge as well: it can no longer show as a bare "no".
+            self.assertTrue(policy.endswith(ellipsis), policy)
+            self.assertNotRegex(policy, r'\bno$')
+            exclusion = next(row for row in body if 'identity 46ee39ed' in row)
+            self.assertEqual(exclusion[3:3 + len(ellipsis)], ellipsis, exclusion)
+            # The tree rail of a note row is part of the row, so panning cuts it too.
+            note = next(row for row in body if 'applies to b564fc9a' in row)
+            self.assertEqual(note[3:3 + len(ellipsis)], ellipsis, note)
+
+    def test_a_row_with_only_blank_space_beyond_an_edge_claims_nothing(self):
+        from intune_iac.workbench_screens import viewport_row
+        for ellipsis in ('…', '...'):
+            row = '>*  ' + ' ' * 30 + 'TEXT' + ' ' * 20
+            self.assertEqual(viewport_row(row, 8, 40, 3, ellipsis), '>* ' + row[11:11 + 37])
+            self.assertEqual(viewport_row(row, 0, 60, 3, ellipsis), row[:60])
+            full = '>* ' + 'A' * 40
+            self.assertEqual(viewport_row(full, 0, 20, 3, ellipsis), '>* ' + 'A' * (17 - len(ellipsis)) + ellipsis)
+            self.assertEqual(viewport_row(full, 10, 20, 3, ellipsis), '>* ' + ellipsis + 'A' * (17 - 2 * len(ellipsis)) + ellipsis)
+            # A cut that leaves nothing of the row in the window still says the row goes on.
+            self.assertEqual(viewport_row('>* abc', 8, 20, 3, ellipsis), '>* ' + ellipsis)
+
+    def test_panned_to_the_end_no_row_is_cut_on_the_right(self):
+        from intune_iac.workbench_screens import MAP_WIDTH
+        ws = self.workspace((60, 20))
+        ws.hscroll = 10_000
+        body = self.body_rows(ws)
+        mapped = [row for row in body if MARK.search(row)]
+        self.assertTrue(mapped)
+        self.assertTrue(all(not row.endswith('…') for row in mapped), mapped)
+        self.assertIn('showing %d-%d of %d' % (MAP_WIDTH - 56 + 4, MAP_WIDTH, MAP_WIDTH), ' '.join(' '.join(body).split()))
+
+    def test_a_pane_wide_enough_for_the_map_cuts_nothing(self):
+        for rules, ellipsis in self.ELLIPSIS.items():
+            body = self.body_rows(self.workspace((120, 40), rules=rules))
+            mapped = [row for row in body if MARK.search(row) and ('→' in row or '->' in row)]
+            self.assertTrue(mapped)
+            self.assertTrue(all(row.endswith(('—', '--', 'none recorded')) for row in mapped), mapped)
+
+    def test_the_pan_statement_stays(self):
+        text = ' '.join(' '.join(row.strip('│ ') for row in self.plain(self.workspace((60, 20)))).split())
+        self.assertIn('Left/Right pan: showing 1-56 of 75, states at 63.', text)
+
+
 if __name__ == '__main__':
     unittest.main()

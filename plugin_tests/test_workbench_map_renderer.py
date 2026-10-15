@@ -81,7 +81,12 @@ class HorizontalViewportTests(unittest.TestCase):
             ws = workspace(self.lines(), hscroll=offset)
             rows = rows_of(ws)
             # The first three cells (the marker gutter) stay; the rest of the row pans from the offset.
-            expected = self.LINE[:3] + self.LINE[3 + offset:3 + offset + 73]
+            # A row the window cuts ends with an ellipsis on the side it continues (PKG-UXVIS-1c item 2): the last cell
+            # at the right (the line goes on to column 100), the first cell after the gutter once panned.
+            window = self.LINE[3 + offset:3 + offset + 73]
+            if offset:
+                window = '…' + window[1:]
+            expected = self.LINE[:3] + window[:-1] + '…'
             self.assertTrue(any(row[2:2 + 76] == expected for row in rows), (offset, expected))
             self.assertTrue(any('ordinary text that must not move' in row for row in rows))
             self.assertTrue(all(cell_width(row) <= 80 for row in rows))
@@ -98,8 +103,8 @@ class HorizontalViewportTests(unittest.TestCase):
         row = next(row for row in rows if '漢' in row or '字' in row)
         self.assertLessEqual(cell_width(row), 80)
         # The gutter is three cells: one character and the blank that stands for half of the next. The cell the offset
-        # cuts through is a blank too, never a stray half.
-        self.assertTrue(row.startswith('│ 漢  字'), row)
+        # cuts through is a blank too, never a stray half; the row, cut on its left, begins with the ellipsis there.
+        self.assertTrue(row.startswith('│ 漢 …字'), row)
 
     def test_left_and_right_pan_a_map_and_stop_at_both_ends(self):
         from intune_iac.workbench_screens import MapLine
