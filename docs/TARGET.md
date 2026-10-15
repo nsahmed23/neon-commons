@@ -34,9 +34,10 @@ the ownership lease expiration, is compared. Both observations must be fresh at
 comparison time: no older than 300 seconds and no more than 30 seconds in the
 future. Refreshing a timestamp does not authenticate or refresh underlying facts.
 
-The complete schema and a deliberately synthetic, expired example are in
-`research/enterprise-target/target.schema.json` and `example-target.json`.
-The embedded runtime schema is authoritative. The support restrictions are
+The version 2.0 definition is `SCHEMA_V2` in `intune_iac/target.py`; the version 1.0 definition,
+`SCHEMA_V1`, is beside it. `research/enterprise-target/target.schema.json` is the version 1.0 schema and
+`example-target.json` a deliberately synthetic, expired version 1.0 example: both stay as they were, for
+reproduction, and neither describes version 2.0. The embedded runtime schemas are authoritative. The support restrictions are
 intentionally narrower than Azure's general naming and authentication support.
 
 ## Bound facts

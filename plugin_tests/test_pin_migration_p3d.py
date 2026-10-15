@@ -638,5 +638,45 @@ class NoSilentDefaultTests(unittest.TestCase):
         self.assertEqual((invalid['status'], invalid['pin_profile']), ('invalid', None))
 
 
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Item 5: documents state both profiles and what each is for.
+# ---------------------------------------------------------------------------------------------------------------------
+class DocumentsStateBothProfilesTests(unittest.TestCase):
+    def text(self, name):
+        return ' '.join((ROOT / name).read_text(encoding='utf-8').replace('`', '').split())
+
+    def test_the_target_document_points_to_the_v2_definition_not_the_v1_schema_file(self):
+        text = self.text('docs/TARGET.md')
+        self.assertNotIn('are in research/enterprise-target/target.schema.json', text)
+        self.assertIn('SCHEMA_V2', text)
+        self.assertIn('intune_iac/target.py', text)
+        self.assertIn('research/enterprise-target/target.schema.json is the version 1.0 schema', text)
+
+    def test_the_execution_document_states_the_plan_review_pair_and_what_each_version_is_for(self):
+        text = self.text('docs/EXECUTION.md')
+        for needed in ('engine version %s' % CURRENT_TOFU, 'engine version %s' % LEGACY_TOFU, CURRENT, LEGACY,
+                       'pin_profile', 'Any other engine version blocks review'):
+            self.assertIn(needed, text)
+        self.assertNotIn('current inspection baseline is engine version %s and JSON' % LEGACY_TOFU, text)
+
+    def test_the_protected_execution_document_states_both_native_pins(self):
+        text = self.text('docs/PROTECTED-EXECUTION.md')
+        for needed in ('OpenTofu %s' % CURRENT_TOFU, 'OpenTofu %s' % LEGACY_TOFU, CURRENT, LEGACY,
+                       'modeled executor', 'engine_version', native_pins_sha(CURRENT), native_pins_sha(LEGACY)):
+            self.assertIn(needed, text)
+
+    def test_the_labs_document_says_the_labs_run_the_legacy_pair_for_reproduction(self):
+        text = self.text('docs/LABS.md')
+        for needed in ('Atmos %s' % LEGACY_ATMOS, 'OpenTofu %s' % LEGACY_TOFU, LEGACY, 'Atmos %s' % CURRENT_ATMOS,
+                       'OpenTofu %s' % CURRENT_TOFU):
+            self.assertIn(needed, text)
+
+
+def native_pins_sha(profile):
+    from intune_iac import native_pins
+    return [sha for sha, entry in native_pins.OPENTOFU_PINS.items() if entry['profile'] == profile][0]
+
+
 if __name__ == '__main__':
     unittest.main()

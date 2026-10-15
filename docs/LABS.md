@@ -16,7 +16,9 @@ python scripts/qualify-adoption-lab.py \
   --output /absolute/path/to/new-adoption-run
 ```
 
-The runner accepts only the pinned Atmos 1.199.0 and OpenTofu 1.10.0 binary hashes
+The labs are fixed to the legacy pair, Atmos 1.199.0 and OpenTofu 1.10.0 (`legacy_reproduction_only` in
+`native_pins.py`), because their recorded evidence was made with it; they do not run the current local
+qualification (Atmos 1.230.1, OpenTofu 1.13.1), which the generation and execution paths use. The runner accepts only the pinned Atmos 1.199.0 and OpenTofu 1.10.0 binary hashes
 and the reviewed fixture bytes. It needs Linux with libseccomp, creates a fresh
 directory, uses a clean child environment and denies networking in native child
 processes. It executes actual init, plan, import and apply commands against its

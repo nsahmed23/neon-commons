@@ -1,7 +1,9 @@
 # Protected local native execution
 
 `intune_iac.protected` now executes actual bounded child processes and actual
-pinned OpenTofu 1.10.0 saved binary plans against **new disposable local fixtures**.
+pinned OpenTofu saved binary plans against **new disposable local fixtures**. The pins are those of
+`native_pins.py`: OpenTofu 1.13.1 is the current local qualification (`current_local_qualification`) and
+OpenTofu 1.10.0 is the legacy profile (`legacy_reproduction_only`), kept to reproduce earlier fixtures.
 It is not an Intune/provider/cloud mutation adapter. All public results retain
 `execution_authorized: false`, which means no cloud authority. The enterprise
 execution gate remains open.
@@ -11,7 +13,13 @@ Two concrete modes are supported on Linux AMD64 with `libseccomp.so.2`:
 | Mode | Executed implementation | Support boundary |
 |---|---|---|
 | `synthetic_local_process_only` | A package-owned Python worker in a separate isolated child process | Bounded JSON state transition, useful for fault injection and the guided simulation; no provider semantics |
-| `native_local_opentofu_only` | Exact OpenTofu 1.10.0 Linux AMD64 executable, SHA-256 `0a9eda0f0898896969492504a6ce778f310675e8a1eb960434c26806cd252627` | Package-generated configuration with one literal output, default workspace and local state; no provider, module, resource, hook, provisioner or cloud backend |
+| `native_local_opentofu_only` | Exact Linux AMD64 executable of either pin: OpenTofu 1.13.1, SHA-256 `a325c8c2f6834575e440b03c2ba67f94256072754ac7787fea718be6f01fef6a` (`current_local_qualification`), or OpenTofu 1.10.0, SHA-256 `0a9eda0f0898896969492504a6ce778f310675e8a1eb960434c26806cd252627` (`legacy_reproduction_only`) | Package-generated configuration with one literal output, default workspace and local state; no provider, module, resource, hook, provisioner or cloud backend |
+
+The modeled executor (`synthetic_local_process_only`) names the engine version of the profile of the project it
+executes: a project generated under a 2.0.0 context gets OpenTofu 1.13.1, recorded as `engine_version` in the
+executor manifest, and its modeled plan says 1.13.1. An executor with no recorded `engine_version` is the legacy one
+(every executor made before the migration, and the frozen journeys): its plan says 1.10.0, byte for byte as before.
+The modeled executor runs no OpenTofu binary.
 
 The native pin was measured from the upstream release archive whose digest was
 checked against the official release checksum list. This is checksum provenance,
