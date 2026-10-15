@@ -387,7 +387,8 @@ class EstateScreensTests(unittest.TestCase):
         text = ' '.join(' '.join(queue_lines(value, 120)).split())
         # Run 9 (frame 47): each command stands on its own row, so the rows say the sentence and then the commands.
         self.assertIn("This finding's review: write the form with the first command, then record it with the second "
-                      '(an annotation, never approval). :queue-review-template ownership_unknown NEW_JSON '
+                      '(an annotation, never approval). The last word of the second command is the earlier review it '
+                      'replaces. :queue-review-template ownership_unknown NEW_JSON '
                       ':queue-amend FILE ' + 'c' * 64, text)
 
     def test_review_results_read_as_words(self):
@@ -1518,8 +1519,9 @@ class RunEightScreensTests(unittest.TestCase):
         action = {'label': 'Prepare a proposal from the recorded intent', 'available': False, 'summary': 's',
                   'blocked': {'code': 'workbench_desired_capability', 'message': message}}
         text = _flat(actions_lines([action], 0, 140))
-        self.assertIn("Change that setting in the repository's stack input to a supported value, then Refresh the "
-                      'repository intent and Prepare a proposal from the recorded intent', text)
+        self.assertIn("Change that setting in the repository's stack input to a supported value. Once the repository reads "
+                      'as changed, this list offers Refresh the repository intent; after it, this entry, Prepare a proposal '
+                      'from the recorded intent, can be staged.', text)
         self.assertIn('(workbench_desired_capability)', text)
         refused = _flat(refusal_lines({'status': 'error', 'error': {'code': 'workbench_desired_capability',
                                                                     'message': message}}, 140))

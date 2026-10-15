@@ -1570,6 +1570,7 @@ class Workspace:
         known = self.facts if selected and getattr(self, 'facts', {}).get('object_id') == selected else {}
         # While a command is typed the band's keys are typed, not obeyed: it names the response without them.
         band = hazard_rows(known, known.get('signals') or [], width, routes=not self.mode, here=self.tab == 1,
+                           repository_here=self.tab == 8,
                            listed=getattr(self, 'layer', 'summary') == 'actions') if selected else []
         staged = getattr(self, 'staged', None) if self.mode == 'command' else None
         staged_rows = None

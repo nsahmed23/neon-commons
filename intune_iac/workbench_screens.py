@@ -328,12 +328,13 @@ def _in_list(form, entry):
     return form
 
 
-def hazard_rows(facts, signals, width, *, routes=True, here=False, listed=False):
+def hazard_rows(facts, signals, width, *, routes=True, here=False, listed=False, repository_here=False):
     """The band: the primary hazard with its response, in the longest wording that fits, and the count of other
     findings and any re-read that failed, beside it or on a row of their own so neither is cut. A window too narrow
     for the shortest wording gets it wrapped with the response kept whole. [] when nothing is recorded.
 
-    listed: the actions list is open, where a is not a key; the response names its entry in the list instead."""
+    listed: the actions list is open, where a is not a key; the response names its entry in the list instead.
+    repository_here: surface 9 is drawn, which is where the band's 9 would point, so the band does not point at it."""
     primary, others = _band_primary(facts, signals)
     if primary is None:
         return []
@@ -351,6 +352,9 @@ def hazard_rows(facts, signals, width, *, routes=True, here=False, listed=False)
     counts = ([[more]] if not routes else [[more + ' in NEEDS ATTENTION']] if here else
               [[more + ' (2 Inspector)']]) if others else [[]]
     forms = _band_forms(primary, facts.get('identity_prefixes'))
+    if repository_here:
+        forms = [re.sub(r'\. 9: repository(?:, |$)', lambda found: '. ' if found.group(0).endswith(' ') else '.',
+                        form.replace(' 9: difference.', '')) for form in forms]
     named = None
     if any(isinstance(action, dict) and action.get('kind') == 'deployment-record' and action.get('available')
            for action in facts.get('actions') or []):
@@ -883,9 +887,12 @@ def review_lines(value, width):
         lines += word_wrap('For %s of policy %s. Fill in the rationale (required), the owner, the review due and '
                            'exception expiry times (with their zone, or null; the expiry not before the review date) and '
                            'any linked operation IDs.' % (finding, value.get('object_id')), width)
+        prior = value.get('expected_prior') or 'none'
         lines += word_wrap('Then record the form you filled in. A review is an annotation, never approval or execution. '
-                           'Command:', width)
-        lines += word_wrap("  queue-amend '%s' %s" % (value.get('path'), value.get('expected_prior') or 'none'), width)
+                           'The last word of the command is the earlier review it replaces' + (
+                               '; none means this finding has no earlier review to replace.' if prior == 'none' else '.')
+                           + ' Command:', width)
+        lines += word_wrap("  queue-amend '%s' %s" % (value.get('path'), prior), width)
         return lines
     if value.get('schema_version') == 'workbench-queue-history/1':
         rows = [row for row in value.get('amendments') or [] if isinstance(row, dict)]
@@ -1363,15 +1370,22 @@ def _blocked_meaning(blocked):
 
 # Blocked actions whose own recovery is said beside the reason, as the refusal says it (journey 28 run 8, frame 80).
 BLOCK_RECOVERY_CODES = ('workbench_desired_capability',)
+# The same recoveries read inside the actions list, where a is not a key and the actions a refusal names are not all
+# there: the refresh is offered only once the repository reads as changed, and the proposal is the entry itself.
+BLOCK_RECOVERY_IN_LIST = {
+    'workbench_desired_capability': (
+        "Change that setting in the repository's stack input to a supported value. Once the repository reads as changed, "
+        'this list offers Refresh the repository intent; after it, this entry, Prepare a proposal from the recorded '
+        'intent, can be staged.')}
 
 
 def _blocked_words(blocked):
     """Why an action is blocked: the meaning in words first, then the recovery where the code has one, the engine's
-    code kept last in parentheses. It is read inside the actions list, where a is not a key, so a recovery's pointer to
-    the list is dropped: the entries it names are in view."""
+    code kept last in parentheses. It is read inside the actions list, where a is not a key, so the recovery says where
+    each action it names is (run 11, frame 80)."""
     meaning, code = _blocked_meaning(blocked), blocked.get('code')
-    if code in BLOCK_RECOVERY_CODES and code in REFUSALS:
-        meaning = meaning.rstrip() + ' ' + REFUSALS[code][1].replace(' (a: actions)', '')
+    if code in BLOCK_RECOVERY_CODES and code in BLOCK_RECOVERY_IN_LIST:
+        meaning = meaning.rstrip() + ' ' + BLOCK_RECOVERY_IN_LIST[code]
     return '%s (%s)' % (meaning.rstrip(), code) if code else meaning
 
 
@@ -2332,7 +2346,10 @@ def queue_lines(value, width):
         prior = review.get('artifact_id') if review.get('status') == 'recorded' and review.get('artifact_id') else 'none'
         # Each command stands on its own row, after the sentence, so a copied row carries no words (run 9, frame 47).
         blocks.append(('route', word_wrap("  This finding's review: write the form with the first command, then record it with the "
-                                          'second (an annotation, never approval).', width)
+                                          'second (an annotation, never approval). The last word of the second command is the '
+                                          'earlier review it replaces' + (
+                                              '; none means this finding has no earlier review to replace.' if prior == 'none'
+                                              else '.'), width)
                        + word_wrap('    :queue-review-template %s NEW_JSON' % item.get('finding'), width)
                        + word_wrap('    :queue-amend FILE %s' % prior, width), False))
         compatibility = item.get('compatibility') if isinstance(item.get('compatibility'), dict) else None
@@ -2880,7 +2897,7 @@ REFUSAL_TITLES = {
     'clock_lock_unavailable': 'The recorded time cannot be locked',
     'expired_request': 'The approval window has closed',
     'maintenance_approval_required': 'The review digest does not match',
-    'maintenance_replay_forbidden': 'This operation cannot be executed again',
+    'maintenance_replay_forbidden': 'This operation cannot be replayed',
     'maintenance_repository_stale': 'The intent this proposal cited no longer matches the repository',
     'workbench_repository_stale': 'The recorded intent no longer matches the repository',
     'maintenance_observation_stale': 'The observation is not fresh',

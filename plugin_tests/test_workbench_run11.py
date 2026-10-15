@@ -380,3 +380,103 @@ class RestoreRefusalNextTests(unittest.TestCase):
         value = {'status': 'error', 'error': {'code': 'maintenance_source_changed', 'message': 'A bound file changed.'}}
         text = ' '.join(' '.join(refusal_lines(value, 118, operation='650a1a61', verb='execute')).split())
         self.assertNotIn("not the original's", text)
+
+
+class ReplayRefusalVerbTests(unittest.TestCase):
+    """Item 11a (run11-7, frame 56): the replay refusal uses one verb, in its title and its cause."""
+
+    def lines(self):
+        from intune_iac.workbench_screens import refusal_lines
+        value = {'status': 'error', 'error': {'code': 'maintenance_replay_forbidden', 'message': 'This operation is no longer '
+                                              'awaiting approval: it was already dispatched, or it was rejected.',
+                                              'effects': {'dispatched': False}}}
+        return refusal_lines(value, 118, operation='ca165125', verb='execute')
+
+    def test_the_title_and_the_cause_both_say_replayed(self):
+        lines = self.lines()
+        text = ' '.join(' '.join(lines).split())
+        self.assertEqual(lines[0], '[REFUSED] This operation cannot be replayed (maintenance_replay_forbidden)')
+        self.assertIn('Execution is never replayed.', text)
+        self.assertNotIn('executed again', text)
+
+
+class QueueNoneTests(unittest.TestCase):
+    """Item 11b (run11-8, frame 47): `none` is explained where `queue-amend FILE none` is shown."""
+    FINDING = {'finding': 'reporting_incomplete', 'object_id': 'o' * 8, 'priority': 'review', 'priority_rationale': 'x',
+               'review_record': {'status': 'not_recorded'}}
+    MEANING = 'none means this finding has no earlier review to replace'
+
+    def test_the_queue_names_what_none_means_beside_the_command(self):
+        from intune_iac.workbench_screens import queue_lines
+        text = ' '.join(' '.join(queue_lines({'findings': [self.FINDING], 'scope': {}}, 118)).split())
+        self.assertIn(':queue-amend FILE none', text)
+        self.assertIn(self.MEANING, text)
+
+    def test_a_finding_with_an_earlier_review_names_that_review_instead(self):
+        from intune_iac.workbench_screens import queue_lines
+        prior = 'f' * 64
+        finding = dict(self.FINDING, review_record={'status': 'recorded', 'artifact_id': prior})
+        text = ' '.join(' '.join(queue_lines({'findings': [finding], 'scope': {}}, 118)).split())
+        self.assertIn(':queue-amend FILE ' + prior, text)
+        self.assertNotIn(self.MEANING, text)
+        self.assertIn('The last word of the second command is the earlier review it replaces.', text)
+
+    def test_the_written_form_explains_none_too(self):
+        from intune_iac.workbench_screens import review_lines
+        value = {'status': 'review_form_written', 'path': '/w/queue review.json', 'finding': 'reporting_incomplete',
+                 'object_id': 'o' * 8, 'expected_prior': None}
+        text = ' '.join(' '.join(review_lines(value, 118)).split())
+        self.assertIn("queue-amend '/w/queue review.json' none", text)
+        self.assertIn(self.MEANING, text)
+
+
+class SurfaceNineTests(unittest.TestCase):
+    """Item 11c (run11-9): no band pointer to the surface the engineer is on."""
+    CHANGED = {'area': 'repository', 'code': 'repository_stale', 'observed': 'x', 'next_step': 'y', 'evidence': {}}
+    UNAVAILABLE = {'area': 'repository', 'code': 'repository_unavailable', 'observed': 'x', 'next_step': 'y', 'evidence': {}}
+
+    def band(self, signal, **kw):
+        from intune_iac.workbench_screens import hazard_rows
+        return ' '.join(hazard_rows({}, [signal], 140, **kw))
+
+    def test_on_other_surfaces_the_band_still_points_at_the_difference(self):
+        self.assertIn('9: difference', self.band(self.CHANGED))
+        self.assertIn('9: repository', self.band(self.UNAVAILABLE))
+
+    def test_on_the_repository_surface_the_band_does_not(self):
+        for signal in (self.CHANGED, self.UNAVAILABLE):
+            band = self.band(signal, repository_here=True)
+            self.assertNotIn('9:', band)
+        self.assertIn('Next: Refresh the repository intent (a: actions)', self.band(self.CHANGED, repository_here=True))
+
+    def test_the_workspace_passes_the_surface_it_draws(self):
+        ws = states_tests.StateSurfaceTests.workspace(states_tests.StateSurfaceTests(), 8, {})
+        ws.facts = dict(ws.facts, signals=[self.CHANGED])
+        ws.stdout = type('Out', (), {'buffer': [], 'write': lambda self, text: self.buffer.append(text),
+                                     'flush': lambda self: None})()
+        ws.rules, ws.color = 'ascii', False
+        ws.mode_class = 'synthetic'
+        ws._terminal_size = lambda: (120, 40)
+        ws.draw()
+        drawn = ''.join(ws.stdout.buffer)
+        self.assertIn('Repository changed since its intent.', drawn)
+        self.assertNotIn('9: difference', drawn)
+
+
+class BlockedRecoveryTests(unittest.TestCase):
+    """Item 11d (gemini-run11-4, frame 80): a blocked entry that names another action says where it is."""
+
+    def text(self):
+        from intune_iac.workbench_screens import actions_lines
+        entry = {'kind': 'propose-from-intent', 'label': 'Prepare a proposal from the recorded intent', 'command': 'x', 'cursor': None,
+                 'needs': [], 'summary': 'S.', 'effects': 'E.', 'available': False, 'binding': {},
+                 'blocked': {'code': 'workbench_desired_capability', 'message': 'The reference component cannot propose it.'}}
+        return ' '.join(' '.join(actions_lines([entry], 0, 118)).split())
+
+    def test_the_entry_says_where_refresh_appears_and_that_it_is_itself_the_proposal(self):
+        text = self.text()
+        self.assertIn("Change that setting in the repository's stack input to a supported value.", text)
+        self.assertIn('Once the repository reads as changed, this list offers Refresh the repository intent; after it, this '
+                      'entry, Prepare a proposal from the recorded intent, can be staged.', text)
+        self.assertNotIn('then Refresh the repository intent and Prepare', text)
+        self.assertNotIn('(a: actions)', text)

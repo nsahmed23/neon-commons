@@ -1058,7 +1058,7 @@ class RefusalShapeTests(unittest.TestCase):
 
     def test_the_header_is_words_with_the_code_in_parentheses_then_cause_effect_next(self):
         lines = self.refusal('maintenance_replay_forbidden', effects={'dispatched': False})
-        self.assertEqual(lines[0], '[REFUSED] This operation cannot be executed again (maintenance_replay_forbidden)')
+        self.assertEqual(lines[0], '[REFUSED] This operation cannot be replayed (maintenance_replay_forbidden)')
         self.assertEqual([line.split(':')[0] for line in lines[1:4]], ['Cause', 'Effect', 'Next'])
 
     def test_a_message_that_names_something_particular_is_the_cause(self):
