@@ -230,3 +230,31 @@ class InterruptedCollectionAttentionTests(unittest.TestCase):
         codes = [signal['code'] for signal in diagnostics(self.store, self.ids[0])['signals']]
         self.assertIn('collection_not_finished', codes)
         self.assertNotIn('observation_stale', codes)
+
+
+class InterruptCommandQuotingTests(unittest.TestCase):
+    """Journey 28 run 3, frames 38 and 46: the next-step commands survive a path with spaces and quotes when pasted."""
+    OPERATION = "/w/journey 28 run 3/operation-'a'"
+    STORE, SERVICE = '/w/journey 28 run 3/store', '/w/journey 28 run 3/handoff/service'
+
+    def command(self, lines, verb):
+        import re
+        import shlex
+        text = ' '.join(lines)
+        found = re.search(r'(intune-iac workbench %s .*?) \(or reopen' % verb, text)
+        self.assertIsNotNone(found, text)
+        return shlex.split(found.group(1))
+
+    def test_the_reconcile_command_keeps_the_operation_path_whole(self):
+        from intune_iac.workbench import interrupted_lines
+        lines = interrupted_lines({'interrupted_during': {'command': 'execute', 'operation_root': self.OPERATION},
+                                   'store_root': self.STORE})
+        self.assertEqual(self.command(lines, 'reconcile'),
+                         ['intune-iac', 'workbench', 'reconcile', '--operation', self.OPERATION])
+
+    def test_the_collect_command_keeps_both_roots_whole(self):
+        from intune_iac.workbench import interrupted_lines
+        lines = interrupted_lines({'interrupted_during': {'command': 'collect', 'service_root': self.SERVICE},
+                                   'store_root': self.STORE})
+        self.assertEqual(self.command(lines, 'collect'),
+                         ['intune-iac', 'workbench', 'collect', '--root', self.STORE, '--service-root', self.SERVICE])

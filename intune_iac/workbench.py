@@ -922,25 +922,29 @@ def _interrupted_during(current):
 def interrupted_lines(result):
     """The interrupted session's result as sentences for a person: what was running, what the interrupt left, and the
     exact next step. Scripts read the same facts as JSON."""
+    import shlex
     during = result.get('interrupted_during') if isinstance(result.get('interrupted_during'), dict) else None
-    store = result.get('store_root') or 'STORE'
+    # Paths are shell-quoted so the printed command runs as shown when pasted, spaces and quotes included.
+    store = shlex.quote(str(result['store_root'])) if result.get('store_root') else 'STORE'
     others = 'Other processes, such as a scheduled collector, were not stopped.'
     if during and during.get('command') == 'execute':
         operation = during.get('operation_root')
+        quoted = shlex.quote(str(operation))
         return ['Interrupted while executing operation %s.' % operation,
                 'Its outcome is unknown: the change may or may not have reached the service. Nothing retries it.',
                 'Next: reconcile it before anything else: intune-iac workbench reconcile --operation %s (or reopen the '
-                'workspace and choose Reconcile with a). Reconcile reads the service and never replays the change.' % operation,
+                'workspace and choose Reconcile with a). Reconcile reads the service and never replays the change.' % quoted,
                 others]
     if during and during.get('command') == 'reconcile':
         return ['Interrupted while reconciling operation %s.' % during.get('operation_root'),
                 'Reconcile only reads; run it again: intune-iac workbench reconcile --operation %s.'
-                % during.get('operation_root'), others]
+                % shlex.quote(str(during.get('operation_root'))), others]
     if during and during.get('command') == 'collect':
         return ['Interrupted during a collection.',
                 'That run records no end; the newest complete observation is kept and is labelled as such.',
                 'Next: collect again: intune-iac workbench collect --root %s --service-root %s (or reopen the workspace '
-                'and choose Collect again with a).' % (store, during.get('service_root') or 'SERVICE'), others]
+                'and choose Collect again with a).' % (
+                    store, shlex.quote(str(during['service_root'])) if during.get('service_root') else 'SERVICE'), others]
     if during:
         return ['Interrupted while running %s.' % during.get('command'),
                 'Next: intune-iac workbench diagnostics --root %s --object ID names anything it left unfinished.' % store,
