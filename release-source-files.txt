@@ -989,6 +989,7 @@ plugin_tests/test_worker_adoption_reconcile_r4.py
 plugin_tests/test_worker_adoption_recovery_r4.py
 plugin_tests/test_worker_adoption_state_r4.py
 plugin_tests/test_worker_adoption_unacquired_successor_r4.py
+plugin_tests/test_worker_binds_validity.py
 plugin_tests/test_worker_broker_precondition_r4.py
 plugin_tests/test_worker_broker_r4.py
 plugin_tests/test_worker_committed_description_r4.py

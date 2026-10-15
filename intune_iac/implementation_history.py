@@ -62,9 +62,13 @@ NATIVE_ATMOS_INVENTORY = (
                'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc'}},
 )
 
-# The files protected_worker._implementation records in a job manifest, in its order.
-WORKER_COMPONENTS = ('protected_worker.py', 'protected.py', 'provider_execution.py', 'approval_authority.py',
-                     'provider_journey.py', 'azure_backend.py', 'execution.py', 'io.py', 'native_pins.py')
+# The files protected_worker._implementation records in a job manifest, in its order (it reads this list). The first
+# nine were the whole set until the approval judgment moved into validity.py, which relies on the recorded time in
+# clock.py: both are bound now, so a changed judgment changes the digest and the execution gate refuses. Entries
+# registered before that carry the nine; they stay readable as history (see _file_set_relation).
+WORKER_COMPONENTS_EARLIER = ('protected_worker.py', 'protected.py', 'provider_execution.py', 'approval_authority.py',
+                             'provider_journey.py', 'azure_backend.py', 'execution.py', 'io.py', 'native_pins.py')
+WORKER_COMPONENTS = WORKER_COMPONENTS_EARLIER + ('validity.py', 'clock.py')
 
 WORKER_INVENTORY = (
     {'label': 'ce27913-pre-pin-migration',
@@ -127,6 +131,18 @@ WORKER_INVENTORY = (
                'execution.py': '642a182551839da471a1e3ac3d60b4fde666637cfcf851013ea2f5d5e81e2e72',
                'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
                'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc'}},
+    {'label': 'adoption-expiry-latch-r2',
+     'files': {'protected_worker.py': '959564bfe1e8a7724b890c4b932343f2ce9b74e5dde1d817d5121c59af065b21',
+               'protected.py': '3f1fc433999ad7606866f3587c39e0c1d7d9ffcc3b62831cd24fb670660c7636',
+               'provider_execution.py': '653e4191156444fd05a0937c8c3a5f5a6c6097fa07e9cb5f34a1278cdb2a7731',
+               'approval_authority.py': 'bc39975ff1bd83cb466e7e0987252c7e60469e09a3d528adc8aeeb6c1a45e7a1',
+               'provider_journey.py': 'dfba89eaf20dfa42c423fcecc2f8fea6bf75d9f2e50ee24d05996307efa9c371',
+               'azure_backend.py': '83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab',
+               'execution.py': '642a182551839da471a1e3ac3d60b4fde666637cfcf851013ea2f5d5e81e2e72',
+               'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
+               'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
+               'validity.py': '29897140f49ad33e1c687aa22771d2f73bc667b472078b8910a1f530e9076b89',
+               'clock.py': 'd7e379c4f226dd08a62212cf7dd492bbe7405cd9425723d399540687d8773d3c'}},
 )
 
 _HEX = re.compile(r'[0-9a-f]{64}\Z')
@@ -164,7 +180,10 @@ def protected_relation(recorded_sha256, current_sha256):
 
 
 def _file_set_relation(name, components, inventory, recorded_files, current_files):
-    valid = (type(recorded_files) is dict and set(recorded_files) == set(components)
+    # A record names the file set of the release that made it: the current set, or the set an inventory entry carries
+    # (an entry is never rewritten, so a release made before the set grew keeps its own).
+    sets = [set(components)] + [set(entry['files']) for entry in inventory]
+    valid = (type(recorded_files) is dict and set(recorded_files) in sets
              and all(type(v) is str and _HEX.match(v) for v in recorded_files.values()))
     if valid and recorded_files == current_files:
         relation, label = SAME, None

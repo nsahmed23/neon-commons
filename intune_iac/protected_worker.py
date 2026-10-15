@@ -35,9 +35,7 @@ def _fail(code):
 
 
 def _implementation():
-    return {name: pe._sha(Path(__file__).with_name(name)) for name in
-            ('protected_worker.py', 'protected.py', 'provider_execution.py', 'approval_authority.py',
-             'provider_journey.py', 'azure_backend.py', 'execution.py', 'io.py', 'native_pins.py')}
+    return {name: pe._sha(Path(__file__).with_name(name)) for name in history.WORKER_COMPONENTS}
 
 
 def _context(value):

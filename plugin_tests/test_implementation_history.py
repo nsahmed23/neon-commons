@@ -61,6 +61,12 @@ AUTHZ_R2_WORKER_FILES = dict(AUTHZ_WORKER_FILES, **{
 AUTHZ_R3_LABEL = 'authz-expiry-latch-r3'
 AUTHZ_R3_WORKER_FILES = dict(AUTHZ_R2_WORKER_FILES, **{
     'approval_authority.py': '189da8ac643b188de8e4edc525a14e8bc06dd63a48b3637d70b7cc5d9bb097b0'})
+ADOPTION_LATCH_R2_LABEL = 'adoption-expiry-latch-r2'
+ADOPTION_LATCH_R2_WORKER_FILES = dict(AUTHZ_R3_WORKER_FILES, **{
+    'protected_worker.py': '959564bfe1e8a7724b890c4b932343f2ce9b74e5dde1d817d5121c59af065b21',
+    'approval_authority.py': 'bc39975ff1bd83cb466e7e0987252c7e60469e09a3d528adc8aeeb6c1a45e7a1',
+    'validity.py': '29897140f49ad33e1c687aa22771d2f73bc667b472078b8910a1f530e9076b89',
+    'clock.py': 'd7e379c4f226dd08a62212cf7dd492bbe7405cd9425723d399540687d8773d3c'})
 ADOPTION_LATCH_LABEL = 'adoption-expiry-latch'
 ADOPTION_LATCH_WORKER_FILES = dict(AUTHZ_R3_WORKER_FILES, **{
     'approval_authority.py': 'bc39975ff1bd83cb466e7e0987252c7e60469e09a3d528adc8aeeb6c1a45e7a1'})
@@ -97,14 +103,22 @@ class InventoryPinTests(unittest.TestCase):
              {'label': AUTHZ_LABEL, 'files': AUTHZ_WORKER_FILES},
              {'label': AUTHZ_R2_LABEL, 'files': AUTHZ_R2_WORKER_FILES},
              {'label': AUTHZ_R3_LABEL, 'files': AUTHZ_R3_WORKER_FILES},
-             {'label': ADOPTION_LATCH_LABEL, 'files': ADOPTION_LATCH_WORKER_FILES}])
+             {'label': ADOPTION_LATCH_LABEL, 'files': ADOPTION_LATCH_WORKER_FILES},
+             {'label': ADOPTION_LATCH_R2_LABEL, 'files': ADOPTION_LATCH_R2_WORKER_FILES}])
 
     def test_each_entry_names_only_its_own_component_set(self):
         for inventory, components in ((history.PROTECTED_INVENTORY, history.PROTECTED_COMPONENTS),
-                                      (history.NATIVE_ATMOS_INVENTORY, history.NATIVE_ATMOS_COMPONENTS),
-                                      (history.WORKER_INVENTORY, history.WORKER_COMPONENTS)):
+                                      (history.NATIVE_ATMOS_INVENTORY, history.NATIVE_ATMOS_COMPONENTS)):
             for entry in inventory:
                 self.assertEqual(set(entry['files']), set(components), entry['label'])
+        # A worker entry carries the file set of its own release: the nine files until validity.py and clock.py were
+        # bound, the current set since. No entry is ever rewritten, so earlier ones keep the nine.
+        sets = (set(history.WORKER_COMPONENTS_EARLIER), set(history.WORKER_COMPONENTS))
+        for entry in history.WORKER_INVENTORY:
+            self.assertIn(set(entry['files']), sets, entry['label'])
+        self.assertEqual(set(history.WORKER_INVENTORY[-1]['files']), set(history.WORKER_COMPONENTS))
+        self.assertTrue(all(set(entry['files']) == set(history.WORKER_COMPONENTS_EARLIER)
+                            for entry in history.WORKER_INVENTORY[:-1]))
 
     def test_component_sets_are_the_bound_file_sets(self):
         self.assertEqual(history.PROTECTED_COMPONENTS, ('protected.py', 'execution.py', 'io.py', 'native_pins.py'))
