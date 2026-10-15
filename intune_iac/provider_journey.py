@@ -174,6 +174,9 @@ class ProviderJourney:
                 _fail('journey_prepared_evidence_missing')
             return None
         request = load_json(path)
+        if type(request) is dict and type(request.get('prepared_at')) is int and request['prepared_at'] > int(time.time()) + 5:
+            # Refused either way; after a backward step the refusal names the clock hold and the recovery.
+            self.policy.authority.hold_if_clock_behind()
         if (type(request) is not dict or set(request) != _REQUEST_KEYS or request.get('version') != 'provider-operation/1.0'
                 or request.get('mode') != self.mode or type(request.get('laboratory')) is not bool
                 or request['laboratory'] != (self.mode == 'laboratory') or request.get('execution_authorized') is not False
