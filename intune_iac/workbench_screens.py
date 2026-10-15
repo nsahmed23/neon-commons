@@ -657,6 +657,12 @@ def lifecycle_next(tab, value, now, eligibility=None):
         # The command stands on its own row after the sentence, so a copied row carries no words (run 9, frame 18).
         # The real directory when the review names it (a review always does); the template only where it does not.
         operation = command_arg(value['operation_root']) if isinstance(value.get('operation_root'), str) else 'OPERATION_DIR'
+        if value.get('no_configuration_change') is True or value.get('changes') == []:
+            # As maintenance.execute does it: a plan with no change still needs the digest and is run, but nothing is sent
+            # to the service (service_no_change, mutation_dispatched False); the readback confirms the desired state.
+            return ('Nothing to apply: the desired body equals the observed body. execute with the review digest sends no '
+                    'change to the service; it runs the operation and reads the service back (6 Execution shows the '
+                    'result). Command:' + COMMAND_BREAK + '  execute %s DIGEST' % operation)
         return ('approve and run it with the review digest (6 Execution shows the result). Command:' + COMMAND_BREAK
                 + '  execute %s DIGEST' % operation)
     if status == 'outcome_unknown':

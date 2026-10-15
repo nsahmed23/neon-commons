@@ -292,3 +292,59 @@ class PlanDirectoryTests(CommandRows, unittest.TestCase):
         rows = self.rows(value)
         self.assertNotIn('Operation directory', text_of(rows))
         self.assert_command_alone(rows, 'execute OPERATION_DIR DIGEST')
+
+
+class NoChangePlanTests(CommandRows, unittest.TestCase):
+    """Item 7: a no-change plan's Next says what executing it does, as the code does it."""
+    review = PlanDirectoryTests.review
+
+    def no_change(self, **kw):
+        return self.review(changes=[], no_configuration_change=True, field_changes={'status': 'no_change', 'changes': []}, **kw)
+
+    def next_text(self, value, width=118):
+        return ' '.join(' '.join(lifecycle_rows(value, width)).split())
+
+    def test_the_next_does_not_say_approve_and_run_it(self):
+        for value in (self.no_change(), self.review(changes=[])):
+            text = self.next_text(value)
+            self.assertNotIn('approve and run it', text)
+            self.assertIn('Next: Nothing to apply: the desired body equals the observed body.', text)
+            self.assertIn('sends no change to the service', text)
+            self.assertIn('with the review digest', text)
+
+    def test_the_command_row_is_still_alone_with_the_real_path(self):
+        for width in (80, 118):
+            self.assert_command_alone(lifecycle_rows(self.no_change(), width), "execute '%s' DIGEST" % OPERATION_DIRECTORY)
+
+    def test_a_plan_with_a_change_is_unchanged(self):
+        text = self.next_text(self.review(changes=['description'], no_configuration_change=False))
+        self.assertIn('Next: approve and run it with the review digest (6 Execution shows the result). Command:', text)
+
+    def test_the_words_are_what_executing_a_no_change_plan_does(self):
+        # The code's own answer: a real no-change proposal executes without sending anything and reads the service back.
+        from intune_iac import maintenance
+        from intune_iac.workbench_repository import propose_from_intent
+        from plugin_tests import test_workbench_repository as repository_tests
+        owner = repository_tests.RepositoryOwnedChangeTests
+        case = type('Case', (unittest.TestCase,), {'setUp': owner.setUp, 'import_intent': owner.import_intent,
+                                                   'RESOURCE_ADDRESS': owner.RESOURCE_ADDRESS,
+                                                   'runTest': lambda self: None})('runTest')
+        case.setUp()
+        try:
+            case.import_intent()
+            operation = case.root / 'operation'
+            review = propose_from_intent(case.store.root, case.service.root, repository_tests.OBJECT, operation)
+            self.assertEqual(maintenance.review(operation)['no_configuration_change'], True, review)
+            result = maintenance.execute(operation, approve_digest=review['approval_digest'])
+            self.assertEqual(result['status'], 'succeeded_verified')
+            self.assertEqual(result['effects'], {'dispatched': True, 'service_change': 'no_change_needed'})
+            events = [event['kind'] for event in maintenance._load(operation)[2]['events']]
+            self.assertIn('service_no_change', events)
+            self.assertNotIn('service_response', events)
+        finally:
+            case.doCleanups()
+
+
+def lifecycle_rows(value, width):
+    from intune_iac.workbench_screens import lifecycle_lines
+    return lifecycle_lines(4, width, value)
