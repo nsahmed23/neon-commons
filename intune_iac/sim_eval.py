@@ -27,7 +27,7 @@ ALL_DEVICES = 'allDevicesAssignmentTarget'
 ALL_USERS = 'allLicensedUsersAssignmentTarget'
 NEXT_REVIEW = ('Review the proposed change and the cited sources; this result is not an approval and does not '
                'schedule or authorize a deployment.')
-NEXT_COVERAGE = 'Collect the missing data and run the simulation again; do not treat this result as safe.'
+NEXT_COVERAGE = 'Collect the missing data and run the simulation again before relying on this result.'
 _COVERAGE_PREFIXES = ('missing_group:', 'missing_filter:', 'filter_unsupported:', 'membership_incomplete:',
                       'context_device_not_in_universe', 'user_not_in_snapshot')
 
@@ -342,9 +342,9 @@ def simulate(snapshot, revision, profile):
         source = (rec_a or rec_b).source_path
         fid = 'blast_radius:' + pid
         finding(fid, 'blast_radius', 'definite_under_model' if exact else 'possible',
-                f'Policy {_label(rec_a or rec_b)}: {_range(len(sets["after"]["dl"]), len(sets["after"]["du"]))} unique devices '
-                f'targeted after; newly targeted {_range(*added)}; no longer targeted {_range(*removed)}; '
-                f'retained {_range(*retained)}. Counts are inside the captured universe'
+                f'Policy {_label(rec_a or rec_b)}, in unique devices: targeted after '
+                f'{_range(len(sets["after"]["dl"]), len(sets["after"]["du"]))}; newly targeted {_range(*added)}; '
+                f'no longer targeted {_range(*removed)}; retained {_range(*retained)}. Counts are inside the captured universe'
                 + (f'; source {source}' if source else '') + (f'; reasons: {", ".join(reason_codes[:8])}' if reason_codes else '') + '.',
                 refs)
         for unit, lk, uk in (('unique_devices', 'dl', 'du'), ('user_device_contexts', 'cl', 'cu')):
@@ -491,11 +491,12 @@ def _ring_cohorts(idx, snapshot, finding, cohort, project_sets):
     word = lambda n: f'{n} device' if n == 1 else f'{n} devices'
     if overlap:
         finding('ring_overlap', 'blast_radius', 'possible' if d1l != d1u else 'definite_under_model',
-                f'{word(len(overlap))} in the targeted cohort belong to more than one ring. Ring totals overlap and must not be '
-                'added to infer a unique estate count.', [])
+                f'{word(len(overlap))} in the targeted cohort {"belongs" if len(overlap) == 1 else "belong"} to more than one '
+                'ring. Ring totals overlap and must not be added to infer a unique estate count.', [])
     if unclassified:
         finding('ring_unclassified', 'blast_radius', 'possible' if d1l != d1u else 'definite_under_model',
-                f'{word(len(unclassified))} in the targeted cohort belong to no configured ring.', [])
+                f'{word(len(unclassified))} in the targeted cohort '
+                f'{"belongs" if len(unclassified) == 1 else "belong"} to no configured ring.', [])
 
 
 def _conflicts(idx, snapshot, profile, supported, before, after, world, finding, cohort, reasons, scope, changed):
@@ -555,7 +556,7 @@ def _pair(idx, profile, finding, cohort, scope, pid, other, inst_a, inst_b, afte
     refs.append('profile:definitions/' + inst_a.canonical_id)
     where = f'{inst_a.path}' + (f' item {inst_a.item}' if inst_a.item else '')
     values = f'{value_text_pair(ordered)}'
-    overlap = f'definite overlap {len(lower)}, possible overlap {len(upper)} devices'
+    overlap = f'unique devices in definite overlap {len(lower)}, in possible overlap {len(upper)}'
     fid = None
     if outcome.kind:
         fid = f'{outcome.kind}:{first}:{second}:{tag}'

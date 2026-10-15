@@ -523,10 +523,12 @@ intune_iac/repository.py
 intune_iac/repository_entry.py
 intune_iac/runner.py
 intune_iac/service_cli.py
+intune_iac/sim_cli.py
 intune_iac/sim_eval.py
 intune_iac/sim_filters.py
 intune_iac/sim_model.py
 intune_iac/sim_profile.py
+intune_iac/sim_render.py
 intune_iac/sim_result.py
 intune_iac/sim_settings.py
 intune_iac/synthetic.py
@@ -927,6 +929,7 @@ plugin_tests/test_security_boundaries_completion.py
 plugin_tests/test_sim_cases.py
 plugin_tests/test_sim_evaluator.py
 plugin_tests/test_sim_filters.py
+plugin_tests/test_sim_render_cli.py
 plugin_tests/test_sim_snapshot.py
 plugin_tests/test_source_linkage_r4.py
 plugin_tests/test_stack_input.py

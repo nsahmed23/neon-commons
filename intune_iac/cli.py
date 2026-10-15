@@ -89,6 +89,8 @@ def parser():
     add_adoption_parser(commands)
     from .artifact_vault import add_parser as add_artifact_parser
     add_artifact_parser(commands)
+    from .sim_cli import add_parser as add_simulate_parser
+    add_simulate_parser(commands)
     commands.add_parser('doctor',help='Report installed prerequisites and capability boundaries')
     start=commands.add_parser('start',help='Survey a working directory: what already exists, its states and the next step (read-only, offline)')
     start.add_argument('directory',nargs='?',default='.')
@@ -182,6 +184,9 @@ def execute(args):
         from .host_capabilities import require_profile
         require_profile('artifact_vault')
         from .artifact_vault import command
+        return command(args)
+    if args.command=='simulate':
+        from .sim_cli import command
         return command(args)
     if args.command=='doctor':return doctor()
     if args.command=='inspect':
@@ -314,6 +319,11 @@ def main(argv=None):
             value=survey(args.directory,relative_to=os.getcwd())
             goal=goal_readiness(value,args.goal) if args.goal else None
             print('\n'.join(start_lines(value,shutil.get_terminal_size((100,40)).columns,goal,goal_hint=goal is None)))
+            return 0
+        if args.command=='simulate' and args.format=='text':
+            # A person reads this; --format json keeps the machine form, which is the schema result.
+            from .sim_cli import text_lines
+            print('\n'.join(text_lines(args)));sys.stdout.flush()
             return 0
         result=execute(args)
         if (getattr(args,'workbench_command',None)=='workspace' and isinstance(result,dict)
