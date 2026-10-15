@@ -218,8 +218,8 @@ STAGED_BOUNDARY = {
     'repository-refresh': ('STAGED refresh: records a new intent only; no Git commit, approval or apply.',
                            'STAGED refresh: no Git commit, approval or apply.',
                            'STAGED refresh: no commit, approval or apply.', 'New intent only; no commit/approve/apply'),
-    'reconcile': ('STAGED reconcile: checks the outcome and records it; it never repeats the change.',
-                  'STAGED reconcile: never repeats the change.', 'Reconcile: never repeats the change.'),
+    'reconcile': ('STAGED reconcile: checks the outcome and records it; it never replays the change.',
+                  'STAGED reconcile: never replays the change.', 'Reconcile: never replays the change.'),
     'collect': ('STAGED collect: reads the modeled service and records the result; it changes no policy.',
                 'STAGED collect: reads and records only.', 'Collect: reads and records only.'),
     'propose-from-intent': ('STAGED proposal: a local proposal for review; nothing is approved or sent.',
@@ -1447,7 +1447,7 @@ class Workspace:
         elif self.tab in (4, 5) and isinstance(self.value.get('operations'), list) and not self.value['operations']:
             # An empty list says so, rather than a frame with nothing in it (journey 27 review, Sonnet 8).
             lines = ['[OPERATIONS] None recorded in this store yet.'] + list(wrap(
-                'Prepare a proposal (a: actions); its operation appears here.', width))
+                'Prepare a proposal from the recorded intent (a: actions); its operation appears here.', width))
         elif self.tab in (4, 5) and self.operation_rows and isinstance(self.value.get('operations'), list):
             lines = ['[OPERATIONS] Enter reviews exact current plan; no approval or execution.']
             for index, row in enumerate(self.operation_rows):

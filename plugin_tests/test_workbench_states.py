@@ -305,10 +305,10 @@ class LifecycleTests(unittest.TestCase):
         prepared = {'operation_id': 'a' * 32, 'object_id': OBJECT, 'status': 'prepared', 'expires_at': time.time() + 200}
         text = self.summary(4, dict(prepared, expires_at=time.time() - 1))
         # Run 8 item 7: the Approval window row and the Context file row state the facts; the Next lines are the steps.
-        self.assertIn('Next: Prepare a proposal again (a: actions); Expiry and Approval window above say why', text)
+        self.assertIn('Next: Prepare a proposal from the recorded intent (a: actions); Expiry and Approval window above say why', text)
         self.assertNotIn('execute OPERATION_DIR', text)
         text = self.summary(4, dict(prepared, repository={'cited': None, 'context_changed': True}))
-        self.assertIn('Next: Prepare a proposal again (a: actions).', text)
+        self.assertIn('Next: Prepare a proposal from the recorded intent (a: actions).', text)
         self.assertNotIn('context file changed, so execute refuses it', text)
         text = self.summary(4, dict(prepared, repository={'cited': True, 'freshness': 'stale'}))
         self.assertIn('repository changed since its intent, so execute refuses it', text)
@@ -605,7 +605,7 @@ class ClockHoldPresentationTests(unittest.TestCase):
                  'freshness_reasons': ['clock_moved_backward'], 'freshness_clock': self.FACT}
         for facts in ({'signals': [signal]}, {'eligibility': check}):
             text = self.refusal_text(facts)
-            self.assertIn('then restart the workbench and prepare the proposal again (%s).' % self.TIMES, text)
+            self.assertIn('then restart the workbench and Prepare a proposal from the recorded intent (a: actions; %s).' % self.TIMES, text)
         unreadable = self.stale('clock_floor_invalid', freshness_clock={'reads': 1_800_000_000.0, 'recorded': None})
         # PKG-PRES-RUN4 item 18: one bracket, not two in a row; the times join what it already says in brackets.
         self.assertIn("(Diagnostics shows where it is kept; this host's clock reads 2027-01-15 08:00:00 UTC; the time this workspace recorded cannot be read)",
@@ -613,7 +613,7 @@ class ClockHoldPresentationTests(unittest.TestCase):
 
     def test_a_refusal_without_the_fact_invents_no_time(self):
         text = self.refusal_text({'signals': [self.stale('clock_moved_backward')]})
-        self.assertIn('then restart the workbench and prepare the proposal again.', text)
+        self.assertIn('then restart the workbench and Prepare a proposal from the recorded intent (a: actions).', text)
         self.assertNotIn("this host's clock reads 2", text)
 
     # Item 4: the one-line blocked notice.
@@ -805,7 +805,7 @@ class ClockHeldRefusalTests(unittest.TestCase):
     workspace = RefusalCauseTests.workspace
     REFUSED = {'status': 'error', 'error': {'code': 'maintenance_observation_stale', 'message': 'Refused.'}}
     MOVED = ('Collecting again does not clear this: correct the host clock, or wait until it reads at or after the time '
-             'this workspace recorded, then restart the workbench and prepare the proposal again.')
+             'this workspace recorded, then restart the workbench and Prepare a proposal from the recorded intent (a: actions).')
     UNREADABLE = ("Collecting again does not clear this: changes stay held until the workspace's recorded time can be "
                   'read again (Diagnostics shows where it is kept).')
     HOLDS = (('clock_moved_backward', MOVED), ('clock_floor_invalid', UNREADABLE))
@@ -847,7 +847,7 @@ class ClockHeldRefusalTests(unittest.TestCase):
     def test_the_refusal_without_a_hold_keeps_its_step(self):
         workspace = self.workspace({'signals': [self.stale('older_than_window')]})
         self.assertEqual(workspace._known_cause('maintenance_observation_stale')[1], 'observation_stale')
-        self.assertIn('Next: Collect again (a lists it), then prepare the proposal again.',
+        self.assertIn('Next: Collect again (a lists it), then Prepare a proposal from the recorded intent (a: actions).',
                       self.refused({'signals': [self.stale('older_than_window')]}))
 
     def test_the_general_text_stays_true_when_no_cause_is_known(self):
@@ -855,7 +855,7 @@ class ClockHeldRefusalTests(unittest.TestCase):
         meaning, step = REFUSALS['maintenance_observation_stale']
         self.assertEqual(meaning, 'The newest observation of this policy is not fresh, or the service changed after it was '
                                   'collected; a change is never prepared against it.')
-        self.assertEqual(step, "Collect again (:collect), then prepare the proposal again; i shows the observation's "
+        self.assertEqual(step, "Collect again (:collect), then Prepare a proposal from the recorded intent (a: actions); i shows the observation's "
                                'freshness. If i says its age cannot be established (a clock hold), collecting again does '
                                'not clear it: correct the host clock and restart the workbench.')
         text = ' '.join(' '.join(refusal_lines(self.REFUSED, 160)).split())
@@ -1035,7 +1035,7 @@ class ChangedContextReviewTests(unittest.TestCase):
         # Run 8 item 7: the Context file row says why; the digest line refers to it.
         self.assertIn('Review digest: not offered (the context file changed, above)', text)
         from intune_iac.workbench_screens import lifecycle_next
-        self.assertIn('Prepare a proposal again (a: actions)', lifecycle_next(4, value, 0))
+        self.assertIn('Prepare a proposal from the recorded intent (a: actions)', lifecycle_next(4, value, 0))
 
     def test_an_unchanged_context_still_offers_the_digest(self):
         for repository in ({'cited': True, 'repository_intent_id': 'e' * 64, 'freshness': 'current'}, {'cited': False}):
@@ -1246,7 +1246,7 @@ class RunEightWorkspaceTests(unittest.TestCase):
         self.assertEqual(text.count('execute refuses'), 1, text)
         self.assertIn('Review digest: not offered (the context file changed, above)', text)
         from intune_iac.workbench_screens import lifecycle_next
-        self.assertEqual(lifecycle_next(4, value, 0), 'Prepare a proposal again (a: actions)')
+        self.assertEqual(lifecycle_next(4, value, 0), 'Prepare a proposal from the recorded intent (a: actions)')
 
     # Item 9 (frames 74 to 82): the Operation row on the surfaces says which operation the strip shows.
     def test_the_operation_row_names_the_strip_operation_on_the_repository_surface(self):

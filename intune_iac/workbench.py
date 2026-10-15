@@ -368,11 +368,11 @@ def _next_actions(value, attention, service_available):
         needs = '' if service_available else ' (needs --service-root: a modeled service)'
         prepared = ', with the digest that review shows and execute requires%s.' % needs
         if value.get('selected_repository'):
-            steps.append({'source': 'repository_intent', 'step': 'Prepare a proposal from the recorded repository intent' + prepared
+            steps.append({'source': 'repository_intent', 'step': 'Prepare a proposal from the recorded intent' + prepared
                           + ' Command:\n  propose-from-intent NEW_OPERATION_DIR'})
         else:
             steps.append({'source': 'no_repository_intent', 'step': 'To see how to record where this policy is maintained, run:\n'
-                          '  repository-entry REPOSITORY\nTo prepare a local proposal' + prepared + ' Command:\n'
+                          '  repository-entry REPOSITORY\nTo Prepare a local proposal from a desired file' + prepared + ' Command:\n'
                           '  propose DESIRED_JSON NEW_OPERATION_DIR'})
     if len(steps) > NEXT_STEPS:
         more = len(steps) - NEXT_STEPS

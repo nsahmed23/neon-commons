@@ -244,25 +244,25 @@ def _next_step(stages, operation_root, store_root):
     operation, store = command_arg(operation_root), command_arg(store_root)
     if approval['status'] == 'waiting' and stages['proposal'].get('context_changed'):
         return ('The context file this proposal bound changed after it was prepared, so execute refuses it '
-                '(maintenance_source_changed); prepare a new proposal.')
+                '(maintenance_source_changed); Prepare a proposal from the recorded intent (a: actions).')
     if approval['status'] == 'waiting':
         # Each command stands on its own row after its sentence, so a copied row carries no words (run 9, frame 20).
         return ('Review the change (5); the digest is the one on the review, never filled in for you. Approve before %s '
                 'with:\n  execute %s EXACT_REVIEW_DIGEST' % (_when(approval['closes_at']), operation))
     if approval['status'] == 'expired':
         # Stage 3 states when the window closed; this line refers to it.
-        return 'Prepare a new proposal from the current intent; stage 3 says when its approval window closed.'
+        return 'Prepare a proposal from the recorded intent (a: actions); stage 3 says when its approval window closed.'
     if approval['status'] == 'clock_uncertain':
         return ("This host's clock reads earlier than a time this operation recorded, so execute holds it. Correct "
-                'the clock and restart the workbench, or wait until the clock passes the recorded time; or prepare a '
-                'new proposal.')
+                'the clock and restart the workbench, or wait until the clock passes the recorded time; or '
+                'Prepare a proposal from the recorded intent (a: actions).')
     if approval['status'] == 'clock_unreadable':
-        return "This operation's recorded time cannot be read, so execute refuses it; prepare a new proposal."
+        return "This operation's recorded time cannot be read, so execute refuses it; Prepare a proposal from the recorded intent (a: actions)."
     if approval['status'] == 'not_open':
         return ('The local clock reads earlier than this plan was prepared; approval is refused until it passes %s.'
                 % _when(approval['opens_at']))
     if approval['status'] == 'rejected':
-        return 'This operation was rejected; prepare a new proposal.'
+        return 'This operation was rejected; Prepare a proposal from the recorded intent (a: actions).'
     if reconciliation['status'] == 'required':
         return ('The outcome is unknown, and execution is never replayed. Reconcile before any retry with:\n  reconcile %s'
                 % operation)
@@ -276,8 +276,8 @@ def _next_step(stages, operation_root, store_root):
                 % (then, operation, record['intent_id'], store, operation, record['intent_id']))
     if record['status'] == 'done' and record.get('context_changed'):
         return ('The deployment was recorded, but the context file this operation bound has changed since, so the '
-                'record no longer passes its own check (the views reread those bytes); prepare a new proposal to '
-                'record a baseline again.')
+                'record no longer passes its own check (the views reread those bytes); '
+                'Prepare a proposal from the recorded intent (a: actions) to record a baseline again.')
     if record['status'] == 'not_available' and record.get('reason') == 'context_changed':
         return ('The context file this operation bound changed after it was prepared, so it cannot become a deployment '
                 'record; collect to observe the policy.')

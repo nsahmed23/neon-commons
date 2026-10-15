@@ -327,7 +327,7 @@ class ReviewFindingTests(unittest.TestCase):
         from intune_iac.workbench_screens import REFUSALS
         self.assertIn('restart the workbench', REFUSALS['clock_moved_backward'][1])
         for code in ('clock_floor_invalid', 'clock_reading_invalid'):
-            self.assertIn('Prepare a new proposal', REFUSALS[code][1])
+            self.assertIn('Prepare a proposal from the recorded intent', REFUSALS[code][1])
 
 
 class DamagedClockRecordTests(unittest.TestCase):
@@ -452,7 +452,7 @@ class WindowViewTests(unittest.TestCase):
         self.assertIn('recorded; a clock that reads earlier does not reopen it', _approval_text(stage, stage['status']))
         review = maintenance.review(self.operation)
         # Run 8 item 7: the Approval window row says it closed; the Next line is the step and refers to that row.
-        self.assertIn('Prepare a proposal again (a: actions); Expiry and Approval window above say why',
+        self.assertIn('Prepare a proposal from the recorded intent (a: actions); Expiry and Approval window above say why',
                       lifecycle_next(4, review, self.clocks.now()))
 
     def test_a_damaged_clock_record_reads_as_unknown_and_refused(self):

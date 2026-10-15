@@ -70,7 +70,7 @@ class DeliveryTests(unittest.TestCase):
         review = self.prepare()
         value, stages = self.view(now=review['expires_at'])
         self.assertEqual(stages['approval']['status'], 'expired')
-        self.assertIn('new proposal', value['next_action'])
+        self.assertIn('Prepare a proposal from the recorded intent (a: actions)', value['next_action'])
         # Run 8 item 7: stage 3 says when the window closed, to the second with its zone; the Next line refers to
         # that stage instead of giving the time a second time.
         closes = datetime.fromtimestamp(review['expires_at'], timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
@@ -283,7 +283,7 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual((stages['deployment_record']['status'], stages['deployment_record']['reason']),
                          ('not_available', 'context_changed'))
         self.assertIn('changed after it was prepared', value['next_action'])
-        self.assertIn('prepare a new proposal', value['next_action'])
+        self.assertIn('Prepare a proposal from the recorded intent (a: actions)', value['next_action'])
         text = ' '.join(' '.join(delivery_lines(value, 140)).split())
         self.assertIn('context changed since this proposal was prepared', text)
         self.assertNotIn('no repository intent cited', text)

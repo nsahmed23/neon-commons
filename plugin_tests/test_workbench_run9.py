@@ -405,7 +405,7 @@ class LostResponseOnceTests(unittest.TestCase):
         text = text_of(workspace._summary_lines(118))
         self.assertEqual(text.count('model_response_lost'), 1, text)
         self.assertIn('Effect: Dispatch started; whether the service applied the change is unknown. Reconcile checks it '
-                      'without repeating the change.', text)
+                      'without replaying the change.', text)
         self.assertIn("Error: the modeled service's response was lost (model_response_lost)", text)
 
 

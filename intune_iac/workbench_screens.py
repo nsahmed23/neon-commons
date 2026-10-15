@@ -224,9 +224,10 @@ def _band_forms(primary, prefixes=None):
         return ['! Conditions not re-read after %s. 2: re-read' % command, '! Not re-read after %s. 2: re-read' % command,
                 '! Not re-read. 2: re-read']
     if code == 'operation_approval_held':
-        # The clock holds the change; waiting or a new proposal are the responses, and a lists the proposal.
-        return ['! Operation %s approval held: the host clock reads earlier than it recorded. Wait, or prepare again '
-                '(a: actions)' % operation, '! Approval held by the clock. Wait, or prepare again (a: actions)',
+        # The clock holds the change; waiting or the proposal action are the responses, and a lists that action.
+        return ['! Operation %s approval held: the host clock reads earlier than it recorded. Wait, or Prepare a proposal '
+                'from the recorded intent (a: actions)' % operation,
+                '! Approval held by the clock. Wait, or Prepare a proposal from the recorded intent (a: actions)',
                 '! Held: clock behind. Wait (a actions)']
     if code == 'operation_unreadable':
         # No reconcile is offered for records that cannot be read; diagnostics say which and why.
@@ -638,22 +639,22 @@ def lifecycle_next(tab, value, now, eligibility=None):
     if status == 'prepared':
         if repository.get('context_changed'):
             # The Context file row and the digest line say why; this line is the step.
-            return 'Prepare a proposal again (a: actions)'
+            return 'Prepare a proposal from the recorded intent (a: actions)'
         if repository.get('cited') and repository.get('freshness') not in (None, 'current'):
-            return ('the repository changed since its intent, so execute refuses it; record the current source, '
-                    'then prepare again')
+            return ('the repository changed since its intent, so execute refuses it; Refresh the repository intent (a: actions), '
+                    'then Prepare a proposal from the recorded intent')
         judged = value.get('approval_window') if isinstance(value.get('approval_window'), dict) else {}
         if judged.get('state') == 'clock_moved_backward':
             return ("this host's clock reads earlier than this operation's recorded time, so execute holds it; "
-                    'correct the clock and restart, or wait, or Prepare a proposal again (a: actions)')
+                    'correct the clock and restart, or wait, or Prepare a proposal from the recorded intent (a: actions)')
         if judged.get('state') == 'unknown':
             return ("this operation's recorded time cannot be read, so execute refuses it; "
-                    'Prepare a proposal again (a: actions)')
+                    'Prepare a proposal from the recorded intent (a: actions)')
         expires = value.get('expires_at')
         if judged.get('state') in ('closed', 'closed_recorded') or (
                 not judged and isinstance(expires, (int, float)) and not isinstance(expires, bool) and expires <= now):
             # The Approval window row states the fact; this line refers to it rather than say it again.
-            return 'Prepare a proposal again (a: actions); Expiry and Approval window above say why'
+            return 'Prepare a proposal from the recorded intent (a: actions); Expiry and Approval window above say why'
         # The command stands on its own row after the sentence, so a copied row carries no words (run 9, frame 18).
         # The real directory when the review names it (a review always does); the template only where it does not.
         operation = command_arg(value['operation_root']) if isinstance(value.get('operation_root'), str) else 'OPERATION_DIR'
@@ -2695,7 +2696,7 @@ REFUSALS = {
     'maintenance_source_changed': (
         'A file this proposal bound changed after it was prepared (its context file), so its review no longer '
         'describes what would run.',
-        'Prepare a proposal again (a: actions); nothing from this one is used.'),
+        'Prepare a proposal from the recorded intent (a: actions); nothing from this one is used.'),
     'workbench_deployment_intent': (
         'The intent given is not exactly one repository intent recorded in this store.',
         "Use the intent this operation's plan cites: v Delivery names it, and a lists the record with it."),
@@ -2717,8 +2718,8 @@ REFUSALS = {
         'become a deployment record.'),
     'workbench_deployment_context_mismatch': (
         'The context file the plan bound has changed since, or it does not cite this intent, scope or tenant.',
-        'Use the intent the plan cites; if its context file changed, prepare a new proposal from the current '
-        'intent.'),
+        'Use the intent the plan cites; if its context file changed, Prepare a proposal from the recorded intent '
+        '(a: actions).'),
     'workbench_deployment_engine_receipt': (
         "The engine's receipt for this operation is missing, not verified, or not for this operation's request.",
         'Open v Delivery for the operation; a record needs the engine receipt the execution wrote.'),
@@ -2742,22 +2743,22 @@ REFUSALS = {
         "This host's clock reads earlier than a time this operation already recorded, so whether its approval window is "
         'still open cannot be established. Nothing was dispatched.',
         'Correct the host clock, or wait until it reads at or after the recorded time, then submit again (restart the '
-        'workbench after correcting the clock); a new proposal also works.'),
+        'workbench after correcting the clock); Prepare a proposal from the recorded intent (a: actions) also works.'),
     'clock_floor_invalid': (
         'The time this operation recorded cannot be read, so its approval window cannot be judged. Nothing was '
         'dispatched.',
-        'Prepare a new proposal; this one stays refused.'),
+        'Prepare a proposal from the recorded intent (a: actions); this one stays refused.'),
     'clock_reading_invalid': (
         "This host's clock returned an unusable time, so the approval window cannot be judged. Nothing was "
         'dispatched.',
-        'Correct the host clock and submit again, or Prepare a new proposal.'),
+        'Correct the host clock and submit again, or Prepare a proposal from the recorded intent (a: actions).'),
     'clock_lock_unavailable': (
         'The recorded time cannot be locked on this host, so the approval window cannot be judged. Nothing was '
         'dispatched.',
-        'Run the workbench on a supported Linux host, or Prepare a new proposal there.'),
+        'Run the workbench on a supported Linux host, or Prepare a proposal from the recorded intent (a: actions) there.'),
     'expired_request': (
         'The plan\'s approval window has closed, or the local clock reads outside it.',
-        'Prepare a new proposal; v opens Delivery, which shows the window of {operation}.'),
+        'Prepare a proposal from the recorded intent (a: actions); v opens Delivery, which shows the window of {operation}.'),
     'maintenance_approval_required': (
         'The digest supplied does not match the reviewed plan.',
         'Review the plan (5) and approve with its exact review digest.'),
@@ -2769,7 +2770,7 @@ REFUSALS = {
         'The repository changed after this proposal cited its intent, or its component no longer consumes exactly '
         'this policy.',
         'Press 9 to see which; fix the component if it no longer consumes the policy, then record the current source '
-        'with:' + COMMAND_BREAK + '  repository-refresh REVISION' + COMMAND_BREAK + 'Then prepare a new proposal.'),
+        'with:' + COMMAND_BREAK + '  repository-refresh REVISION' + COMMAND_BREAK + 'Then Prepare a proposal from the recorded intent (a: actions).'),
     'workbench_repository_stale': (
         'The repository changed since its recorded intent, or its component no longer consumes exactly this policy.',
         'Press 9 to see which; fix the component if it no longer consumes the policy, then record the current source '
@@ -2777,7 +2778,7 @@ REFUSALS = {
     'maintenance_observation_stale': (
         'The newest observation of this policy is not fresh, or the service changed after it was collected; a change '
         'is never prepared against it.',
-        'Collect again (:collect), then prepare the proposal again; i shows the observation\'s freshness. If i says its '
+        'Collect again (:collect), then Prepare a proposal from the recorded intent (a: actions); i shows the observation\'s freshness. If i says its '
         'age cannot be established (a clock hold), collecting again does not clear it: correct the host clock and '
         'restart the workbench.'),
     'maintenance_observation_incomplete': (
@@ -2785,14 +2786,14 @@ REFUSALS = {
         'Collect again (:collect); i shows what was not read.'),
     'maintenance_plan_stale': (
         'The service changed while the plan was being prepared, or after it was prepared.',
-        'Collect, then prepare a new proposal.'),
+        'Collect again (:collect), then Prepare a proposal from the recorded intent (a: actions).'),
     'unreadable_file': (
         'A file this command needs could not be read; the engine does not name it.',
         'Check that the files the command names exist and this account can read them, then submit it again.'),
     'workbench_desired_capability': (
         'The desired policy uses a setting definition, value, platform or technology outside the supported capability map.',
         "Change that setting in the repository's stack input to a supported value, then Refresh the repository "
-        'intent (a: actions) and prepare the proposal again.'),
+        'intent and Prepare a proposal from the recorded intent (a: actions).'),
 }
 
 
@@ -2803,7 +2804,7 @@ RESTORE_REFUSALS = {
         'A file the original operation bound has changed',
         'A file the original {original} bound changed after it was prepared (its context file), so a restore cannot be '
         'derived from it.',
-        'Prepare a proposal for the value you want (a: actions); nothing from the original is used.')}
+        'Prepare a proposal from the recorded intent (a: actions); nothing from the original is used.')}
 
 # A refusal's header in words; the code follows in parentheses as the lookup key. A code with no entry here (one the
 # engine raises that this screen does not explain) reads as its own words.
@@ -2900,7 +2901,7 @@ def effect_lines(effects, width):
 
 EXECUTION_EFFECTS = {
     'unknown': 'Dispatch started; whether the service applied the change is unknown. Reconcile checks it without '
-               'repeating the change.',
+               'replaying the change.',
     'observed_as_desired': 'The service applied the change, and an independent readback observed the desired state.',
     'no_change_needed': 'No service change was needed or sent; the readback observed the desired state.'}
 
@@ -2913,7 +2914,7 @@ def execution_effect_lines(result, width):
         # The lost response is the Error row's to say, in words with its code; the effect does not repeat it.
         return word_wrap('Effect: ' + EXECUTION_EFFECTS[change], width)
     if effects.get('replayed') is False:
-        return word_wrap('Effect: Reconcile read the service and recorded what it found; it did not repeat the change.', width)
+        return word_wrap('Effect: Reconcile read the service and recorded what it found; it did not replay the change.', width)
     return []
 
 
@@ -3008,23 +3009,23 @@ KNOWN_NEXT = {
     'repository_changed': 'Press 9 to review the difference; then Refresh the repository intent (a: actions).',
     'consumer_changed': 'Fix the component so it consumes exactly this policy, then record the current source with:'
                         + COMMAND_BREAK + '  repository-refresh REVISION',
-    'service_changed': 'Collect again (a lists it), then prepare the proposal again.',
-    'policy_changed': 'Collect again (a lists it), then prepare the proposal again.',
-    'source_mismatch': 'Collect again from the configured service (a lists it), then prepare the proposal again.',
+    'service_changed': 'Collect again (a lists it), then Prepare a proposal from the recorded intent (a: actions).',
+    'policy_changed': 'Collect again (a lists it), then Prepare a proposal from the recorded intent (a: actions).',
+    'source_mismatch': 'Collect again from the configured service (a lists it), then Prepare a proposal from the recorded intent (a: actions).',
     'tenant_mismatch': "Restart with the --service-root for this store's tenant.",
-    'observation_stale': 'Collect again (a lists it), then prepare the proposal again.',
+    'observation_stale': 'Collect again (a lists it), then Prepare a proposal from the recorded intent (a: actions).',
     # A clock hold on the age: a new observation is judged against the same recorded time, so collecting is not the step.
     'observation_clock_moved_backward': (
         'Collecting again does not clear this: correct the host clock, or wait until it reads at or after the time this '
-        'workspace recorded, then restart the workbench and prepare the proposal again.'),
+        'workspace recorded, then restart the workbench and Prepare a proposal from the recorded intent (a: actions).'),
     'observation_clock_floor_invalid': (
         "Collecting again does not clear this: changes stay held until the workspace's recorded time can be read again "
         '(Diagnostics shows where it is kept).'),
     # The workspace looked at the files the typed command names and found which one cannot be read.
     'unreadable_file': 'Check that the file exists and this account can read it, then submit the command again; if it '
-                       'belongs to a proposal, Prepare a proposal again (a: actions).',
-    'collection_failed': 'Collect again (a lists it) when the source is reachable, then prepare the proposal again.',
-    'collection_not_finished': 'Collect again (a lists it), then prepare the proposal again.'}
+                       'belongs to a proposal, Prepare a proposal from the recorded intent (a: actions).',
+    'collection_failed': 'Collect again (a lists it) when the source is reachable, then Prepare a proposal from the recorded intent (a: actions).',
+    'collection_not_finished': 'Collect again (a lists it), then Prepare a proposal from the recorded intent (a: actions).'}
 
 
 # Where 'clear' could be read as more than the check establishes, the area says what was checked.

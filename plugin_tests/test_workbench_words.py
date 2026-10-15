@@ -259,7 +259,7 @@ class JourneyTwentyEightWordsTests(unittest.TestCase):
         lines = text(refusal_lines({'error': {'code': 'maintenance_source_changed', 'message': 'Maintenance evidence is '
                                               'incomplete, changed, stale, or outside the local model profile.'}}, 160))
         self.assertIn('Cause: A file this proposal bound changed after it was prepared', lines)
-        self.assertIn('Next: Prepare a proposal again (a: actions)', lines)
+        self.assertIn('Next: Prepare a proposal from the recorded intent (a: actions)', lines)
 
     def test_the_refused_refresh_names_the_same_next_action_as_the_band(self):
         from intune_iac.workbench_screens import REFUSALS

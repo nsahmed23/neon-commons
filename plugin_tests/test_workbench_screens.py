@@ -1469,10 +1469,10 @@ class RunEightScreensTests(unittest.TestCase):
                   'deployment_record': {'status': 'not_yet'}, 'observed_after': {'status': 'not_yet'}}
         said = _next_action(stages, '/w/op', '/w/store')
         self.assertNotRegex(said, r'\d{4}-\d\d-\d\d')
-        self.assertIn('Prepare a new proposal from the current intent', said)
+        self.assertIn('Prepare a proposal from the recorded intent (a: actions)', said)
         self.assertIn('stage 3 says when its approval window closed', said)
         closed = lifecycle_next(4, {'status': 'prepared', 'approval_window': {'state': 'closed'}}, 0)
-        self.assertEqual(closed, 'Prepare a proposal again (a: actions); Expiry and Approval window above say why')
+        self.assertEqual(closed, 'Prepare a proposal from the recorded intent (a: actions); Expiry and Approval window above say why')
         self.assertNotIn('has closed', closed)
 
     # Item 8 (frames 08, 11 to 14, 16, 75, 77): the Source path is quoted when it holds a space.
@@ -1519,7 +1519,7 @@ class RunEightScreensTests(unittest.TestCase):
                   'blocked': {'code': 'workbench_desired_capability', 'message': message}}
         text = _flat(actions_lines([action], 0, 140))
         self.assertIn("Change that setting in the repository's stack input to a supported value, then Refresh the "
-                      'repository intent (a: actions)', text)
+                      'repository intent and Prepare a proposal from the recorded intent (a: actions)', text)
         self.assertIn('(workbench_desired_capability)', text)
         refused = _flat(refusal_lines({'status': 'error', 'error': {'code': 'workbench_desired_capability',
                                                                     'message': message}}, 140))
@@ -1544,7 +1544,7 @@ class RunEightScreensTests(unittest.TestCase):
         self.assertIn('Cause: A file the original operation 4d972e93 bound changed after it was prepared', text)
         self.assertIn('a restore cannot be derived from it', text)
         self.assertNotIn('review no longer describes what would run', text)
-        self.assertIn('Next: Prepare a proposal for the value you want (a: actions); nothing from the original is used.',
+        self.assertIn('Next: Prepare a proposal from the recorded intent (a: actions); nothing from the original is used.',
                       text)
         # The same code for an execute keeps the execute wording.
         other = _flat(refusal_lines(value, 140, verb='execute'))

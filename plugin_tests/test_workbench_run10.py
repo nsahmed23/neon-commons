@@ -348,3 +348,67 @@ class NoChangePlanTests(CommandRows, unittest.TestCase):
 def lifecycle_rows(value, width):
     from intune_iac.workbench_screens import lifecycle_lines
     return lifecycle_lines(4, width, value)
+
+
+PREPARE = 'Prepare a proposal from the recorded intent'
+PREPARE_FROM_FILE = 'Prepare a local proposal from a desired file'
+
+
+class CanonicalNameTests(unittest.TestCase):
+    """Item 8: an action has one name, the actions list's own, wherever it is named; one verb for "never replays"."""
+
+    MODULES = ('workbench_screens', 'workbench_tui', 'workbench', 'workbench_delivery')
+    # Names the one action went by in run 10 (frames 65 to 73) and the verbs that said "replay" another way.
+    VARIANTS = (r'(?i)prepare (a |the )?(new )?proposal again', r'(?i)\bprepare again\b', r'(?i)\bprepare a new proposal',
+                r'(?i)\ba new proposal\b', r'for the value you want', r'Prepare a proposal \(a', r'Prepare a proposal from the recorded repository intent',
+                r'(?i)repeats? the change', r'(?i)repeating the change')
+
+    def source(self, module):
+        from pathlib import Path
+        return (Path(__file__).resolve().parents[1] / 'intune_iac' / (module + '.py')).read_text(encoding='utf-8')
+
+    def test_no_module_names_the_action_by_another_name_or_says_repeat(self):
+        for module in self.MODULES:
+            source = self.source(module)
+            for variant in self.VARIANTS:
+                self.assertEqual([found.group(0) for found in re.finditer(variant, source)], [], (module, variant))
+
+    def test_the_label_the_actions_list_offers_is_the_name_used(self):
+        source = self.source('workbench')
+        self.assertIn("offer('propose-from-intent', '%s'," % PREPARE, source)
+        self.assertIn("offer('propose', '%s'," % PREPARE_FROM_FILE, source)
+
+    def test_every_proposal_a_refusal_table_tells_the_engineer_to_prepare_has_the_list_name(self):
+        from intune_iac import workbench_screens as screens
+        texts = [part for pair in screens.REFUSALS.values() for part in pair]
+        texts += [part for triple in screens.RESTORE_REFUSALS.values() for part in triple] + list(screens.KNOWN_NEXT.values())
+        found = [match for text in texts for match in re.findall(r'(?i)prepare (?:a|the|it)\b[^.;(]*proposal[^.;(]*', text)]
+        self.assertTrue(found)
+        for match in found:
+            self.assertTrue(match.startswith(PREPARE), match)
+
+    def test_the_lifecycle_the_band_and_delivery_say_the_list_name(self):
+        import time
+        from intune_iac.workbench_delivery import _next_step
+        from intune_iac.workbench_screens import hazard_rows, lifecycle_next
+        closed = {'operation_id': 'a' * 32, 'status': 'prepared', 'expires_at': time.time() - 5}
+        self.assertEqual(lifecycle_next(4, closed, time.time()),
+                         PREPARE + ' (a: actions); Expiry and Approval window above say why')
+        changed = {'operation_id': 'a' * 32, 'status': 'prepared', 'repository': {'cited': None, 'context_changed': True}}
+        self.assertEqual(lifecycle_next(4, changed, 0), PREPARE + ' (a: actions)')
+        facts = {'object_id': 'o', 'operation': 'prepared', 'operation_id': 'a' * 32,
+                 'signals': [{'area': 'operations', 'code': 'operation_approval_held', 'evidence': {'operation_id': 'a' * 32}}]}
+        band = ' '.join(' '.join(hazard_rows(facts, facts['signals'], 140)).split())
+        self.assertIn('Wait, or ' + PREPARE + ' (a: actions)', band)
+        stages = {'proposal': {}, 'approval': {'status': 'expired', 'closes_at': 1}, 'readback': {'status': 'not_yet'},
+                  'reconciliation': {'status': 'not_needed'}, 'deployment_record': {'status': 'not_yet'},
+                  'observed_after': {'status': 'not_yet'}}
+        self.assertTrue(_next_step(stages, '/w/op', '/w/store').startswith(PREPARE + ' (a: actions);'))
+
+    def test_one_verb_says_the_change_is_never_replayed(self):
+        from intune_iac.workbench_screens import EXECUTION_EFFECTS, execution_effect_lines
+        from intune_iac.workbench_tui import STAGED_BOUNDARY
+        self.assertIn('without replaying the change', EXECUTION_EFFECTS['unknown'])
+        self.assertTrue(all('replays the change' in text for text in STAGED_BOUNDARY['reconcile']))
+        reconciled = execution_effect_lines({'effects': {'replayed': False}}, 118)
+        self.assertEqual(' '.join(reconciled), 'Effect: Reconcile read the service and recorded what it found; it did not replay the change.')
