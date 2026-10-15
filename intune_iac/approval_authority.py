@@ -27,6 +27,7 @@ import threading
 import time
 import uuid
 
+from . import clock
 from .io import AppError, canonical, digest, parse_json
 from .protected import _path, _sha, _supervise, _sync
 
@@ -245,10 +246,47 @@ class ApprovalAuthority:
                 db.execute('BEGIN IMMEDIATE')
                 db.execute('CREATE TABLE IF NOT EXISTS consumed (issuer TEXT NOT NULL, nonce TEXT NOT NULL, operation_id TEXT NOT NULL UNIQUE, request_sha256 TEXT NOT NULL, consumed_at INTEGER NOT NULL, status TEXT NOT NULL, PRIMARY KEY(issuer,nonce))')
                 db.execute('CREATE TABLE IF NOT EXISTS revoked (issuer TEXT NOT NULL, key_id TEXT NOT NULL, PRIMARY KEY(issuer,key_id))')
+                db.execute('CREATE TABLE IF NOT EXISTS expired (issuer TEXT NOT NULL, nonce TEXT NOT NULL, operation_id TEXT NOT NULL, request_sha256 TEXT NOT NULL, expires_at INTEGER NOT NULL, judged_at INTEGER NOT NULL, wall INTEGER NOT NULL, PRIMARY KEY(issuer,nonce))')
                 db.execute('CREATE TABLE IF NOT EXISTS executions (operation_id TEXT PRIMARY KEY, request_sha256 TEXT NOT NULL, dispatched_at INTEGER NOT NULL, outcome_sha256 TEXT)')
                 db.execute('COMMIT')
             _sync(self.root)
         except (sqlite3.Error, OSError): _fail('approval_store_unavailable')
+
+    def _reading(self):
+        """One judgement of the wall clock against the time this authority recorded (clock.py): the effective time
+        never goes back, and a reading earlier than the recorded time by more than the tolerance is flagged backward.
+        The recorded time lives beside the consumption store, so it survives a restart."""
+        floor = clock.Floor(self.root/'clock.json')
+        try:
+            with floor.locked(): return floor.observe_locked(time.time())
+        except OSError: _fail('approval_store_unavailable')
+
+    def _expiry_recorded(self, payload):
+        try:
+            with _connection(self) as db:
+                return db.execute('SELECT 1 FROM expired WHERE issuer=? AND nonce=?', (payload['issuer'],payload['nonce'])).fetchone() is not None
+        except (sqlite3.Error, OSError): _fail('approval_store_unavailable')
+
+    def _record_expiry(self, payload, request_sha256, reading):
+        """Latch a reached expiry: every later check of this approval refuses on the record, whatever the clock reads."""
+        try:
+            with _connection(self) as db:
+                db.execute('BEGIN IMMEDIATE')
+                db.execute('INSERT OR IGNORE INTO expired VALUES (?,?,?,?,?,?,?)',
+                           (payload['issuer'],payload['nonce'],payload['operation_id'],request_sha256,
+                            payload['expires_at'],int(reading['effective']),int(reading['wall'])))
+                db.execute('COMMIT')
+            _sync(self.root)
+        except (sqlite3.Error, OSError): _fail('approval_expiry_not_durable')
+
+    def _hold_if_backward(self, reading):
+        """A backward step means validity cannot be established, so the approval is held, not judged."""
+        if reading['backward']:
+            raise AppError('clock_moved_backward',
+                           "Approval held: this host's clock reads %d, earlier than the time %d this approval store recorded, "
+                           'so whether the approval is still valid cannot be established. Correct the host clock, or wait until '
+                           'it reads at or after the recorded time, then restart; verifying again does not clear this.'
+                           % (reading['wall'], reading['floor']))
 
     def revoke_key(self, issuer, key_id):
         """Administrative host action; persistent and effective for active permits."""
@@ -300,8 +338,23 @@ class ApprovalAuthority:
         if payload['operation_id'] != request['operation_id'] or payload['request_sha256'] != digest(request) or type(payload['nonce']) is not str or not re.fullmatch(r'[0-9a-f]{32}', payload['nonce']):
             _fail('approval_receipt_binding')
         now = int(time.time())
-        if type(payload['issued_at']) is not int or type(payload['expires_at']) is not int or not request['prepared_at'] <= payload['issued_at'] <= now+5 or not now < payload['expires_at'] <= payload['issued_at']+900:
+        reading = self._reading()
+        if (type(payload['issued_at']) is not int or type(payload['expires_at']) is not int
+                or not request['prepared_at'] <= payload['issued_at'] <= now+5 or not payload['expires_at'] <= payload['issued_at']+900):
             _fail('approval_receipt_time')
+        # The effective time never goes back, and an expiry once reached is recorded: a backward step or a restart
+        # cannot make a closed approval valid again. Only a receipt that verifies is recorded, so unsigned input
+        # cannot fill the store.
+        if now >= payload['expires_at'] or reading['effective'] >= payload['expires_at'] or self._expiry_recorded(payload):
+            try: self._authentic(request, payload, signed_receipt, revoked=False)
+            except AppError: _fail('approval_receipt_time')
+            self._record_expiry(payload, digest(request), reading)
+            _fail('approval_receipt_time')
+        self._hold_if_backward(reading)
+        self._authentic(request, payload, signed_receipt)
+        return ApprovedExecution(_SEAL, self, request, payload, guard)
+
+    def _authentic(self, request, payload, signed_receipt, *, revoked=True):
         approver = self.approvers.get((payload['issuer'],payload['key_id']))
         if not approver or approver.approver_id != payload['approver_id'] or request['mode'] not in approver.permitted_modes or request['action'] not in approver.permitted_actions:
             _fail('approval_signer_not_authorized')
@@ -311,9 +364,8 @@ class ApprovalAuthority:
         except (ValueError, TypeError): _fail('approval_invalid_signature')
         if len(signature) != 64 or base64.b64encode(signature).decode() != signed_receipt['signature']:
             _fail('approval_invalid_signature')
-        self._not_revoked(payload)
+        if revoked: self._not_revoked(payload)
         self._verify(approver, payload, signature)
-        return ApprovedExecution(_SEAL, self, request, payload, guard)
 
     def _verify(self, approver, payload, signature):
         fd = os.open(_path(self.verifier.executable), os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
@@ -392,15 +444,24 @@ class ApprovedExecution:
         self._deadline = time.monotonic()+max(0,payload['expires_at']-time.time())
         self._entered = False; self._active = False; self._lock = None
 
-    def _check(self):
-        if time.time() >= self._payload['expires_at'] or time.monotonic() >= self._deadline:
+    def _window(self):
+        """The expiry on the effective time (never back), the recorded expiry and this process's monotonic deadline.
+        A reached expiry is recorded before refusing, so it stays closed after a backward step or a restart."""
+        authority = self._authority
+        reading = authority._reading()
+        if (time.time() >= self._payload['expires_at'] or reading['effective'] >= self._payload['expires_at']
+                or time.monotonic() >= self._deadline or authority._expiry_recorded(self._payload)):
+            authority._record_expiry(self._payload, digest(self._request), reading)
             _fail('approval_expired')
+        authority._hold_if_backward(reading)
+
+    def _check(self):
+        self._window()
         self._authority._not_revoked(self._payload)
         self._guard._check(self._request)
         # A bounded service/lease recheck still consumes time and another
         # process can revoke a signer during that call. Recheck both after it.
-        if time.time() >= self._payload['expires_at'] or time.monotonic() >= self._deadline:
-            _fail('approval_expired')
+        self._window()
         self._authority._not_revoked(self._payload)
 
     def __enter__(self):

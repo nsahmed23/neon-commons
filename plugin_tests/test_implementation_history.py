@@ -51,6 +51,9 @@ P3B_ATMOS_FILES = dict(FROZEN_ATMOS_FILES, **{
 P3B_WORKER_FILES = dict(FROZEN_WORKER_FILES, **{
     'protected_worker.py': '7c2e92351298df585748edbc1c0418320a15a19db936b50449d0b29298019a4c',
     'protected.py': '3f1fc433999ad7606866f3587c39e0c1d7d9ffcc3b62831cd24fb670660c7636'})
+AUTHZ_LABEL = 'authz-expiry-latch'
+AUTHZ_WORKER_FILES = dict(P3B_WORKER_FILES, **{
+    'approval_authority.py': '95effe8f97cfc0f600d5a2f54a76216110cf563276e88b657659c15d665061b8'})
 
 
 def frozen_digests():
@@ -80,7 +83,8 @@ class InventoryPinTests(unittest.TestCase):
     def test_worker_inventory_holds_exactly_the_pinned_entries(self):
         self.assertEqual(
             [dict(entry) for entry in history.WORKER_INVENTORY],
-            [{'label': LABEL, 'files': FROZEN_WORKER_FILES}, {'label': P3B_LABEL, 'files': P3B_WORKER_FILES}])
+            [{'label': LABEL, 'files': FROZEN_WORKER_FILES}, {'label': P3B_LABEL, 'files': P3B_WORKER_FILES},
+             {'label': AUTHZ_LABEL, 'files': AUTHZ_WORKER_FILES}])
 
     def test_each_entry_names_only_its_own_component_set(self):
         for inventory, components in ((history.PROTECTED_INVENTORY, history.PROTECTED_COMPONENTS),
