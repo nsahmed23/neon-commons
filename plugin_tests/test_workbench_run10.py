@@ -412,3 +412,76 @@ class CanonicalNameTests(unittest.TestCase):
         self.assertTrue(all('replays the change' in text for text in STAGED_BOUNDARY['reconcile']))
         reconciled = execution_effect_lines({'effects': {'replayed': False}}, 118)
         self.assertEqual(' '.join(reconciled), 'Effect: Reconcile read the service and recorded what it found; it did not replay the change.')
+
+
+def action(kind, label, available=True, **extra):
+    blocked = None if available else {'code': 'workbench_desired_capability', 'message': 'The reference component cannot propose it.'}
+    return dict({'kind': kind, 'label': label, 'command': kind + ' ', 'cursor': None, 'needs': [], 'summary': 'A summary.',
+                 'effects': 'More than the summary.', 'available': available, 'blocked': blocked, 'binding': {}}, **extra)
+
+
+class ActionsOverlayTests(MapTruth):
+    """Item 9: inside the actions list the band names an entry, not a key that is not there, and a blocked focused entry
+    does not offer Enter to stage it."""
+
+    ENTRIES = (action('collect', 'Collect again', command='collect'),
+               action('propose-from-intent', PREPARE, available=False),
+               action('companion', 'Write the read-only isometric page for this policy'))
+
+    def listed(self, focus=0, size=(120, 40)):
+        ws = self.workspace(size)
+        ws.facts.update(actions=list(self.ENTRIES),
+                        eligibility={'code': 'maintenance_observation_stale', 'reason': 'service_changed',
+                                     'observed_revision': 1, 'service_revision': 2})
+        ws._open_actions()
+        ws.action_focus = focus
+        return ws
+
+    def band(self, ws):
+        return next(row for row in self.plain(ws) if row.startswith('!')).strip()
+
+    def test_the_band_inside_the_list_names_the_entry_not_the_key(self):
+        ws = self.listed()
+        band = self.band(ws)
+        self.assertIn('Next: Collect again', band)
+        self.assertNotIn('(a: actions)', band)
+        self.assertIn('(entry 1)', band)
+        ws.layer = 'summary'
+        self.assertIn('(a: actions)', self.band(ws))
+
+    def test_the_entry_is_the_one_the_list_numbers(self):
+        for entries, expected in (((self.ENTRIES[1], self.ENTRIES[0]), '(entry 2)'), ((self.ENTRIES[2],), None)):
+            ws = self.listed()
+            ws.facts['actions'] = list(entries)
+            band = self.band(ws)
+            self.assertNotIn('(a: actions)', band)
+            self.assertNotIn('(a actions)', band)
+            if expected:
+                self.assertIn(expected, band)
+            else:
+                self.assertNotIn('(entry', band)
+
+    def test_a_blocked_focused_entry_does_not_offer_enter_to_stage_it(self):
+        for focus, blocked in ((0, False), (1, True)):
+            ws = self.listed(focus)
+            ws.notice = ws._actions_notice()
+            rows = self.plain(ws)
+            self.assertEqual('Enter stages' in rows[-1], not blocked, (focus, rows[-1]))
+            self.assertEqual('Enter stages' in rows[-2], not blocked, (focus, rows[-2]))
+            self.assertIn('Up/Down choose', rows[-1])
+            self.assertIn('Esc closes', rows[-1])
+
+    def test_moving_the_focus_onto_a_blocked_entry_replaces_the_notice(self):
+        ws = self.listed()
+        self.keys(ws, ['down', ('text', 'q')])
+        self.assertIn('Enter stages', ws.key_reader.notices[0])
+        self.assertNotIn('Enter stages', ws.key_reader.notices[1])
+        self.assertIn('blocked', ws.key_reader.notices[1])
+
+    def test_a_blocked_reason_inside_the_list_names_no_key_that_is_not_there(self):
+        from intune_iac.workbench_screens import actions_lines
+        entry = action('propose-from-intent', PREPARE, available=False,
+                       blocked={'code': 'workbench_desired_capability', 'message': 'The reference component cannot propose it.'})
+        text = text_of(actions_lines([entry], 0, 120))
+        self.assertIn('Refresh the repository intent', text)
+        self.assertNotIn('(a: actions)', text)

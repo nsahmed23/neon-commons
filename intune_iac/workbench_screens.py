@@ -301,10 +301,39 @@ def _without_routes(text):
     return text
 
 
-def hazard_rows(facts, signals, width, *, routes=True, here=False):
+# The action the band's response names, by the primary hazard: the list's entry the band points at while the list is open.
+BAND_ACTION_KIND = {'operation_outcome_unknown': 'reconcile', 'operation_diverged': 'reconcile',
+                    'operation_record_disagrees': 'reconcile', 'collection_failed': 'collect',
+                    'collection_not_finished': 'collect', 'repository_stale': 'repository-refresh',
+                    'repository_consumer_mismatch': 'repository-refresh', 'observation_stale': 'collect',
+                    'observation_service_changed': 'collect', 'observation_policy_changed': 'collect',
+                    'observation_source_mismatch': 'collect', 'operation_approval_held': 'propose-from-intent'}
+
+
+def _band_entry(primary, facts, kind):
+    """The 1-based place in the actions list of the action the band's response names, or None when the list has none."""
+    actions = [action for action in facts.get('actions') or [] if isinstance(action, dict)]
+    evidence = primary.get('evidence') if isinstance(primary.get('evidence'), dict) else {}
+    kind = kind or BAND_ACTION_KIND.get(primary.get('code'))
+    places = [index for index, action in enumerate(actions, 1) if action.get('kind') == kind]
+    exact = [index for index in places if evidence.get('operation_id')
+             and (actions[index - 1].get('binding') or {}).get('operation_id') == evidence['operation_id']]
+    return (exact or places or [None])[0]
+
+
+def _in_list(form, entry):
+    """A band form while the actions list is open: `a` is not a key there, so the response points at its entry."""
+    for route in (' (a: actions)', ' (a actions)'):
+        form = form.replace(route, ' (entry %d)' % entry if entry else '')
+    return form
+
+
+def hazard_rows(facts, signals, width, *, routes=True, here=False, listed=False):
     """The band: the primary hazard with its response, in the longest wording that fits, and the count of other
     findings and any re-read that failed, beside it or on a row of their own so neither is cut. A window too narrow
-    for the shortest wording gets it wrapped with the response kept whole. [] when nothing is recorded."""
+    for the shortest wording gets it wrapped with the response kept whole. [] when nothing is recorded.
+
+    listed: the actions list is open, where a is not a key; the response names its entry in the list instead."""
     primary, others = _band_primary(facts, signals)
     if primary is None:
         return []
@@ -320,10 +349,16 @@ def hazard_rows(facts, signals, width, *, routes=True, here=False):
     counts = ([['+%d more' % others]] if not routes else [['+%d more in NEEDS ATTENTION' % others]] if here else
               [['+%d more: 2' % others]]) if others else [[]]
     forms = _band_forms(primary, facts.get('identity_prefixes'))
+    named = None
     if any(isinstance(action, dict) and action.get('kind') == 'deployment-record' and action.get('available')
            for action in facts.get('actions') or []):
         # The actions list puts the record first, so the band names the order: record the deployment, then collect.
-        forms = [_record_before_collect(form) for form in forms]
+        recorded = [_record_before_collect(form) for form in forms]
+        named = 'deployment-record' if recorded != forms else None
+        forms = recorded
+    if listed and routes:
+        entry = _band_entry(primary, facts, named)
+        forms = [_in_list(form, entry) for form in forms]
     if not routes:
         forms = [_without_routes(form) for form in forms]
         reread = [_without_routes(note).replace(': 2 re-reads', '') for note in reread]
@@ -1319,10 +1354,11 @@ BLOCK_RECOVERY_CODES = ('workbench_desired_capability',)
 
 def _blocked_words(blocked):
     """Why an action is blocked: the meaning in words first, then the recovery where the code has one, the engine's
-    code kept last in parentheses."""
+    code kept last in parentheses. It is read inside the actions list, where a is not a key, so a recovery's pointer to
+    the list is dropped: the entries it names are in view."""
     meaning, code = _blocked_meaning(blocked), blocked.get('code')
     if code in BLOCK_RECOVERY_CODES and code in REFUSALS:
-        meaning = meaning.rstrip() + ' ' + REFUSALS[code][1]
+        meaning = meaning.rstrip() + ' ' + REFUSALS[code][1].replace(' (a: actions)', '')
     return '%s (%s)' % (meaning.rstrip(), code) if code else meaning
 
 

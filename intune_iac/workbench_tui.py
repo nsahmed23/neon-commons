@@ -333,13 +333,15 @@ MAP_HELP_LINES = ('? help | a actions | : command | Up/Down node | Home edge | L
                   '? help | q exit')
 
 
-def help_line(width, layer='summary', lead=(), map_keys=False, inspect=True, pan=True):
+def help_line(width, layer='summary', lead=(), map_keys=False, inspect=True, pan=True, stages=True):
     """The key line for the width; keys the hazard band names (lead) come first in every form, so a key the band
     offers is never missing from the line below. The actions list has its own keys. map_keys: a map is shown, so the
     line names its keys (and only then); inspect: the focused node has an inspect route, so Enter is named (a key
-    with no route behind it is not drawn)."""
+    with no route behind it is not drawn); stages: the focused action can be staged, so Enter stages is named."""
     if layer in ('actions', 'filters'):
         lines = ACTION_KEY_LINES if layer == 'actions' else FILTER_KEY_LINES
+        if layer == 'actions' and not stages:
+            lines = tuple(line.replace('Enter stages | ', '') for line in lines)
         return next((line for line in lines if cell_width(line) <= width), lines[-1])
     lines = list(MAP_HELP_LINES if map_keys and layer == 'summary' else LAYER_HELP_LINES if layer in LAYER_KEYS else HELP_LINES)
     if map_keys and layer == 'summary' and not inspect:
@@ -1519,8 +1521,8 @@ class Workspace:
         selected = getattr(self, 'selected', None)
         known = self.facts if selected and getattr(self, 'facts', {}).get('object_id') == selected else {}
         # While a command is typed the band's keys are typed, not obeyed: it names the response without them.
-        band = hazard_rows(known, known.get('signals') or [], width, routes=not self.mode,
-                           here=self.tab == 1) if selected else []
+        band = hazard_rows(known, known.get('signals') or [], width, routes=not self.mode, here=self.tab == 1,
+                           listed=getattr(self, 'layer', 'summary') == 'actions') if selected else []
         staged = getattr(self, 'staged', None) if self.mode == 'command' else None
         staged_rows = None
         if isinstance(staged, dict) and staged.get('boundary'):
@@ -1589,7 +1591,8 @@ class Workspace:
                       pad(prompt, width),
                       pad(typing_line(width, self.mode, self._submit_word()) if self.mode else
                           help_line(width, getattr(self, 'layer', 'summary'), band_keys(band), map_keys=self._map_shown(),
-                                    inspect=self._map_focus_inspectable(), pan=self._map_pans()), width)])
+                                    inspect=self._map_focus_inspectable(), pan=self._map_pans(),
+                                    stages=self._focused_action_stages()), width)])
         if self.color:
             palette = THEMES.get(self.theme, THEMES['dark'])
             painted = []
@@ -1993,7 +1996,20 @@ class Workspace:
             self.notice = 'No actions read for this policy yet; 2 (Inspector) reads them.'
         else:
             self.layer = 'actions'; self.scroll = 0; self.action_focus = 0
-            self.notice = 'Up and Down choose; Enter stages the command for review.'
+            self.notice = self._actions_notice()
+
+    def _focused_action_stages(self):
+        """Whether the focused action in the list can be staged: a blocked one cannot, so Enter is not offered for it."""
+        actions = self._actions()
+        if getattr(self, 'layer', 'summary') != 'actions' or not actions:
+            return True
+        return bool(actions[min(max(0, getattr(self, 'action_focus', 0)), len(actions) - 1)].get('available'))
+
+    def _actions_notice(self):
+        """What the actions list says the keys do for the focused entry; Enter stages only an available one."""
+        if self._focused_action_stages():
+            return 'Up and Down choose; Enter stages the command for review.'
+        return 'Up and Down choose; this entry is blocked and cannot be staged (its reason is under it).'
 
     def _stage(self, action):
         """Put an available action's exact command in the command bar, bound to this policy; nothing is sent.
@@ -2282,6 +2298,7 @@ class Workspace:
                 actions = self._actions()
                 if key in ('up', 'down') and actions:
                     self.action_focus = max(0, min(len(actions) - 1, getattr(self, 'action_focus', 0) + (-1 if key == 'up' else 1)))
+                    self.notice = self._actions_notice()
                 elif key == 'enter' and actions:
                     sent = self._stage(actions[min(getattr(self, 'action_focus', 0), len(actions) - 1)])
                     if sent: return sent

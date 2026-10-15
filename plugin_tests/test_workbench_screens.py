@@ -1519,7 +1519,7 @@ class RunEightScreensTests(unittest.TestCase):
                   'blocked': {'code': 'workbench_desired_capability', 'message': message}}
         text = _flat(actions_lines([action], 0, 140))
         self.assertIn("Change that setting in the repository's stack input to a supported value, then Refresh the "
-                      'repository intent and Prepare a proposal from the recorded intent (a: actions)', text)
+                      'repository intent and Prepare a proposal from the recorded intent', text)
         self.assertIn('(workbench_desired_capability)', text)
         refused = _flat(refusal_lines({'status': 'error', 'error': {'code': 'workbench_desired_capability',
                                                                     'message': message}}, 140))
