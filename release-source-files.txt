@@ -3785,3 +3785,4 @@ docs/continuation-evidence/20261012/checkpoint32/archive-disposition.json
 docs/continuation-evidence/20261012/checkpoint32/library-contract.json
 docs/continuation-evidence/20261012/checkpoint32/missing-originals.json
 docs/continuation-evidence/20261012/checkpoint32/storage-export-result.json
+plugin_tests/test_workbench_run9.py
