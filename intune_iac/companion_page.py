@@ -247,7 +247,7 @@ SCRIPT = """
   var revision = body.getAttribute('data-revision');
   var mode = body.getAttribute('data-mode');
   var observed = body.getAttribute('data-observed') || 'time unknown';
-  var address = body.getAttribute('data-snapshot');
+  var address = new URL(body.getAttribute('data-snapshot'), location.href).href;
   var every = Number(body.getAttribute('data-poll')) || 3000;
   var home = location.href;
   try { history.replaceState(null, '', '/'); } catch (ignored) { home = location.href; }
@@ -257,7 +257,7 @@ SCRIPT = """
     if (snapshot.schema_version === 'workbench-companion-page/1' && snapshot.status === 'ok') {
       return typeof snapshot.revision === 'string' && typeof snapshot.mode === 'string';
     }
-    return snapshot.schema_version === 'workbench-companion-page/1' && snapshot.status === 'object_unavailable' && snapshot.revision === null;
+    return snapshot.schema_version === 'workbench-companion-page/1' && snapshot.status === 'object_unavailable' && snapshot.revision === null && typeof snapshot.mode === 'string';
   }
 
   var failures = 0;

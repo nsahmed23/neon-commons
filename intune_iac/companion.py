@@ -61,8 +61,9 @@ def snapshot_of(read):
     try:
         snapshot = _read(read)
     except AppError:
+        # No revision, and a mode that says so as text: the page's check wants a string wherever it reads one.
         return {'schema_version': 'workbench-companion-page/1', 'status': 'object_unavailable', 'revision': None,
-                'mode': None, 'observed_at': None}
+                'mode': 'MODE UNKNOWN', 'observed_at': None}
     return snapshot_record(_graph(snapshot), snapshot.get('mode_class'), _observed(snapshot))
 
 

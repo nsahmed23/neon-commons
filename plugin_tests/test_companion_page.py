@@ -24,7 +24,7 @@ from plugin_tests.test_graph_projection import synthetic_policy
 STATES = ('queued', 'running', 'waiting', 'blocked', 'failed', 'cancelled', 'unknown', 'verified')
 STATE_TEXT = re.compile(r'(<text class="st"[^>]*>)[^<]*(</text>)')
 DATA_STATE = re.compile(r'data-(state|operation)="[^"]*"')
-EXTERNAL = re.compile(r'(?i)(https?:|ftp:|wss?:|//[a-z0-9]|url\s*\(|@import|\bsrc\s*=|xlink:href|<link|<img|<iframe|<object|'
+EXTERNAL = re.compile(r'(?i)(https?:|ftp:|wss?:|//[a-z0-9]|(?-i:\burl\s*\()|@import|\bsrc\s*=|xlink:href|<link|<img|<iframe|<object|'
                       r'<embed|<base|<form|<video|<audio|<source)')
 
 
@@ -676,6 +676,34 @@ class FixRoundPageTests(Fixture):
         script = self.script()
         self.assertIn('the evidence mode changed from', script)
         self.assertIn('snapshot.revision === revision', script)
+
+
+class FixRound2PageTests(Fixture):
+    """Sol's verification of d6900b4: findings 5 (address) and 8 (mode) on the page."""
+
+    LIVE = {'snapshot': 'snapshot', 'poll_seconds': 3, 'idle_seconds': 1800}
+
+    def script(self):
+        return Page(self.page(live=self.LIVE)).script
+
+    def test_the_snapshot_address_is_resolved_before_the_address_bar_is_scrubbed(self):
+        script = self.script()
+        resolved = "var address = new URL(body.getAttribute('data-snapshot'), location.href).href;"
+        self.assertIn(resolved, script)
+        self.assertLess(script.index(resolved), script.index('history.replaceState'))
+        self.assertLess(script.index(resolved), script.index('var home = location.href;'))
+        # The poll uses the resolved address, never the relative name again after the scrub.
+        self.assertIn('fetch(address,', script)
+        after = script[script.index('history.replaceState'):]
+        self.assertNotIn("getAttribute('data-snapshot')", after)
+        self.assertNotIn("fetch('snapshot'", script)
+
+    def test_an_unavailable_record_must_still_carry_its_mode_as_text(self):
+        script = self.script()
+        branch = script[script.index("snapshot.status === 'object_unavailable'"):]
+        branch = branch[:branch.index('}')]
+        self.assertIn("snapshot.revision === null", branch)
+        self.assertIn("typeof snapshot.mode === 'string'", branch)
 
 
 class ProjectionAdditionTests(Fixture):

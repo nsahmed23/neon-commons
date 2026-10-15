@@ -206,6 +206,48 @@ class TerminalTests(Fixture):
         self.assertTrue(any('never opens a browser' in line for line in HELP['navigation'] if line.startswith('companion ')))
 
 
+class SessionEndTests(Fixture):
+    def test_a_listener_started_in_the_terminal_stops_even_when_the_session_dies_of_an_error(self):
+        import socket
+        from intune_iac.workbench import _run_terminal
+        results = []
+
+        class Boom(RuntimeError):
+            pass
+
+        script = ['select ' + self.object_id, 'companion serve']
+
+        def feed(prompt):
+            if script:
+                return script.pop(0)
+            raise Boom('the input failed')
+
+        with self.assertRaises(Boom):
+            _run_terminal(self.root, input_fn=feed, result_fn=results.append)
+        live = next(item for item in results if isinstance(item, dict) and 'address' in item)
+        port = int(re.search(r':(\d+)/', live['address']).group(1))
+        with self.assertRaises(OSError):
+            socket.create_connection(('127.0.0.1', port), timeout=2)
+
+    def test_the_same_when_the_result_callback_raises(self):
+        import socket
+        from intune_iac.workbench import _run_terminal
+        seen = []
+
+        def present(value):
+            seen.append(value)
+            if isinstance(value, dict) and 'address' in value:
+                raise RuntimeError('the presentation failed')
+
+        feed = iter(['select ' + self.object_id, 'companion serve', 'quit'])
+        with self.assertRaises(RuntimeError):
+            _run_terminal(self.root, input_fn=lambda prompt: next(feed), result_fn=present)
+        live = next(item for item in seen if isinstance(item, dict) and 'address' in item)
+        port = int(re.search(r':(\d+)/', live['address']).group(1))
+        with self.assertRaises(OSError):
+            socket.create_connection(('127.0.0.1', port), timeout=2)
+
+
 class ActionsMenuTests(Fixture):
     def actions(self):
         from intune_iac.workbench import _inspection, _store

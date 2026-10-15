@@ -475,6 +475,78 @@ class FixRoundTests(Fixture):
                 connection.close()
 
 
+class FixRound2Tests(Fixture):
+    """Sol's verification of d6900b4: the remaining parts of findings 6 and 8."""
+
+    SECURITY = {'cache-control': 'no-store', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer',
+                'cross-origin-resource-policy': 'same-origin'}
+
+    def check_headers(self, headers, where):
+        for name, value in self.SECURITY.items():
+            self.assertEqual(headers.get(name), value, (where, name))
+        policy = headers.get('content-security-policy', '')
+        self.assertIn("default-src 'none'", policy, where)
+        self.assertIn("frame-ancestors 'none'", policy, where)
+
+    def exchange(self, live, payload):
+        """Send raw bytes and read the whole reply: status line, headers (lower-cased names) and body."""
+        connection = socket.create_connection(('127.0.0.1', live.port), timeout=5)
+        try:
+            connection.sendall(payload)
+            data = b''
+            while True:
+                chunk = connection.recv(4096)
+                if not chunk:
+                    break
+                data += chunk
+        finally:
+            connection.close()
+        head, _, body = data.partition(b'\r\n\r\n')
+        lines = head.decode('latin-1').split('\r\n')
+        headers = {line.split(':', 1)[0].lower(): line.split(':', 1)[1].strip() for line in lines[1:] if ':' in line}
+        return lines[0], headers, body
+
+    def test_the_overload_reply_carries_the_same_security_headers(self):
+        from intune_iac import companion_live
+        live = self.start()
+        stuck = [socket.create_connection(('127.0.0.1', live.port), timeout=5) for _ in range(companion_live.MAX_HANDLERS)]
+        try:
+            for connection in stuck:
+                connection.sendall(b'GET /')
+            threading.Event().wait(0.3)
+            status, headers, body = self.exchange(live, b'GET / HTTP/1.0\r\n\r\n')
+        finally:
+            for connection in stuck:
+                connection.close()
+        self.assertTrue(status.startswith('HTTP/1.0 503'), status)
+        self.check_headers(headers, 'overload')
+        self.assertEqual(headers.get('content-length'), str(len(body)))
+        self.assertNotIn(live.token.encode(), body)
+
+    def test_a_request_the_parser_refuses_carries_the_same_headers_and_no_detail(self):
+        live = self.start()
+        cases = {'one word': b'BAD\r\n\r\n', 'bad version': b'GET / HTTP/9.9\r\n\r\n',
+                 'not http': b'GET / FTP/1.0\r\n\r\n', 'five words': b'GET / HTTP/1.1 extra extra\r\n\r\n',
+                 'long line': b'GET /' + b'a' * 70000 + b' HTTP/1.0\r\n\r\n',
+                 'many headers': b'GET / HTTP/1.0\r\n' + b'X: y\r\n' * 150 + b'\r\n'}
+        for name, payload in cases.items():
+            status, headers, body = self.exchange(live, payload)
+            self.assertRegex(status, r'^HTTP/1\.[01] [45]\d\d', (name, status))
+            self.check_headers(headers, name)
+            self.assertNotIn(b'<', body, name)
+            self.assertNotIn(b'Python', body, name)
+            self.assertNotIn(live.token.encode(), body, name)
+        self.assertEqual(self.request('snapshot')[0], 200)
+
+    def test_an_unavailable_snapshot_still_names_a_mode_as_text(self):
+        self.start()
+        self.world['gone'] = True
+        snapshot = self.snapshot()
+        self.assertEqual((snapshot['status'], snapshot['revision']), ('object_unavailable', None))
+        self.assertIsInstance(snapshot['mode'], str)
+        self.assertEqual(snapshot['mode'], 'MODE UNKNOWN')
+
+
 class StaleAndDisconnectedTests(Fixture):
     def test_a_state_change_makes_the_held_page_stale_and_the_page_is_never_changed_under_the_reader(self):
         self.start()

@@ -43,6 +43,10 @@ MAX_HANDLERS = 8
 # What every non-page response is allowed to do: nothing, and not be framed.
 DEFAULT_CSP = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
 
+# Sent on every response of every kind: a page, a snapshot, a refusal, the parser's own errors and the overload reply.
+SECURITY_HEADERS = (('Cache-Control', 'no-store'), ('X-Content-Type-Options', 'nosniff'), ('Referrer-Policy', 'no-referrer'),
+                    ('Cross-Origin-Resource-Policy', 'same-origin'), ('Cross-Origin-Opener-Policy', 'same-origin'))
+
 # Injectable for tests; the idle limit uses it only for elapsed time within this process.
 monotonic = time.monotonic
 
@@ -71,17 +75,22 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header('Content-Type', kind)
         self.send_header('Content-Length', str(len(body)))
-        self.send_header('Cache-Control', 'no-store')
-        self.send_header('X-Content-Type-Options', 'nosniff')
-        self.send_header('Referrer-Policy', 'no-referrer')
-        self.send_header('Cross-Origin-Resource-Policy', 'same-origin')
-        self.send_header('Cross-Origin-Opener-Policy', 'same-origin')
+        for name, value in SECURITY_HEADERS:
+            self.send_header(name, value)
         self.send_header('Content-Security-Policy', csp)
         for name, value in extra:
             self.send_header(name, value)
         self.end_headers()
         if self.command != 'HEAD':
             self.wfile.write(body)
+
+    def send_error(self, code, message=None, explain=None):
+        """The parser's own refusals (a malformed request line, an unsupported version, a line or header too long) get the
+        same headers as every other response, a fixed body, and nothing of the request or of this Python."""
+        # A request line the parser could not read leaves the version at HTTP/0.9, which has no headers; this is HTTP/1.0.
+        self.request_version = 'HTTP/1.0'
+        self.close_connection = True
+        self._send(code, b'Request refused.\n')
 
     def _refuse(self):
         self._send(405, b'GET only.\n', extra=(('Allow', 'GET'),))
@@ -127,6 +136,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return self._send(500, b'The snapshot could not be read.\n')
 
 
+def _overload_reply():
+    """The answer to a connection over the handler bound, written by hand (no handler runs for it) with the same headers."""
+    body = b'Busy.\n'
+    head = ['HTTP/1.0 503 Busy', 'Content-Type: text/plain; charset=utf-8', 'Content-Length: %d' % len(body)]
+    head += ['%s: %s' % pair for pair in SECURITY_HEADERS] + ['Content-Security-Policy: ' + DEFAULT_CSP, 'Connection: close']
+    return ('\r\n'.join(head) + '\r\n\r\n').encode('ascii') + body
+
+
 class BoundedServer(http.server.ThreadingHTTPServer):
     """A threaded server that runs at most `limit` handlers at once; a connection over that is refused at once."""
     daemon_threads = True
@@ -138,7 +155,7 @@ class BoundedServer(http.server.ThreadingHTTPServer):
     def process_request(self, request, client_address):
         if not self._slots.acquire(blocking=False):
             try:
-                request.sendall(b'HTTP/1.0 503 Busy\r\nContent-Length: 0\r\nConnection: close\r\n\r\n')
+                request.sendall(_overload_reply())
             except OSError:
                 pass
             self.shutdown_request(request)

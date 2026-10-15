@@ -1253,292 +1253,297 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
         result = show_page(candidate)
         page.update(candidate)
         return result
-    initial_overview = show_page()
-    present({'title': 'Intune Workbench', 'evidence_class': initial_overview.get('evidence_class', 'unknown'), 'commands': HELP})
-    present(initial_overview)
-    current = {} if _current is None else _current
-    while True:
-        try:
-            current.clear()  # back at the prompt: nothing is in flight
-            interrupt_check()
-            line = input_fn('workbench> ')
-            interrupt_check()
-            if len(line) > 16384: raise ValueError('command too long')
-            parts = shlex.split(line)
-            if not parts: continue
-            name, values = parts[0].lower(), parts[1:]
-            current.update(name=name, values=values, service_root=None if service_root is None else str(service_root))
-            if _store_capability is not None:
-                from .windows_workspace_binding import require_command
-                require_command(name)
-            if name in ('quit', 'exit') and not values:
+    try:
+        initial_overview = show_page()
+        present({'title': 'Intune Workbench', 'evidence_class': initial_overview.get('evidence_class', 'unknown'), 'commands': HELP})
+        present(initial_overview)
+        current = {} if _current is None else _current
+        while True:
+            try:
+                current.clear()  # back at the prompt: nothing is in flight
+                interrupt_check()
+                line = input_fn('workbench> ')
+                interrupt_check()
+                if len(line) > 16384: raise ValueError('command too long')
+                parts = shlex.split(line)
+                if not parts: continue
+                name, values = parts[0].lower(), parts[1:]
+                current.update(name=name, values=values, service_root=None if service_root is None else str(service_root))
+                if _store_capability is not None:
+                    from .windows_workspace_binding import require_command
+                    require_command(name)
+                if name in ('quit', 'exit') and not values:
+                    stop_companions()
+                    return {'status': 'closed', 'evidence_class': 'local_interface_result', 'history_persisted': True}
+                if name == 'help' and not values: result = HELP
+                elif name == 'views' and len(values) <= 1:
+                    from .workbench_views import views
+                    if values and selected is None:
+                        raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                    result = views(store, selected, operation=values[0] if values else None, limit=10)
+                elif name == 'estate-overview' and not values:
+                    from .workbench_overview import estate_overview
+                    result = estate_overview(store)
+                elif name == 'companion' and len(values) == 1:
+                    if selected is None:
+                        raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                    from .companion import start_live, write_static
+                    read = _companion_read(store, selected)
+                    if values[0] == 'serve':
+                        if held: raise AppError('companion_running', 'A companion listener is already running; "companion stop" ends it.')
+                        read()
+                        listener = start_live(read)
+                        held.append(listener)
+                        result = {'mode': 'live', 'address': listener.address, 'notice': listener.notice}
+                    elif values[0] == 'stop':
+                        stop_companions()
+                        result = {'mode': 'live', 'stopped': 'stopped'}
+                    else: result = write_static(read, values[0])
+                elif name == 'repository-entry' and len(values) == 1:
+                    from .repository_entry import entry
+                    result = entry(store, values[0])
+                elif name == 'repository-import' and len(values) == 8:
+                    from .workbench_views import import_repository
+                    result = import_repository(store,*values)
+                elif name in ('repository-status', 'repository-refresh', 'propose-from-intent'):
+                    from . import workbench_repository as repository
+                    if selected is None:
+                        raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                    if name == 'repository-status' and not values: result = repository.status(store, selected)
+                    elif name == 'repository-refresh' and len(values) in (1, 2):
+                        result = repository.refresh_intent(store, selected, values[0],
+                                                           expected_resolution=values[1] if len(values) == 2 else None)
+                    elif name == 'propose-from-intent' and len(values) == 1:
+                        if service_root is None: raise AppError('service_required', 'Supply --service-root for synthetic maintenance.')
+                        result = repository.propose_from_intent(root, service_root, selected, values[0])
+                    else: raise ValueError('invalid command arguments')
+                elif name in ('source-review', 'source-edit', 'source-edit-status', 'source-edit-recover'):
+                    if _store_capability is None:
+                        raise AppError('source_edit_native_capability_required','This route requires the explicit inactive native store capability.')
+                    from .windows_source_edit import review_source_proposal, apply_source_proposal, inspect_source_edit, recover_source_edit
+                    if name == 'source-review' and len(values) == 2:
+                        result = review_source_proposal(store,*values)
+                    elif name == 'source-edit' and len(values) == 4 and values[3] == 'ACK-LOCAL-FILE-EDIT':
+                        result = apply_source_proposal(store,values[0],values[1],float(values[2]),acknowledged=True)
+                    elif name == 'source-edit-status' and len(values) == 2:
+                        result = inspect_source_edit(store,*values)
+                    elif name == 'source-edit-recover' and len(values) == 5 and values[4] == 'ACK-LOCAL-FILE-EDIT':
+                        result = recover_source_edit(store,values[0],values[1],values[2],float(values[3]),acknowledged=True)
+                    else:
+                        raise AppError('source_edit_arguments','Use help; an exact local file-edit acknowledgment and bounded expiry are required.')
+                elif name == 'source-acceptance-propose' and len(values) == 2:
+                    if selected is None:
+                        raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                    from .workbench_views import propose_source_acceptance
+                    result = propose_source_acceptance(store,selected,*values)
+                elif name in ('adoption-link', 'adoption-history') and len(values) == (2 if name == 'adoption-link' else 0):
+                    if selected is None:
+                        raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                    from . import workbench_adoption_views as adoption_views
+                    result = adoption_views.link(store, selected, values[0], values[1]) if name == 'adoption-link' else adoption_views.history(store, selected)
+                elif name in ('adoption-review', 'adoption-status', 'adoption-attach', 'adoption-cancel', 'adoption-recover') and len(values) == 2:
+                    if selected is None:
+                        raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                    from .adoption_cli import invoke
+                    result = invoke(name.removeprefix('adoption-'), values[0], values[1], tenant_id=store.tenant_id, object_id=selected)
+                elif name in ('adoption-plan-review', 'adoption-plan-status', 'adoption-plan-attach', 'adoption-plan-cancel', 'adoption-plan-recover') and len(values) == 2:
+                    if selected is None:
+                        raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                    from .adoption_cli import invoke_plan
+                    result = invoke_plan(name.removeprefix('adoption-plan-'), values[0], values[1], tenant_id=store.tenant_id, object_id=selected)
+                elif name in ('evidence-link','evidence-history') and len(values) == (5 if name == 'evidence-link' else 0):
+                    if selected is None:
+                        raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                    from . import workbench_evidence_views as received_views
+                    result = received_views.link(store,selected,*values) if name == 'evidence-link' else received_views.history(store,selected)
+                elif name == 'service-link' and len(values) == 2:
+                    if selected is None:
+                        raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                    from .workbench_service_views import link
+                    result = link(store, selected, values[0], values[1])
+                elif name == 'views-page' and 2 <= len(values) <= 6:
+                    filters = [None if value == '-' else value for value in values[2:]]
+                    filters += [None] * (4 - len(filters))
+                    candidate = {'kind': 'views', 'limit': int(values[0]), 'offset': int(values[1]),
+                                 'query': filters[0] or '', 'ownership': filters[1],
+                                 'coverage': filters[2], 'health': filters[3]}
+                    result = show_page(candidate)
+                    page.clear()
+                    page.update(candidate)
+                    selected = None
+                elif name == 'field-semantics' and not values:
+                    from .workbench_semantics import contract
+                    result = contract()
+                elif name in ('back', 'cancel', 'clear-selection') and not values:
+                    selected = None
+                    if page['kind'] == 'history-recent':
+                        page.clear(); page.update(kind='overview', limit=10, offset=0, query='')
+                    result = {'status': 'selection_cleared', 'mutation_dispatched': False}
+                elif name == 'overview' and len(values) <= 2:
+                    result = set_page('overview', int(values[0]) if values else 10, int(values[1]) if len(values) == 2 else 0)
+                elif name in ('next', 'previous') and not values:
+                    if name == 'previous': page['offset'] = max(0, page['offset'] - page['limit'])
+                    else:
+                        current = show_page()
+                        pagination = current.get('pagination', current.get('observation_scope', {}).get('pagination', {}))
+                        if pagination.get('next_offset') is None:
+                            present({'status': 'end_of_observation_pages', 'pagination': pagination})
+                            continue
+                        page['offset'] = pagination['next_offset']
+                    selected = page.get('object_id') if page['kind'] == 'history-recent' else None
+                    result = show_page()
+                elif name == 'search': result = set_page('search', query=' '.join(values))
+                elif name == 'search-page' and len(values) >= 3:
+                    result = set_page('search', int(values[0]), int(values[1]), ' '.join(values[2:]))
+                elif name == 'select' and len(values) == 1:
+                    result = _inspection(store, values[0], attention=True, service_available=service_root is not None, service_root=service_root)
+                    selected = values[0]
+                elif name == 'health' and len(values) <= 2:
+                    result = (_health(store, selected) if selected is not None and not values else
+                              set_page('health', int(values[0]) if values else 10, int(values[1]) if len(values) == 2 else 0))
+                elif name == 'families' and not values:
+                    from .families import families
+                    result = families()
+                elif name == 'diagnostics' and not values:
+                    from .workbench_diagnostics import diagnostics
+                    if selected is None:
+                        raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                    result = diagnostics(store, selected)
+                elif name == 'start' and len(values) <= 1:
+                    from .entry import survey
+                    # What exists beside the store (or in DIRECTORY) and the next step; read-only, offline.
+                    result = survey(values[0] if values else Path(store.root).parent)
+                elif name == 'queue' and len(values) <= 2:
+                    result = set_page('queue', int(values[0]) if values else 10, int(values[1]) if len(values) == 2 else 0)
+                elif name == 'dictionary':
+                    result = (_dictionary(store, ' '.join(values), object_id=selected) if selected is not None else
+                              set_page('dictionary', query=' '.join(values)))
+                elif name == 'dictionary-page' and len(values) >= 2:
+                    result = set_page('dictionary', int(values[0]), int(values[1]), ' '.join(values[2:]))
+                elif name == 'references' and not values: result = {'references': store.artifacts(kind='source_reference')}
+                elif name == 'collection-history' and len(values) <= 2:
+                    result = {'collections': store.collection_history(selected, limit=int(values[0]) if values else None,
+                              offset=int(values[1]) if len(values) == 2 else 0)}
+                elif name == 'collection' and len(values) == 1: result = store.collection_detail(int(values[0]))
+                elif name == 'import-capture' and len(values) == 1: result = store.import_capture(values[0])
+                elif name == 'migrate' and len(values) == 1: result = store.migrate(values[0])
+                elif name == 'adoption-preview' and len(values) == 1:
+                    from .workbench_adoption import preview
+                    result = preview(store, values[0])
+                elif name == 'adopt' and len(values) == 2:
+                    from .workbench_adoption import adopt
+                    result = adopt(store, *values)
+                    service_root = result['service_root']
+                    latest = store.latest_artifact('adoption')
+                    service_origin = {'root': service_root, 'source': 'adoption',
+                                      'artifact_id': None if latest is None else latest['artifact_id']}
+                    selected = None
+                elif name == 'device-evidence-import' and len(values) == 1:
+                    from .workbench_health import import_device_evidence
+                    result = import_device_evidence(store, values[0])
+                elif name == 'workflow-import' and len(values) == 1:
+                    from .workbench_health import import_workflow_run
+                    result = import_workflow_run(store, values[0])
+                elif name == 'reference-import' and len(values) in (5, 6):
+                    from .workbench_provenance import reference_import
+                    result = reference_import(store, *values)
+                elif name in ('schedule-create', 'schedule-run', 'schedule-status'):
+                    from . import workbench_scheduler as scheduler
+                    if name == 'schedule-create' and len(values) == 2:
+                        if service_root is None: raise AppError('service_required', 'Supply --service-root for synthetic collection.')
+                        result = scheduler.create_schedule(store, service_root, float(values[1]), values[0])
+                    elif name == 'schedule-run' and len(values) == 3:
+                        result = scheduler.run_schedule(values[0], int(values[1]), float(values[2]))
+                    elif name == 'schedule-status' and len(values) == 1: result = scheduler.schedule_status(values[0])
+                    else: raise ValueError('invalid command arguments')
+                elif name == 'operations' and len(values) <= 2:
+                    result = {'operations': store.operations(object_id=selected, limit=int(values[0]) if values else None,
+                              offset=int(values[1]) if len(values) == 2 else 0)}
+                elif name in ('inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'history-recent', 'compare', 'propose', 'workflows', 'reference-compare'):
+                    if selected is None: raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                    if name == 'inspect' and not values: result = _inspection(store, selected, attention=True, service_available=service_root is not None, service_root=service_root)
+                    elif name in ('settings', 'relationships') and not values: result = _facet(store, selected, name)
+                    elif name == 'adoption-lineage' and not values:
+                        from .workbench_adoption import lineage
+                        result = lineage(store, selected)
+                    elif name == 'lineage' and len(values) <= 1:
+                        from .workbench_provenance import repository_lineage
+                        result = repository_lineage(store, selected, values[0] if values else None)
+                    elif name == 'workflows' and not values:
+                        from .workbench_health import workflow_lineage
+                        result = workflow_lineage(store, selected)
+                    elif name == 'reference-compare' and len(values) in (1, 2):
+                        from .workbench_provenance import compare_reference
+                        result = compare_reference(store, selected, *values)
+                    elif name == 'history' and len(values) <= 2:
+                        result = {'object_id': selected, 'history': store.history(selected,
+                                  limit=int(values[0]) if values else None, offset=int(values[1]) if len(values) == 2 else 0)}
+                    elif name == 'history-recent' and len(values) <= 2:
+                        candidate = {'kind':'history-recent','object_id':selected,
+                                     'limit':int(values[0]) if values else 10,
+                                     'offset':int(values[1]) if len(values)==2 else 0,'query':''}
+                        result = show_page(candidate)
+                        page.clear(); page.update(candidate)
+                    elif name == 'compare' and len(values) == 2: result = store.compare(selected, *values)
+                    elif name == 'propose' and len(values) in (2, 3):
+                        if service_root is None: raise AppError('service_required', 'Supply --service-root for synthetic maintenance.')
+                        from .maintenance import propose
+                        result = propose(root, service_root, selected, values[0], values[1], context_path=values[2] if len(values) == 3 else None)
+                    else: raise ValueError('invalid command arguments')
+                elif name == 'delivery' and len(values) == 1:
+                    from .workbench_delivery import delivery
+                    result = delivery(values[0])
+                elif name in ('queue-review', 'queue-review-history', 'queue-review-template') and len(values) == (2 if name == 'queue-review-template' else 1):
+                    from . import workbench_queue as queue
+                    if selected is None:
+                        raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                    result = (queue.current(store, selected, values[0]) if name == 'queue-review' else
+                              queue.history(store, selected, values[0]) if name == 'queue-review-history' else
+                              queue.template(store, selected, values[0], values[1]))
+                elif name == 'queue-amend' and len(values) == 2:
+                    from . import workbench_queue as queue
+                    result = queue.amend(store, values[0], expected_prior=None if values[1] == 'none' else values[1])
+                elif name == 'deployment-record' and len(values) == 2:
+                    from .workbench_views import record_local_deployment
+                    result = record_local_deployment(store, values[0], values[1])
+                elif name in ('review', 'execute', 'reconcile', 'restore-propose'):
+                    from . import maintenance
+                    if name == 'review' and len(values) == 1: result = maintenance.review(values[0])
+                    elif name == 'reconcile' and len(values) == 1: result = maintenance.reconcile(values[0])
+                    elif name == 'restore-propose' and len(values) == 2: result = maintenance.propose_restore(*values)
+                    elif name == 'execute' and len(values) in (2, 3, 4):
+                        result = maintenance.execute(values[0], approve_digest=values[1], fault=values[2] if len(values) >= 3 else None,
+                                                     visibility_delay_reads=int(values[3]) if len(values) == 4 else 0)
+                    else: raise ValueError('invalid command arguments')
+                elif name in ('service-review', 'service-status', 'service-attach', 'service-cancel', 'service-recover') and len(values) == 2:
+                    from .service_cli import invoke
+                    result = invoke(name.removeprefix('service-'), *values, tenant_id=store.tenant_id, object_id=selected)
+                elif name == 'collect' and not values:
+                    if service_root is None: raise AppError('service_required', 'Supply --service-root for synthetic collection.')
+                    from .modeled_service import ModeledService
+                    result = store.collect(ModeledService(service_root))
+                else: raise ValueError('unknown command')
+                present(result)
+            except EOFError:
                 stop_companions()
                 return {'status': 'closed', 'evidence_class': 'local_interface_result', 'history_persisted': True}
-            if name == 'help' and not values: result = HELP
-            elif name == 'views' and len(values) <= 1:
-                from .workbench_views import views
-                if values and selected is None:
-                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
-                result = views(store, selected, operation=values[0] if values else None, limit=10)
-            elif name == 'estate-overview' and not values:
-                from .workbench_overview import estate_overview
-                result = estate_overview(store)
-            elif name == 'companion' and len(values) == 1:
-                if selected is None:
-                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
-                from .companion import start_live, write_static
-                read = _companion_read(store, selected)
-                if values[0] == 'serve':
-                    if held: raise AppError('companion_running', 'A companion listener is already running; "companion stop" ends it.')
-                    read()
-                    listener = start_live(read)
-                    held.append(listener)
-                    result = {'mode': 'live', 'address': listener.address, 'notice': listener.notice}
-                elif values[0] == 'stop':
-                    stop_companions()
-                    result = {'mode': 'live', 'stopped': 'stopped'}
-                else: result = write_static(read, values[0])
-            elif name == 'repository-entry' and len(values) == 1:
-                from .repository_entry import entry
-                result = entry(store, values[0])
-            elif name == 'repository-import' and len(values) == 8:
-                from .workbench_views import import_repository
-                result = import_repository(store,*values)
-            elif name in ('repository-status', 'repository-refresh', 'propose-from-intent'):
-                from . import workbench_repository as repository
-                if selected is None:
-                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
-                if name == 'repository-status' and not values: result = repository.status(store, selected)
-                elif name == 'repository-refresh' and len(values) in (1, 2):
-                    result = repository.refresh_intent(store, selected, values[0],
-                                                       expected_resolution=values[1] if len(values) == 2 else None)
-                elif name == 'propose-from-intent' and len(values) == 1:
-                    if service_root is None: raise AppError('service_required', 'Supply --service-root for synthetic maintenance.')
-                    result = repository.propose_from_intent(root, service_root, selected, values[0])
-                else: raise ValueError('invalid command arguments')
-            elif name in ('source-review', 'source-edit', 'source-edit-status', 'source-edit-recover'):
-                if _store_capability is None:
-                    raise AppError('source_edit_native_capability_required','This route requires the explicit inactive native store capability.')
-                from .windows_source_edit import review_source_proposal, apply_source_proposal, inspect_source_edit, recover_source_edit
-                if name == 'source-review' and len(values) == 2:
-                    result = review_source_proposal(store,*values)
-                elif name == 'source-edit' and len(values) == 4 and values[3] == 'ACK-LOCAL-FILE-EDIT':
-                    result = apply_source_proposal(store,values[0],values[1],float(values[2]),acknowledged=True)
-                elif name == 'source-edit-status' and len(values) == 2:
-                    result = inspect_source_edit(store,*values)
-                elif name == 'source-edit-recover' and len(values) == 5 and values[4] == 'ACK-LOCAL-FILE-EDIT':
-                    result = recover_source_edit(store,values[0],values[1],values[2],float(values[3]),acknowledged=True)
-                else:
-                    raise AppError('source_edit_arguments','Use help; an exact local file-edit acknowledgment and bounded expiry are required.')
-            elif name == 'source-acceptance-propose' and len(values) == 2:
-                if selected is None:
-                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
-                from .workbench_views import propose_source_acceptance
-                result = propose_source_acceptance(store,selected,*values)
-            elif name in ('adoption-link', 'adoption-history') and len(values) == (2 if name == 'adoption-link' else 0):
-                if selected is None:
-                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
-                from . import workbench_adoption_views as adoption_views
-                result = adoption_views.link(store, selected, values[0], values[1]) if name == 'adoption-link' else adoption_views.history(store, selected)
-            elif name in ('adoption-review', 'adoption-status', 'adoption-attach', 'adoption-cancel', 'adoption-recover') and len(values) == 2:
-                if selected is None:
-                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
-                from .adoption_cli import invoke
-                result = invoke(name.removeprefix('adoption-'), values[0], values[1], tenant_id=store.tenant_id, object_id=selected)
-            elif name in ('adoption-plan-review', 'adoption-plan-status', 'adoption-plan-attach', 'adoption-plan-cancel', 'adoption-plan-recover') and len(values) == 2:
-                if selected is None:
-                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
-                from .adoption_cli import invoke_plan
-                result = invoke_plan(name.removeprefix('adoption-plan-'), values[0], values[1], tenant_id=store.tenant_id, object_id=selected)
-            elif name in ('evidence-link','evidence-history') and len(values) == (5 if name == 'evidence-link' else 0):
-                if selected is None:
-                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
-                from . import workbench_evidence_views as received_views
-                result = received_views.link(store,selected,*values) if name == 'evidence-link' else received_views.history(store,selected)
-            elif name == 'service-link' and len(values) == 2:
-                if selected is None:
-                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
-                from .workbench_service_views import link
-                result = link(store, selected, values[0], values[1])
-            elif name == 'views-page' and 2 <= len(values) <= 6:
-                filters = [None if value == '-' else value for value in values[2:]]
-                filters += [None] * (4 - len(filters))
-                candidate = {'kind': 'views', 'limit': int(values[0]), 'offset': int(values[1]),
-                             'query': filters[0] or '', 'ownership': filters[1],
-                             'coverage': filters[2], 'health': filters[3]}
-                result = show_page(candidate)
-                page.clear()
-                page.update(candidate)
-                selected = None
-            elif name == 'field-semantics' and not values:
-                from .workbench_semantics import contract
-                result = contract()
-            elif name in ('back', 'cancel', 'clear-selection') and not values:
-                selected = None
-                if page['kind'] == 'history-recent':
-                    page.clear(); page.update(kind='overview', limit=10, offset=0, query='')
-                result = {'status': 'selection_cleared', 'mutation_dispatched': False}
-            elif name == 'overview' and len(values) <= 2:
-                result = set_page('overview', int(values[0]) if values else 10, int(values[1]) if len(values) == 2 else 0)
-            elif name in ('next', 'previous') and not values:
-                if name == 'previous': page['offset'] = max(0, page['offset'] - page['limit'])
-                else:
-                    current = show_page()
-                    pagination = current.get('pagination', current.get('observation_scope', {}).get('pagination', {}))
-                    if pagination.get('next_offset') is None:
-                        present({'status': 'end_of_observation_pages', 'pagination': pagination})
-                        continue
-                    page['offset'] = pagination['next_offset']
-                selected = page.get('object_id') if page['kind'] == 'history-recent' else None
-                result = show_page()
-            elif name == 'search': result = set_page('search', query=' '.join(values))
-            elif name == 'search-page' and len(values) >= 3:
-                result = set_page('search', int(values[0]), int(values[1]), ' '.join(values[2:]))
-            elif name == 'select' and len(values) == 1:
-                result = _inspection(store, values[0], attention=True, service_available=service_root is not None, service_root=service_root)
-                selected = values[0]
-            elif name == 'health' and len(values) <= 2:
-                result = (_health(store, selected) if selected is not None and not values else
-                          set_page('health', int(values[0]) if values else 10, int(values[1]) if len(values) == 2 else 0))
-            elif name == 'families' and not values:
-                from .families import families
-                result = families()
-            elif name == 'diagnostics' and not values:
-                from .workbench_diagnostics import diagnostics
-                if selected is None:
-                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
-                result = diagnostics(store, selected)
-            elif name == 'start' and len(values) <= 1:
-                from .entry import survey
-                # What exists beside the store (or in DIRECTORY) and the next step; read-only, offline.
-                result = survey(values[0] if values else Path(store.root).parent)
-            elif name == 'queue' and len(values) <= 2:
-                result = set_page('queue', int(values[0]) if values else 10, int(values[1]) if len(values) == 2 else 0)
-            elif name == 'dictionary':
-                result = (_dictionary(store, ' '.join(values), object_id=selected) if selected is not None else
-                          set_page('dictionary', query=' '.join(values)))
-            elif name == 'dictionary-page' and len(values) >= 2:
-                result = set_page('dictionary', int(values[0]), int(values[1]), ' '.join(values[2:]))
-            elif name == 'references' and not values: result = {'references': store.artifacts(kind='source_reference')}
-            elif name == 'collection-history' and len(values) <= 2:
-                result = {'collections': store.collection_history(selected, limit=int(values[0]) if values else None,
-                          offset=int(values[1]) if len(values) == 2 else 0)}
-            elif name == 'collection' and len(values) == 1: result = store.collection_detail(int(values[0]))
-            elif name == 'import-capture' and len(values) == 1: result = store.import_capture(values[0])
-            elif name == 'migrate' and len(values) == 1: result = store.migrate(values[0])
-            elif name == 'adoption-preview' and len(values) == 1:
-                from .workbench_adoption import preview
-                result = preview(store, values[0])
-            elif name == 'adopt' and len(values) == 2:
-                from .workbench_adoption import adopt
-                result = adopt(store, *values)
-                service_root = result['service_root']
-                latest = store.latest_artifact('adoption')
-                service_origin = {'root': service_root, 'source': 'adoption',
-                                  'artifact_id': None if latest is None else latest['artifact_id']}
-                selected = None
-            elif name == 'device-evidence-import' and len(values) == 1:
-                from .workbench_health import import_device_evidence
-                result = import_device_evidence(store, values[0])
-            elif name == 'workflow-import' and len(values) == 1:
-                from .workbench_health import import_workflow_run
-                result = import_workflow_run(store, values[0])
-            elif name == 'reference-import' and len(values) in (5, 6):
-                from .workbench_provenance import reference_import
-                result = reference_import(store, *values)
-            elif name in ('schedule-create', 'schedule-run', 'schedule-status'):
-                from . import workbench_scheduler as scheduler
-                if name == 'schedule-create' and len(values) == 2:
-                    if service_root is None: raise AppError('service_required', 'Supply --service-root for synthetic collection.')
-                    result = scheduler.create_schedule(store, service_root, float(values[1]), values[0])
-                elif name == 'schedule-run' and len(values) == 3:
-                    result = scheduler.run_schedule(values[0], int(values[1]), float(values[2]))
-                elif name == 'schedule-status' and len(values) == 1: result = scheduler.schedule_status(values[0])
-                else: raise ValueError('invalid command arguments')
-            elif name == 'operations' and len(values) <= 2:
-                result = {'operations': store.operations(object_id=selected, limit=int(values[0]) if values else None,
-                          offset=int(values[1]) if len(values) == 2 else 0)}
-            elif name in ('inspect', 'settings', 'relationships', 'lineage', 'adoption-lineage', 'history', 'history-recent', 'compare', 'propose', 'workflows', 'reference-compare'):
-                if selected is None: raise AppError('selection_required', 'Select an exact immutable object ID first.')
-                if name == 'inspect' and not values: result = _inspection(store, selected, attention=True, service_available=service_root is not None, service_root=service_root)
-                elif name in ('settings', 'relationships') and not values: result = _facet(store, selected, name)
-                elif name == 'adoption-lineage' and not values:
-                    from .workbench_adoption import lineage
-                    result = lineage(store, selected)
-                elif name == 'lineage' and len(values) <= 1:
-                    from .workbench_provenance import repository_lineage
-                    result = repository_lineage(store, selected, values[0] if values else None)
-                elif name == 'workflows' and not values:
-                    from .workbench_health import workflow_lineage
-                    result = workflow_lineage(store, selected)
-                elif name == 'reference-compare' and len(values) in (1, 2):
-                    from .workbench_provenance import compare_reference
-                    result = compare_reference(store, selected, *values)
-                elif name == 'history' and len(values) <= 2:
-                    result = {'object_id': selected, 'history': store.history(selected,
-                              limit=int(values[0]) if values else None, offset=int(values[1]) if len(values) == 2 else 0)}
-                elif name == 'history-recent' and len(values) <= 2:
-                    candidate = {'kind':'history-recent','object_id':selected,
-                                 'limit':int(values[0]) if values else 10,
-                                 'offset':int(values[1]) if len(values)==2 else 0,'query':''}
-                    result = show_page(candidate)
-                    page.clear(); page.update(candidate)
-                elif name == 'compare' and len(values) == 2: result = store.compare(selected, *values)
-                elif name == 'propose' and len(values) in (2, 3):
-                    if service_root is None: raise AppError('service_required', 'Supply --service-root for synthetic maintenance.')
-                    from .maintenance import propose
-                    result = propose(root, service_root, selected, values[0], values[1], context_path=values[2] if len(values) == 3 else None)
-                else: raise ValueError('invalid command arguments')
-            elif name == 'delivery' and len(values) == 1:
-                from .workbench_delivery import delivery
-                result = delivery(values[0])
-            elif name in ('queue-review', 'queue-review-history', 'queue-review-template') and len(values) == (2 if name == 'queue-review-template' else 1):
-                from . import workbench_queue as queue
-                if selected is None:
-                    raise AppError('selection_required', 'Select an exact immutable object ID first.')
-                result = (queue.current(store, selected, values[0]) if name == 'queue-review' else
-                          queue.history(store, selected, values[0]) if name == 'queue-review-history' else
-                          queue.template(store, selected, values[0], values[1]))
-            elif name == 'queue-amend' and len(values) == 2:
-                from . import workbench_queue as queue
-                result = queue.amend(store, values[0], expected_prior=None if values[1] == 'none' else values[1])
-            elif name == 'deployment-record' and len(values) == 2:
-                from .workbench_views import record_local_deployment
-                result = record_local_deployment(store, values[0], values[1])
-            elif name in ('review', 'execute', 'reconcile', 'restore-propose'):
-                from . import maintenance
-                if name == 'review' and len(values) == 1: result = maintenance.review(values[0])
-                elif name == 'reconcile' and len(values) == 1: result = maintenance.reconcile(values[0])
-                elif name == 'restore-propose' and len(values) == 2: result = maintenance.propose_restore(*values)
-                elif name == 'execute' and len(values) in (2, 3, 4):
-                    result = maintenance.execute(values[0], approve_digest=values[1], fault=values[2] if len(values) >= 3 else None,
-                                                 visibility_delay_reads=int(values[3]) if len(values) == 4 else 0)
-                else: raise ValueError('invalid command arguments')
-            elif name in ('service-review', 'service-status', 'service-attach', 'service-cancel', 'service-recover') and len(values) == 2:
-                from .service_cli import invoke
-                result = invoke(name.removeprefix('service-'), *values, tenant_id=store.tenant_id, object_id=selected)
-            elif name == 'collect' and not values:
-                if service_root is None: raise AppError('service_required', 'Supply --service-root for synthetic collection.')
-                from .modeled_service import ModeledService
-                result = store.collect(ModeledService(service_root))
-            else: raise ValueError('unknown command')
-            present(result)
-        except EOFError:
-            stop_companions()
-            return {'status': 'closed', 'evidence_class': 'local_interface_result', 'history_persisted': True}
-        except KeyboardInterrupt:
-            stop_companions()
-            # The same result as run_terminal's outer handler: what was running, what it left, the next step.
-            during = _interrupted_during(current)
-            result = {'status': 'interrupted', 'evidence_class': 'local_interface_result',
-                      'interrupted_during': during, 'store_root': str(Path(root).absolute())}
-            result['recovery'] = ' '.join(interrupted_lines(result))
-            present({key: result[key] for key in ('status', 'interrupted_during', 'recovery')})
-            return result
-        except AppError as error:
-            effects = getattr(error, 'effects', None)
-            present({'status': 'error', 'error': dict({'code': error.code, 'message': error.message},
-                                                    **({'effects': effects} if isinstance(effects, dict) else {}))})
-        except (ValueError, TypeError, KeyError, OSError):
-            present({'status': 'error', 'error': {'code': 'invalid_workbench_request',
-                     'message': 'Command or local input is invalid. Enter help for exact syntax.'}})
+            except KeyboardInterrupt:
+                stop_companions()
+                # The same result as run_terminal's outer handler: what was running, what it left, the next step.
+                during = _interrupted_during(current)
+                result = {'status': 'interrupted', 'evidence_class': 'local_interface_result',
+                          'interrupted_during': during, 'store_root': str(Path(root).absolute())}
+                result['recovery'] = ' '.join(interrupted_lines(result))
+                present({key: result[key] for key in ('status', 'interrupted_during', 'recovery')})
+                return result
+            except AppError as error:
+                effects = getattr(error, 'effects', None)
+                present({'status': 'error', 'error': dict({'code': error.code, 'message': error.message},
+                                                        **({'effects': effects} if isinstance(effects, dict) else {}))})
+            except (ValueError, TypeError, KeyError, OSError):
+                present({'status': 'error', 'error': {'code': 'invalid_workbench_request',
+                         'message': 'Command or local input is invalid. Enter help for exact syntax.'}})
+    finally:
+        # However the session ends (a return, an error in the input or in the presentation), the
+        # listeners it started do not outlive it.
+        stop_companions()
