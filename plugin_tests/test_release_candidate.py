@@ -256,6 +256,125 @@ class RuntimeContentTests(unittest.TestCase):
         self.assertGreaterEqual(count, 9)
 
 
+GUIDE = ROOT / 'docs/CANDIDATE-GUIDE.md'
+# Names the guide may mention that the archive writes or the reader creates, not files of the product.
+GENERATED = {'SHA256SUMS', 'BUILD-IDENTITY.json', 'Intune_IaC_Plugin_Archive_Receipt.json'}
+FILE_MENTION = (r'^(?:(?:docs|examples|scripts|contracts|intune_iac|skills|corrections|reference)/[A-Za-z0-9_./-]+'
+                r'|[A-Za-z0-9_-]+(?:-[A-Za-z0-9_.]+)*\.(?:md|csv|lock|txt|json))$')
+
+
+def guide_text():
+    return GUIDE.read_text(encoding='utf-8')
+
+
+def guide_commands(text):
+    """Every `intune-iac ...` command the guide prints, as argument lists: code-block lines (continuations joined,
+    a pipe or redirect ends the command) and inline code spans. The readiness test's extractor cuts each line."""
+    from plugin_tests.test_readiness import ReadinessTests
+    lines, in_block = [], False
+    for raw in text.splitlines():
+        if raw.lstrip().startswith('```'):
+            in_block = not in_block
+            continue
+        if in_block:
+            lines.append(raw.strip())
+    joined, pending = [], ''
+    for line in lines:
+        if line.rstrip().endswith('\\'):
+            pending += line.rstrip()[:-1] + ' '
+            continue
+        joined.append(pending + line)
+        pending = ''
+    spans = [span for raw in text.splitlines() if not raw.lstrip().startswith('```') for span in __import__('re').findall(r'`([^`]*intune-iac [^`]*)`', raw)]
+    commands = []
+    for line in joined + spans:
+        if 'intune-iac ' not in line:
+            continue
+        tail = line.split('intune-iac ', 1)[1]
+        for mark in (' | ', ' > ', ' < ', ' && '):
+            tail = tail.split(mark)[0]
+        found = ReadinessTests.printed_commands(ReadinessTests, 'intune-iac ' + tail)
+        commands.extend(tokens for tokens in found if tokens and tokens[0])
+    return commands
+
+
+class CandidateGuideTests(unittest.TestCase):
+    def test_the_guide_exists_and_is_linked_from_the_readme_and_start_here(self):
+        self.assertTrue(GUIDE.is_file())
+        for name in ('README.md', 'START-HERE.md'):
+            self.assertIn('docs/CANDIDATE-GUIDE.md', (ROOT / name).read_text(encoding='utf-8'), name)
+
+    def test_the_guide_is_in_the_runtime_archive_and_the_source_inventory(self):
+        self.assertTrue('docs/CANDIDATE-GUIDE.md' in builder.runtime_files())
+        self.assertTrue('docs/CANDIDATE-GUIDE.md' in (ROOT / 'release-source-files.txt').read_text().splitlines())
+
+    def test_every_file_the_guide_names_is_in_the_runtime_archive(self):
+        import re
+        text = guide_text()
+        mentioned = set()
+        for span in re.findall(r'`([^`\n]+)`', text):
+            for token in span.split():
+                token = token.strip('.,;:()\'"')
+                if re.match(FILE_MENTION, token) and not token.startswith(('demo/', 'Intune_IaC_Plugin_')):
+                    mentioned.add(token)
+        for line in (l for l in text.splitlines()):
+            for token in line.split():
+                token = token.strip('.,;:()\'"`')
+                if re.match(r'^(?:docs|examples|scripts|contracts)/[A-Za-z0-9_./-]+\.[a-z]+$', token):
+                    mentioned.add(token)
+        self.assertGreater(len(mentioned), 8, mentioned)
+        runtime = set(builder.runtime_files())
+        missing = sorted(name for name in mentioned if name not in runtime and name not in GENERATED)
+        self.assertEqual(missing, [], 'the guide names files the runtime archive does not hold')
+
+    def test_every_intune_iac_command_in_the_guide_is_accepted_by_the_product_parser(self):
+        from intune_iac import cli
+        parser = cli.parser()
+        commands = guide_commands(guide_text())
+        self.assertGreater(len(commands), 12)
+        for tokens in commands:
+            with self.subTest(command=' '.join(tokens)), contextlib.redirect_stderr(io.StringIO()) as err:
+                try:
+                    parser.parse_args(tokens)
+                except SystemExit as stop:
+                    # --version is the one accepted command that ends the parse by itself, with status 0.
+                    if not (tokens == ['--version'] and stop.code == 0):
+                        self.fail('the product parser rejects: intune-iac %s\n%s' % (' '.join(tokens), err.getvalue()))
+
+    def test_the_quickstart_covers_each_step_the_brief_lists(self):
+        firsts = {' '.join(tokens[:2]) if tokens[0] in {'workbench', 'synthetic'} else tokens[0] for tokens in guide_commands(guide_text())}
+        for step in ('doctor', 'start', 'wizard', 'synthetic generate', 'workbench lab-create', 'workbench init',
+                     'workbench collect', 'workbench workspace', 'workbench families'):
+            self.assertIn(step, firsts)
+
+    def test_the_support_limits_are_stated(self):
+        text = guide_text()
+        for phrase in ('Linux x86_64', 'CPython 3.12', 'WSL', 'SYNTHETIC', 'CAPTURE', 'LABORATORY', 'Settings Catalog',
+                       'native Windows', 'PowerShell', 'protected worker', '40 columns by 12 rows', 'simulate',
+                       'filter grammar', '--no-index --find-links', 'SHA256SUMS', 'BUILD-IDENTITY'):
+            self.assertIn(phrase, text)
+
+    def test_the_guide_has_no_em_dash(self):
+        self.assertNotIn('—', guide_text())
+
+    def test_the_identifiers_the_guide_prints_are_the_ones_the_seeded_estate_produces(self):
+        import re
+        from intune_iac import synthetic
+        text = guide_text()
+        with tempfile.TemporaryDirectory() as directory:
+            synthetic.write_estate(str(Path(directory) / 'estate'), seed=42, policy_count=3, case='baseline')
+            estate = json.loads((Path(directory) / 'estate/capture-estate.json').read_text())
+        owners = [item['owner_id'] for item in estate['collections'] if item['kind'] == 'settings']
+        self.assertEqual(estate['tenant_id'], 'ca8a8057-a15f-5caa-8979-0090cd1bc11b')
+        self.assertIn(estate['tenant_id'], text)
+        self.assertIn('45838776-e1bd-566b-a8c5-ad684107e7da', owners)
+        self.assertIn('45838776-e1bd-566b-a8c5-ad684107e7da', text)
+        self.assertIn('22222222-2222-4222-8222-222222222222', text)
+        sample = json.loads((ROOT / 'examples/supported/input/export.json').read_text())
+        self.assertIn('22222222-2222-4222-8222-222222222222', json.dumps(sample))
+        self.assertTrue(re.search(r'--seed 42|seed 42|default seed', text))
+
+
 class CheckoutBuildCheckTests(unittest.TestCase):
     # Found 2026-10-15 at base 7f9d86f: `scripts/build-release.py --check-only` refuses the reviewed inventory because
     # it lists the frozen synthetic executor state (a .tfstate file name) added with the pre-pin-migration fixtures.

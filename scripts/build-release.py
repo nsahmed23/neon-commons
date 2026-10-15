@@ -159,6 +159,7 @@ def runtime_files():
                            ('corrections/contracts','*.json'),('corrections/models','*.py'),('skills','*')]:
         names.extend(p.relative_to(ROOT).as_posix() for p in (ROOT/folder).rglob(pattern) if allowed(p))
     names.extend('docs/'+name for name in ['HOSTS.md','WIZARD.md','GRAPH.md','RUNNER.md','CAPTURE.md','CLM.md','MCP.md','REPOSITORY.md','PRODUCTION-MAPPING.md','PRODUCT-STATUS.md','DATA-HANDLING.md','LABS.md','WORKFLOW.md','TARGET.md','EXECUTION.md','DEPENDENCIES.md','ENTERPRISE-GOAL.md','ENTERPRISE-EXECUTION-LEDGER.md','CI.md'])
+    names.append('docs/CANDIDATE-GUIDE.md')
     names.extend('docs/'+name for name in ['JOURNEY.md','PROTECTED-EXECUTION.md','SECURITY-ASSURANCE.md','SYNTHETIC-LABS.md','COMPLETION-ACCEPTANCE.md'])
     names.extend('docs/'+name for name in ['IDENTITY-BINDING.md','SIGNED-APPROVAL.md','PROVIDER-JOURNEY.md','BLOB-LEASE.md','PRODUCTION-COMPLETION-ACCEPTANCE.md'])
     names.extend('docs/'+name for name in ['EPOCH-ACCEPTANCE.md','OPERATIONS-EPOCH.md','TERMINAL-SECURITY-QUALIFICATION.md','POWERSHELL-PREVIEW-QUALIFICATION.md','WORKBENCH.md','CONTINUATION-R3.md','EXTERNAL-QUALIFICATION-R3.md','VENDOR-REFERENCE-LINEAGE.md'])

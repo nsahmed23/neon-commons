@@ -1,5 +1,7 @@
 # Intune/Atmos 0.5.0 engineering candidate
 
+To install and try the current build, use the [candidate guide](docs/CANDIDATE-GUIDE.md).
+
 Start with [acceptance and remaining production gates](docs/PRODUCTION-COMPLETION-ACCEPTANCE.md)
 and [current verification](RELEASE-VERIFICATION.md). This is the final source
 package for this engineering run; enterprise production acceptance is BLOCKED.
