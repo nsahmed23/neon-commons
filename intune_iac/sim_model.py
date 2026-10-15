@@ -318,6 +318,8 @@ def load_snapshot(doc):
         domain = group_by_id[gid].member_domain
         if domain in ('user', 'device') and domain != raw['member_kind']:
             _fail(where, 'member kind does not match the group member domain')
+        if raw['member_kind'] == 'device' and states['devices'].complete and raw['member_id'] not in device_ids:
+            _fail(where, 'membership names a device that the complete devices collection does not list')
         (known if raw['certainty'] == 'known' else possible)[gid].add(_text(raw['member_id'], where))
     members_known = MappingProxyType({k: frozenset(v) for k, v in known.items()})
     members_possible = MappingProxyType({k: frozenset(v - known[k]) for k, v in possible.items()})
@@ -341,7 +343,6 @@ def load_snapshot(doc):
                           frozenset(map(str, _list(raw.get('device_ids', []), where))),
                           tuple(sorted(map(str, _list(raw.get('group_ids', []), where))))))
     _unique(rings, 'ring_id', 'rings')
-    del device_ids
 
     normalized = _normalize(doc)
     return Snapshot(

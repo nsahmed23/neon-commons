@@ -63,6 +63,30 @@ class FactPresence(unittest.TestCase):
         self.assertNotIn('deviceOwnership', device.properties)
 
 
+class DeviceMembershipIntegrity(unittest.TestCase):
+    """Fable finding 6: a device member that the complete devices collection does not list is refused."""
+
+    def test_a_device_member_missing_from_a_complete_devices_collection_is_refused(self):
+        doc = base()
+        doc['memberships'].append(s.member('g1', 'ghost'))
+        with self.assertRaises(AppError) as caught:
+            m.load_snapshot(doc)
+        self.assertEqual(caught.exception.code, 'sim_snapshot_invalid')
+
+    def test_the_same_member_is_kept_when_the_devices_collection_is_incomplete(self):
+        doc = base()
+        doc['memberships'].append(s.member('g1', 'ghost'))
+        doc['collections'] = {'devices': {'complete': False, 'reason': 'query_ceiling'}}
+        snapshot = m.load_snapshot(doc)
+        self.assertIn(s.uid('device/ghost'), snapshot.members_known[s.uid('group/g1')])
+
+    def test_user_members_are_not_checked_against_devices(self):
+        doc = base()
+        doc['groups'].append(s.group('gU', 'user'))
+        doc['memberships'].append(s.member('gU', 'someone', 'user'))
+        self.assertIn(s.uid('user/someone'), m.load_snapshot(doc).members_known[s.uid('group/gU')])
+
+
 class Collections(unittest.TestCase):
     def test_empty_completed_collection_differs_from_an_uncollected_one(self):
         doc = base()
