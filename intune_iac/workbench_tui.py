@@ -58,6 +58,30 @@ def running_notice(command, operation_id=None, prefixes=None):
     return 'RUNNING: waiting for the engine; outcome is not yet known.'
 
 
+# What Ctrl-C leaves while a command runs and the step afterwards, longest form first; the last fits 48 columns. The
+# facts are the ones the interrupt's own message gives (workbench.interrupted_lines), so the line promises nothing else.
+RUNNING_KEYS = {
+    'execute': ('Ctrl-C leaves the outcome unknown; afterwards reconcile it (it never replays the change).',
+                'Ctrl-C leaves the outcome unknown; reconcile it afterwards.', 'Ctrl-C: outcome unknown; reconcile after.'),
+    'reconcile': ('Ctrl-C stops the read; reconcile only reads, so run it again afterwards.',
+                  'Ctrl-C stops the read; run reconcile again.', 'Ctrl-C: stops it; reconcile again.'),
+    'collect': ('Ctrl-C leaves a run with no end; the newest complete observation is kept; collect again afterwards.',
+                'Ctrl-C leaves a run with no end; collect again afterwards.', 'Ctrl-C: run has no end; collect again.'),
+    None: ('Ctrl-C stops the wait; diagnostics name anything it left unfinished.',
+           'Ctrl-C stops the wait; see diagnostics.', 'Ctrl-C: stop; see diagnostics.'),
+}
+
+
+def running_keys(command, width):
+    """The key row while a command runs: the one key that works, what it leaves, what to do afterwards."""
+    try:
+        words = shlex.split(command)
+    except ValueError:
+        words = command.split()
+    forms = RUNNING_KEYS.get(words[0] if words else None) or RUNNING_KEYS[None]
+    return next((form for form in forms if cell_width(form) <= width), forms[-1])
+
+
 TAB_COMMANDS = ('overview', 'inspect', 'relationships', 'history-recent', 'operations', 'operations', 'views', 'help',
                 'repository-status')
 ANSI_START = '\x1b[?1049h\x1b[?25l\x1b[?2004h'
@@ -1614,6 +1638,8 @@ class Workspace:
                       pad(footer, width)] + ([pad(fit(staged_rows[1], width, ellipsis), width)] if staged_rows else []) + [
                       pad(prompt, width),
                       pad(typing_line(width, self.mode, self._submit_word()) if self.mode else
+                          running_keys(getattr(self, 'last_command', ''), width)
+                          if str(getattr(self, 'notice', '')).startswith('RUNNING:') else
                           help_line(width, getattr(self, 'layer', 'summary'), band_keys(band), map_keys=self._map_shown(),
                                     inspect=self._map_focus_inspectable(), pan=self._map_pans(),
                                     stages=self._focused_action_stages()), width)])

@@ -322,3 +322,39 @@ class KeyExplainedTests(unittest.TestCase):
         value = {'status': 'error', 'error': {'code': 'workbench_deployment_intent_not_cited', 'message': 'x',
                                               'effects': {'deployment_recorded': False}}}
         self.assertNotIn(' v ', ' '.join(refusal_lines(value, 118, operation='650a1a61', verb='deployment-record')))
+
+
+class RunningKeysTests(MapTruth):
+    """Item 9 (frames 32, 40): a running step says what Ctrl-C leaves and what to do afterwards."""
+    COMMANDS = {'execute': "execute '/w/op' " + 'a' * 64, 'reconcile': "reconcile '/w/op'", 'collect': 'collect',
+                'other': 'history-recent'}
+    LEFT = {'execute': ('unknown', 'reconcile'), 'reconcile': ('only reads', 'again'), 'collect': ('no end', 'collect again'),
+            'other': ('unfinished', 'diagnostics')}
+
+    def test_each_running_step_says_what_the_interrupt_leaves_and_the_next_step(self):
+        from intune_iac.workbench_tui import running_keys
+        for kind, command in self.COMMANDS.items():
+            line = running_keys(command, 140)
+            self.assertTrue(line.startswith('Ctrl-C '), line)
+            for word in self.LEFT[kind]:
+                self.assertIn(word, line, (kind, line))
+
+    def test_the_line_fits_the_window_at_every_width_and_keeps_its_response(self):
+        from intune_iac.workbench_tui import cell_width, running_keys
+        for kind, command in self.COMMANDS.items():
+            for width in (140, 100, 80, 60, 48):
+                line = running_keys(command, width)
+                self.assertLessEqual(cell_width(line), width, (kind, width, line))
+                self.assertIn('Ctrl-C', line)
+
+    def test_the_bottom_row_of_a_running_frame_is_that_line_not_the_idle_keys(self):
+        from intune_iac.workbench_tui import running_notice, running_keys
+        ws = self.workspace((120, 40))
+        command = self.COMMANDS['execute']
+        ws.last_command = command
+        ws.notice = running_notice(command)
+        rows = self.plain(ws)
+        self.assertEqual(rows[-1].strip(), running_keys(command, 120))
+        self.assertIn('RUNNING: executing operation', rows[-2])
+        ws.notice = 'Summary shown.'
+        self.assertIn('? help', self.plain(ws)[-1])
