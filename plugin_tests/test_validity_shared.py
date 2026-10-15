@@ -120,6 +120,19 @@ class ToyStoreTests(unittest.TestCase):
         self.assertEqual(self.refused(lambda: self.enter(second, capped)).code, 'toy_capacity')
         self.assertEqual(len(self.latched()), 1)
 
+    def test_a_store_made_before_its_expiry_table_existed_gets_it_inside_the_section_when_asked(self):
+        with self.connect() as db:
+            db.execute('DROP TABLE latched')
+        with self.assertRaises(sqlite3.OperationalError):  # by default the table is the store's own responsibility
+            self.enter()
+        asked = validity.Store(self.root, self.connect, 'latched', fail, create=True)
+        with validity.critical(asked, self.payload, 'r' * 64) as db:  # an open window: the caller's commit keeps it
+            db.execute('COMMIT')
+        self.assertEqual(self.latched(), [])
+        self.clocks.elapse(LIFETIME + 1)
+        self.assertEqual(self.refused(lambda: self.enter(store=asked, expired_code='toy_expired')).code, 'toy_expired')
+        self.assertEqual(len(self.latched()), 1)
+
     def test_a_store_directory_that_is_not_private_is_refused_with_the_stores_own_code(self):
         other = self.root.parent / 'open'
         other.mkdir(mode=0o755)

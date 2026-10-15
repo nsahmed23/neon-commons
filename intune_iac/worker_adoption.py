@@ -18,7 +18,7 @@ import time
 import uuid
 from urllib.parse import urlsplit
 
-from intune_iac import approval_authority as aa, identity_binding as ib, protected
+from intune_iac import approval_authority as aa, identity_binding as ib, protected, validity
 from intune_iac import worker_broker as broker, worker_host as host, worker_service as service
 from intune_iac.azure_backend import StateRevision
 from intune_iac.io import AppError, canonical, digest, parse_json
@@ -44,6 +44,52 @@ def _secondary(primary, secondary, phase):
     primary.add_note('Secondary adoption ' + phase + ': ' + str(getattr(secondary, 'code', type(secondary).__name__)))
     if isinstance(secondary, (KeyboardInterrupt, SystemExit)):
         raise secondary from primary
+
+
+MAX_EXPIRED = validity.MAX_EXPIRED
+_EXPIRED_TABLE = 'adoption_expired'
+
+
+def _critical(policy, payload, manifest_sha256, deadline=None):
+    """The shared validity critical section (intune_iac.validity) on this adoption policy's own store: its authority
+    root, its database and its adoption_expired table. The final window judgment, the recorded time, the expiry record
+    and the caller's commit are one step. The payload must come from a receipt that authenticated: an expiry row is
+    written for it. A reached expiry is refused here with adoption_signature_expired; a backward step is held."""
+    store = validity.Store(policy.root, policy.connection, _EXPIRED_TABLE, _fail, capacity=MAX_EXPIRED,
+        capacity_code='adoption_store_capacity', private_code='adoption_store_not_private', create=True)
+    return validity.critical(store, payload, manifest_sha256, deadline, 'adoption_signature_expired')
+
+
+def _deadline(payload):
+    """This process's monotonic deadline for the receipt, carried with the permit so a stuck wall clock cannot extend it."""
+    return time.monotonic() + max(0, payload['expires_at'] - time.time())
+
+
+def _record_expiry(policy, payload, manifest_sha256, deadline=None):
+    """Record a reached expiry of an authenticated receipt before the caller refuses for the manifest's own window.
+
+    The manifest window is judged on the bare clock ahead of everything else, and the receipt expires no later than the
+    manifest, so refusing there without recording would let a clock rollback reopen the receipt. Whatever this section
+    refuses is the same closed window the caller is about to report in its original error, so it is not reported twice."""
+    try:
+        with _critical(policy, payload, manifest_sha256, deadline): pass
+    except (AppError, OSError): pass
+
+
+def _record_expiry_of_stored(job):
+    """_record_expiry_of for the approval this job already holds: the retained transcript, never a caller's claim."""
+    try:
+        with job.policy.connection() as db:
+            transcript = db.execute('SELECT receipt_json FROM approval_transcripts WHERE operation_id=?', (job.identifier,)).fetchone()
+        if transcript is not None: _record_expiry_of(job, parse_json(transcript[0]))
+    except (AppError, OSError, ValueError): pass
+
+
+def _record_expiry_of(job, receipt):
+    """The same for a receipt this process has not authenticated yet: _verify authenticates it, then judges and records
+    the window. A receipt that does not authenticate records nothing."""
+    try: _verify(job.policy, job.manifest, receipt)
+    except (AppError, OSError): pass
 
 
 def _policy_shape(value, manifest, spec, *, verification=False):
@@ -195,6 +241,11 @@ def make_manifest(*, operation_id, verification_operation_id, profile, expires_a
 
 
 def _verify(policy, manifest, receipt):
+    """Authenticate a receipt, then judge its window in the shared critical section; returns the payload only for an
+    authenticated receipt whose window was open at that moment. A reached expiry is recorded and refused there, so it
+    stays closed after a backward clock step and a restart. A receipt that does not authenticate (unsigned, forged,
+    unknown or revoked signer) is refused as the time error it always was and records nothing, so such input cannot
+    grow the store or move the recorded time."""
     policy.check(); receipt = _copy(receipt)
     if type(receipt) is not dict or set(receipt) != {'payload', 'signature'}: _fail('adoption_signature_shape')
     payload = receipt['payload']
@@ -206,7 +257,16 @@ def _verify(policy, manifest, receipt):
     now = int(time.time())
     if (type(payload['issued_at']) is not int or type(payload['expires_at']) is not int
             or not manifest['prepared_at'] <= payload['issued_at'] <= now + 5
-            or not now < payload['expires_at'] <= manifest['expires_at']): _fail('adoption_signature_expired')
+            or not payload['expires_at'] <= manifest['expires_at']): _fail('adoption_signature_expired')
+    try: _authenticate(policy, manifest, payload, receipt)
+    except AppError:
+        if now >= payload['expires_at']: _fail('adoption_signature_expired')
+        raise
+    with _critical(policy, payload, digest(manifest), _deadline(payload)): pass
+    return payload
+
+
+def _authenticate(policy, manifest, payload, receipt):
     if any(type(payload[key]) is not str for key in ('issuer', 'key_id', 'approver_id')): _fail('adoption_signer_invalid')
     signer = policy.approvers.get((payload['issuer'], payload['key_id']))
     if not signer or signer['approver_id'] != payload['approver_id'] or manifest['profile'] not in signer['profiles']:
@@ -214,6 +274,9 @@ def _verify(policy, manifest, receipt):
     try: signature = base64.b64decode(receipt['signature'], validate=True)
     except (ValueError, TypeError): _fail('adoption_signature_invalid')
     if len(signature) != 64 or base64.b64encode(signature).decode() != receipt['signature']: _fail('adoption_signature_invalid')
+    with policy.connection() as db:
+        if db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?', (payload['issuer'], payload['key_id'])).fetchone():
+            _fail('adoption_key_revoked')
     fd = os.open(protected._path(policy.verifier.executable), os.O_RDONLY | os.O_NOFOLLOW)
     try:
         with os.fdopen(os.dup(fd), 'rb') as stream:
@@ -229,13 +292,13 @@ def _verify(policy, manifest, receipt):
                 pass_fds=(fd,), executable='/proc/self/fd/' + str(fd), timeout=5, output_limit=4096)
     except AppError: _fail('adoption_signature_invalid')
     finally: os.close(fd)
-    return payload
 
 
 def _tables(policy):
     with policy.connection() as db:
         db.execute('CREATE TABLE IF NOT EXISTS adoption_operations (operation_id TEXT PRIMARY KEY, manifest_sha256 TEXT NOT NULL, verification_id TEXT UNIQUE NOT NULL, verification_dispatches INTEGER NOT NULL DEFAULT 0, verification_status TEXT NOT NULL DEFAULT \'not_started\', verification_outcome TEXT)')
         db.execute('CREATE TABLE IF NOT EXISTS approval_transcripts (operation_id TEXT PRIMARY KEY, receipt_json TEXT NOT NULL, receipt_sha256 TEXT NOT NULL, consumed_at INTEGER NOT NULL)')
+        db.execute(validity.table_sql(_EXPIRED_TABLE))
 
 
 def prepare_job(job_root, *, manifest, policy_path):
@@ -340,12 +403,18 @@ class AdoptionPermit:
         if seal is not _SEAL or type(runtime) is not AdoptionRuntime: _fail('adoption_permit_required')
         self.job, self.payload, self.runtime, self.verification = job, payload, runtime, verification
         self.active, self.pid = True, os.getpid()
+        self.deadline = _deadline(payload)
     def __reduce_ex__(self, protocol): raise TypeError('Adoption permits cannot be serialized.')
     def check_active(self):
         if not self.active or self.pid != os.getpid(): _fail('adoption_permit_inactive')
-        self.job._check()
-        if int(time.time()) >= self.payload['expires_at']: _fail('adoption_signature_expired')
-        with self.job.policy.connection() as db:
+        try: self.job._check()
+        except AppError as error:
+            if error.code == 'adoption_expired': _record_expiry(self.job.policy, self.payload, self.job.sha256, self.deadline)
+            raise
+        # The final window judgment (the effective time, this permit's monotonic deadline, an earlier expiry record) and
+        # the job's state are read in one critical section, so a latch from another process cannot slip between them.
+        # Nothing is inserted: a permit that is still valid changes no record.
+        with _critical(self.job.policy, self.payload, self.job.sha256, self.deadline) as db:
             row = db.execute('SELECT status,cancelled,dispatches FROM jobs WHERE id=?', (self.job.identifier,)).fetchone()
             consumed = db.execute('SELECT manifest_sha256 FROM consumed WHERE operation_id=?', (self.job.identifier,)).fetchone()
             owners = sorted(item[0] for item in db.execute('SELECT scope FROM ownership WHERE job=?', (self.job.identifier,)))
@@ -436,17 +505,21 @@ class AdoptionJob:
     def run(self, signed_receipt, *, runtime):
         """Consume the import approval once, before any container or lease call."""
         receipt = _copy(signed_receipt)
-        self._check()
+        try: self._check()
+        except AppError as error:
+            if error.code == 'adoption_expired': _record_expiry_of(self, receipt)
+            raise
         if threading.current_thread() is not threading.main_thread(): _fail('adoption_main_thread_required')
         if type(runtime) is not AdoptionRuntime: _fail('adoption_runtime_capability_required')
         runtime.check(self.manifest); spec = _inputs(self.manifest, runtime)
         payload = _verify(self.policy, self.manifest, receipt)
+        deadline = _deadline(payload)
         receipt_raw = canonical(receipt); receipt_sha256 = hashlib.sha256(receipt_raw).hexdigest()
         # Real backend GET + identity re-observation, before consuming authority.
         # The content-only state contract and local ownership scan cannot replace it.
         baseline = _backend_observation(self, runtime, self.root / ('baseline-' + uuid.uuid4().hex), baseline=True)
-        with self.policy.connection() as db:
-            db.execute('BEGIN IMMEDIATE')
+        # The observation takes time: the window is judged again, and the approval consumed, in one critical section.
+        with _critical(self.policy, payload, self.sha256, deadline) as db:
             row = db.execute('SELECT status,cancelled,dispatches FROM jobs WHERE id=?', (self.identifier,)).fetchone()
             owners = sorted(r[0] for r in db.execute('SELECT scope FROM ownership WHERE job=?', (self.identifier,)))
             if row != ('prepared', 0, 0) or owners != service._scopes(self.manifest): _fail('adoption_not_replayable')
@@ -585,7 +658,10 @@ class AdoptionJob:
 
     def verify_first_plan(self, *, runtime):
         """One preapproved Plan-only native run, never import or apply replay."""
-        self._check()
+        try: self._check()
+        except AppError as error:
+            if error.code == 'adoption_expired': _record_expiry_of_stored(self)
+            raise
         if threading.current_thread() is not threading.main_thread(): _fail('adoption_main_thread_required')
         if type(runtime) is not AdoptionRuntime: _fail('adoption_runtime_capability_required')
         runtime.check(self.manifest, verification=True)
@@ -598,9 +674,9 @@ class AdoptionJob:
         if canonical(receipt).decode() != transcript[0] or service._bounded_private_json(self.root / 'approval.json') != receipt:
             _fail('adoption_approval_transcript_missing_or_changed')
         payload = _verify(self.policy, self.manifest, receipt)
+        deadline = _deadline(payload)
         state = _backend_observation(self, runtime, self.root / ('before-first-plan-' + uuid.uuid4().hex), baseline=False)
-        with self.policy.connection() as db:
-            db.execute('BEGIN IMMEDIATE')
+        with _critical(self.policy, payload, self.sha256, deadline) as db:
             row = db.execute('SELECT status,cancelled,dispatches,outcome,controller_pid FROM jobs WHERE id=?', (self.identifier,)).fetchone()
             phase = db.execute('SELECT verification_dispatches,verification_status FROM adoption_operations WHERE operation_id=?', (self.identifier,)).fetchone()
             owners = sorted(r[0] for r in db.execute('SELECT scope FROM ownership WHERE job=?', (self.identifier,)))

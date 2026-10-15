@@ -54,6 +54,7 @@ class Store:
     table: its expiry table, created by table_sql.
     fail: the store's own refusal function (code -> raises).
     capacity: the most expiry rows it keeps; at the cap the store fails closed with capacity_code.
+    create: create the expiry table inside the section when it is missing, for a store made before the table existed.
     """
     root: Path
     connect: Callable
@@ -62,6 +63,7 @@ class Store:
     capacity: int = MAX_EXPIRED
     capacity_code: str = 'approval_store_capacity'
     private_code: str = 'approval_store_not_private'
+    create: bool = False
 
     def __post_init__(self):
         table_sql(self.table)
@@ -148,6 +150,8 @@ def _judged(store, floor, payload, request_sha256, deadline):
         reading = floor.observe_locked(time.time())
         with store.connect() as db:
             db.execute('BEGIN IMMEDIATE')
+            if store.create:
+                db.execute(table_sql(store.table))
             latched = db.execute('SELECT 1 FROM ' + store.table + ' WHERE issuer=? AND nonce=?',
                                  (payload['issuer'], payload['nonce'])).fetchone()
             state = judge(reading, payload['expires_at'], deadline, bool(latched))
