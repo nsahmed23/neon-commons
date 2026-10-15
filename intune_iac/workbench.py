@@ -188,7 +188,6 @@ def _queue(store, *, limit=None, offset=0):
     """Evidence gaps are review findings, never inferred authorization to fix."""
     from .workbench_health import device_health
     from .workbench_views import _ownership_result
-    import time
     overview = store.overview(limit=limit, offset=offset)
     # One bounded artifact read per kind, not per object/finding. Ownership is
     # an immutable-object/assignment writer claim; a human owner label from a
@@ -204,7 +203,9 @@ def _queue(store, *, limit=None, offset=0):
             for claim in source['claims']:
                 claims.setdefault(claim['object_id'], []).append(dict(claim, scope=source['scope'],
                     observed_at=source['observed_at'], coverage=source['coverage']))
-    ownership_now = time.time()
+    # Ownership freshness is judged on the reading every other surface makes (effective time, clock reasons), not on
+    # the bare wall; reading it records nothing.
+    ownership_now, ownership_effective, ownership_hold = store._clock_reading(bind=False)
     findings = []
     held = {}  # the clock hold is the store's, not one policy's: it is read once, from the first observation that is not fresh
     for row in overview.get('objects', []) + overview.get('pending_observations', []):
@@ -213,9 +214,13 @@ def _queue(store, *, limit=None, offset=0):
         if row.get('freshness') != 'fresh':
             reasons.append(('observation_stale', 'A current complete observation is required before assessing changes.'))
             if not row.get('pending_observation'):
-                if 'read' not in held:
-                    held.update(read=True, value=_clock_hold_facts(_read_observation(store, row['object_id'])))
-                hold = held['value']
+                # The overview row carries the hold it was judged on, the same reading the Inspector makes; only a row
+                # that is stale for another reason falls back to reading the observation.
+                hold = _clock_hold_facts(row)
+                if not hold:
+                    if 'read' not in held:
+                        held.update(read=True, value=_clock_hold_facts(_read_observation(store, row['object_id'])))
+                    hold = held['value']
         attempt = row.get('last_attempt', overview.get('last_attempt'))
         if attempt and attempt.get('status') != 'complete':
             reasons.append(('collection_incomplete', 'Last collection did not complete; preserved values are last-good evidence.'))
@@ -228,7 +233,8 @@ def _queue(store, *, limit=None, offset=0):
         source = row.get('source') or {}
         intent = intents.get(row['object_id'])
         selected_scope = intent['data']['scope'] if intent else None
-        writer = _ownership_result(ownership_index, row['object_id'], selected_scope, ownership_now, claims)
+        writer = _ownership_result(ownership_index, row['object_id'], selected_scope, ownership_now, claims,
+                                   ownership_effective, ownership_hold)
         writer_status = writer['status']
         if writer_status == 'conflicting_claims':
             reasons.append(('ownership_conflicting_claims', 'Multiple declared state addresses claim the same object or assignment writer; resolve the conflict before preparing execution.'))

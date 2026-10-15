@@ -573,19 +573,23 @@ class WorkbenchStore:
                 'execution_authorized':False}
 
     @staticmethod
-    def _health(deployment, now, max_age_seconds):
+    def _health(deployment, now, max_age_seconds, effective=None, clock_reasons=()):
         result = {'deployment_scope':'collection', 'configuration_parity':'unknown','service_acceptance':'unknown','endpoint_outcome':'unknown',
                   'endpoint_health':'unknown','rollout_ready':False,'report_freshness':'unknown',
                   'targeted':None,'reporting':None,'successful':None,'failed':None,'pending':None,
                   'reporting_outcome_unknown':None,'unknown_or_stale':None,
                   'reporting_success_percent':None,'targeted_success_percent':None}
         if deployment is None: return result
-        stale = now - deployment['observed_at'] > max_age_seconds or deployment['observed_at'] > now
+        # Age is judged on the effective time and a stamp ahead of the clock on the raw wall, as inspect judges an
+        # observation. Under a clock hold the age is not established, so the report is neither fresh nor stale.
+        stale = (now if effective is None else effective) - deployment['observed_at'] > max_age_seconds or deployment['observed_at'] > now
+        held = bool(clock_reasons)
         targeted, reporting, successful = (deployment[k] for k in ('targeted','reporting','successful'))
         unknown_reports = reporting-successful-deployment.get('failed',0)-deployment.get('pending',0)
         result.update(targeted=targeted,reporting=reporting,successful=successful,
             failed=deployment.get('failed'),pending=deployment.get('pending'),reporting_outcome_unknown=unknown_reports,
-            report_freshness='stale' if stale else 'fresh',unknown_or_stale=targeted if stale else targeted-reporting+unknown_reports,
+            report_freshness='unknown' if held else 'stale' if stale else 'fresh',
+            unknown_or_stale=targeted if stale or held else targeted-reporting+unknown_reports,
             reporting_success_percent=None if not reporting else 100*successful/reporting,
             targeted_success_percent=None if not targeted else 100*successful/targeted,
             observed_at=_iso(deployment['observed_at']))
@@ -611,12 +615,12 @@ class WorkbenchStore:
             'pending_observation':True,'freshness':'unknown','last_attempt':run,'last_success':None,
             'collections':run.get('collections',[]),'health':self._health(None,time.time(),3600)}
 
-    def _collection_health(self, db, success, now, max_age_seconds):
+    def _collection_health(self, db, success, now, max_age_seconds, effective=None, clock_reasons=()):
         deployment = None
         if success:
             row = db.execute('SELECT data_json FROM deployments WHERE run_id=?',(success['run_id'],)).fetchone()
             if row: deployment = parse_json(row[0])
-        return self._health(deployment,now,max_age_seconds)
+        return self._health(deployment,now,max_age_seconds,effective,clock_reasons)
 
     def _clock_reading(self, *, bind):
         """(raw wall, effective time, clock reasons) for one freshness judgement.
@@ -766,7 +770,11 @@ class WorkbenchStore:
                 """, {}
 
     def overview(self, *, now=None, max_age_seconds=3600, limit=None, offset=0, query=None):
-        now = _timestamp(now)
+        # Without an explicit now every age is judged on the reading inspect would make at this instant (the effective
+        # time for ages, the raw wall for a stamp ahead of it, the clock reasons in each row); a caller that passes a
+        # now is judged on exactly that, as before. Reading the mark records nothing.
+        if now is None: now, effective, clock_reasons = self._clock_reading(bind=False)
+        else: now = effective = _timestamp(now); clock_reasons = []
         if type(max_age_seconds) not in (int,float) or not math.isfinite(max_age_seconds) or max_age_seconds<0: _fail('workbench_age_invalid')
         requested_limit = limit
         limit,offset,require_complete = _page(limit,offset)
@@ -777,10 +785,10 @@ class WorkbenchStore:
             db.execute('BEGIN')
             attempt,success = self._latest(db)
             inventory,parameters = self._inventory_sql(db,success,attempt,charge)
-            parameters.update(now=now,max_age=max_age_seconds)
+            parameters.update(now=now,effective=effective,max_age=max_age_seconds)
             summary = db.execute(inventory + """SELECT COUNT(*) AS total,
                 COALESCE(MAX(pending),0) AS has_pending,
-                COALESCE(MAX(attempt_status!='complete' OR :now-observed_at>:max_age OR observed_at>:now),0) AS has_stale
+                COALESCE(MAX(attempt_status!='complete' OR :effective-observed_at>:max_age OR observed_at>:now),0) AS has_stale
                 FROM inventory""",parameters).fetchone()
             classes = {row[0] for row in db.execute(inventory+'SELECT DISTINCT evidence_class FROM inventory',parameters)}
             where = ''
@@ -800,7 +808,7 @@ class WorkbenchStore:
             if require_complete and max(0,total-offset)>limit: _fail('workbench_query_limit')
             parameters.update(limit=limit,offset=offset)
             selected = db.execute(inventory+'SELECT i.* FROM inventory i '+where+' ORDER BY i.object_id LIMIT :limit OFFSET :offset',parameters).fetchall()
-            health = self._collection_health(db,success,now,max_age_seconds)
+            health = self._collection_health(db,success,now,max_age_seconds,effective,clock_reasons)
             objects,pending,size = [],[],0
             for item in selected:
                 if item['pending']:
@@ -811,13 +819,13 @@ class WorkbenchStore:
                     sql = 'SELECT o.*,s.body_json' + (',h.domain' if self.schema_version==2 else '') + ' FROM observations o JOIN snapshots s USING(snapshot_id)'
                     if self.schema_version==2: sql += ' JOIN object_heads h USING(observation_id)'
                     row = db.execute(sql+' WHERE o.observation_id=?',(item['observation_id'],)).fetchone()
-                    value = self._current_observation(db,row,attempt,health,now,max_age_seconds)
+                    value = self._current_observation(db,row,attempt,health,now,max_age_seconds,effective,clock_reasons)
                     objects.append(value)
                 size += len(canonical(value))
                 if size>MAX_QUERY_BYTES: _fail('workbench_query_limit')
-            age = None if success is None else max(0,now-success['observed_at'])
+            age = None if success is None else max(0,effective-success['observed_at'])
             retained_last_good = bool(success is not None and attempt is not None and attempt['status']!='complete')
-            freshness = 'unknown' if success is None else 'stale' if retained_last_good or summary['has_pending'] or age>max_age_seconds or success['observed_at']>now or summary['has_stale'] else 'fresh'
+            freshness = 'unknown' if success is None else 'stale' if retained_last_good or summary['has_pending'] or age>max_age_seconds or success['observed_at']>now or summary['has_stale'] or clock_reasons else 'fresh'
             evidence_class = next(iter(classes)) if len(classes)==1 else 'mixed_observations' if classes else self._run(attempt,db)['evidence_class'] if attempt else 'synthetic'
             returned = len(selected)
             has_more = offset+returned<total
@@ -853,7 +861,7 @@ class WorkbenchStore:
                 row = db.execute('SELECT o.*,s.body_json,h.domain FROM object_heads h JOIN observations o USING(observation_id) JOIN snapshots s USING(snapshot_id) WHERE h.object_id=? AND h.present=1',
                     (object_id,)).fetchone()
             if row is not None:
-                health = self._collection_health(db,success,now,3600)
+                health = self._collection_health(db,success,now,3600,effective,clock_reasons)
                 value = self._current_observation(db,row,attempt,health,now,3600,effective,clock_reasons)
             elif self.schema_version==2 and db.execute("""SELECT 1 FROM run_scope_objects s JOIN run_details d USING(run_id)
                     WHERE s.object_id=? AND d.evidence_class IN ('graph_capture_unverified',

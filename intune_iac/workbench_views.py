@@ -63,8 +63,19 @@ def _time(value):
     return float(value)
 
 
-def _fresh(stamp,age,now):
-    return type(age) in (int,float) and math.isfinite(age) and 0<age<=86400 and 0<=now-_time(stamp)<=age
+def _fresh(stamp,age,now,effective=None,hold=()):
+    """Within its age at the effective time and not stamped ahead of the raw wall `now`; never under a clock hold,
+    where the age is not established (the same judgement store.inspect makes). With no effective time, `now` is both."""
+    if hold or not (type(age) in (int,float) and math.isfinite(age) and 0<age<=86400):return False
+    stamp=_time(stamp);effective=now if effective is None else effective
+    return 0<=now-stamp and effective-stamp<=age
+
+
+def _reading(store,now):
+    """(raw wall, effective time, clock reasons) for one views call. Without an explicit now it is the reading
+    store.inspect would make (read-only: nothing is recorded); an explicit now is judged as given."""
+    if now is None:return store._clock_reading(bind=False)
+    now=_time(now);return now,now,()
 
 
 def _load(path):
@@ -265,18 +276,18 @@ def scan_ownership(store,path):
 
 
 def ownership(store,object_id,scope=None,now=None):
-    now=time.time() if now is None else _time(now);row=_latest(_rows(store,'ownership_index'))
-    return _ownership_result(row,object_id,scope,now)
+    now,effective,hold=_reading(store,now);row=_latest(_rows(store,'ownership_index'))
+    return _ownership_result(row,object_id,scope,now,effective=effective,hold=hold)
 
 
-def _ownership_result(row,object_id,scope,now,claims_by_id=None):
+def _ownership_result(row,object_id,scope,now,claims_by_id=None,effective=None,hold=()):
     result={'status':'unknown','claims':[],'conflicting_parts':[],'scope':scope,'declared_scope_complete':False,
             'fresh':False,'evidence_class':'declared_ownership_index','execution_authorized':False,'cloud_authority':False}
     if row is None:return result|{'reason':'ownership_index_missing'}
     doc=row['data']['document'];result['artifact_id']=row['artifact_id'];result['declared_scopes']=doc['declared_scopes']
     result['evidence_class']=row['data']['evidence_class'];result['state_evidence']=row['data'].get('state_evidence',[])
     complete=len(doc['sources'])==len(doc['declared_scopes']) and all(s['coverage']=='complete' for s in doc['sources'])
-    fresh=all(_fresh(s['observed_at'],doc['max_age_seconds'],now) for s in doc['sources'])
+    fresh=all(_fresh(s['observed_at'],doc['max_age_seconds'],now,effective,hold) for s in doc['sources'])
     result.update(declared_scope_complete=complete,fresh=fresh)
     claims=(claims_by_id.get(object_id,[]) if claims_by_id is not None else [dict(c,scope=s['scope'],observed_at=s['observed_at'],coverage=s['coverage']) for s in doc['sources'] for c in s['claims'] if c['object_id']==object_id])
     result['claims']=claims
@@ -421,23 +432,23 @@ def _definition_ids(body):
     return values
 
 
-def _estate_health(row,now):
+def _estate_health(row,now,effective=None,hold=()):
     result={'status':'unknown','stage':'execution','evidence_class':'unknown','targeted':None,'reporting':None,
             'successful':None,'failed':None,'unknown':None,'endpoint_health':'unknown','endpoint_outcome':'unknown',
             'rollout_ready':False,'external_execution_verified':False,'cloud_authority':False}
     if row is None:return result
     from .workbench_health import summarize_evidence
-    summary=summarize_evidence(row['data']['evidence'],now=now);stage=summary['stages']['execution']
+    summary=summarize_evidence(row['data']['evidence'],now=now,effective=effective,clock_reasons=hold);stage=summary['stages']['execution']
     # A fresh failure remains discoverable even when other targeted devices
     # have no report. Success requires every targeted device's fresh success.
     status=('fresh_failure' if stage['failed'] else 'fresh_success' if stage['targeted']>0 and
             stage['successful']==stage['targeted'] and not stage['unknown'] else 'reporting_incomplete')
-    result.update({key:stage[key] for key in ('targeted','reporting','successful','failed','pending','unknown','reporting_success_percent','targeted_success_percent','stale','partial','conflicting','missing','future','access_denied','membership_conflicts')})
+    result.update({key:stage[key] for key in ('targeted','reporting','successful','failed','pending','unknown','reporting_success_percent','targeted_success_percent','stale','partial','conflicting','missing','future','access_denied','membership_conflicts','age_unknown') if key in stage})
     return result|{'status':status,'evidence_class':summary['evidence_class'],'artifact_id':row['artifact_id'],
                   'source_sha256':row['data']['source_sha256'],'as_of':summary['as_of']}
 
 
-def _estate_views(store,scope,now,limit,offset,query,ownership_filter,coverage_filter,health_filter):
+def _estate_views(store,scope,now,limit,offset,query,ownership_filter,coverage_filter,health_filter,effective=None,hold=()):
     if type(limit) is not int or not 1<=limit<=100 or type(offset) is not int or offset<0:_fail('workbench_views_page')
     if type(query) is not str or len(query)>4096 or any(ord(c)<32 or ord(c)==127 for c in query):_fail('workbench_views_query')
     for value,allowed in ((ownership_filter,OWNERSHIP_FILTERS),(coverage_filter,COVERAGE_FILTERS),(health_filter,HEALTH_FILTERS)):
@@ -465,7 +476,7 @@ def _estate_views(store,scope,now,limit,offset,query,ownership_filter,coverage_f
             raw_policy=parse_json(source).get('raw_observed',{}).get('policy',{}) if source else {}
             if type(raw_policy) is list:raw_policy=raw_policy[0] if raw_policy else {}
             name=body.get('name') if type(body) is dict else raw_policy.get('name') if type(raw_policy) is dict else None
-            fresh=(not row['pending'] and row['attempt_status']=='complete' and _fresh(row['observed_at'],3600,now))
+            fresh=(not row['pending'] and row['attempt_status']=='complete' and _fresh(row['observed_at'],3600,now,effective,hold))
             observations[row['object_id']]={'body':body,'name':name,'snapshot_id':row['snapshot_id'],
                 'observed_at':row['observed_at'],'observation':'complete_fresh' if fresh else 'stale_or_incomplete' if body is not None else 'unknown',
                 'freshness':'fresh' if fresh else 'stale' if body is not None else 'unknown','evidence_class':row['evidence_class'],
@@ -492,8 +503,8 @@ def _estate_views(store,scope,now,limit,offset,query,ownership_filter,coverage_f
     for oid in sorted(ids):
         observed=observations.get(oid,{});intent=intents.get(oid);desired=intent['data']['desired'] if intent else None
         selected_scope=scope or (intent['data']['scope'] if intent else None)
-        own_result=_ownership_result(own,oid,selected_scope,now,claims)
-        health=_estate_health(devices.get(oid),now)
+        own_result=_ownership_result(own,oid,selected_scope,now,claims,effective,hold)
+        health=_estate_health(devices.get(oid),now,effective,hold)
         coverage=observed.get('observation','unknown')
         name=observed.get('name') or (desired.get('name') if type(desired) is dict else None)
         fields=[oid]+[value for value in (observed.get('name'),desired.get('name') if type(desired) is dict else None) if type(value) is str]
@@ -514,6 +525,11 @@ def _estate_views(store,scope,now,limit,offset,query,ownership_filter,coverage_f
             'coverage':{'observation':coverage,'management':own_result['status'],'ownership':compact_ownership,
                         'discovery_includes_objects_absent_from_state':True,'platform_qualified':False},
             'comparisons':{'status':'not_evaluated','reason':'Select an object for distinct baseline comparisons.'}})
+        # A clock hold says which reason holds and what the clock read against the time recorded, as the Inspector's
+        # row does; with no hold neither key is present.
+        if hold and observed.get('body') is not None:
+            match[-1]['freshness_reasons']=list(hold)
+            match[-1]['freshness_clock']={'reads':now,'recorded':effective if 'clock_moved_backward' in hold else None}
     selected=match[offset:offset+limit];has_more=offset+len(selected)<len(match)
     result={'schema_version':'workbench-four-views/1','tenant_id':store.tenant_id,'objects':selected,
         'query':query,'filters':{'query':query,'ownership':ownership_filter,'coverage':coverage_filter,'health':health_filter},
@@ -533,13 +549,16 @@ def _estate_views(store,scope,now,limit,offset,query,ownership_filter,coverage_f
 
 def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=None,limit=100,offset=0,
           query='',ownership_filter=None,coverage_filter=None,health_filter=None):
-    now=time.time() if now is None else _time(now)
+    # One reading for the whole call (see _reading): estate rows, ownership and provider-refresh freshness are judged on
+    # it. The selected object's own observation freshness comes from the read model (store.inspect) instead.
+    explicit=now is not None
+    now,effective,hold=_reading(store,now)
     from .windows_views import _reader_for
     native_reader=_reader_for(store)
     if scope is not None:scope=_scope(scope)
     if object_id is None:
         if operation is not None or intent_id is not None:_fail('workbench_views_object_required')
-        result=_estate_views(store,scope,now,limit,offset,query,ownership_filter,coverage_filter,health_filter)
+        result=_estate_views(store,scope,now,limit,offset,query,ownership_filter,coverage_filter,health_filter,effective,hold)
         return native_reader.decorate(result) if native_reader is not None else result
     if query or any(value is not None for value in (ownership_filter,coverage_filter,health_filter)):_fail('workbench_views_filters_estate_only')
     _identity(object_id)
@@ -564,7 +583,10 @@ def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=No
     raw_observation=store.raw_capture_observation(object_id)
     if raw_observation is not None:observed['raw_capture_observation']=raw_observation
     coverage_ok=(observed.get('coverage')=='complete' and observed.get('freshness')=='fresh'
-        and observed.get('last_attempt',{}).get('status')=='complete' and _fresh(observed.get('observed_at'),3600,now))
+        and observed.get('last_attempt',{}).get('status')=='complete'
+        # The read model's freshness (above) already carries the effective time and any clock hold; the stamp is
+        # recomputed here only for a caller that passed its own now, so that now still decides.
+        and (not explicit or _fresh(observed.get('observed_at'),3600,now)))
     deployment=_deployment(store,object_id,scope,_native_reader=native_reader)
     comparisons={name:_unknown('baseline_missing_or_incomplete') for name in ('collector_snapshot_delta','provider_refresh_vs_state','repository_vs_deployment','observed_vs_deployment','repository_vs_observed')}
     if observed.get('body') is not None:
@@ -586,7 +608,7 @@ def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=No
     state_present=None
     if refresh:
         doc=refresh['data']['document'];state_present=doc['state_body'] is not None
-        if _fresh(doc['observed_at'],doc['max_age_seconds'],now) and state_present and doc['refreshed_body'] is not None:
+        if _fresh(doc['observed_at'],doc['max_age_seconds'],now,effective,hold) and state_present and doc['refreshed_body'] is not None:
             comparisons['provider_refresh_vs_state']=_comparison(doc['state_body'],doc['refreshed_body'],
                 baseline={'kind':'persisted_state_revision_used',**doc['state_revision']},observed_at=doc['observed_at'],
                 evidence_class='caller_asserted_provider_refresh',independently_authenticated=False)
@@ -633,7 +655,7 @@ def views(store,object_id=None,*,scope=None,operation=None,intent_id=None,now=No
     adoption_links=adoption_views.rows(store,object_id)
     if operation is None and adoption_links and (not links or adoption_links[0]['sequence']>max(r['sequence'] for r in links)):
         proposed=adoption_history['operations'][0]
-    own=ownership(store,object_id,scope,now)
+    own=_ownership_result(_latest(_rows(store,'ownership_index')),object_id,scope,now,effective=effective,hold=hold)
     semantic=semantics.analyze(observed['body']) if observed.get('body') is not None else None
     coverage={'observation':'complete_fresh' if coverage_ok else 'stale_or_incomplete' if observed.get('body') is not None else 'unknown',
         'collections':observed.get('collections',[]),'ownership':own,'management':own['status'],'state_tracked':state_present,

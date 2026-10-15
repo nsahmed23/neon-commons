@@ -7,6 +7,7 @@ import unittest
 from unittest.mock import patch
 
 from intune_iac.io import AppError, digest
+from intune_iac import clock as clock_module
 from intune_iac import workbench_store as store_module
 from plugin_tests import test_workbench_capture_store as fixtures
 
@@ -73,7 +74,10 @@ class WorkbenchCapacityTests(unittest.TestCase):
         self.import_batch(self.batch(self.ids[0], 100))
         self.import_batch(self.batch(self.ids[0], 101, 'denied'))
         self.import_batch(self.batch(self.ids[1], 102, 'partial'))
-        with patch.object(store_module.time, 'time', return_value=103):
+        # PKG-TIME-OVERVIEW: the overview and each inspection now read the clock the same way, so an age is the
+        # effective time, which carries the monotonic clock forward. Equal rows at two instants need both clocks frozen.
+        with patch.object(store_module.time, 'time', return_value=103), \
+                patch.object(clock_module, 'monotonic', return_value=5000.0):
             overview = self.store.overview()
             for expected in overview['objects'] + overview['pending_observations']:
                 self.assertEqual(self.store.inspect(expected['object_id']), expected)

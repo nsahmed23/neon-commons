@@ -77,11 +77,20 @@ def import_device_evidence(store, path):
     return store.record_artifact('device_evidence', object_id, data)
 
 
-def summarize_evidence(document, *, now=None):
+def summarize_evidence(document, *, now=None, effective=None, clock_reasons=()):
+    """Stage arithmetic over one evidence document.
+
+    now is the raw wall reading: a stamp ahead of it is refused as future. effective is the time ages are judged on
+    (default: now). Under a clock reason the age of every row is not established, so a row that would have been
+    fresh, future or stale is counted age_unknown instead: it is never fresh and never invented as stale or future.
+    """
     document = _validate(document)
     if now is not None and type(now) not in (int, float): _fail('workbench_evidence_time')
     now = datetime.now(timezone.utc).timestamp() if now is None else float(now)
     if now != now or abs(now) == float('inf'): _fail('workbench_evidence_time')
+    effective = now if effective is None else float(effective)
+    if effective != effective or abs(effective) == float('inf'): _fail('workbench_evidence_time')
+    held = bool(clock_reasons)
     targeted = set(document['cohort']['targeted_ids']); eligible = set(document['cohort']['eligible_ids'])
     excluded = set(document['cohort']['excluded_ids']); conflict_members = targeted & excluded | targeted - eligible
     indexed = {}
@@ -98,8 +107,11 @@ def summarize_evidence(document, *, now=None):
               'configuration_parity': 'unknown', 'service_acceptance': 'unknown',
               'rollout_ready': False, 'rollout_approval': 'unknown', 'cloud_authority': False,
               'qualification': 'Imported stage evidence and arithmetic; no authenticated device effectiveness or rollout approval.'}
+    if held: result['freshness_reasons'] = list(clock_reasons)
     for stage in STAGES:
         classified = []; counts = {name: 0 for name in ('conflicting', 'access_denied', 'partial', 'stale', 'future', 'missing', 'membership_conflicts')}
+        # The count exists only under a clock hold, so every other result keeps its keys.
+        if held: counts['age_unknown'] = 0
         devices = []
         for device in sorted(targeted):
             rows = indexed.get((stage, device), [])
@@ -108,11 +120,12 @@ def summarize_evidence(document, *, now=None):
             newest = max(stamp for stamp, row in rows)
             latest = [row for stamp, row in rows if stamp == newest]
             statuses = {row['status'] for row in latest}; coverage = {row['coverage'] for row in latest}
-            fresh = now - newest <= maximum_age and now - as_of <= maximum_age
+            fresh = effective - newest <= maximum_age and effective - as_of <= maximum_age
             reason = None
             if device in conflict_members: reason = 'membership_conflicts'
             elif 'access_denied' in coverage: reason = 'access_denied'
             elif incomplete or coverage != {'complete'}: reason = 'partial'
+            elif held: reason = 'age_unknown'
             elif newest > now or as_of > now or newest > as_of: reason = 'future'
             elif not fresh: reason = 'stale'
             conflicting = len(statuses) != 1 or 'conflicting' in statuses
@@ -140,7 +153,11 @@ def device_health(store, object_id, *, now=None):
                 'endpoint_health': 'unknown', 'endpoint_outcome': 'unknown', 'rollout_ready': False,
                 'rollout_approval': 'unknown', 'cloud_authority': False, 'reason': 'No policy-bound device evidence was imported.'}
     latest = max(rows, key=lambda row: row['sequence'])
-    result = summarize_evidence(latest['data']['evidence'], now=now)
+    # Without an explicit now the store's reading is used: ages on its effective time, a future stamp on the raw wall,
+    # and a clock hold makes every report's age unknown. An explicit now is judged as given.
+    if now is None: now, effective, reasons = store._clock_reading(bind=False)
+    else: effective, reasons = None, ()
+    result = summarize_evidence(latest['data']['evidence'], now=now, effective=effective, clock_reasons=reasons)
     result.update(tenant_id=store.tenant_id, object_id=object_id, artifact_id=latest['artifact_id'],
                   source_sha256=latest['data']['source_sha256'], source_path=latest['data']['source_path'])
     return result
