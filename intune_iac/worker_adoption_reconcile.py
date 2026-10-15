@@ -508,24 +508,37 @@ def prepare_job(root,*,original,manifest,policy_path):
 
 class _Permit:
     def __init__(self,job,payload,runtime):self.job,self.payload,self.runtime=job,payload,runtime;self.pid=os.getpid();self.active=True;self.deadline=adoption._deadline(payload)
-    def check_active(self):
+    def _before_judging(self):
         if not self.active or self.pid!=os.getpid():_fail('adoption_recovery_permit_inactive')
         try:self.job._check()
         except AppError as error:
             if error.code=='adoption_recovery_plan_expired':adoption._record_expiry(self.job.policy,self.payload,self.job.sha256,self.deadline)
             raise
         self.runtime.check(self.job.manifest)
-        phase=_phase_from_binding(self.job.original,self.job.manifest['recovery_binding']) if _is_phase(self.job.manifest) else None
-        # Periodic and read-only (see worker_adoption._watch): judged from the recorded time, this permit's deadline and a plain
-        # read of the expiry record; a closed window is latched through the shared section before it is refused.
+    def _stopped_or_changed(self,db,phase):
+        if phase is not None:_phase_transaction(db,self.job.original,self.job.manifest,phase=phase,current_id=self.job.identifier)
+        row=db.execute('SELECT status,cancelled,dispatches,controller_pid,controller_start FROM adoption_recovery_plans WHERE operation_id=?',(self.job.identifier,)).fetchone()
+        used=db.execute('SELECT manifest_sha256 FROM consumed WHERE operation_id=?',(self.job.identifier,)).fetchone()
+        revoked=db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?',(self.payload['issuer'],self.payload['key_id'])).fetchone()
+        return row!=('running',0,1,os.getpid(),service._controller_identity(os.getpid())) or used!=(self.job.sha256,) or bool(revoked)
+    def _phase(self):
+        return _phase_from_binding(self.job.original,self.job.manifest['recovery_binding']) if _is_phase(self.job.manifest) else None
+    def poll_active(self):
+        """The watchdog's periodic check: read-only, never blocks a cancel or recover, grants no authority (see
+        worker_adoption.AdoptionPermit.poll_active). A closed window is latched through the shared section, then refused."""
+        self._before_judging();phase=self._phase()
         with self.job.policy.connection() as db:
-            if phase is not None:_phase_transaction(db,self.job.original,self.job.manifest,phase=phase,current_id=self.job.identifier)
-            row=db.execute('SELECT status,cancelled,dispatches,controller_pid,controller_start FROM adoption_recovery_plans WHERE operation_id=?',(self.job.identifier,)).fetchone()
-            used=db.execute('SELECT manifest_sha256 FROM consumed WHERE operation_id=?',(self.job.identifier,)).fetchone()
-            revoked=db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?',(self.payload['issuer'],self.payload['key_id'])).fetchone()
-            latched=adoption._latched(db,self.payload)
+            stopped=self._stopped_or_changed(db,phase);latched=adoption._latched(db,self.payload)
         adoption._watch(self.job.policy,self.payload,self.job.sha256,self.deadline,latched,fail=_fail,expired_code='adoption_recovery_plan_expired')
-        if row!=('running',0,1,os.getpid(),service._controller_identity(os.getpid())) or used!=(self.job.sha256,) or revoked:_fail('adoption_recovery_permit_revoked')
+        if stopped:_fail('adoption_recovery_permit_revoked')
+    def check_active(self):
+        """The authorization check that gates every backend or service call: it enters the shared critical section, judges
+        the window, rereads the state, the revocation and the expiry record inside it and commits the per-request marker
+        before it returns (see worker_adoption.AdoptionPermit.check_active)."""
+        self._before_judging();phase=self._phase()
+        with adoption._critical(self.job.policy,self.payload,self.job.sha256,self.deadline,fail=_fail,expired_code='adoption_recovery_plan_expired') as db:
+            if self._stopped_or_changed(db,phase):_fail('adoption_recovery_permit_revoked')
+            adoption._mark_authorized(db,self.job.identifier,'recovery_plan')
 
 
 class RecoveryPlanJob:
@@ -641,7 +654,7 @@ class RecoveryPlanJob:
             thread=threading.Thread(target=server.serve,daemon=True,name='adoption-recovery-plan-broker');thread.start()
             def monitor():
                 while not stopped.wait(.2):
-                    try:permit.check_active()
+                    try:permit.poll_active()
                     except BaseException as error:
                         faults.append(str(getattr(error,'code',type(error).__name__)))
                         if not stopped.is_set():os.kill(os.getpid(),signal.SIGINT)

@@ -3,13 +3,15 @@
 The adoption dispatch judged its receipt's expiry on the bare wall clock in _verify, then made a backend observation,
 then consumed the approval in a separate transaction with no expiry check. A rollback before consumption reopened it.
 The consumption is now the second consumer of the shared critical section (intune_iac.validity) on the adoption
-policy's own store, and AdoptionPermit.check_active judges through the same section without an insert.
+policy's own store. AdoptionPermit.check_active (the authorization check) enters the same section and commits a
+marker; poll_active (the watchdog) judges read-only.
 
 Each test drives the public call (AdoptionJob.run, verify_first_plan, the permit's check_active) against a real
 ServicePolicy store and a real signature, with injected wall and monotonic clocks. Only the controller seams that need a
 live backend or container are modeled: the runtime and input checks, the backend observation and the dispatch itself.
 A refusal must leave the right records: nothing consumed, no dispatch, and the expiry recorded.
 """
+import contextlib
 import multiprocessing
 import sqlite3
 import threading
@@ -83,6 +85,59 @@ def watchdog_refusals(test, database, check, *, attempts=300, tick=lambda: None)
         thread.join(BOUND)
     process.join(BOUND)
     return refused, errors
+
+
+def latch_by_deadline(test, permit):
+    """Latch the permit's expiry from this process without moving the recorded time: its monotonic deadline passes while
+    the wall clock still reads inside the window. The recorded time stays before the expiry, so a process that reads
+    only the recorded time and its own clock cannot tell; only the expiry record says so. Returns the refusal."""
+    real = time.monotonic
+    with patch.object(time, 'monotonic', side_effect=lambda: real() + 3600):
+        return test.refused(permit.check_active)
+
+
+def race_with_a_latch(test, permit, child_permit, *, hook, poll_first=False, around=None):
+    """Process A pauses at hook (owner, attribute, 'before' or 'after' the real call); this process latches the expiry;
+    A resumes. A then asks for authority (check_active) and, only if it gets it, calls a modeled service. Returns
+    (what the latch refusal said, A's poll result or None, A's authorization result, A's service calls). around is a
+    context manager factory entered in A around its whole body (a permit that is bound to the creating process's id)."""
+    paused, release, queue = FORK.Event(), FORK.Event(), FORK.Queue()
+    owner, name, when = hook
+
+    def process_a():
+        test.clocks.wall = test.start + 10  # this process reads a time inside the window throughout
+        with (around or contextlib.nullcontext)():
+            report, calls = run_a()
+        queue.put((report[0], report[1], calls))
+
+    def run_a():
+        mine, real, report, calls = child_permit(), getattr(owner, name), [None, None], []
+
+        def paused_call(*args, **kwargs):
+            result = real(*args, **kwargs) if when == 'after' else None
+            paused.set()
+            release.wait(BOUND)
+            return result if when == 'after' else real(*args, **kwargs)
+        with patch.object(owner, name, paused_call):
+            try:
+                if poll_first:
+                    mine.poll_active()
+                    report[0] = 'poll_returned'
+                mine.check_active()
+                calls.append('service')
+                report[1] = 'authorized'
+            except AppError as error:
+                report[1] = error.code
+        return report, calls
+    process = FORK.Process(target=process_a, daemon=True)
+    process.start()
+    test.addCleanup(lambda: process.is_alive() and process.terminate())
+    test.assertTrue(paused.wait(BOUND))
+    latched = latch_by_deadline(test, permit).code
+    release.set()
+    result = queue.get(timeout=BOUND)
+    process.join(BOUND)
+    return (latched,) + result
 
 
 class AdoptionFixture(unittest.TestCase):
@@ -333,7 +388,7 @@ class DispatchLatchTests(AdoptionFixture):
 class PermitLatchTests(AdoptionFixture):
     def test_check_active_refuses_after_the_expiry_and_after_a_backward_step_that_follows_it(self):
         permit = self.dispatch_running(self.start + 10)
-        permit.check_active()  # open: returns, and writes nothing
+        permit.check_active()  # open: authorized, and a marker committed
         self.clocks.elapse(LIFETIME)
         self.assertEqual(self.refused(permit.check_active).code, 'adoption_signature_expired')
         self.clocks.wall = self.expires - 10
@@ -342,7 +397,54 @@ class PermitLatchTests(AdoptionFixture):
         self.assertEqual(self.refused(permit.check_active).code, 'adoption_signature_expired')
         self.assertEqual(len(self.latched()), 1)
 
-    def test_the_open_path_of_check_active_takes_no_lock_and_persists_nothing(self):
+    def authorizations(self):
+        return self.rows('SELECT operation_id, phase, authorizations FROM adoption_authorizations')
+
+    def test_the_authorization_check_enters_the_section_and_commits_a_marker_before_the_call(self):
+        permit = self.dispatch_running(self.start + 10)
+        before = {name: self.rows('SELECT * FROM ' + name) for name in ('jobs', 'consumed', 'ownership', 'events', 'revoked')}
+        with patch.object(validity, 'critical', wraps=validity.critical) as section:
+            permit.check_active()
+            permit.check_active()
+        self.assertEqual(section.call_count, 2)
+        self.assertEqual(self.authorizations(), [(self.job.identifier, 'import', 2)])
+        self.assertEqual({name: self.rows('SELECT * FROM ' + name) for name in before}, before)
+
+    def test_the_watchdog_poll_never_commits_a_marker_or_enters_the_section(self):
+        permit = self.dispatch_running(self.start + 10)
+        with patch.object(validity, 'critical', side_effect=AssertionError('the section was entered')):
+            for _ in range(5):
+                permit.poll_active()
+        self.assertEqual(self.authorizations(), [])
+
+    def test_a_refused_authorization_commits_no_marker(self):
+        permit = self.dispatch_running(self.start + 10)
+        with self.policy.connection() as db:
+            db.execute('INSERT INTO revoked VALUES (?,?)', ('fixture', 'key'))
+        self.assertEqual(self.refused(permit.check_active).code, 'adoption_permit_inactive')
+        self.assertEqual(self.authorizations(), [])
+
+    def test_an_expiry_latched_before_the_authorization_section_refuses_the_service_call(self):
+        permit = self.dispatch_running(self.start + 10)
+        child = lambda: adoption.AdoptionPermit(adoption._SEAL, self.job, permit.payload, self.runtime)
+        latched, polled, checked, calls = race_with_a_latch(self, permit, child, hook=(adoption, '_critical', 'before'))
+        self.assertEqual(latched, 'adoption_signature_expired')
+        self.assertEqual((polled, checked, calls), (None, 'adoption_signature_expired', []))
+        self.assertEqual(self.authorizations(), [])
+        self.assertEqual(len(self.latched()), 1)
+
+    def test_a_poll_that_passed_on_a_stale_read_never_authorizes_the_service_call(self):
+        # The poll read no expiry record, then another process latched one, then the poll decided: it may return (it
+        # authorizes nothing, the watchdog repeats it every 0.2 s), but the authorization that follows must refuse.
+        permit = self.dispatch_running(self.start + 10)
+        child = lambda: adoption.AdoptionPermit(adoption._SEAL, self.job, permit.payload, self.runtime)
+        latched, polled, checked, calls = race_with_a_latch(self, permit, child, hook=(adoption, '_latched', 'after'),
+                                                            poll_first=True)
+        self.assertEqual(latched, 'adoption_signature_expired')
+        self.assertEqual((polled, checked, calls), ('poll_returned', 'adoption_signature_expired', []))
+        self.assertEqual(self.authorizations(), [])
+
+    def test_the_open_path_of_poll_active_takes_no_lock_and_persists_nothing(self):
         permit = self.dispatch_running(self.start + 10)
         floor, database = self.policy.root / 'clock.json', self.policy.database
         before = (floor.read_bytes(), floor.stat().st_mtime_ns, database.read_bytes(), database.stat().st_mtime_ns)
@@ -350,13 +452,13 @@ class PermitLatchTests(AdoptionFixture):
                 patch.object(validity, 'critical', side_effect=AssertionError('the section was entered')):
             for _ in range(100):
                 self.clocks.elapse(0.2)  # the effective time rises on every call; none of it is persisted
-                permit.check_active()
+                permit.poll_active()
         self.assertEqual((floor.read_bytes(), floor.stat().st_mtime_ns, database.read_bytes(), database.stat().st_mtime_ns), before)
         self.assertEqual(sorted(path.name for path in self.policy.root.iterdir() if 'journal' in path.name), [])
 
     def test_a_write_reservation_from_another_process_is_never_refused_during_a_watchdog_loop(self):
         permit = self.dispatch_running(self.start + 10)
-        refused, errors = watchdog_refusals(self, self.policy.database, permit.check_active,
+        refused, errors = watchdog_refusals(self, self.policy.database, permit.poll_active,
                                             tick=lambda: self.clocks.elapse(0.01))
         self.assertEqual(errors, [])
         self.assertEqual(refused, [])
@@ -386,7 +488,7 @@ class PermitLatchTests(AdoptionFixture):
         def loop():  # the watchdog: a check, then a pause, until the other process is done
             try:
                 while not stop.is_set():
-                    permit.check_active()
+                    permit.poll_active()
                     idle.set()
                     stop.wait(0.3)
             except BaseException as error:
@@ -407,10 +509,11 @@ class PermitLatchTests(AdoptionFixture):
         holder = sqlite3.connect(self.policy.database, timeout=0, isolation_level=None)
         self.addCleanup(holder.close)
         holder.execute('BEGIN IMMEDIATE')  # another writer holds the reservation: the latch cannot be written now
-        self.assertEqual(self.refused(permit.check_active).code, 'adoption_signature_expired')
+        self.assertEqual(self.refused(permit.poll_active).code, 'adoption_signature_expired')
+        self.assertEqual(self.refused(permit.check_active).code, 'service_store_unavailable')  # no authority either
         holder.execute('ROLLBACK')
         self.assertEqual(self.latched(), [])
-        self.assertEqual(self.refused(permit.check_active).code, 'adoption_signature_expired')
+        self.assertEqual(self.refused(permit.poll_active).code, 'adoption_signature_expired')
         self.assertEqual(len(self.latched()), 1)
 
     def test_check_active_refuses_after_an_expiry_reached_in_another_process(self):
@@ -447,13 +550,13 @@ class PermitLatchTests(AdoptionFixture):
         self.clocks.wall = self.start + 31
         permit.check_active()
 
-    def test_check_active_inserts_nothing_when_the_window_is_open(self):
+    def test_poll_active_inserts_nothing_when_the_window_is_open(self):
         permit = self.dispatch_running(self.start + 10)
         tables = ('jobs', 'consumed', 'ownership', 'events', 'approval_transcripts', 'adoption_operations', 'revoked',
                   'adoption_expired')
         before = [self.rows('SELECT * FROM ' + name) for name in tables]
         self.clocks.elapse(5)
-        permit.check_active()
+        permit.poll_active()
         self.assertEqual([self.rows('SELECT * FROM ' + name) for name in tables], before)
 
     def test_the_manifest_expiry_refusal_in_check_active_records_the_expiry_before_refusing(self):

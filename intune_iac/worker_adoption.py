@@ -61,6 +61,21 @@ def _critical(policy, payload, manifest_sha256, deadline=None, *, fail=None, exp
     return validity.critical(store, payload, manifest_sha256, deadline, expired_code)
 
 
+_AUTHORIZATIONS = 'adoption_authorizations'
+_AUTHORIZATIONS_SQL = ('CREATE TABLE IF NOT EXISTS ' + _AUTHORIZATIONS + ' (operation_id TEXT NOT NULL, phase TEXT NOT NULL, '
+    'authorizations INTEGER NOT NULL, last_authorized_at INTEGER NOT NULL, PRIMARY KEY(operation_id, phase))')
+
+
+def _mark_authorized(db, operation_id, phase):
+    """The per-request dispatch marker of the authorization check, committed inside the critical section before the
+    check returns, so a backend or service call is never released without a durable record that it was authorized."""
+    db.execute(_AUTHORIZATIONS_SQL)
+    db.execute('INSERT INTO ' + _AUTHORIZATIONS + ' VALUES (?,?,1,?) ON CONFLICT(operation_id, phase) DO UPDATE SET '
+        'authorizations = authorizations + 1, last_authorized_at = excluded.last_authorized_at',
+        (operation_id, phase, int(time.time())))
+    db.execute('COMMIT')
+
+
 def _latched(db, payload):
     """Whether an expiry record exists for the receipt: plain reads, no write. A store made before the table existed
     has no record, and gets the table the first time a section runs."""
@@ -326,6 +341,7 @@ def _tables(policy):
         db.execute('CREATE TABLE IF NOT EXISTS adoption_operations (operation_id TEXT PRIMARY KEY, manifest_sha256 TEXT NOT NULL, verification_id TEXT UNIQUE NOT NULL, verification_dispatches INTEGER NOT NULL DEFAULT 0, verification_status TEXT NOT NULL DEFAULT \'not_started\', verification_outcome TEXT)')
         db.execute('CREATE TABLE IF NOT EXISTS approval_transcripts (operation_id TEXT PRIMARY KEY, receipt_json TEXT NOT NULL, receipt_sha256 TEXT NOT NULL, consumed_at INTEGER NOT NULL)')
         db.execute(validity.table_sql(_EXPIRED_TABLE))
+        db.execute(_AUTHORIZATIONS_SQL)
 
 
 def prepare_job(job_root, *, manifest, policy_path):
@@ -432,27 +448,47 @@ class AdoptionPermit:
         self.active, self.pid = True, os.getpid()
         self.deadline = _deadline(payload)
     def __reduce_ex__(self, protocol): raise TypeError('Adoption permits cannot be serialized.')
-    def check_active(self):
+    def _stopped_or_changed(self, db):
+        """Whether the job state no longer supports a running dispatch: status, cancellation, consumption, ownership,
+        signer revocation and the verification phase, read from the connection it is given."""
+        row = db.execute('SELECT status,cancelled,dispatches FROM jobs WHERE id=?', (self.job.identifier,)).fetchone()
+        consumed = db.execute('SELECT manifest_sha256 FROM consumed WHERE operation_id=?', (self.job.identifier,)).fetchone()
+        owners = sorted(item[0] for item in db.execute('SELECT scope FROM ownership WHERE job=?', (self.job.identifier,)))
+        revoked = db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?', (self.payload['issuer'], self.payload['key_id'])).fetchone()
+        phase = db.execute('SELECT verification_dispatches,verification_status FROM adoption_operations WHERE operation_id=?', (self.job.identifier,)).fetchone()
+        expected = 'verification_running' if self.verification else 'running'
+        return (row != (expected, 0, 1) or consumed != (self.job.sha256,) or owners != service._scopes(self.job.manifest)
+                or bool(revoked) or self.verification and phase != (1, 'running'))
+    def _before_judging(self):
         if not self.active or self.pid != os.getpid(): _fail('adoption_permit_inactive')
         try: self.job._check()
         except AppError as error:
             if error.code == 'adoption_expired': _record_expiry(self.job.policy, self.payload, self.job.sha256, self.deadline)
             raise
-        # Periodic and read-only (see _watch): the window is judged from the recorded time, this permit's deadline and a
-        # plain read of the expiry record; a closed window is latched through the shared section before it is refused.
+    def poll_active(self):
+        """The watchdog's periodic check (every 0.2 s): read-only, so it never blocks a cancel or recover from another
+        process. Its result grants no authority and must never gate a backend or service call: it reads the expiry
+        record and the recorded time at different moments, so a latch committed in between can pass it once. The
+        watchdog stops the job when it refuses (closed window, held clock, changed state); a closed window is latched
+        through the shared section first (see _watch)."""
+        self._before_judging()
         with self.job.policy.connection() as db:
-            row = db.execute('SELECT status,cancelled,dispatches FROM jobs WHERE id=?', (self.job.identifier,)).fetchone()
-            consumed = db.execute('SELECT manifest_sha256 FROM consumed WHERE operation_id=?', (self.job.identifier,)).fetchone()
-            owners = sorted(item[0] for item in db.execute('SELECT scope FROM ownership WHERE job=?', (self.job.identifier,)))
-            revoked = db.execute('SELECT 1 FROM revoked WHERE issuer=? AND key_id=?', (self.payload['issuer'], self.payload['key_id'])).fetchone()
-            phase = db.execute('SELECT verification_dispatches,verification_status FROM adoption_operations WHERE operation_id=?', (self.job.identifier,)).fetchone()
+            stopped = self._stopped_or_changed(db)
             latched = _latched(db, self.payload)
         _watch(self.job.policy, self.payload, self.job.sha256, self.deadline, latched,
             fail=_fail, expired_code='adoption_signature_expired')
-        expected = 'verification_running' if self.verification else 'running'
-        if (row != (expected, 0, 1) or consumed != (self.job.sha256,) or owners != service._scopes(self.job.manifest)
-                or revoked or self.verification and phase != (1, 'running')): _fail('adoption_permit_inactive')
+        if stopped: _fail('adoption_permit_inactive')
         self.runtime.check(self.job.manifest, verification=self.verification)
+    def check_active(self):
+        """The authorization check that gates every backend or service call (the broker guard and the dispatch
+        boundaries). It enters the shared critical section, judges the window, rereads the job state, the signer
+        revocation and the expiry record inside it, and commits the per-request marker before it returns: nothing
+        can latch the expiry between the decision and its record, and a stale read cannot authorize."""
+        self._before_judging()
+        self.runtime.check(self.job.manifest, verification=self.verification)
+        with _critical(self.job.policy, self.payload, self.job.sha256, self.deadline) as db:
+            if self._stopped_or_changed(db): _fail('adoption_permit_inactive')
+            _mark_authorized(db, self.job.identifier, 'verification' if self.verification else 'import')
 
 
 class AdoptionJob:
@@ -609,7 +645,7 @@ class AdoptionJob:
             permit.check_active()
             def monitor():
                 while not stopped.wait(0.2):
-                    try: permit.check_active()
+                    try: permit.poll_active()
                     except BaseException as error:
                         watchdog_fault.append(getattr(error, 'code', type(error).__name__))
                         if not stopped.is_set(): os.kill(os.getpid(), signal.SIGINT)
