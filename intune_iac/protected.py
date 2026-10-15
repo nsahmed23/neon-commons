@@ -688,7 +688,7 @@ def _review_native_output_plan(document, executor, generic_review, *, bound_befo
 def _generic_review(document, executor):
     if executor.mode == 'native_local_opentofu_only':
         return review_local_output_plan(document, engine_version=_engine_version(executor))
-    return review_plan(document)
+    return review_plan(document,expected_engine_version=_engine_version(executor))
 
 
 def prepare_native_operation(executor, *, ttl_seconds=300):
@@ -765,10 +765,13 @@ class LegacyProfileNotExecutable(AppError):
                          'pins (OpenTofu %s); the earlier record stays readable as history.' % (named, _CURRENT_ENGINE))
 
 
-def _engine_gate(executor):
-    """Execution requires the current qualified engine: a legacy executor is refused by name."""
+def _engine_gate(executor, expected=None):
+    """Execution requires the current qualified engine: a legacy executor is refused by name. A consumer that knows which
+    engine its operation's profile requires passes it, and an executor made for another one is refused too."""
     version=_engine_version(executor)
     if version==_LEGACY_ENGINE:raise LegacyProfileNotExecutable(version)
+    if expected is not None and expected!=version:
+        raise AppError('engine_profile_mismatch','This operation requires OpenTofu %s but its executor was made for OpenTofu %s; nothing was dispatched. Prepare a new proposal under the current pins.' % (expected,version))
 
 
 _PURPOSES=('current','recorded')
@@ -919,14 +922,14 @@ def _desired_readback(request, observed):
     return observed['serial'] in serials and (observed['serial']!=binding['before_serial'] or observed['state_sha256']==binding['before_state_sha256'])
 
 
-def execute_native_operation(request, state_dir, *, executor, approval):
+def execute_native_operation(request, state_dir, *, executor, approval, expected_engine_version=None):
     result={'status':'rejected','execution_authorized':False,'assurance':'local_execution_only'}
     lock=None; dispatched=False
     try:
         request=_validate_request(request,executor,implementation='current')
         if (executor.root/'consumed.json').exists():_fail('approval_already_consumed')
         # Before the state directory, the lock, the journal or the consumed marker: nothing is written for a legacy executor.
-        _engine_gate(executor)
+        _engine_gate(executor,expected_engine_version)
         result.update(operation_id=request['operation_id'],assurance=executor.mode)
         if type(approval)is not _LocalGrant or approval.seal is not _SECRET or approval.consumed or approval.request_sha256!=digest(request) or approval.expires_at<=_window(request,executor):_fail('approval_required')
         directory=_path(state_dir)
@@ -941,6 +944,7 @@ def execute_native_operation(request, state_dir, *, executor, approval):
         _exclusive(executor.root/'consumed.json',canonical({'operation_id':request['operation_id'],'request_sha256':digest(request),'action':request['action']}))
         _event(journal,'authorized',{'request_sha256':digest(request),'scope':'local_fixture_only'})
         _validate_request(request,executor,implementation='current');_owner(lock,owner)
+        _engine_gate(executor,expected_engine_version)  # the binding is checked again immediately before dispatch
         _event(journal,'dispatch_started',{'binding_sha256':request['binding_sha256']})
         # A persisted started event is an uncertainty boundary even if dispatch fails.
         dispatched=True

@@ -64,12 +64,12 @@ class IndependentEnforcementTests(unittest.TestCase):
             from intune_iac.io import file_sha
             (root / "work/saved.tfplan").write_bytes(canonical({"schema": "synthetic-saved-plan/1",
                 "before_sha256": file_sha(state_path), "value": {"n": 1}}))
-            document = {"format_version": "1.2", "terraform_version": "1.10.0",
+            document = {"format_version": "1.2", "terraform_version": "1.13.1",
                         "planned_values": {"outputs": {"fixture": {"value": {"n": 1}, "sensitive": False}}},
                         "resource_changes": [], "configuration": {},
                         "output_changes": {"fixture": {"actions": ["update"], "before": {"n": 0}, "after": {"n": 1},
                             "after_unknown": False, "before_sensitive": False, "after_sensitive": False}},
-                        "prior_state": {"format_version": "1.0", "terraform_version": "1.10.0",
+                        "prior_state": {"format_version": "1.0", "terraform_version": "1.13.1",
                             "values": {"outputs": {"fixture": {"value": {"n": 0}, "sensitive": False, "type": ["object", {}]}}}}}
             (root / "work/plan.json").write_bytes(canonical(document))
             # Bind ordinary fixture files using the documented request shape.

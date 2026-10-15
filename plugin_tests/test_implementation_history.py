@@ -92,10 +92,10 @@ ADOPTION_LATCH_R3_WORKER_FILES = dict(ADOPTION_LATCH_R2_WORKER_FILES, **{
     'validity.py': 'd7bafb7503c3ac00d8232ec3308565d26d6eb0470e62e9a4804de54250917f68'})
 
 P3D_LABEL = 'pin-migration-p3d'
-P3D_DIGEST = '8a4314bc47174c2f5eaa741aaa6f9bae6908ec500d52ce96c4da1a678fcdfb97'
+P3D_DIGEST = '59b1e08b2729bb4552812054b5594f6749a506f811618ea81e483723ebcc31be'
 P3D_PROTECTED_FILES = {
-    'protected.py': 'cc3c0785b5cd275a86d12f157e9dedfcab230125ff53e15e77c03ed182e41ad7',
-    'execution.py': '31b262960d645d3e386c4f26ae29c8a30cd1e0f0648a1dcc5912dcc0009045fd',
+    'protected.py': '3fd069f17a9daafa6bcc540f11cdb8add909a8a5be74682e0b08831e5cae0119',
+    'execution.py': 'd77a3c1519621bcc04c74034d4cfb55c4e0b5fadde74e50980c36b1d520feadd',
     'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
     'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
     'clock.py': 'd7e379c4f226dd08a62212cf7dd492bbe7405cd9425723d399540687d8773d3c',
@@ -104,19 +104,19 @@ P3D_ATMOS_FILES = {
     'journey_native_atmos.py': '92a3afbdb3a0867d1aba6e8a6eeefdfb83a3beeea00db755a7566d484bfcdec0',
     'native_atmos.py': '77da0489216ac52e99d0ed2f3a677eec944b4e7c8f7d45a91cae2e282368d62a',
     'repository.py': '6c444bb93076dac5f31deb249c2b15fe174e5e310d780406ed293d994ba2027a',
-    'protected.py': 'cc3c0785b5cd275a86d12f157e9dedfcab230125ff53e15e77c03ed182e41ad7',
+    'protected.py': '3fd069f17a9daafa6bcc540f11cdb8add909a8a5be74682e0b08831e5cae0119',
     'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
     'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
     'clock.py': 'd7e379c4f226dd08a62212cf7dd492bbe7405cd9425723d399540687d8773d3c',
 }
 P3D_WORKER_FILES = {
     'protected_worker.py': '191c0c7549c8fcd1b9cfa2ff43311bdc23282f9e3d357602268a113f170d5299',
-    'protected.py': 'cc3c0785b5cd275a86d12f157e9dedfcab230125ff53e15e77c03ed182e41ad7',
+    'protected.py': '3fd069f17a9daafa6bcc540f11cdb8add909a8a5be74682e0b08831e5cae0119',
     'provider_execution.py': '653e4191156444fd05a0937c8c3a5f5a6c6097fa07e9cb5f34a1278cdb2a7731',
     'approval_authority.py': 'bc39975ff1bd83cb466e7e0987252c7e60469e09a3d528adc8aeeb6c1a45e7a1',
     'provider_journey.py': 'dfba89eaf20dfa42c423fcecc2f8fea6bf75d9f2e50ee24d05996307efa9c371',
     'azure_backend.py': '83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab',
-    'execution.py': '31b262960d645d3e386c4f26ae29c8a30cd1e0f0648a1dcc5912dcc0009045fd',
+    'execution.py': 'd77a3c1519621bcc04c74034d4cfb55c4e0b5fadde74e50980c36b1d520feadd',
     'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
     'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
     'validity.py': 'd7bafb7503c3ac00d8232ec3308565d26d6eb0470e62e9a4804de54250917f68',

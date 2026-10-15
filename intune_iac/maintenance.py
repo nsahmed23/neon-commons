@@ -157,12 +157,6 @@ def _load(operation_root):
     expected['objects'][plan['object_id']] = desired
     if digest(expected) != digest(plan['desired_estate']):
         _fail('maintenance_scope_changed')
-    # A plan records the engine version and profile its modeled executor was made for; an operation stored before the
-    # migration records neither and is read as it was made. A recorded value must be the executor's own.
-    if 'engine_version' in plan or 'pin_profile' in plan:
-        made = load_json(root / 'executor' / 'executor.json').get('engine_version', tools(LEGACY)['engine_version'])
-        if (plan.get('engine_version') != made or plan.get('pin_profile') != engine_profiles().get(made)):
-            _fail('maintenance_engine_changed')
     request = load_json(root / 'executor' / 'preparation.json')
     if digest(request) != plan['engine_request_sha256'] or request['bindings']['desired_value_sha256'] != digest(expected):
         _fail('maintenance_engine_changed')
@@ -196,6 +190,30 @@ def _plan_profile(plan):
     if 'engine_version' in plan or 'pin_profile' in plan:
         return plan.get('engine_version'), plan.get('pin_profile')
     return tools(LEGACY)['engine_version'], LEGACY
+
+
+def _check_engine_binding(root, plan, context, executor=None, *, context_changed=False):
+    """The expected engine version and profile, from the operation's verified context, against the plan and the executor.
+
+    The executor is validated by SyntheticExecutor itself (files, worker, configuration, manifest), never read directly. A
+    pre-migration plan records neither field: it is read as legacy, so its executor must be a legacy one, and it cannot
+    execute. A plan that records a profile must record the one its context requires, and its executor must be made for it.
+    Raises engine_profile_mismatch otherwise (a coherent legacy pair under a current context is not a legacy-labelled
+    success, it is refused). When the context file changed since the plan bound it (review reports that), the expected
+    profile cannot be derived and only the plan against its executor is checked; execution refuses such an operation anyway."""
+    executor = executor or protected.SyntheticExecutor(root / 'executor')
+    made = protected._engine_version(executor)
+    if 'engine_version' not in plan and 'pin_profile' not in plan:
+        if made != tools(LEGACY)['engine_version']:
+            _fail('engine_profile_mismatch')
+        return
+    if context_changed:
+        expected_version, expected_profile = plan.get('engine_version'), plan.get('pin_profile')
+    else:
+        expected_version, expected_profile = _context_profile(context)
+    if ((plan.get('engine_version'), plan.get('pin_profile')) != (expected_version, expected_profile)
+            or made != expected_version or engine_profiles().get(made) != expected_profile):
+        _fail('engine_profile_mismatch')
 
 
 def _check_cited_intent(store, object_id, desired, context):
@@ -429,6 +447,12 @@ def review(operation_root):
     from .workbench_diff import field_changes
     root, plan, journal, desired, request = _load(operation_root)
     protected.validate_native_operation(request, executor=protected.SyntheticExecutor(root / 'executor'))
+    try:
+        _check_engine_binding(root, plan, _bound_context(plan))
+    except AppError as error:
+        if error.code != 'maintenance_source_changed':
+            raise
+        _check_engine_binding(root, plan, None, context_changed=True)  # reported below as a changed context
     before = plan['before_estate']['objects'][plan['object_id']]
     version, profile = _plan_profile(plan)
     cannot_run = None if profile == CURRENT else {
@@ -491,6 +515,10 @@ def execute(operation_root, *, approve_digest, fault=None, visibility_delay_read
 
 def _execute(operation_root, *, approve_digest, fault, visibility_delay_reads, progress):
     root, plan, journal, desired, request = _load(operation_root)
+    # The one read of the bound context: the profile this operation must run under is derived from its verified bytes
+    # (the current profile when it has no versioned context), and the plan and the validated executor must agree with it.
+    context = _bound_context(plan)
+    _check_engine_binding(root, plan, context)
     # A legacy (or pre-migration) operation is refused before anything is read further or written, with the upgrade reason.
     if _plan_profile(plan)[1] != CURRENT:
         raise protected.LegacyProfileNotExecutable(_plan_profile(plan)[0])
@@ -511,8 +539,6 @@ def _execute(operation_root, *, approve_digest, fault, visibility_delay_reads, p
         binding = plan['desired_source']
         if file_sha(_safe(binding['path'])) != binding['sha256']:
             _fail('maintenance_source_changed')
-        # The one read of the bound context: checked here, in the same order as before, and used below.
-        context = _bound_context(plan)
         service = ModeledService(plan['service_root'])
         state = service.snapshot()
         if (state['source_sha256'] != plan['service_source_sha256'] or state['revision'] != plan['before_revision']
@@ -524,6 +550,10 @@ def _execute(operation_root, *, approve_digest, fault, visibility_delay_reads, p
             from .workbench_repository import require_current_intent
             require_current_intent(_store(plan['store_root']), context['repository_intent_id'])
         executor = protected.SyntheticExecutor(root / 'executor')
+        # The binding is checked again here, on the context just read and the executor just validated, immediately before
+        # dispatch; the protected boundary checks the same version once more.
+        _check_engine_binding(root, plan, context, executor)
+        expected_version = _context_profile(context)[0]
         try:
             approval = protected.approve_synthetic_operation(request, executor=executor)
         except AppError as error:
@@ -542,7 +572,8 @@ def _execute(operation_root, *, approve_digest, fault, visibility_delay_reads, p
             'evidence_class': EVIDENCE, 'cloud_authority': False, 'native_provider_qualified': False,
             'effects': {'dispatched': True, 'service_change': 'unknown'}}
         try:
-            engine_result = protected.execute_native_operation(request, root / 'engine-receipts', executor=executor, approval=approval)
+            engine_result = protected.execute_native_operation(request, root / 'engine-receipts', executor=executor,
+                                                               approval=approval, expected_engine_version=expected_version)
             _event(root, journal, 'engine_result', result=engine_result)
             if engine_result['status'] != 'succeeded_verified':
                 _fail('maintenance_engine_incomplete')

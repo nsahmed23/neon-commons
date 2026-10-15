@@ -17,7 +17,11 @@ import tempfile
 from uuid import uuid4
 
 from . import engine, runner, workflow
-from .pin_profiles import CURRENT as _PIN_CURRENT, LEGACY as _PIN_LEGACY, context_pin_report, context_profile
+from .pin_profiles import CURRENT as _PIN_CURRENT, LEGACY as _PIN_LEGACY, context_pin_report, context_profile, tools as _pin_tools
+
+
+def tools_legacy_version():
+    return _pin_tools(_PIN_LEGACY)['engine_version']
 from .io import AppError, canonical, digest, file_sha, load_json, write_json, sync_directory, mkdir_durable
 
 VERSION = 'journey/1.0'
@@ -603,12 +607,18 @@ def _generate(session, state, observed, guard):
     state['in_flight'] = None; write_json(session, state)
 
 
-def _require_current_profile(observed):
-    """A journey under the legacy pins is generated and read, never planned, approved or executed."""
-    from .protected import LegacyProfileNotExecutable
+def _require_current_profile(observed, executor=None):
+    """A journey under the legacy pins is generated and read, never planned, approved or executed. Given its validated
+    executor, it also requires that executor to be the one the context's profile names (and not a legacy one)."""
+    from .protected import LegacyProfileNotExecutable, _engine_version
     profile = context_profile(observed['context'])
     if profile is None: raise AppError('journey_context_version', 'The target context does not select a recognised pin profile.')
     if profile['profile'] == _PIN_LEGACY: raise LegacyProfileNotExecutable(profile['engine_version'])
+    if executor is not None:
+        made = _engine_version(executor)
+        if made != profile['engine_version']:
+            if made == tools_legacy_version(): raise LegacyProfileNotExecutable(made)
+            raise AppError('engine_profile_mismatch', 'The journey executor was made for OpenTofu ' + str(made) + ' but its context requires OpenTofu ' + profile['engine_version'] + '; prepare the plan again.')
 
 
 def _prepare_plan(session, state, observed):
@@ -794,7 +804,7 @@ def _run(session, state, fresh, input_fn, output_fn, guard):
                             execute(state['repository'], observed['context']['stack'], observed['context']['component'],
                                     state['atmos_executable'], _root(session) / 'native-atmos.json')
                         if step == 'plan': _prepare_plan(session, state, observed)
-                        if step in ('approval', 'execute'): _require_current_profile(observed)
+                        if step in ('approval', 'execute'): _require_current_profile(observed, _native(session))
                         if step == 'approval':
                             from .protected import approve_synthetic_operation, approve_native_local_operation
                             approve = approve_native_local_operation if state.get('tofu_executable') else approve_synthetic_operation

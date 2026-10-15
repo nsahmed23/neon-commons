@@ -914,7 +914,179 @@ class WorkbenchProposeEngineVersionTests(unittest.TestCase):
         write_json(self.operation / 'journal.json', journal)
         with self.assertRaises(AppError) as raised:
             maintenance.review(self.operation)
-        self.assertEqual(raised.exception.code, 'maintenance_engine_changed')
+        self.assertEqual(raised.exception.code, 'engine_profile_mismatch')
+
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Round 4, item 2: the expected profile is enforced where the plan is consumed.
+# ---------------------------------------------------------------------------------------------------------------------
+class ExpectedProfileIsEnforcedTests(unittest.TestCase):
+    from plugin_tests import test_maintenance as _maintenance
+    setUp = _maintenance.MaintenanceTests.setUp
+    propose = _maintenance.MaintenanceTests.propose
+    patches = _maintenance.MaintenanceTests.patches
+
+    def context(self, **fields):
+        from intune_iac.io import write_json
+        path = self.root / 'context.json'
+        write_json(path, dict({'tenant_id': self.tenant}, **fields))
+        return path
+
+    def coherent_pair(self, context_version, version, profile):
+        """A plan and an executor that agree with each other (both made for `version`) under a context of another profile."""
+        from unittest.mock import patch
+        from intune_iac import maintenance
+        from intune_iac.io import AppError
+        with patch.object(maintenance, '_engine_profile', return_value=(version, profile)):
+            try:
+                self.propose(context_path=self.context(schema_version=context_version))
+            except AppError as error:  # propose ends by reviewing what it wrote, so the mismatch already shows there
+                self.assertEqual(error.code, 'engine_profile_mismatch')
+
+    def assert_refused_everywhere(self):
+        from intune_iac import maintenance
+        from intune_iac.io import AppError
+        journal_before = (self.operation / 'journal.json').read_bytes()
+        with self.assertRaises(AppError) as reviewed:
+            maintenance.review(self.operation)
+        self.assertEqual(reviewed.exception.code, 'engine_profile_mismatch')
+        plan = json.loads((self.operation / 'plan.json').read_text())
+        from intune_iac.io import digest
+        with self.assertRaises(AppError) as executed:
+            maintenance.execute(self.operation, approve_digest=digest(plan))
+        self.assertEqual(executed.exception.code, 'engine_profile_mismatch')
+        self.assertFalse(executed.exception.effects['dispatched'])
+        self.assertEqual((self.operation / 'journal.json').read_bytes(), journal_before)
+        self.assertEqual(self.patches(), [])
+
+    def test_a_current_context_with_a_coherent_legacy_plan_and_executor_is_refused_at_review_and_execute(self):
+        self.coherent_pair(CONTEXT_V2, LEGACY_TOFU, LEGACY)
+        self.assert_refused_everywhere()
+
+    def test_a_legacy_context_with_a_current_plan_and_executor_is_refused_at_review_and_execute(self):
+        self.coherent_pair(CONTEXT_V1, CURRENT_TOFU, CURRENT)
+        self.assert_refused_everywhere()
+
+    def test_a_plan_that_names_a_profile_its_executor_does_not_have_is_refused(self):
+        from intune_iac import maintenance
+        from intune_iac.io import AppError, digest, write_json
+        self.propose(context_path=self.context(schema_version=CONTEXT_V2))
+        plan = json.loads((self.operation / 'plan.json').read_text())
+        plan['engine_version'], plan['pin_profile'] = LEGACY_TOFU, LEGACY
+        write_json(self.operation / 'plan.json', plan)
+        journal = json.loads((self.operation / 'journal.json').read_text())
+        journal['plan_sha256'] = digest(plan)
+        write_json(self.operation / 'journal.json', journal)
+        with self.assertRaises(AppError) as raised:
+            maintenance.review(self.operation)
+        self.assertEqual(raised.exception.code, 'engine_profile_mismatch')
+
+    def test_the_executor_is_validated_by_its_own_validation_not_a_direct_manifest_read(self):
+        from intune_iac import maintenance
+        from intune_iac.io import AppError
+        self.propose()
+        worker = self.operation / 'executor/worker.py'
+        worker.chmod(0o600)
+        worker.write_bytes(worker.read_bytes() + b'\n')
+        with self.assertRaises(AppError) as raised:
+            root, plan, *_ = maintenance._load(self.operation)
+            maintenance._check_engine_binding(root, plan, None)
+        self.assertEqual(raised.exception.code, 'worker_changed')  # SyntheticExecutor refused it; a manifest read would not
+
+    def test_execution_passes_the_expected_version_to_the_protected_boundary_and_it_is_rechecked_there(self):
+        from unittest.mock import patch
+        from intune_iac import maintenance, protected
+        proposal = self.propose(context_path=self.context(schema_version=CONTEXT_V2))
+        seen = []
+        real = protected.execute_native_operation
+
+        def spy(*args, **keywords):
+            seen.append(keywords.get('expected_engine_version'))
+            return real(*args, **keywords)
+        with patch.object(protected, 'execute_native_operation', spy):
+            result = maintenance.execute(self.operation, approve_digest=proposal['approval_digest'])
+        self.assertEqual(result['status'], 'succeeded_verified', result)
+        self.assertEqual(seen, [CURRENT_TOFU])
+
+    def test_the_protected_boundary_refuses_an_expected_version_the_executor_does_not_have_before_any_event(self):
+        from intune_iac import protected
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary)
+            executor = protected.create_synthetic_executor(folder / 'executor', initial_value={'a': 1}, desired_value={'a': 2},
+                                                           engine_version=CURRENT_TOFU)
+            request = protected.prepare_native_operation(executor)
+            grant = protected.approve_synthetic_operation(request, executor=executor)
+            result = protected.execute_native_operation(request, folder / 'state', executor=executor, approval=grant,
+                                                        expected_engine_version=LEGACY_TOFU)
+            self.assertEqual((result['status'], result['error']['code']), ('rejected', 'engine_profile_mismatch'))
+            self.assertFalse((folder / 'state').exists())
+            self.assertFalse((folder / 'executor/consumed.json').exists())
+
+
+class PlanReviewExpectedVersionTests(unittest.TestCase):
+    def test_a_plan_review_used_as_a_gate_takes_the_expected_engine_version_explicitly(self):
+        from intune_iac.execution import review_plan
+        from intune_iac.io import AppError
+        current = minimal_plan(CURRENT_TOFU, CURRENT_TOFU)
+        legacy = minimal_plan(LEGACY_TOFU, LEGACY_TOFU)
+        self.assertEqual(review_plan(current, expected_engine_version=CURRENT_TOFU)['pin_profile'], CURRENT)
+        self.assertEqual(review_plan(legacy, expected_engine_version=LEGACY_TOFU)['pin_profile'], LEGACY)
+        for document, expected in ((current, LEGACY_TOFU), (legacy, CURRENT_TOFU)):
+            report = review_plan(document, expected_engine_version=expected)
+            self.assertIn('unqualified_engine_version', [item['code'] for item in report['blockers']])
+            self.assertIsNone(report['pin_profile'])
+        for expected in ('1.13.2', '', None, 1.13):
+            with self.subTest(expected=expected):
+                if expected is None:
+                    continue
+                with self.assertRaises(AppError):
+                    review_plan(current, expected_engine_version=expected)
+
+    def test_without_an_expected_version_the_review_is_unchanged(self):
+        from intune_iac.execution import review_plan
+        self.assertEqual(review_plan(minimal_plan(CURRENT_TOFU))['pin_profile'], CURRENT)
+        self.assertEqual(review_plan(minimal_plan(LEGACY_TOFU))['pin_profile'], LEGACY)
+
+    def test_the_protected_review_of_a_modeled_plan_uses_the_version_of_its_executor(self):
+        from unittest.mock import patch
+        from intune_iac import execution, protected
+        seen = []
+        real = execution.review_plan
+
+        def spy(document, **keywords):
+            seen.append(keywords.get('expected_engine_version'))
+            return real(document, **keywords)
+        for version in (CURRENT_TOFU, LEGACY_TOFU):
+            with tempfile.TemporaryDirectory() as temporary:
+                executor = protected.create_synthetic_executor(Path(temporary) / 'executor', initial_value={'a': 1},
+                                                               desired_value={'a': 2}, engine_version=version)
+                with patch.object(protected, 'review_plan', spy):
+                    protected.prepare_native_operation(executor)
+        self.assertEqual(seen, [CURRENT_TOFU, LEGACY_TOFU])
+
+
+class JourneyExecutorProfileTests(unittest.TestCase):
+    def observed(self, profile):
+        return {'context': with_pins(example_context(), profile)}
+
+    def executor(self, version):
+        from intune_iac import protected
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        return protected.create_synthetic_executor(Path(temporary.name) / 'executor', initial_value={}, desired_value={},
+                                                   engine_version=version)
+
+    def test_the_journey_requires_the_executor_to_be_the_one_its_context_profile_names(self):
+        from intune_iac import journey
+        from intune_iac.io import AppError
+        journey._require_current_profile(self.observed(CURRENT), self.executor(CURRENT_TOFU))  # agrees
+        with self.assertRaises(AppError) as raised:
+            journey._require_current_profile(self.observed(CURRENT), self.executor(LEGACY_TOFU))
+        self.assertEqual(raised.exception.code, 'legacy_profile_not_executable')
+        with self.assertRaises(AppError) as raised:
+            journey._require_current_profile(self.observed(LEGACY), self.executor(CURRENT_TOFU))
+        self.assertEqual(raised.exception.code, 'legacy_profile_not_executable')  # the legacy context is refused first
 
 
 if __name__ == '__main__':

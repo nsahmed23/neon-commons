@@ -78,9 +78,17 @@ def _text(value):
     return isinstance(value, str) and 0 < len(value) <= 4096 and '\x00' not in value
 
 
-def review_plan(document: dict) -> dict:
-    """Review a plan against the general profile. The engine version is one of the two profiles' versions (see ENGINE_VERSIONS)."""
-    return _review_plan(document, ENGINE_VERSIONS)
+def review_plan(document: dict, *, expected_engine_version=None) -> dict:
+    """Review a plan against the general profile. The engine version is one of the two profiles' versions (see ENGINE_VERSIONS).
+
+    A review used as an execution gate says which version it expects (the one its operation's profile requires): any other
+    version, even the other profile's, is then blocked as unqualified_engine_version and carries no profile. An expected
+    version that is not one of the two is refused outright."""
+    if expected_engine_version is None:
+        return _review_plan(document, ENGINE_VERSIONS)
+    if type(expected_engine_version) is not str or expected_engine_version not in ENGINE_VERSIONS:
+        raise AppError('unqualified_engine_version', 'The expected engine version is not a qualified profile version.')
+    return _review_plan(document, frozenset({expected_engine_version}))
 
 
 def review_local_output_plan(document: dict, *, engine_version: str) -> dict:
