@@ -32,6 +32,10 @@ TEXT_LINE_LIMIT = 600
 LABEL_CELLS = 80
 CHAR_WIDTH = 7.3
 CENTER_HEADING = 'SELECTED POLICY'
+# The one way the companion command is named wherever it is named (the actions entry, its long text and this page): the
+# product's own flags. The address a --serve run listens on is printed by the product; the engineer never supplies it.
+COMPANION_WRITE = 'workbench companion --root STORE --object ID --out FILE'
+COMPANION_SERVE = 'workbench companion --root STORE --object ID --serve'
 
 # Geometry, in drawing units. One step along a plate is (STEP_X, STEP_Y), the 30 degree isometric axis.
 STEP_X, STEP_Y = 45, 26
@@ -635,8 +639,10 @@ def render_page(graph, *, mode_class=None, tenant=None, observed_at=None, tree_l
         body_live = (' data-live="1" data-snapshot="%s" data-poll="%d"' % (_t(live['snapshot']), live['poll_seconds'] * 1000))
     else:
         status = ('STATIC FILE: this page does not update itself. It shows revision %s, %s. To see a newer snapshot, '
-                  'write the file again or use live mode: from a shell, run the same workbench companion command with --serve '
-                  'instead of --out.' % (revision[:12], ('observed ' + _t(when)) if when else 'observation time unknown'))
+                  'write the file again with %s or use live mode: from a shell, run %s instead of --out FILE; the product '
+                  'prints its secret address.'
+                  % (revision[:12], ('observed ' + _t(when)) if when else 'observation time unknown',
+                     COMPANION_WRITE, COMPANION_SERVE))
         note = 'This file was written once; nothing on it reads the workbench again.'
         body_live = ''
     lines = _bounded(tree_lines if tree_lines is not None else _tree(graph))

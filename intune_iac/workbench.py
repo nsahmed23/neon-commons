@@ -15,6 +15,7 @@ import shutil
 import signal
 import threading
 
+from .companion_page import COMPANION_WRITE
 from .io import AppError, load_json
 from .workbench_diagnostics import CLOCK_HOLD_CAUSES, CLOCK_HOLD_REASONS, CLOCK_HOLD_WORDS, clock_hold, with_clock_times
 
@@ -406,8 +407,9 @@ ACTION_EFFECTS = {
                          'sends nothing to the service.',
     'companion': 'Reads this policy and its relationships and writes only the file you name: an isometric page that shows '
                  'one snapshot and does not update itself. It records nothing in the store, can approve or run nothing and '
-                 'never opens a browser; the notice names the path. "companion serve" instead serves the page on this '
-                 'machine only, under a secret address (anyone on the same machine who has it can read the page).',
+                 'never opens a browser; the notice names the path. From a shell the same command is ' + COMPANION_WRITE +
+                 '; with --serve instead of --out FILE it serves the page on this machine only, and the product prints its '
+                 'secret address (anyone on the same machine who has it can read the page).',
 }
 
 
@@ -765,7 +767,7 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
               cursor=len('propose '), needs=['DESIRED_JSON: a file holding the desired policy body'], blocked=blocked)
     # Last, so every other action keeps its place: a view of this policy, not a step of the work.
     offer('companion', 'Write the read-only isometric page for this policy', 'companion ', cursor=len('companion '),
-          needs=['FILE: where to write the page (or serve: a loopback address that is a secret)'])
+          needs=['FILE: where to write the page; you supply the path of a file, not an address'])
     return actions
 
 
