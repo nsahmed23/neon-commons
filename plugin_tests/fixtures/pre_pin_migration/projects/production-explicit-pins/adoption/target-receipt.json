@@ -1,0 +1,9 @@
+{
+  "component": "windows-privacy",
+  "context_canonical_sha256": "e9d756bcd448e118080622d947b362f69864693f16901e95067452630a7d0dff",
+  "execution_authorized": false,
+  "implementation": null,
+  "repository_source_fingerprint": null,
+  "schema_version": "1.0.0",
+  "stack": "workstation-pilot"
+}

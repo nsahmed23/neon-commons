@@ -1,0 +1,7 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+*.plan
+*.planfile
+*.tfplan
+# Keep .terraform.lock.hcl after independently approved provider initialization.

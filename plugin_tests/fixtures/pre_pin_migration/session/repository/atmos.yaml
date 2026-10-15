@@ -1,0 +1,7 @@
+base_path: .
+stacks:
+  base_path: stacks
+  included_paths: ['deploy/**/*']
+components:
+  terraform:
+    base_path: components/terraform

@@ -1,0 +1,5 @@
+# ID passthrough importer in pinned resource.go. Execution is not authorized.
+import {
+  to = microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.policy["p_4ef51336c48750019e617157fc597bbe_10bd368cbef556918fd4235ab85f70b4"]
+  id = "10bd368c-bef5-5691-8fd4-235ab85f70b4"
+}

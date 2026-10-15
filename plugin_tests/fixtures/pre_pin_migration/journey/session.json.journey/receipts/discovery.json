@@ -1,0 +1,1 @@
+{"assurance":"local_evidence_only","cloud_authority":false,"dependencies":{},"mode":"simulation","payload":{"assurance":"local_context_only","mode":"no_repository_supplied"},"schema_version":"journey/1.0","stage":"discovery"}

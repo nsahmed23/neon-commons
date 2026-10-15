@@ -1,0 +1,18 @@
+{
+  "atmos_version": "1.199.0",
+  "authorization": "emit_only",
+  "backend_owner": "external",
+  "cloud": "public",
+  "component": "intune-reference",
+  "engine": "tofu",
+  "engine_version": "1.10.0",
+  "provider_source": "deploymenttheory/microsoft365",
+  "provider_version": "1.0.0",
+  "repository_revision": "7fe66509078165105480e04ee66b8a4c8088b4a7",
+  "schema_version": "1.0.0",
+  "selected_policy_id": "10bd368c-bef5-5691-8fd4-235ab85f70b4",
+  "source_is_synthetic": true,
+  "stack": "reference-dev",
+  "state_key": "synthetic/721/intune.tfstate",
+  "tenant_id": "4ef51336-c487-5001-9e61-7157fc597bbe"
+}

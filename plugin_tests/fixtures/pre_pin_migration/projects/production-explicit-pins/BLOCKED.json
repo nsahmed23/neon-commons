@@ -1,0 +1,17 @@
+{
+  "blockers": [
+    {
+      "code": "reference_evidence_unverified",
+      "path_ref": "14f198e8d9aaef3575eeed5494b11203a51ff5b9c8e83fb423d1eb0ec8244ab7"
+    },
+    {
+      "code": "ownership_unknown",
+      "path_ref": "255ca723954048b483439b3cfd3af28ac4ab6854385138c74651293bf0532b47"
+    },
+    {
+      "code": "provider_qualification_required",
+      "path_ref": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "execution_allowed": false
+}

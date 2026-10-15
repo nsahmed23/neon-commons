@@ -1,0 +1,9 @@
+{
+  "component": "policy",
+  "context_canonical_sha256": "2d285a17392dd0e8d51bcc2e0ccdc676517420dbaf933619bce0e6d686369d1c",
+  "execution_authorized": false,
+  "implementation": "policy",
+  "repository_source_fingerprint": "9aa48ee0494cb76f1f2544b70e6a1d02b15a691ce895cfaf39cb4c89ee13f542",
+  "schema_version": "1.0.0",
+  "stack": "deploy/dev"
+}

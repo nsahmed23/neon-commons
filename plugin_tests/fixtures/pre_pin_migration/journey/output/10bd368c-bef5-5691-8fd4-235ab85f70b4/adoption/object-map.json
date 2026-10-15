@@ -1,0 +1,16 @@
+{
+  "objects": [
+    {
+      "address": "microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json.policy[\"p_4ef51336c48750019e617157fc597bbe_10bd368cbef556918fd4235ab85f70b4\"]",
+      "import_id": "10bd368c-bef5-5691-8fd4-235ab85f70b4",
+      "import_status": "not_run",
+      "object_id": "10bd368c-bef5-5691-8fd4-235ab85f70b4",
+      "provider_source": "deploymenttheory/microsoft365",
+      "provider_version": "1.0.0",
+      "referenced_objects_owner": "external",
+      "resource_family": "settings_catalog_policy",
+      "tenant_id": "4ef51336-c487-5001-9e61-7157fc597bbe"
+    }
+  ],
+  "schema_version": "1.0.0"
+}

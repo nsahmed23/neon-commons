@@ -1,0 +1,26 @@
+{
+  "collections": [
+    {
+      "complete": true,
+      "kind": "policies",
+      "owner_id": null,
+      "page_count": 1,
+      "source_pointer": "/collections/0"
+    },
+    {
+      "complete": true,
+      "kind": "settings",
+      "owner_id": "10bd368c-bef5-5691-8fd4-235ab85f70b4",
+      "page_count": 1,
+      "source_pointer": "/collections/1"
+    },
+    {
+      "complete": true,
+      "kind": "assignments",
+      "owner_id": "10bd368c-bef5-5691-8fd4-235ab85f70b4",
+      "page_count": 3,
+      "source_pointer": "/collections/2"
+    }
+  ],
+  "schema_version": "1.0.0"
+}

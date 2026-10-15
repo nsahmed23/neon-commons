@@ -1,0 +1,47 @@
+{
+  "assignments": [
+    {
+      "filter_id": "77777777-7777-4777-8777-777777777777",
+      "filter_type": "include",
+      "group_id": "44444444-4444-4444-8444-444444444444",
+      "type": "groupAssignmentTarget"
+    },
+    {
+      "filter_type": "none",
+      "group_id": "55555555-5555-4555-8555-555555555555",
+      "type": "groupAssignmentTarget"
+    },
+    {
+      "filter_type": "none",
+      "group_id": "66666666-6666-4666-8666-666666666666",
+      "type": "exclusionGroupAssignmentTarget"
+    }
+  ],
+  "description": "Synthetic reference; not production advice.",
+  "name": "Windows Privacy Pilot",
+  "platforms": "windows10",
+  "role_scope_tag_ids": [
+    "0"
+  ],
+  "settings": {
+    "settings": [
+      {
+        "id": "0",
+        "settingInstance": {
+          "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance",
+          "choiceSettingValue": {
+            "@odata.type": "#microsoft.graph.deviceManagementConfigurationChoiceSettingValue",
+            "children": [],
+            "settingValueTemplateReference": null,
+            "value": "device_vendor_msft_policy_config_privacy_letappsaccesslocation_2"
+          },
+          "settingDefinitionId": "device_vendor_msft_policy_config_privacy_letappsaccesslocation",
+          "settingInstanceTemplateReference": null
+        }
+      }
+    ]
+  },
+  "technologies": [
+    "mdm"
+  ]
+}

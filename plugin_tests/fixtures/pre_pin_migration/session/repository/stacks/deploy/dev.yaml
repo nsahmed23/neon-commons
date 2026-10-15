@@ -1,0 +1,7 @@
+vars:
+  region: west
+components:
+  terraform:
+    policy:
+      vars:
+        stage: dev
