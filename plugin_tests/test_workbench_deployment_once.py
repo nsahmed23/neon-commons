@@ -35,7 +35,8 @@ print(json.dumps({'artifact_id': result['artifact_id'], 'created': result['creat
 '''
 
 
-class DeploymentRecordedOnceTests(unittest.TestCase):
+class Fixture:
+    """A prepared, executed operation and its store; a mixin so each test class collects only its own tests."""
     RESOURCE_ADDRESS = repository_tests.RepositoryOwnedChangeTests.RESOURCE_ADDRESS
     setUp = repository_tests.RepositoryOwnedChangeTests.setUp
     import_intent = repository_tests.RepositoryOwnedChangeTests.import_intent
@@ -55,6 +56,8 @@ class DeploymentRecordedOnceTests(unittest.TestCase):
         from intune_iac.workbench_views import record_local_deployment
         return record_local_deployment(self.store, self.operation, intent_id or self.intent['artifact_id'])
 
+
+class DeploymentRecordedOnceTests(Fixture, unittest.TestCase):
     def test_the_second_recording_returns_the_first_record_and_adds_none(self):
         self.executed()
         first, second = self.record(), self.record()
@@ -94,6 +97,64 @@ class DeploymentRecordedOnceTests(unittest.TestCase):
         self.assertEqual(len(self.receipts()), 1, results)
         self.assertEqual(sorted(r['created'] for r in results), [False, True], results)
         self.assertEqual(len({r['artifact_id'] for r in results}), 1, results)
+
+
+class RefusalsAndOtherProofsTests(Fixture, unittest.TestCase):
+    """A second recording is only the same deployment when every refusal passes and the proof is the recorded one."""
+
+    def refusal_code(self, intent_id=None):
+        from intune_iac.io import AppError
+        with self.assertRaises(AppError) as caught:
+            self.record(intent_id)
+        self.assertIs(caught.exception.effects['deployment_recorded'], False)
+        return caught.exception.code
+
+    def test_a_wrong_intent_is_still_refused_after_a_record_exists(self):
+        self.executed()
+        self.record()
+        other = [row for row in self.store.artifacts(kind='repository_intent')
+                 if row['artifact_id'] != self.intent['artifact_id']][0]['artifact_id']
+        self.assertEqual(self.refusal_code(other), 'workbench_deployment_intent_not_cited')
+        self.assertEqual(self.refusal_code('f' * 64), 'workbench_deployment_intent')
+        self.assertEqual(len(self.receipts()), 1)
+
+    def test_an_unverified_operation_is_refused_and_records_nothing(self):
+        self.prepare()
+        self.assertEqual(self.refusal_code(), 'workbench_deployment_unverified')
+        self.assertEqual(self.receipts(), [])
+
+    def test_a_context_changed_after_the_record_is_refused_not_answered_with_the_record(self):
+        # The refusals run before the store is asked, so a record never excuses a proof that no longer passes.
+        from intune_iac import maintenance
+        self.executed()
+        self.record()
+        _, plan, _, _, _ = maintenance._load(self.operation)
+        path = Path(plan['context']['path'])
+        path.write_bytes(path.read_bytes() + b' ')
+        self.assertEqual(self.refusal_code(), 'workbench_deployment_context_mismatch')
+        self.assertEqual(len(self.receipts()), 1)
+
+    def test_a_proof_that_differs_from_the_recorded_one_is_a_different_deployment(self):
+        import copy
+        self.executed()
+        first = self.record()
+        template = copy.deepcopy(first['data'])
+        same_time_later = dict(template, recorded_at=template['recorded_at'] + 5)
+        self.assertFalse(self.store.record_artifact('deployment_receipt', None, same_time_later,
+                         once_by=('$.proof.operation_id', template['proof']['operation_id'], ('recorded_at',)))['created'])
+        def variant(proof=None, **top):
+            data = copy.deepcopy(template)
+            data['recorded_at'] += 9
+            data['proof'].update(proof or {})
+            data.update(top)
+            return data
+        different = {'readback': variant(proof={'readback_sha256': '0' * 64}), 'plan': variant(proof={'plan_sha256': '1' * 64}),
+                     'operation': variant(proof={'operation_id': 'another-operation'}), 'intent': variant(intent_id='2' * 64)}
+        for name, data in different.items():
+            result = self.store.record_artifact('deployment_receipt', None, data,
+                                                once_by=('$.proof.operation_id', data['proof']['operation_id'], ('recorded_at',)))
+            self.assertTrue(result['created'], name)
+        self.assertEqual(len(self.receipts()), 1 + len(different))
 
 
 if __name__ == '__main__':
