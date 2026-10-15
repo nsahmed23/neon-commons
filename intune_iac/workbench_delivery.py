@@ -51,13 +51,22 @@ def _readback_fields(path, value):
             'mismatch_count': len(value.get('mismatches') or [])}
 
 
-def _approval(journal, request, now):
+def _approval(journal, request, now, judged=None):
+    """judged: the window as execute judges it (maintenance.approval_window). A recorded expiry, a held window and
+    an unreadable time record come from it; its effective time stands in for the wall clock."""
     window = {'opens_at': request['created_at'], 'closes_at': request['expires_at']}
+    judged = judged if isinstance(judged, dict) else {}
     dispatches = _events(journal, 'dispatch_started')
     if dispatches:
         return {'stage': 'approval', 'status': 'done', 'approval_digest': dispatches[0].get('approval_digest'), **window}
     if journal['status'] == 'rejected':
         return {'stage': 'approval', 'status': 'rejected', **window}
+    if judged.get('state') == 'closed_recorded':
+        return {'stage': 'approval', 'status': 'expired', 'recorded': True, **window}
+    if judged.get('state') == 'unknown':
+        return {'stage': 'approval', 'status': 'clock_unreadable', **window}
+    if judged.get('state') == 'clock_moved_backward':
+        return {'stage': 'approval', 'status': 'clock_uncertain', **window}
     if now < request['created_at']:
         return {'stage': 'approval', 'status': 'not_open', **window}
     return {'stage': 'approval', 'status': 'waiting' if now < request['expires_at'] else 'expired', **window}
@@ -224,6 +233,12 @@ def _next_action(stages, operation_root, store_root):
                 'one on the review, never filled in for you.' % (operation, _when(approval['closes_at'])))
     if approval['status'] == 'expired':
         return 'The approval window closed at %s; prepare a new proposal from the current intent.' % _when(approval['closes_at'])
+    if approval['status'] == 'clock_uncertain':
+        return ("This host's clock reads earlier than a time this operation recorded, so execute holds it. Correct "
+                'the clock and restart the workbench, or wait until the clock passes the recorded time; or prepare a '
+                'new proposal.')
+    if approval['status'] == 'clock_unreadable':
+        return "This operation's recorded time cannot be read, so execute refuses it; prepare a new proposal."
     if approval['status'] == 'not_open':
         return ('The local clock reads earlier than this plan was prepared; approval is refused until it passes %s.'
                 % _when(approval['opens_at']))
@@ -312,7 +327,13 @@ def delivery(operation_root, *, now=None):
     root, plan, journal, desired, request = maintenance._load(review['operation_root'])
     if digest(plan) != review['approval_digest']:
         maintenance._fail('maintenance_evidence_changed')
-    now = time.time() if now is None else now
+    judged = review.get('approval_window') if isinstance(review.get('approval_window'), dict) else {}
+    if now is None:
+        # The window's effective time, as execute judges it.
+        now = judged['judged_at'] if isinstance(judged.get('judged_at'), (int, float)) else time.time()
+    elif judged.get('state') not in ('closed_recorded', 'unknown'):
+        # A caller's own now judges the window; only durable records still apply.
+        judged = {}
     store = maintenance._store(plan['store_root'])
     records = [record for record in store.operations(object_id=plan['object_id'])
                if record['operation_id'] == plan['operation_id']]
@@ -328,7 +349,7 @@ def delivery(operation_root, *, now=None):
         {'stage': 'review', 'status': 'done', 'changes': plan['changes'], 'no_configuration_change': review['no_configuration_change'],
          'field_changes': review['field_changes'], 'approval_digest': review['approval_digest'],
          'saved_plan_sha256': review['saved_plan_sha256']},
-        _approval(journal, request, now),
+        _approval(journal, request, now, judged),
         _execution(journal, times),
         _readback(root, journal),
         _reconciliation(root, journal, times),

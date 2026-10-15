@@ -1092,6 +1092,11 @@ class Workspace:
                 item = value.get(key, 'unknown')
                 field(label, _readable_epoch(item) if key == 'expires_at' else str(item).replace('_', ' ')
                       if key in ('status', 'evidence_class') else item)
+                judged = value.get('approval_window')
+                if key == 'expires_at' and isinstance(judged, dict) and value.get('status') == 'prepared':
+                    # As execute judges it (maintenance.approval_window); a view records nothing.
+                    from .workbench_screens import WINDOW_WORDS
+                    field('Approval window', WINDOW_WORDS.get(judged.get('state'), str(judged.get('state'))))
         elif self.tab == 5 and value.get('schema_version') == 'workbench-delivery/1':
             from .workbench_screens import delivery_lines
             rows.extend(delivery_lines(value, width, getattr(self, 'rules', 'ascii')))

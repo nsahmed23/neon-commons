@@ -402,3 +402,80 @@ class LegacyMigrationOrderTests(unittest.TestCase):
                            (run_id, run_id, snapshot, self.tenant, oid, observed_at, source))
         legacy.migrate(self.root / 'backup.sqlite3')
         self.assertEqual(legacy.inspect(oid)['body']['name'], 'Second run body')
+
+
+class WindowViewTests(unittest.TestCase):
+    """The review, the lifecycle line and Delivery judge the window as execute does, without recording anything."""
+    setUp = MaintenanceDispatchTests.setUp
+    patches = MaintenanceDispatchTests.patches
+    execute = MaintenanceDispatchTests.execute
+
+    def tree(self):
+        import hashlib
+        executor = self.operation / 'executor'
+        return {str(path.relative_to(executor)): hashlib.sha256(path.read_bytes()).hexdigest()
+                for path in sorted(executor.rglob('*')) if path.is_file()}
+
+    def window(self):
+        return maintenance.review(self.operation)['approval_window']['state']
+
+    def approval(self):
+        from intune_iac.workbench_delivery import delivery
+        return next(item for item in delivery(self.operation)['stages'] if item['stage'] == 'approval')
+
+    def test_the_review_reports_the_window_as_execute_judges_it_and_records_nothing(self):
+        before = self.tree()
+        self.assertEqual(self.window(), 'open')
+        self.clocks.elapse(400)
+        self.assertEqual(self.window(), 'closed')
+        self.assertEqual(self.tree(), before, 'a review records nothing')
+        self.execute()  # the refused attempt records the expiry
+        self.clocks.wall = self.proposal['expires_at'] - 200
+        clock.reset_process_anchor()
+        self.assertEqual(self.window(), 'closed_recorded')
+
+    def test_a_backward_step_is_reported_not_called_open(self):
+        # Prepare recorded the creation time; a reading 266 s earlier cannot be judged.
+        self.clocks.step(-266)
+        clock.reset_process_anchor()
+        self.assertEqual(self.window(), 'clock_moved_backward')
+        self.assertEqual(self.approval()['status'], 'clock_uncertain')
+
+    def test_delivery_and_the_lifecycle_line_follow_the_recorded_expiry(self):
+        from intune_iac.workbench_screens import _approval_text, lifecycle_next
+        self.clocks.elapse(400)
+        self.execute()
+        self.clocks.wall = self.proposal['expires_at'] - 200
+        clock.reset_process_anchor()
+        stage = self.approval()
+        self.assertEqual((stage['status'], stage.get('recorded')), ('expired', True))
+        self.assertIn('recorded; a clock that reads earlier does not reopen it', _approval_text(stage, stage['status']))
+        review = maintenance.review(self.operation)
+        self.assertIn('approval window has closed', lifecycle_next(4, review, self.clocks.now()))
+
+    def test_a_damaged_clock_record_reads_as_unknown_and_refused(self):
+        from intune_iac.workbench_screens import lifecycle_next
+        (self.operation / 'executor' / 'clock.json').write_text('not json')
+        self.assertEqual(self.window(), 'unknown')
+        self.assertEqual(self.approval()['status'], 'clock_unreadable')
+        self.assertIn("recorded time cannot be read, so execute refuses it",
+                      lifecycle_next(4, maintenance.review(self.operation), self.clocks.now()))
+
+    def test_the_held_and_unreadable_windows_read_as_such(self):
+        from intune_iac.workbench_screens import _approval_text, lifecycle_next
+        stage = {'stage': 'approval', 'status': 'clock_uncertain', 'opens_at': START, 'closes_at': START + 300}
+        self.assertIn("held: this host's clock reads earlier than a time this operation recorded",
+                      _approval_text(stage, 'clock_uncertain'))
+        self.assertIn("recorded time cannot be read", _approval_text(dict(stage, status='clock_unreadable'), 'clock_unreadable'))
+        review = {'status': 'prepared', 'approval_window': {'state': 'clock_moved_backward'}, 'expires_at': START + 300}
+        self.assertIn("this host's clock reads earlier than this operation's recorded time, so execute holds it",
+                      lifecycle_next(4, review, START))
+
+    def test_the_plan_review_names_the_window_for_a_prepared_plan_only(self):
+        from plugin_tests.test_workbench_words import ReviewWordTests, text
+        value = {'operation_id': 'a' * 32, 'status': 'prepared', 'approval_digest': 'b' * 64, 'expires_at': START + 300,
+                 'approval_window': {'state': 'clock_moved_backward'}}
+        lines = text(ReviewWordTests.workspace(self, 4, value)._surface_summary(160))
+        self.assertIn("Approval window: held: this host's clock reads earlier than a time this operation recorded", lines)
+        lines = text(ReviewWordTests.workspace(self, 4, dict(value, status='outcome_unknown'))._surface_summary(160))
+        self.assertNotIn('Approval window', lines)

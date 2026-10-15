@@ -361,6 +361,28 @@ def _repository_review(plan):
             'freshness': freshness['status'], 'changed_sources': freshness.get('sources')}
 
 
+def approval_window(root, request):
+    """The approval window as execute judges it (protected._window), read-only: nothing is recorded.
+
+    state: open, closed (the effective time reached the expiry), closed_recorded (an expiry is recorded beside the
+    approval), clock_moved_backward (validity cannot be established now: the clock reads earlier than a recorded
+    time or than the plan's creation) or unknown (the recorded time cannot be read). Views show this, never a
+    comparison with a bare wall-clock reading.
+    """
+    from . import clock
+    executor = Path(root) / 'executor'
+    window = {'opens_at': request['created_at'], 'closes_at': request['expires_at']}
+    if (executor / 'expired.json').exists():
+        return dict(window, state='closed_recorded')
+    try:
+        reading = clock.Floor(executor / 'clock.json').peek(protected._now())
+    except AppError:
+        return dict(window, state='unknown')
+    state = ('clock_moved_backward' if reading['backward'] or reading['effective'] < request['created_at']
+             else 'closed' if reading['effective'] >= request['expires_at'] else 'open')
+    return dict(window, state=state, judged_at=reading['effective'])
+
+
 def review(operation_root):
     from .workbench_diff import field_changes
     root, plan, journal, desired, request = _load(operation_root)
@@ -373,7 +395,8 @@ def review(operation_root):
         'no_configuration_change': not plan['changes'], 'field_changes': field_changes(before, desired),
         'repository': _repository_review(plan),
         'before': before, 'desired': desired,
-        'expires_at': plan['expires_at'], 'evidence_class': EVIDENCE, 'cloud_authority': False,
+        'expires_at': plan['expires_at'], 'approval_window': approval_window(root, request),
+        'evidence_class': EVIDENCE, 'cloud_authority': False,
         'native_provider_qualified': False,
         'saved_plan_sha256': request['bindings']['saved_plan_sha256'],
         'saved_plan_json_sha256': request['bindings']['plan_json_sha256']}

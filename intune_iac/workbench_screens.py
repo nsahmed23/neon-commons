@@ -429,8 +429,16 @@ def lifecycle_next(tab, value, now, eligibility=None):
         if repository.get('cited') and repository.get('freshness') not in (None, 'current'):
             return ('the repository changed since its intent, so execute refuses it; record the current source, '
                     'then prepare again')
+        judged = value.get('approval_window') if isinstance(value.get('approval_window'), dict) else {}
+        if judged.get('state') == 'clock_moved_backward':
+            return ("this host's clock reads earlier than this operation's recorded time, so execute holds it; "
+                    'correct the clock and restart, or wait, or Prepare a proposal again (a: actions)')
+        if judged.get('state') == 'unknown':
+            return ("this operation's recorded time cannot be read, so execute refuses it; "
+                    'Prepare a proposal again (a: actions)')
         expires = value.get('expires_at')
-        if isinstance(expires, (int, float)) and not isinstance(expires, bool) and expires <= now:
+        if judged.get('state') in ('closed', 'closed_recorded') or (
+                not judged and isinstance(expires, (int, float)) and not isinstance(expires, bool) and expires <= now):
             return "this plan's approval window has closed; Prepare a proposal again (a: actions)"
         return 'execute OPERATION_DIR DIGEST runs it with the review digest; 6 Execution shows the result'
     if status == 'outcome_unknown':
@@ -1560,7 +1568,13 @@ STAGE_LABELS = {'proposal': 'Proposal', 'review': 'Review', 'approval': 'Approva
 # The marker repeats the stage's state; the words after it always say it too.
 MARKS = {'done': 'x', 'matches_desired': 'x', 'waiting': ' ', 'not_yet': ' ', 'not_started': ' ', 'available': ' ',
          'not_needed': '-', 'not_applicable': '-', 'unknown': '?', 'required': '?', 'pending': '?', 'not_open': '?',
-         'not_recorded': '?', 'failed': '!', 'expired': '!', 'rejected': '!', 'not_available': '!', 'differs': '!'}
+         'not_recorded': '?', 'failed': '!', 'expired': '!', 'rejected': '!', 'not_available': '!', 'differs': '!',
+         'clock_uncertain': '?', 'clock_unreadable': '!'}
+# The approval window as execute judges it (maintenance.approval_window); the Plan review shows these words.
+WINDOW_WORDS = {'open': 'open', 'closed': 'closed',
+                'closed_recorded': 'closed (recorded; a clock that reads earlier does not reopen it)',
+                'clock_moved_backward': "held: this host's clock reads earlier than a time this operation recorded",
+                'unknown': "unknown: this operation's recorded time cannot be read"}
 # The legend names states without the alert phrases, so only its markers are tinted, never its words.
 MARK_LEGEND = '[x] done  [ ] waiting or not yet  [-] not needed  [?] unknown or required  [!] stopped: failure, expiry or refusal'
 
@@ -1572,7 +1586,14 @@ def _approval_text(stage, status):
     if status == 'waiting':
         return 'waiting for the exact review digest until %s' % _readable_epoch(stage.get('closes_at'))
     if status == 'expired':
-        return 'expired: the approval window closed at %s' % _readable_epoch(stage.get('closes_at'))
+        return 'expired: the approval window closed at %s%s' % (
+            _readable_epoch(stage.get('closes_at')),
+            ' (recorded; a clock that reads earlier does not reopen it)' if stage.get('recorded') else '')
+    if status == 'clock_uncertain':
+        return ("held: this host's clock reads earlier than a time this operation recorded, so execute holds it; "
+                'the window closes at %s' % _readable_epoch(stage.get('closes_at')))
+    if status == 'clock_unreadable':
+        return "unknown: this operation's recorded time cannot be read, so execute refuses it"
     if status == 'not_open':
         return 'not open: the local clock reads before %s' % _readable_epoch(stage.get('opens_at'))
     return str(status).replace('_', ' ')
