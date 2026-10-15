@@ -441,5 +441,40 @@ class IncompleteUserSide(unittest.TestCase):
         self.assertEqual(bounds(out, 'p', 'retained', 'user_device_contexts'), (0, 0))
 
 
+class RingCompleteness(unittest.TestCase):
+    """Fable finding 3: a ring defined by a group is only as certain as that group's membership."""
+
+    def scenario(self, ring_group='gR', complete=False, collections=None):
+        groups = [s.group('gD')] + ([s.group('gR', complete=complete)] if ring_group == 'gR' else [])
+        members = [s.member('gD', 'a'), s.member('gD', 'b')] + ([s.member('gR', 'a')] if ring_group == 'gR' else [])
+        doc = s.snapshot_doc(devices=[s.device('a'), s.device('b')], groups=groups, memberships=members,
+                             rings=[{'ring_id': 'r1', 'name': 'Wave 0', 'order': 0, 'group_ids': [s.uid('group/' + ring_group)]}],
+                             collections=collections)
+        return simulate(doc, add(s.policy('p', [s.include('gD')], settings=[])))
+
+    def ring(self, out):
+        c = [c for c in out['cohorts'] if c['cohort_id'] == 'changed:after:unique_devices:ring:r1'][0]
+        return c['lower'], c['upper']
+
+    def test_a_ring_group_with_incomplete_membership_cannot_rule_other_devices_out(self):
+        _, out = self.scenario()
+        self.assertEqual(self.ring(out), (1, 2))
+        self.assertIn('ring_membership_incomplete:r1', out['coverage']['unresolved_reasons'])
+
+    def test_a_ring_group_missing_from_the_snapshot_is_unknown_not_empty(self):
+        _, out = self.scenario(ring_group='ghost')
+        self.assertEqual(self.ring(out), (0, 2))
+        self.assertIn('ring_membership_incomplete:r1', out['coverage']['unresolved_reasons'])
+
+    def test_an_incomplete_memberships_collection_widens_a_group_ring(self):
+        _, out = self.scenario(complete=True, collections={'memberships': {'complete': False, 'reason': 'query_ceiling'}})
+        self.assertEqual(self.ring(out), (1, 2))
+
+    def test_a_complete_ring_group_stays_exact(self):
+        _, out = self.scenario(complete=True)
+        self.assertEqual(self.ring(out), (1, 1))
+        self.assertNotIn('ring_membership_incomplete:r1', out['coverage']['unresolved_reasons'])
+
+
 if __name__ == '__main__':
     unittest.main()

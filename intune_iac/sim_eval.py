@@ -391,7 +391,7 @@ def simulate(snapshot, revision, profile):
                 cohort(f'changed:{kind}:{unit}', kind, unit, lo, hi)
                 if unit == 'unique_devices' and not complete:
                     cohort(f'changed:{kind}:{unit}:whole', kind, unit, lo, None, cohort_scope='whole_declared_universe')
-        _ring_cohorts(idx, snapshot, finding, cohort, project_sets=(idx.devices(a0l), idx.devices(a0u), idx.devices(a1l), idx.devices(a1u)))
+        _ring_cohorts(idx, snapshot, finding, cohort, reasons, project_sets=(idx.devices(a0l), idx.devices(a0u), idx.devices(a1l), idx.devices(a1u)))
 
     # -- settings comparison across policies -----------------------------------------------------------------
     _conflicts(idx, snapshot, profile, supported, before, after, world, finding, cohort, reasons, scope, set(changed))
@@ -500,19 +500,25 @@ def _domain(idx, group_id):
     return group.member_domain
 
 
-def _ring_sets(idx, snapshot):
+def _ring_sets(idx, snapshot, reasons):
+    """(ring, definite members, possible members). A ring group that is missing or whose membership is not
+    complete could hold any observed device, so it rules none out."""
     rings = []
     for ring in snapshot.rings:
         known, possible = set(ring.device_ids), set()
         for gid in ring.group_ids:
             known |= snapshot.members_known.get(gid, frozenset())
             possible |= snapshot.members_possible.get(gid, frozenset())
+            group = snapshot.group_by_id.get(gid)
+            if group is None or not group.membership_complete or not idx.memberships_complete:
+                possible.update(idx.dev_ids)
+                reasons.add('ring_membership_incomplete:' + ring.ring_id)
         rings.append((ring, frozenset(known), frozenset(known | possible)))
     return rings
 
 
-def _ring_cohorts(idx, snapshot, finding, cohort, project_sets):
-    rings = _ring_sets(idx, snapshot)
+def _ring_cohorts(idx, snapshot, finding, cohort, reasons, project_sets):
+    rings = _ring_sets(idx, snapshot, reasons)
     if not rings:
         return
     d0l, d0u, d1l, d1u = (idx.device_ids(s) for s in project_sets)
