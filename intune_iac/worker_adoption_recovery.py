@@ -332,8 +332,9 @@ class AdoptionRecoveryPolicy:
         self.admitted=frozenset(service._hash(item) for item in admitted);self.sha256=digest(value)
     def check(self):
         if digest(service._bounded_private_json(self.path))!=self.sha256:_fail('lease_recovery_policy_changed')
-    def verify(self,manifest,signed):
-        self.check();manifest=_snapshot(manifest);signed=_snapshot(signed);now=int(time.time())
+    def verify(self,manifest,signed):return self._verified(manifest,signed,int(time.time()))
+    def _verified(self,manifest,signed,now):
+        self.check();manifest=_snapshot(manifest);signed=_snapshot(signed)
         if (set(manifest)!={'schema_version','operation_id','prepared_at','expires_at','profile','action','observation','implementation_files','recovery_implementation_sha256','metadata_clear_authorized','ownership_release_authorized'}
                 or manifest['schema_version']!='adoption-native-lease-recovery-operation/1' or manifest['profile'] not in PROFILES
                 or manifest['action']!='release_exact_original_adoption_lease' or manifest['metadata_clear_authorized'] is not False
@@ -376,7 +377,14 @@ def _stable_observation(value):
 
 def execute(manifest,signed,*,context,policy,output):
     if type(context) not in (LiveAdoptionRecoveryContext,LaboratoryAdoptionRecoveryContext) or type(policy) is not AdoptionRecoveryPolicy:_fail('lease_recovery_context_required')
-    manifest=_snapshot(manifest);signed=_snapshot(signed);payload=policy.verify(manifest,signed);context.check()
+    manifest=_snapshot(manifest);signed=_snapshot(signed)
+    try:payload=policy.verify(manifest,signed)
+    except AppError:service._record_recovery_expiry(context.job.policy,policy,manifest,signed,fail=_fail,expired_code='lease_recovery_expired');raise
+    # The window is judged where it is recorded, before any observation or request: a reached expiry is latched in the
+    # original job's store and refused here, so it stays closed after a backward clock step and a restart.
+    deadline=service._deadline(payload)
+    with service._critical(context.job.policy,payload,digest(manifest),deadline,table=service.RECOVERY_EXPIRED_TABLE,fail=_fail,expired_code='lease_recovery_expired'):pass
+    context.check()
     if (manifest['profile']!=context.profile or manifest['observation']['original']!=context.original
             or manifest['observation']['adoption_state_proof']['classification'] not in ('original_baseline','approved_adoption_successor')
             or manifest['observation']['adoption_state_proof']['graph_unchanged'] is not True):_fail('lease_recovery_context_changed')
@@ -392,8 +400,9 @@ def execute(manifest,signed,*,context,policy,output):
         token=context.binding.backend_storage_token(context.credential,timeout=10)
         # The original service authority is the common serialization boundary:
         # even a new recovery policy/root cannot replay the same original lease.
-        with context.job.policy.connection() as db:
-            db.execute('BEGIN IMMEDIATE')
+        # The window is judged again in the same section that reserves the dispatch (the observation took time), so nothing
+        # can latch the expiry between the judgment and the reservation.
+        with service._critical(context.job.policy,payload,digest(manifest),deadline,table=service.RECOVERY_EXPIRED_TABLE,fail=_fail,expired_code='lease_recovery_expired') as db:
             db.execute('CREATE TABLE IF NOT EXISTS native_lease_recoveries (original_operation TEXT PRIMARY KEY,recovery_operation TEXT UNIQUE,issuer TEXT,nonce TEXT,manifest_sha256 TEXT,status TEXT,response_code INTEGER,observed_sha256 TEXT,UNIQUE(issuer,nonce))')
             if db.execute('SELECT 1 FROM native_lease_recoveries WHERE original_operation=? OR recovery_operation=? OR (issuer=? AND nonce=?)',(context.job.identifier,manifest['operation_id'],payload['issuer'],payload['nonce'])).fetchone():_fail('lease_recovery_not_replayable')
             row=db.execute('SELECT status,controller_pid,controller_start,outcome FROM jobs WHERE id=?',(context.job.identifier,)).fetchone()
@@ -407,7 +416,7 @@ def execute(manifest,signed,*,context,policy,output):
             context.job.policy.event(db,context.job.identifier,'explicit_native_lease_recovery_dispatch',{'recovery_operation':manifest['operation_id'],'manifest_sha256':digest(manifest),'scope_released':False})
             db.execute('COMMIT');protected._sync(context.job.policy.root);dispatched=True
         policy.check();context.check()
-        if time.time()>=min(payload['expires_at'],manifest['expires_at']):_fail('lease_recovery_expired')
+        service._window_open(context.job.policy,payload,digest(manifest),deadline,fail=_fail,expired_code='lease_recovery_expired')  # the receipt expires no later than the manifest (verify)
         endpoint=urlsplit(context.target.blob_endpoint);path='/'+context.target.container+'/'+context.target.key+'?comp=lease'
         response=context.upstream.request(endpoint.hostname,'PUT',path,{'authorization':'Bearer '+token._get(),'accept':'application/xml','accept-encoding':'identity',
             'x-ms-version':'2023-11-03','x-ms-lease-action':'release','x-ms-lease-id':context.original['lease_id'],'if-match':fresh['state']['etag']},b'',timeout=10)

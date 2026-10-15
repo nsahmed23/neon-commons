@@ -32,6 +32,8 @@ from unittest.mock import patch
 
 from intune_iac import clock
 from intune_iac import identity_binding as ib
+from intune_iac import worker_adoption as adoption
+from intune_iac import worker_adoption_recovery as adoption_recovery
 from intune_iac import worker_committed_recovery as committed
 from intune_iac import worker_lease_recovery as lease
 from intune_iac import worker_service as service
@@ -89,8 +91,14 @@ class RecoveryFixture(unittest.TestCase):
             self.addCleanup(patcher.stop)
 
     # Documents.
+    adoption_proof = None  # the adoption families name the classification their observation carries
+
     def observation_document(self):
-        return {'original': self.original, 'state': self.state, 'metadata': {}, 'locked': True, 'profile': self.profile}
+        document = {'original': self.original, 'state': self.state, 'metadata': {}, 'locked': True, 'profile': self.profile}
+        if self.adoption_proof:
+            document['adoption_state_proof'] = {'classification': self.adoption_proof, 'graph_unchanged': True,
+                                                'fresh_capture_sha256': 'f' * 64}
+        return document
 
     def write_recovery_policy(self):
         verifier = verifier_pin(Path('/usr/bin/openssl'), hashlib.sha256(Path('/usr/bin/openssl').read_bytes()).hexdigest())
@@ -119,6 +127,8 @@ class RecoveryFixture(unittest.TestCase):
 
     # The original job and the sealed context.
     def seed_original_job(self):
+        if self.adoption_proof:
+            adoption._tables(self.policy)  # the adoption job's own tables, as its preparation made them
         with self.policy.connection() as db:
             db.execute("INSERT INTO jobs(id,root,manifest_sha256,status,dispatches,outcome) VALUES (?,?,?,?,1,?)",
                        (self.job_id, str(self.root / 'jobs' / 'original'), 'm' * 64, 'outcome_unknown',
@@ -132,6 +142,9 @@ class RecoveryFixture(unittest.TestCase):
         context.binding = types.SimpleNamespace(
             backend_storage_token=lambda credential, timeout: types.SimpleNamespace(_get=lambda: 'token', close=lambda: None))
         context.credential = None
+        context.phase_identifier = self.job_id  # the plan family keys its reservation by the phase operation
+        context.phase = types.SimpleNamespace(database_snapshot=lambda db: ({}, None, None),
+                                              require_dispatch_quiet=lambda db: None, kind='modeled')
         context.upstream = types.SimpleNamespace(request=self.request)
         context.target = types.SimpleNamespace(blob_endpoint='https://storage.invalid', container='container', key='state')
         return context
@@ -328,6 +341,18 @@ class CommittedStateRecoveryTests(ExecuteLatchTests, RecoveryFixture):
     action = 'release_exact_original_committed_state_lease'
     approval_schema = 'signed-committed-state-lease-recovery-approval/1'
     profile = 'laboratory_committed_state_lease_recovery'
+
+
+class AdoptionRecoveryTests(ExecuteLatchTests, RecoveryFixture):
+    module = adoption_recovery
+    policy_class = 'AdoptionRecoveryPolicy'
+    context_class = adoption_recovery.LaboratoryAdoptionRecoveryContext
+    policy_schema = 'adoption-native-lease-recovery-policy/1'
+    operation_schema = 'adoption-native-lease-recovery-operation/1'
+    action = 'release_exact_original_adoption_lease'
+    approval_schema = 'signed-adoption-native-lease-recovery-approval/1'
+    profile = 'laboratory_adoption_native_lease_recovery'
+    adoption_proof = 'original_baseline'
 
 
 if __name__ == '__main__':
