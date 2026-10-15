@@ -2855,7 +2855,8 @@ RESTORE_REFUSALS = {
         'A file the original operation bound has changed',
         'A file the original {original} bound changed after it was prepared (its context file), so a restore cannot be '
         'derived from it.',
-        'Prepare a proposal from the recorded intent (a: actions); nothing from the original is used.')}
+        "Prepare a proposal from the recorded intent (a: actions); that proposes the recorded intent's value, not the "
+        "original's, and uses nothing from the original.")}
 
 # A refusal's header in words; the code follows in parentheses as the lookup key. A code with no entry here (one the
 # engine raises that this screen does not explain) reads as its own words.

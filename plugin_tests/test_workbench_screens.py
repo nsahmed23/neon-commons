@@ -1544,8 +1544,8 @@ class RunEightScreensTests(unittest.TestCase):
         self.assertIn('Cause: A file the original operation 4d972e93 bound changed after it was prepared', text)
         self.assertIn('a restore cannot be derived from it', text)
         self.assertNotIn('review no longer describes what would run', text)
-        self.assertIn('Next: Prepare a proposal from the recorded intent (a: actions); nothing from the original is used.',
-                      text)
+        self.assertIn("Next: Prepare a proposal from the recorded intent (a: actions); that proposes the recorded intent's "
+                      "value, not the original's, and uses nothing from the original.", text)
         # The same code for an execute keeps the execute wording.
         other = _flat(refusal_lines(value, 140, verb='execute'))
         self.assertIn('review no longer describes what would run', other)

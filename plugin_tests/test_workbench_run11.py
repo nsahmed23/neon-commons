@@ -358,3 +358,25 @@ class RunningKeysTests(MapTruth):
         self.assertIn('RUNNING: executing operation', rows[-2])
         ws.notice = 'Summary shown.'
         self.assertIn('? help', self.plain(ws)[-1])
+
+
+class RestoreRefusalNextTests(unittest.TestCase):
+    """Item 10 (run11-6, frame 69): the restore refusal's Next says whose value the proposal it points to carries."""
+
+    def text(self, width=118):
+        from intune_iac.workbench_screens import refusal_lines
+        value = {'status': 'error', 'error': {'code': 'maintenance_source_changed', 'message': 'A bound file changed.',
+                                              'effects': {'files_written': [], 'operation_created': False}}}
+        return ' '.join(' '.join(refusal_lines(value, width, operation='650a1a61', verb='restore-propose')).split())
+
+    def test_the_next_proposes_the_recorded_intents_value_not_the_originals(self):
+        text = self.text()
+        self.assertIn("Next: Prepare a proposal from the recorded intent (a: actions); that proposes the recorded intent's "
+                      "value, not the original's, and uses nothing from the original.", text)
+        self.assertNotIn('nothing from the original is used', text)
+
+    def test_a_non_restore_refusal_keeps_its_own_next(self):
+        from intune_iac.workbench_screens import refusal_lines
+        value = {'status': 'error', 'error': {'code': 'maintenance_source_changed', 'message': 'A bound file changed.'}}
+        text = ' '.join(' '.join(refusal_lines(value, 118, operation='650a1a61', verb='execute')).split())
+        self.assertNotIn("not the original's", text)
