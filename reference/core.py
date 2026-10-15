@@ -21,9 +21,11 @@ PROVIDER = 'deploymenttheory/microsoft365'
 PROVIDER_VERSION = '1.0.0'
 # The context schema version selects the tool pair the generated project names. 1.0.0 is the legacy pair (OpenTofu
 # 1.10.0, Atmos 1.199.0), accepted to reproduce earlier output only; 2.0.0 is the current local qualification
-# (OpenTofu 1.13.1, Atmos 1.230.1). A test compares these literals with native_pins.py. Any other version is refused.
+# (OpenTofu 1.13.1, Atmos 1.230.1; the exact version, as the protected worker admits only that one). The legacy profile
+# keeps its range, which the frozen pre-migration project holds. A test compares these literals with native_pins.py.
+# Any other version is refused.
 TOOL_PINS = {'1.0.0': {'engine': '1.10.0', 'atmos': '1.199.0', 'required_version': '>= 1.10.0, < 1.11.0'},
-             '2.0.0': {'engine': '1.13.1', 'atmos': '1.230.1', 'required_version': '>= 1.13.1, < 1.14.0'}}
+             '2.0.0': {'engine': '1.13.1', 'atmos': '1.230.1', 'required_version': '= 1.13.1'}}
 RESOURCE = 'microsoft365_graph_beta_device_management_settings_catalog_configuration_policy_json'
 ODATA = '#microsoft.graph.'
 KNOWN_TYPES = {ODATA+x for x in [

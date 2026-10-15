@@ -173,6 +173,11 @@ def minor_ceiling(version):
     return '%s.%d.0' % (major, int(minor) + 1)
 
 
+def required_version_text(profile):
+    """What the synthetic path names: the exact current pin, or the legacy range that the frozen fixture holds."""
+    return '= %s' % CURRENT_TOFU if profile == CURRENT else '>= %s, < %s' % (LEGACY_TOFU, minor_ceiling(LEGACY_TOFU))
+
+
 def with_pins(context, profile, explicit=True):
     """A copy of a context under one profile; explicit False leaves the pin fields out (repository contexts do)."""
     value = copy.deepcopy(context)
@@ -320,7 +325,7 @@ class SyntheticGenerationTests(EngineCase):
         review, result, output = self.generate(with_pins(self.base(), CURRENT))
         self.assertEqual((output / '.tool-versions').read_text(), 'opentofu %s\natmos %s\n' % (CURRENT_TOFU, CURRENT_ATMOS))
         main = (output / 'components/terraform/intune-reference/main.tf').read_text()
-        self.assertIn('required_version = ">= %s, < %s"' % (CURRENT_TOFU, minor_ceiling(CURRENT_TOFU)), main)
+        self.assertIn('required_version = "%s"' % required_version_text(CURRENT), main)
         for report in (review, result):
             self.assertEqual(report['pin_profile'], CURRENT)
             self.assertEqual(report['pins'], {'opentofu': CURRENT_TOFU, 'atmos': CURRENT_ATMOS})
@@ -329,7 +334,7 @@ class SyntheticGenerationTests(EngineCase):
         review, result, output = self.generate(with_pins(self.base(), LEGACY))
         self.assertEqual((output / '.tool-versions').read_text(), 'opentofu %s\natmos %s\n' % (LEGACY_TOFU, LEGACY_ATMOS))
         main = (output / 'components/terraform/intune-reference/main.tf').read_text()
-        self.assertIn('required_version = ">= %s, < %s"' % (LEGACY_TOFU, minor_ceiling(LEGACY_TOFU)), main)
+        self.assertIn('required_version = "%s"' % required_version_text(LEGACY), main)
         for report in (review, result):
             self.assertEqual(report['pin_profile'], LEGACY)
             self.assertIn('reproduce earlier output only', report['pin_notice'])
@@ -497,7 +502,7 @@ class IndependentOracleLiteralTests(unittest.TestCase):
             with self.subTest(version=version):
                 self.assertEqual(production_oracle._TOOL_PINS[version], (tofu, atmos))
                 self.assertEqual((core.TOOL_PINS[version]['engine'], core.TOOL_PINS[version]['atmos']), (tofu, atmos))
-                range_text = '>= %s, < %s' % (tofu, minor_ceiling(tofu))
+                range_text = required_version_text(LEGACY if version == CONTEXT_V1 else CURRENT)
                 self.assertEqual(core.TOOL_PINS[version]['required_version'], range_text)
                 self.assertEqual(invariants.TOOL_PROFILES[version],
                                  {'profile': LEGACY if version == CONTEXT_V1 else CURRENT,
@@ -539,14 +544,14 @@ class MaintainedRepositoryComponentTests(EngineCase):
                 sources, base = self.component(profile)
                 self.assertEqual(self.errors(sources, base), [])
         sources, base = self.component(CURRENT)
-        changed = {name: text.replace('>= %s, < %s' % (CURRENT_TOFU, minor_ceiling(CURRENT_TOFU)), '>= 1.12.0, < 1.13.0')
+        changed = {name: text.replace('= %s' % CURRENT_TOFU, '>= 1.12.0, < 1.13.0')
                    for name, text in sources.items()}
         self.assertIn('generated_provider_changed', self.errors(changed, base))
 
     def test_a_named_required_version_accepts_only_that_profile(self):
         sources, base = self.component(CURRENT)
-        current_range = '>= %s, < %s' % (CURRENT_TOFU, minor_ceiling(CURRENT_TOFU))
-        legacy_range = '>= %s, < %s' % (LEGACY_TOFU, minor_ceiling(LEGACY_TOFU))
+        current_range = required_version_text(CURRENT)
+        legacy_range = required_version_text(LEGACY)
         self.assertEqual(self.errors(sources, base, required_version=current_range, any_known_profile=False), [])
         self.assertIn('generated_provider_changed',
                       self.errors(sources, base, required_version=legacy_range, any_known_profile=False))
@@ -563,11 +568,11 @@ PIN_FILES = {'.tool-versions', 'components/terraform/intune-reference/main.tf', 
 
 
 def legacy_range():
-    return '>= %s, < %s' % (LEGACY_TOFU, minor_ceiling(LEGACY_TOFU))
+    return required_version_text(LEGACY)
 
 
 def current_range():
-    return '>= %s, < %s' % (CURRENT_TOFU, minor_ceiling(CURRENT_TOFU))
+    return required_version_text(CURRENT)
 
 
 def tree(base):

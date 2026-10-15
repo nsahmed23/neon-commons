@@ -1,6 +1,6 @@
 # Synthetic source-qualified reference only. No provider or tenant execution.
 terraform {
-  required_version = ">= 1.13.1, < 1.14.0"
+  required_version = "= 1.13.1"
   required_providers {
     microsoft365 = { source = "deploymenttheory/microsoft365", version = "1.0.0" }
   }

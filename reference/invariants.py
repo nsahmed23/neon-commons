@@ -24,7 +24,7 @@ TOOL_PROFILES = {
     '1.0.0': {'profile': 'legacy_reproduction_only', 'tool_versions': 'opentofu 1.10.0\natmos 1.199.0\n',
               'required_version': '>= 1.10.0, < 1.11.0'},
     '2.0.0': {'profile': 'current_local_qualification', 'tool_versions': 'opentofu 1.13.1\natmos 1.230.1\n',
-              'required_version': '>= 1.13.1, < 1.14.0'},
+              'required_version': '= 1.13.1'},
 }
 SECRET_KEYS = {'clientsecret', 'accesstoken', 'refreshtoken', 'password', 'privatekey',
                'authorization', 'recoverykey', 'secret'}

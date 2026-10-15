@@ -482,5 +482,48 @@ class RepositoryComponentLabelTests(unittest.TestCase):
         self.assertEqual(matched, {})
 
 
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Item 3: the synthetic path names the exact current pin, as the production path does.
+# ---------------------------------------------------------------------------------------------------------------------
+class ExactPinOnTheSyntheticPathTests(unittest.TestCase):
+    def test_the_generator_and_the_oracle_name_the_exact_current_pin_and_keep_the_legacy_range(self):
+        from reference import core, invariants
+        self.assertEqual(core.TOOL_PINS[CONTEXT_V2]['required_version'], '= %s' % CURRENT_TOFU)
+        self.assertEqual(invariants.TOOL_PROFILES[CONTEXT_V2]['required_version'], '= %s' % CURRENT_TOFU)
+        legacy = '>= %s, < %s' % (LEGACY_TOFU, p3c.minor_ceiling(LEGACY_TOFU))
+        self.assertEqual(core.TOOL_PINS[CONTEXT_V1]['required_version'], legacy)
+        self.assertEqual(invariants.TOOL_PROFILES[CONTEXT_V1]['required_version'], legacy)
+
+    def test_a_generated_current_project_cannot_be_planned_by_an_engine_the_worker_would_refuse(self):
+        from intune_iac.engine import generate, verify_project
+        from intune_iac.io import AppError
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        folder = Path(temporary.name)
+        (folder / 'context.json').write_text(json.dumps(with_pins(example_context(), CURRENT)))
+        source = ROOT / 'examples/supported/input/export.json'
+        generate(source, folder / 'context.json', folder / 'project')
+        main = folder / 'project/components/terraform/intune-reference/main.tf'
+        self.assertIn('required_version = "= %s"' % CURRENT_TOFU, main.read_text())
+        tools = dict(line.split(' ') for line in (folder / 'project/.tool-versions').read_text().split('\n') if line)
+        self.assertEqual(tools['opentofu'], CURRENT_TOFU)  # the file and the constraint name the same single version
+        # an engineer widening the constraint to a range is no longer the generated project
+        main.write_text(main.read_text().replace('"= %s"' % CURRENT_TOFU, '">= %s, < %s"' % (CURRENT_TOFU, p3c.minor_ceiling(CURRENT_TOFU))))
+        with self.assertRaises(AppError):
+            verify_project(source, folder / 'context.json', folder / 'project')
+
+    def test_every_golden_project_that_names_a_required_version_names_the_pin_of_its_profile(self):
+        for variant in ('supported', 'azure-integration'):
+            text = (ROOT / 'examples' / variant / 'expected/project/components/terraform/intune-reference/main.tf').read_text()
+            self.assertIn('required_version = "= %s"' % CURRENT_TOFU, text, variant)
+        for variant in ('partial', 'missing-page', 'access-denied'):
+            text = (ROOT / 'examples' / variant / 'expected/project/review/proposed-component.tf.txt').read_text()
+            self.assertIn('required_version = "= %s"' % CURRENT_TOFU, text, variant)
+        frozen = (ROOT / 'plugin_tests/fixtures/pre_pin_migration/projects/synthetic-explicit-pins'
+                  / 'components/terraform/intune-reference/main.tf').read_text()
+        self.assertIn('required_version = ">= %s, < %s"' % (LEGACY_TOFU, p3c.minor_ceiling(LEGACY_TOFU)), frozen)
+
+
 if __name__ == '__main__':
     unittest.main()
