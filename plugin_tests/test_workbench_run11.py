@@ -110,3 +110,33 @@ class RepositoryVerdictTests(Proposed):
         from intune_iac.workbench_screens import change_lines
         text = ' '.join(change_lines({'status': 'no_change', 'changes': []}, 118))
         self.assertIn('The desired body equals the observed body under the execution plan', text)
+
+
+class RestoreReviewTests(Proposed):
+    """Item 4 (run11-4): a restore plan says it restores operation N and that AFTER is that operation's observation
+    from before its change, not the recorded intent (maintenance.propose_restore writes before_estate as the desired body)."""
+
+    def restored(self):
+        from intune_iac import maintenance
+        from intune_iac.workbench import _restore_proposal
+        review = self.propose()
+        operation = self.root / 'operation'
+        maintenance.execute(operation, approve_digest=review['approval_digest'])
+        self.store.collect(self.service)
+        return review, _restore_proposal(operation, self.root / 'restore')
+
+    def test_the_restore_result_names_the_operation_it_restores(self):
+        review, restore = self.restored()
+        self.assertEqual(restore['restore_of'], review['operation_id'])
+        self.assertNotEqual(restore['operation_id'], review['operation_id'])
+
+    def test_the_change_review_says_it_is_a_restore_and_where_after_comes_from(self):
+        review, restore = self.restored()
+        text = self.summary(self.workspace(4, restore))
+        short = review['operation_id'][:8]
+        self.assertIn("Restore of operation %s: AFTER is that operation's observation from before its change, "
+                      "not the recorded intent." % short, text)
+        self.assertLess(text.index('Restore of operation'), text.index('[PLAN REVIEW]'))
+
+    def test_a_plan_that_is_not_a_restore_says_nothing_of_one(self):
+        self.assertNotIn('Restore of operation', self.summary(self.workspace(4, self.propose())))

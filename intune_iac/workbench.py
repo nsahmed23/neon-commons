@@ -774,6 +774,17 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
     return actions
 
 
+def _restore_proposal(operation, output):
+    """maintenance.propose_restore, with the operation it restores named in the result so the review can say so.
+
+    Additive: the result is otherwise the engine's review. propose_restore has already loaded this operation's plan, so
+    the id is read from the same file.
+    """
+    from . import maintenance
+    result = maintenance.propose_restore(operation, output)
+    return dict(result, restore_of=load_json(Path(operation) / 'plan.json')['operation_id'])
+
+
 def _inspection(store, object_id, *, attention=False, service_available=False, service_root=None):
     """Combine an exact observed object with the current declared writer evidence.
 
@@ -919,7 +930,7 @@ def command(args):
         return delivery(args.operation)
     if name in ('review', 'execute', 'reconcile', 'propose', 'restore-propose'):
         from . import maintenance
-        if name == 'restore-propose': return maintenance.propose_restore(args.operation, args.output)
+        if name == 'restore-propose': return _restore_proposal(args.operation, args.output)
         if name == 'review': return maintenance.review(args.operation)
         if name == 'execute': return maintenance.execute(args.operation, approve_digest=args.approve_digest, fault=args.fault,
                                                           visibility_delay_reads=args.visibility_delay_reads)
@@ -1518,7 +1529,7 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                     from . import maintenance
                     if name == 'review' and len(values) == 1: result = maintenance.review(values[0])
                     elif name == 'reconcile' and len(values) == 1: result = maintenance.reconcile(values[0])
-                    elif name == 'restore-propose' and len(values) == 2: result = maintenance.propose_restore(*values)
+                    elif name == 'restore-propose' and len(values) == 2: result = _restore_proposal(*values)
                     elif name == 'execute' and len(values) in (2, 3, 4):
                         result = maintenance.execute(values[0], approve_digest=values[1], fault=values[2] if len(values) >= 3 else None,
                                                      visibility_delay_reads=int(values[3]) if len(values) == 4 else 0)

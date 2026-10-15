@@ -1197,6 +1197,13 @@ class Workspace:
             from .workbench_screens import change_lines
             if isinstance(value.get('field_changes'), dict):
                 rows.append('[CHANGE REVIEW]')
+                if isinstance(value.get('restore_of'), str):
+                    # A restore's AFTER is the original operation's observation from before it ran (propose_restore
+                    # writes its before_estate as the desired file), never the recorded intent the STATE rows show.
+                    from .workbench_screens import short_id
+                    rows.extend(word_wrap("Restore of operation %s: AFTER is that operation's observation from before its "
+                                          'change, not the recorded intent.'
+                                          % short_id(value['restore_of'], self.facts.get('identity_prefixes')), width))
                 # The review result carries both full bodies, so a cut change list can say where the rest is.
                 whole = isinstance(value.get('before'), dict) and isinstance(value.get('desired'), dict)
                 # The plan's before is the observation the plan was prepared from, not the newest one.
