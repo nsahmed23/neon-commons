@@ -1388,7 +1388,13 @@ class Workspace:
         if shown is None and not inspector:
             # A refusal about one operation while the strip reports another: the strip operation is named once, here,
             # where the screen is about the other (a strip that names none reads as the one the screen discusses).
-            about = self._operation_id_for(self.last_command) if value.get('status') == 'error' else None
+            about = None
+            if value.get('status') == 'error':
+                # Each draw asks again; the store is read once per typed command (the lookup can page through it).
+                cache = self.__dict__.setdefault('_operation_named', {})
+                if self.last_command not in cache:
+                    cache[self.last_command] = self._operation_id_for(self.last_command)
+                about = cache[self.last_command]
             strip = facts.get('operation_id') or _newest_operation_id(facts)
             word = facts.get('operation') or _operation_from_states(facts)
             if about and strip and word and about != strip:
