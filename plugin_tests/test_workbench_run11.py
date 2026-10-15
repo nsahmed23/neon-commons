@@ -140,3 +140,45 @@ class RestoreReviewTests(Proposed):
 
     def test_a_plan_that_is_not_a_restore_says_nothing_of_one(self):
         self.assertNotIn('Restore of operation', self.summary(self.workspace(4, self.propose())))
+
+
+def balanced(sentence):
+    """True when every bracket closes in order and none is left open."""
+    stack = []
+    for char in sentence:
+        if char == '(':
+            stack.append(char)
+        elif char == ')':
+            if not stack:
+                return False
+            stack.pop()
+    return not stack
+
+
+class ReconcileNextTests(unittest.TestCase):
+    """Item 5 (gemini-run11-2, frame 54): the Next that names reconcile reads as one balanced sentence."""
+
+    UNKNOWN = {'operation_id': 'a' * 32, 'status': 'outcome_unknown'}
+
+    def rendered(self, width):
+        from intune_iac.workbench_screens import lifecycle_lines
+        return ' '.join(' '.join(lifecycle_lines(5, width, self.UNKNOWN)).split())
+
+    def test_the_rendered_next_has_balanced_parentheses_at_every_width(self):
+        for width in (118, 80, 60):
+            text = self.rendered(width)
+            self.assertTrue(balanced(text), text)
+            self.assertIn('Next: Reconcile it (a: actions); it never replays the change. v shows every delivery stage.', text)
+
+    def test_the_lifecycle_next_for_a_prepared_unknown_operation_reads_the_same(self):
+        from intune_iac.workbench_screens import lifecycle_next
+        for tab, value in ((5, self.UNKNOWN), (4, self.UNKNOWN)):
+            step = lifecycle_next(tab, value, 0)
+            self.assertEqual(step, 'Reconcile it (a: actions); it never replays the change. v shows every delivery stage', tab)
+            self.assertTrue(balanced(step), step)
+
+    def test_the_band_and_the_lifecycle_name_reconcile_in_the_same_words(self):
+        from intune_iac.workbench_screens import hazard_rows
+        band = ' '.join(hazard_rows({'operation': 'outcome_unknown'}, [], 140))
+        self.assertIn('Next: Reconcile it (a: actions); it never replays the change', band)
+        self.assertTrue(balanced(band), band)

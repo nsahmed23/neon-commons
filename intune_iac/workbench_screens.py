@@ -649,6 +649,8 @@ LIFECYCLE = ((8, '9 Repository'), (4, '5 Plan'), (5, '6 Execution'), (None, 'Del
 # Delivery's stage 8 waits for a collection after the change. It is advice, not a rule the product enforces:
 # deployment-record reads the operation, its readback and the cited intent, never the observation, so nothing refuses
 # collecting first (run 8, frames 19 to 21).
+# Reconcile's step, worded as the band words it; one sentence whose parentheses close where the key is named.
+RECONCILE_NEXT = 'Reconcile it (a: actions); it never replays the change. v shows every delivery stage'
 
 
 def lifecycle_next(tab, value, now, eligibility=None):
@@ -663,7 +665,7 @@ def lifecycle_next(tab, value, now, eligibility=None):
         return 'Refresh the repository intent first (a: actions); a proposal follows from the new intent'
     if tab == 5:
         if value.get('status') == 'outcome_unknown':
-            return 'Reconcile it (a: actions; it never replays the change); v shows every delivery stage'
+            return RECONCILE_NEXT
         result = value.get('result') if isinstance(value.get('result'), dict) else value
         if 'reconciled' in (result.get('journal_status'), result.get('status')):
             # A reconcile follows an unknown outcome, so the operation has no verified readback of its own and cannot
@@ -703,7 +705,7 @@ def lifecycle_next(tab, value, now, eligibility=None):
         return ('approve and run it with the review digest (6 Execution shows the result). Command:' + COMMAND_BREAK
                 + '  execute %s DIGEST' % operation)
     if status == 'outcome_unknown':
-        return 'Reconcile it (a: actions; it never replays the change); v shows every delivery stage'
+        return RECONCILE_NEXT
     return 'v shows every delivery stage of this operation'
 
 

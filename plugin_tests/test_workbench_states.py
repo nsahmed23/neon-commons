@@ -313,7 +313,7 @@ class LifecycleTests(unittest.TestCase):
         text = self.summary(4, dict(prepared, repository={'cited': True, 'freshness': 'stale'}))
         self.assertIn('repository changed since its intent, so execute refuses it', text)
         text = self.summary(5, {'operation_id': 'a' * 32, 'status': 'outcome_unknown'})
-        self.assertIn('Next: Reconcile it (a: actions; it never replays the change)', text)
+        self.assertIn('Next: Reconcile it (a: actions); it never replays the change', text)
         text = self.summary(5, {'operation_id': 'a' * 32, 'status': 'succeeded_verified'})
         self.assertIn('Next: v shows every delivery stage, including the deployment record', text)
         self.assertNotIn('unknown outcome', text)
