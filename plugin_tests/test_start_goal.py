@@ -146,7 +146,7 @@ class StartGoalTests(unittest.TestCase):
         for fixture in ('offline', 'full'):
             for width in (60, 100):
                 with patch('shutil.get_terminal_size', return_value=os.terminal_size((width, 40))):
-                    today = start_lines(survey(self.dirs[fixture]), width)
+                    today = start_lines(survey(self.dirs[fixture], relative_to=os.getcwd()), width)
                 code, text = run_cli(str(self.dirs[fixture]), width=width)
                 self.assertEqual(code, 0)
                 lines = text.split('\n')
@@ -169,7 +169,7 @@ class StartGoalTests(unittest.TestCase):
         self.assertEqual(code, 0)
         value = json.loads(text)
         self.assertNotIn('readiness', value)
-        self.assertEqual(value, json.loads(json.dumps(survey(self.dirs['offline']))))
+        self.assertEqual(value, json.loads(json.dumps(survey(self.dirs['offline'], relative_to=os.getcwd()))))
 
     # with --goal: the lines
 
@@ -194,7 +194,7 @@ class StartGoalTests(unittest.TestCase):
     def test_the_goal_block_follows_the_surveys_summary_and_keeps_it(self):
         from intune_iac.entry import start_lines, survey
         with patch('shutil.get_terminal_size', return_value=os.terminal_size((100, 40))):
-            today = start_lines(survey(self.dirs['full']), 100)
+            today = start_lines(survey(self.dirs['full'], relative_to=os.getcwd()), 100)
         before, block = goal_block(self.goal('full', 'adopt'))
         self.assertEqual(before, today)
         self.assertNotIn(HINT, '\n'.join(block))

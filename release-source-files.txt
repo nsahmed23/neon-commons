@@ -914,6 +914,7 @@ plugin_tests/test_security_boundaries_completion.py
 plugin_tests/test_source_linkage_r4.py
 plugin_tests/test_stack_input.py
 plugin_tests/test_start_goal.py
+plugin_tests/test_start_paths.py
 plugin_tests/test_start_root.py
 plugin_tests/test_stateful_service_epoch.py
 plugin_tests/test_synthetic_completion.py

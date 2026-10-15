@@ -17,6 +17,8 @@ nothing else is written.
 from __future__ import annotations
 
 import os
+import re
+import shlex
 from pathlib import Path
 
 VERSION = 'workbench-start/1'
@@ -276,7 +278,31 @@ def _classified(rel, session_path, edit):
     return item
 
 
-def _next_actions(items):
+def _name(root, rel):
+    """The directory name a surveyed path ends in; the surveyed directory itself (a dot) has its own name."""
+    return (Path(root) / rel).name if root is not None else Path(rel).name
+
+
+def _shower(root, relative_to):
+    """Paths for the next steps: a path that works from relative_to (relative to it when inside it, absolute otherwise).
+
+    Without relative_to a path stays relative to the surveyed directory, as the survey records it.
+    """
+    def show(rel):
+        if relative_to is None or root is None:
+            return rel
+        target, base = Path(os.path.normpath(Path(root) / rel)), Path(os.path.normpath(relative_to))
+        try:
+            return target.relative_to(base).as_posix()
+        except ValueError:
+            return target.as_posix()
+    return show
+
+
+def _next_actions(items, root=None, relative_to=None):
+    show = _shower(root, relative_to)
+    # In a command a path with a space is quoted for the shell, as the rest of the product quotes one.
+    q = lambda rel: shlex.quote(show(rel))
     kinds = {}
     for item in items:
         kinds.setdefault(item['kind'], []).append(item)
@@ -288,17 +314,17 @@ def _next_actions(items):
     for item in kinds.get('wizard_session', []):
         if item.get('valid') and item.get('step') != 'complete':
             lead = conflicts.get(item.get('conflict_reason'), 'Resume the wizard session') if item.get('step') == 'conflict' else 'Resume the wizard session'
-            actions.append('%s: %s wizard --session %s' % (lead, PROGRAM, item['path']))
+            actions.append('%s: %s wizard --session %s' % (lead, PROGRAM, q(item['path'])))
     for item in kinds.get('journey_session', []):
         if item.get('valid') and item.get('lifecycle') not in ('complete_simulation',):
-            actions.append('Resume the journey: %s wizard --journey --session %s' % (PROGRAM, item['path']))
+            actions.append('Resume the journey: %s wizard --journey --session %s' % (PROGRAM, q(item['path'])))
     for item in kinds.get('guided_session', []):
         if item.get('valid') and item.get('lifecycle') != 'complete_local':
-            actions.append('Resume the guided session: %s wizard --guided --session %s' % (PROGRAM, item['path']))
+            actions.append('Resume the guided session: %s wizard --guided --session %s' % (PROGRAM, q(item['path'])))
     for item in kinds.get('generated_project', []):
         if item.get('classification') == 'repository_owned_policy_edit':
             actions.append('The generated project %s holds a repository-owned policy edit: reopen its session and use handoff, '
-                           'or copy it into your repository and record it with repository-import.' % item['path'])
+                           'or copy it into your repository and record it with repository-import.' % show(item['path']))
     stores = [item for item in kinds.get('store', []) if item['states']['configured'] or item.get('tenant_id')]
     services = kinds.get('modeled_service', [])
     for store in stores:
@@ -306,29 +332,29 @@ def _next_actions(items):
         if not store['states']['configured']:
             # An empty store shows nothing until something is collected into it.
             actions.append('Collect into %s: %s workbench collect --root %s --service-root %s' % (
-                store['path'], PROGRAM, store['path'], service['path'] if service else 'SERVICE_ROOT'))
+                show(store['path']), PROGRAM, q(store['path']), q(service['path']) if service else 'SERVICE_ROOT'))
         actions.append('Open the workspace: %s workbench workspace --root %s%s' % (
-            PROGRAM, store['path'], ' --service-root ' + service['path'] if service else ''))
+            PROGRAM, q(store['path']), ' --service-root ' + q(service['path']) if service else ''))
     for repository in kinds.get('repository', []):
         recorded = [(store, intent) for store in stores for intent in store.get('intents', [])
-                    if intent.get('repository') and Path(intent['repository']).name == Path(repository['path']).name]
+                    if intent.get('repository') and Path(intent['repository']).name == _name(root, repository['path'])]
         if recorded:
             store, intent = recorded[-1]
             actions.append('Check the repository against its recorded intent: %s workbench repository-status --root %s --object %s' % (
-                PROGRAM, store['path'], intent['object_id']))
+                PROGRAM, q(store['path']), intent['object_id']))
             continue
         actions.append('See the policies the repository %s holds and the exact command to record each: %s workbench '
                        'repository-entry --root %s --repo %s (in the workspace: :repository-entry %s)' % (
-                           repository['path'], PROGRAM, stores[0]['path'] if stores else 'STORE', repository['path'],
-                           repository['path']))
+                           show(repository['path']), PROGRAM, q(stores[0]['path']) if stores else 'STORE', q(repository['path']),
+                           q(repository['path'])))
     used = {item.get('input') for item in kinds.get('wizard_session', [])}
     contexts = kinds.get('context', [])
     for export in kinds.get('export', []):
         if export['path'] not in used:
             actions.append('Start from the export %s: %s wizard --session NEW_SESSION.json --input %s --context %s --output NEW_OUTPUT_DIR' % (
-                export['path'], PROGRAM, export['path'], contexts[0]['path'] if contexts else 'CONTEXT_JSON'))
+                show(export['path']), PROGRAM, q(export['path']), q(contexts[0]['path']) if contexts else 'CONTEXT_JSON'))
     for operation in kinds.get('operation', []):
-        actions.append('Follow the operation: %s workbench delivery --operation %s' % (PROGRAM, operation['path']))
+        actions.append('Follow the operation: %s workbench delivery --operation %s' % (PROGRAM, q(operation['path'])))
     if not items:
         actions = ['Start from a supported export: %s wizard --session session.json --input EXPORT_JSON --context CONTEXT_JSON '
                    '--output NEW_OUTPUT_DIR' % PROGRAM,
@@ -349,8 +375,12 @@ def _missing(items):
     return notes
 
 
-def survey(directory):
-    """What already exists under a directory, with states and next actions; read-only."""
+def survey(directory, relative_to=None):
+    """What already exists under a directory, with states and next actions; read-only.
+
+    The paths in the next steps are relative to the surveyed directory unless relative_to (the directory the command runs
+    in) is given; then they work from there.
+    """
     root = Path(directory).absolute()
     files, dirs, links, truncated = _walk(root)
     items = []
@@ -378,7 +408,7 @@ def survey(directory):
             items.append(_repository_item(directory_path, rel))
     items.sort(key=lambda item: (ORDER.index(item['kind']) if item['kind'] in ORDER else len(ORDER), item['path']))
     return {'schema_version': VERSION, 'directory': str(root), 'connection': 'offline', 'items': items,
-            'next_actions': _next_actions(items), 'missing': _missing(items), 'skipped_links': links,
+            'next_actions': _next_actions(items, root, relative_to),'missing': _missing(items), 'skipped_links': links,
             'truncated': truncated, 'execution_authorized': False, 'cloud_authority': False}
 
 
@@ -434,6 +464,7 @@ GOAL_HINT = 'Add --goal inspect, discover, adopt or change to see what that goal
 # Facts the readiness model could use but start does not gather, with the reason; shown on the screen and in the JSON.
 OMITTED_FACTS = ('Executables on the search path (atmos, tofu, pwsh, codex, claude) are not looked up here, because a lookup '
                  'reads an environment value (the search path); the doctor command lists them.',)
+_TOKEN = re.compile(r"(?:'[^']*'|[^\s'])+")
 _COMMAND_STOP = frozenset({'and', 'then', 'or', 'from', 'to', 'with', 'for', 'as', 'that', 'is', 'the', 'in', 'on', 'by'})
 
 
@@ -468,17 +499,23 @@ def _segments(text):
     pieces = text.split('intune-iac ')
     segments = [('text', pieces[0])] if pieces[0].strip() else []
     for chunk in pieces[1:]:
-        words, tokens, used, tail = chunk.split(' '), [], 0, ''
-        for word in words:
+        tokens, end, tail = [], 0, ''
+        # A quoted argument (a path with a space) is one token.
+        for match in _TOKEN.finditer(chunk):
+            word = match.group()
             if word.lower() in _COMMAND_STOP or word.startswith('('):
                 break
-            used += 1
+            end = match.end()
+            if set(word) == {'.'}:
+                # A path such as . or .. is an argument, not sentence punctuation.
+                tokens.append(word)
+                continue
             tokens.append(word.rstrip('.,;:'))
             if word[-1:] in '.,;:)':
                 tail = word[len(tokens[-1]):]
                 break
         segments.append(('command', tokens))
-        rest = ' '.join(words[used:])
+        rest = chunk[end:].strip()
         if tail in (';', '.') and rest:
             # The sentence the command ended starts a new one.
             rest = rest[:1].upper() + rest[1:]

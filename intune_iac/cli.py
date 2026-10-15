@@ -160,7 +160,7 @@ def parser():
 def execute(args):
     if args.command=='start':
         from .entry import goal_readiness, survey
-        value=survey(args.directory)
+        value=survey(args.directory,relative_to=os.getcwd())
         if args.goal:value['readiness']=goal_readiness(value,args.goal)
         return value
     if args.command=='workbench':
@@ -310,7 +310,7 @@ def main(argv=None):
         if args.command=='start' and not args.json:
             # The guided entry is read by a person first; --json keeps the machine form.
             from .entry import goal_readiness, start_lines, survey
-            value=survey(args.directory)
+            value=survey(args.directory,relative_to=os.getcwd())
             goal=goal_readiness(value,args.goal) if args.goal else None
             print('\n'.join(start_lines(value,shutil.get_terminal_size((100,40)).columns,goal,goal_hint=goal is None)))
             return 0
