@@ -20,7 +20,7 @@ import threading
 import time
 import uuid
 
-from . import approval_authority as aa, blob_lease, identity_binding as ib
+from . import approval_authority as aa, blob_lease, clock, identity_binding as ib
 from . import protected, validity, worker_broker as broker, worker_host as host
 from .io import AppError, canonical, digest, load_json, parse_json
 from .provider_journey import _outside_repository, _private, _absolute
@@ -90,17 +90,31 @@ def _record_expiry(policy, payload, request_sha256, deadline=None, *, table=_EXP
 
     The manifest window is judged on the bare clock ahead of everything else, and the receipt expires no later than the
     manifest, so refusing there without recording would let a clock rollback reopen the receipt. Whatever this section
-    refuses is the same closed window the caller is about to report in its original error, so it is not reported twice."""
+    refuses is the same closed window the caller is about to report in its original error, so it is not reported twice.
+    A backward step is different: validity cannot be established, so the hold, which says how to recover, is reported."""
     try:
         with _critical(policy, payload, request_sha256, deadline, table=table, fail=fail, expired_code=expired_code, domain=domain): pass
-    except (AppError, OSError): pass
+    except AppError as error:
+        if error.code == validity.HELD: raise
+    except OSError: pass
 
 
 def _record_expiry_of(job, receipt):
     """_record_expiry for a receipt this process has not authenticated yet: verify authenticates it, then judges and
-    records the window. A receipt that does not authenticate records nothing."""
+    records the window. A receipt that does not authenticate records nothing. A hold is reported, not swallowed."""
     try: job.policy.verify(job.manifest, receipt)
-    except (AppError, OSError): pass
+    except AppError as error:
+        if error.code == validity.HELD: raise
+    except OSError: pass
+
+
+def _expiry_may_be_reached(root, payload):
+    """Read-only: whether the wall clock or the recorded time is at or past the receipt's expiry. It takes no lock, writes
+    nothing and leaves this process's anchor alone, so it can be asked of a receipt that is not valid yet."""
+    wall = time.time()
+    try: recorded = clock.Floor(Path(root) / 'clock.json').high_water()
+    except AppError: recorded = None
+    return max(wall, wall if recorded is None else recorded) >= payload['expires_at']
 
 
 def _record_recovery_expiry(store, recovery_policy, manifest, signed, *, fail, expired_code, domain):
@@ -111,12 +125,19 @@ def _record_recovery_expiry(store, recovery_policy, manifest, signed, *, fail, e
     these approvals have. The receipt is authenticated again with the clock pinned to its own issue time, so that only
     the window is left out; if it authenticates, its window is judged in the shared section and a reached expiry is
     recorded. A receipt that does not authenticate records nothing, so such input cannot grow the store or move the
-    recorded time. Whatever this section refuses is the same closed window the caller is about to report."""
+    recorded time. Whatever this section refuses is the same closed window the caller is about to report.
+
+    The writing section is entered only when the expiry may actually have been reached (by the wall clock or the recorded
+    time): an authentic receipt that is merely dated ahead of this clock moves nothing. Otherwise a backward step is
+    reported as the hold it is, with the recovery words, instead of the bare-clock refusal that hid it."""
     try:
         payload = recovery_policy._verified(manifest, signed, signed['payload']['issued_at'])
     except (AppError, OSError, KeyError, TypeError): return
-    _record_expiry(store, payload, digest(manifest), None, table=RECOVERY_EXPIRED_TABLE, fail=fail, expired_code=expired_code,
-                   domain=domain)
+    if _expiry_may_be_reached(store.root, payload):
+        _record_expiry(store, payload, digest(manifest), None, table=RECOVERY_EXPIRED_TABLE, fail=fail,
+                       expired_code=expired_code, domain=domain)
+    else:
+        validity.hold_if_clock_behind(store.root)
 
 
 def _window_open(store, payload, manifest_sha256, deadline, *, fail, expired_code, domain):

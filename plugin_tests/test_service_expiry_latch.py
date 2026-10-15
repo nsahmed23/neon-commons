@@ -154,6 +154,18 @@ class ServiceFixture(unittest.TestCase):
 
 
 class DispatchLatchTests(ServiceFixture):
+    def test_a_backward_step_to_before_the_issue_time_still_reports_the_hold_and_how_to_recover(self):
+        self.manifest_time_rule = True  # the manifest's own bare-clock rule refuses first, as it does at that time
+        signed = self.receipt()
+        self.clocks.wall = self.start + 30
+        self.policy.verify(self.manifest, signed)  # records T+30 without consuming the approval
+        self.clocks.wall = self.start - 10
+        self.restart()
+        error = self.refused(lambda: self.run_job(signed))
+        self.assertEqual(error.code, 'clock_moved_backward')
+        self.assertIn(RECOVERY_WORDS, error.message)
+        self.assert_nothing_happened()
+
     def test_a_receipt_that_reuses_an_expired_receipts_issuer_and_nonce_is_judged_on_its_own(self):
         nonce = uuid.uuid4().hex
         early = self.receipt(nonce=nonce, expires_at=self.start + 30)
@@ -283,6 +295,16 @@ class PermitLatchTests(ServiceFixture):
         clock.reset_process_anchor()
         self.assertEqual(self.refused(permit.check_active).code, EXPIRED)
         self.assertEqual(len(self.latched()), 1)
+
+    def test_a_backward_step_to_before_the_issue_time_still_reports_the_hold_through_the_permit(self):
+        permit = self.dispatch_running(self.start + 30)
+        permit.check_active()  # records T+30
+        self.manifest_time_rule = True
+        self.clocks.wall = self.start - 10
+        error = self.refused(permit.check_active)
+        self.assertEqual(error.code, 'clock_moved_backward')
+        self.assertIn(RECOVERY_WORDS, error.message)
+        self.assertEqual(self.authorizations(), [(self.job.identifier, 'apply', 1)])
 
     def test_the_authorization_check_enters_the_section_and_commits_a_marker_before_the_call(self):
         permit = self.dispatch_running(self.start + 10)

@@ -216,6 +216,29 @@ class ExecuteLatchTests:
         job_b = str(uuid.uuid4())
         return other, self.build_context(policy=other.policy, job_id=job_b, original=dict(self.original, operation_id=job_b))
 
+    def test_an_authentic_approval_issued_in_the_future_writes_no_clock_record_and_no_expiry(self):
+        signed = self.receipt(issued_at=self.start + 30)  # authentic, but dated ahead of this clock
+        anchors = dict(clock._ANCHORS)
+        self.refused(lambda: self.execute(signed))
+        self.assertFalse((self.policy.root / 'clock.json').exists())
+        self.assertEqual(dict(clock._ANCHORS), anchors)
+        self.assertEqual(self.latched(), [])
+        self.assert_nothing_happened()
+
+    def test_a_backward_step_to_before_the_issue_time_still_reports_the_hold_and_how_to_recover(self):
+        signed = self.receipt()
+        self.clocks.wall = self.start + 30
+        self.on_observe = lambda: (_ for _ in ()).throw(AppError('modeled_backend_unavailable', 'x'))
+        self.refused(lambda: self.execute(signed))  # the judgment recorded T+30 before the observation failed
+        self.on_observe = lambda: None
+        self.observations.clear()
+        self.clocks.wall = self.start - 10  # earlier than the approval's own issue time
+        self.restart()
+        error = self.refused(lambda: self.execute(signed))
+        self.assertEqual(error.code, 'clock_moved_backward')
+        self.assertIn(RECOVERY_WORDS, error.message)
+        self.assertEqual((self.reservations(), self.requests, self.observations), ([], [], []))
+
     def test_an_approval_that_reuses_an_expired_approvals_issuer_and_nonce_is_judged_on_its_own(self):
         nonce = uuid.uuid4().hex
         early = self.receipt(nonce=nonce, expires_at=self.start + 30)
