@@ -63,6 +63,14 @@ def observed_state(facts, default='unknown'):
     return OBSERVED_FROM_ELIGIBILITY.get(eligibility.get('reason')) or facts.get('observation', default)
 
 
+def _strip_severity(state):
+    """The band's order of hazards, for the strip: a store for another tenant, then the operation, the repository,
+    the observation. The strip keeps the most severe longest, so it and the band lead with the same condition."""
+    if state[0] == 'OBSERVED' and state[2] == 'other tenant':
+        return 0
+    return {'OPERATION': 1, 'REPOSITORY': 2, 'OBSERVED': 3}.get(state[0], 4)
+
+
 HAZARD_STATES = {'OBSERVED': {'stale', 'source changed', 'policy changed', 'other source', 'other tenant'},
                  'REPOSITORY': {'stale', 'unavailable', 'consumer mismatch', 'needs attention'},
                  'OPERATION': {'outcome_unknown', 'diverged', 'records disagree', 'unreadable'}}
@@ -87,25 +95,32 @@ def context_strip(tenant, selected, facts, width, mode_class=None):
         states.append(('OPERATION', 'OP', facts['operation']))
     bare = 'POLICY ' + own
     routine = [state for state in states if str(state[2]) not in HAZARD_STATES[state[0]]]
-    hazards = [state for state in states if state not in routine]
+    # Hazards give way least severe first, so the one the band leads with is the last to go.
+    hazards = sorted((state for state in states if state not in routine), key=_strip_severity)
     kept, shrinking = list(states), []
     for state in list(reversed(routine)) + list(reversed(hazards)):
         kept = [item for item in kept if item is not state]
         shrinking.append(list(kept))
     tiers = [(policy, False, False, states), (policy, True, False, states), (bare, True, False, states),
              (bare, True, True, states)] + [(bare, True, True, remaining) for remaining in shrinking]
-    for name, compact, brief, remaining in tiers:
-        text = ' | '.join(lead + [name] + [(short if compact else long) + ' ' + (SHORT_STATES.get(str(value), _as_words(value)) if brief else _as_words(value))
+
+    def labelled(name, compact, brief, remaining):
+        return ' | '.join(lead + [name] + [(short if compact else long) + ' ' + (SHORT_STATES.get(str(value), _as_words(value)) if brief else _as_words(value))
                                            for long, short, value in remaining])
-        if cell_width(safe_text(text)) <= width:
-            return text
-    # Narrower still: short labels, the whole short policy id, and hazards before nothing.
-    for remaining in (hazards, hazards[:1], []):
-        text = ' | '.join(tight + ['P ' + own] + [short + ' ' + SHORT_STATES.get(str(value), str(value))
-                                                                 for long, short, value in remaining])
-        if cell_width(safe_text(text)) <= width:
-            return text
-    return text
+
+    def narrow(remaining):
+        # Short labels and the whole short policy id.
+        return ' | '.join(tight + ['P ' + own] + [short + ' ' + SHORT_STATES.get(str(value), str(value))
+                                                 for long, short, value in remaining])
+
+    def keeps_hazard(remaining):
+        return not hazards or any(state in remaining for state in hazards)
+
+    # Labels shorten before the last hazard gives way; without a hazard the order is unchanged.
+    forms = ([labelled(*tier) for tier in tiers if keeps_hazard(tier[3])]
+             + [narrow([state for state in states if state in hazards[:count]]) for count in range(len(hazards), 0, -1)]
+             + [labelled(*tier) for tier in tiers if not keeps_hazard(tier[3])] + [narrow([])])
+    return next((text for text in forms if cell_width(safe_text(text)) <= width), forms[-1])
 
 
 # The primary hazard's ranking, its words and the key that offers its response (a: the action list).
@@ -131,6 +146,7 @@ def _band_forms(primary, prefixes=None):
         return ['! Operation %s: outcome unknown. Next: Reconcile it (a: actions); it never replays the change' % operation
                 if operation else '! Operation outcome unknown. Next: Reconcile it (a: actions); it never replays the change',
                 '! Outcome unknown%s. Reconcile, never replays (a: actions)' % (' (op %s)' % operation if operation else ''),
+                '! Outcome unknown. Reconcile; it never replays (a: actions)',
                 '! Outcome unknown. Reconcile (a actions)']
     if code == 'observation_tenant_mismatch':
         return ['! The configured service is for another tenant than this store. Restart with the right --service-root',
@@ -189,6 +205,10 @@ def hazard_band(facts, signals, width):
     return rows[0] if rows else None
 
 
+# Words a hazard's band keeps while any form that has them fits a row by itself: what makes its response safe.
+BAND_ESSENTIAL = {'operation_outcome_unknown': 'never replays'}
+
+
 # Key routes in the band's wording; dropped where no surface or key can take them (below the minimum, while typing).
 BAND_ROUTES = ((' (a: actions)', ''), (' (a actions)', ''), (' 9: difference.', ''), ('; i: details', ''),
                ('. i: details', '.'), (' i: details', ''))
@@ -217,12 +237,20 @@ def hazard_rows(facts, signals, width, *, routes=True, here=False):
     if not routes:
         forms = [_without_routes(form) for form in forms]
         reread = [_without_routes(note).replace(': 2 re-reads', '') for note in reread]
-    for count in counts:
-        notes = count + reread
-        suffix = '  ' + ' | '.join(notes) if notes else ''
-        for form in forms:
-            if cell_width(form + suffix) <= width:
-                return [form + suffix]
+    # The essential words outrank keeping the count on the band's row: while a form that keeps them fits a row by
+    # itself, the count moves to a row of its own. Only when none fits does a shorter form drop them.
+    essential = BAND_ESSENTIAL.get(primary.get('code'))
+    whole = [form for form in forms if essential in form] if essential else []
+    for candidates in ([whole] if whole else []) + [forms]:
+        for count in counts:
+            notes = count + reread
+            suffix = '  ' + ' | '.join(notes) if notes else ''
+            for form in candidates:
+                if cell_width(form + suffix) <= width:
+                    return [form + suffix]
+        keep = next((form for form in candidates if cell_width(form) <= width), None) if candidates is whole else None
+        if keep is not None:
+            return [keep] + _pack(counts[-1] + reread, width)
     notes = counts[-1] + reread
     rows = next(([form] for form in forms if cell_width(form) <= width), None)
     if rows is None:
@@ -334,8 +362,11 @@ INTENT_STATE_WORDS = {'current': 'current with the repository', 'changed': 'the 
                       'unreadable': 'the repository cannot be read now', 'not_checked': 'not checked'}
 
 
-def state_lines(states, width, heading='STATE', prefixes=None):
-    """Observation, repository intent and the newest operation, each its own line, from the read model's states."""
+def state_lines(states, width, heading='STATE', prefixes=None, reviewing=None):
+    """Observation, repository intent and the newest operation, each its own line, from the read model's states.
+
+    reviewing: the operation a surface shows below (the Plan review); when it is not the newest, the line says so.
+    """
     observation = states.get('observation') if isinstance(states.get('observation'), dict) else {}
     source = [evidence_words(observation.get('evidence_class'))]
     if observation.get('run_id') is not None:
@@ -379,9 +410,13 @@ def state_lines(states, width, heading='STATE', prefixes=None):
         if journal and recorded and journal != recorded:
             text += ' (the store records %s)' % _as_words(recorded)
         if operation.get('classification'):
-            text += '; readback %s' % _as_words(operation['classification'])
+            text += '; %s %s' % ("reconcile's readback:" if journal == 'reconciled' else 'readback',
+                                 _as_words(operation['classification']))
         if operation.get('recorded_at'):
             text += '; recorded %s' % readable_time(operation['recorded_at'])
+        if reviewing and operation.get('operation_id') != reviewing:
+            text = 'newest for this policy: %s. The plan below is a different operation, %s.' % (
+                text, short_id(reviewing, prefixes))
     lines += _labelled('  Operation', text, width, 15)
     return lines
 
@@ -756,6 +791,31 @@ def coverage_words(coverage):
 # Diagnostics area states that mean the area was not examined, in words.
 AREA_STATE_WORDS = {'not_recorded': '(no intent recorded)', 'not_imported': '(not imported)',
                     'partly_checked': '(partly read)', 'unavailable': '(could not be read)'}
+
+
+def collection_result_lines(value, width):
+    """What a collection run recorded: the run, what it read and when, its effect, and the next step."""
+    count = value.get('object_count')
+    head = 'Run %s: %s' % (value.get('run_id'), _as_words(value.get('status') or 'status not recorded'))
+    if isinstance(count, int):
+        head += '; %d %s observed' % (count, 'policy' if count == 1 else 'policies')
+    if readable_time(value.get('observed_at')):
+        head += ' at %s' % readable_time(value['observed_at'])
+    lines = ['[COLLECTION RESULT]'] + word_wrap(head + '.', width)
+    lines += word_wrap('Read: %s.' % coverage_words(value.get('coverage')), width)
+    if value.get('error_code'):
+        lines += word_wrap('Error: %s' % value['error_code'], width)
+    lines += word_wrap('Effect: recorded collection run %s; no policy was changed.' % value.get('run_id'), width)
+    lines += word_wrap('Next: 2 reads this policy again with this observation.' if value.get('status') == 'complete'
+                       else 'Next: the earlier observation is kept; collect again (a: actions), and i shows what '
+                            'was not read.', width)
+    return lines
+
+
+def is_collection_run(value):
+    """Whether a result is one collection run's record (what collect returns)."""
+    return (isinstance(value, dict) and type(value.get('run_id')) is int and 'coverage' in value
+            and 'object_count' in value and 'started_at' in value)
 
 
 def evidence_words(evidence_class):
@@ -1614,7 +1674,11 @@ def _execution_text(stage, status):
     if stage.get('recorded_at'):
         parts.append('recorded ' + _when(stage['recorded_at']))
     if status == 'unknown':
-        return 'outcome unknown: %s | %s' % (stage.get('error_code') or 'no error recorded', ' | '.join(parts))
+        # Who claims what: the engine's own report is in the journal; the store never registered a verified result.
+        claim = ('the engine reported %s, never registered by the store' % _as_words(stage['engine_status'])
+                 if stage.get('engine_status') else 'no engine result recorded')
+        said = ([str(stage['error_code'])] if stage.get('error_code') else []) + [claim] + parts[1:]
+        return 'outcome unknown: ' + ' | '.join(said)
     return ' | '.join(parts)
 
 
@@ -1622,7 +1686,7 @@ def _receipt_text(stage, status):
     if status in ('not_started', 'not_needed'):
         return status.replace('_', ' ')
     if status == 'not_recorded':
-        return 'not recorded: execution ended before an independent readback'
+        return 'not recorded: execution ended before its own independent readback'
     if status == 'required':
         return 'required: the outcome is unknown; reconcile before any retry'
     parts = [str(stage.get('classification'))]
@@ -1631,7 +1695,8 @@ def _receipt_text(stage, status):
         parts += ['second plan ' + str(stage.get('second_plan')), 'visibility ' + ('pending' if stage.get('visibility_pending') else 'settled'),
                   '%d mismatch%s' % (count, '' if count == 1 else 'es')]
     else:
-        parts.append('after ' + str(stage.get('previous_status')))
+        parts = ["reconcile's readback: " + _as_words(stage.get('classification')),
+                 'after ' + _as_words(stage.get('previous_status'))]
         if (stage.get('count') or 1) > 1:
             parts.append('%d reconciliations' % stage['count'])
         if stage.get('recorded_at'):
@@ -1712,7 +1777,8 @@ def _event_text(event):
     if kind == 'uncertain':
         return str(fields.get('error_code'))
     if kind == 'reconciled':
-        return '%s, after %s' % (fields.get('classification'), fields.get('previous_status'))
+        return "reconcile's readback: %s, after %s" % (_as_words(fields.get('classification')),
+                                                      _as_words(fields.get('previous_status')))
     if kind == 'approval_refused':
         return '%s; nothing was dispatched' % fields.get('code')
     return 'r shows what it recorded'

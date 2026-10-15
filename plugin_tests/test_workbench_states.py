@@ -96,7 +96,7 @@ class StateRenderingTests(unittest.TestCase):
         self.assertIn('(content verified); the repository changed since its recorded intent: changed '
                       'stacks/orgs/reference/dev.yaml', text)
         self.assertIn('Operation', text)
-        self.assertIn('4d972e93 reconciled; readback desired state observed', text)
+        self.assertIn("4d972e93 reconciled; reconcile's readback: desired state observed", text)
 
     def test_the_summary_states_times_to_the_second_with_their_zone(self):
         text = self.lines()
@@ -259,7 +259,8 @@ class RefusalCauseTests(unittest.TestCase):
         workspace = self.workspace({}, 'reconcile /w/op')
         notice = workspace._notice_for({'operation_id': 'a' * 32, 'journal_status': 'reconciled',
                                         'classification': 'desired_state_observed'})
-        self.assertEqual(notice, 'reconcile ran; the journal is now reconciled (readback desired state observed).')
+        self.assertEqual(notice, "reconcile ran; the journal is now reconciled (reconcile's readback: desired state "
+                                 'observed).')
         workspace = self.workspace({}, 'repository-refresh ' + 'b' * 40)
         notice = workspace._notice_for({'artifact_id': 'c' * 64, 'kind': 'repository_intent', 'data': {}, 'created': True})
         self.assertEqual(notice, 'repository-refresh recorded repository intent cccccccccccc.')
@@ -515,3 +516,38 @@ class TypedDetailTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class CollectionResultTests(unittest.TestCase):
+    """Journey 28 review S4: after a collect the surface says what the run recorded and the next step, not only the
+    evidence keys."""
+    RUN = {'run_id': 7, 'tenant_id': TENANT, 'status': 'complete', 'coverage': 'complete', 'object_count': 1,
+           'started_at': '2026-10-15T03:29:59Z', 'observed_at': '2026-10-15T03:30:00Z', 'completed_at': '2026-10-15T03:30:01Z',
+           'error_code': None, 'evidence_class': 'synthetic', 'collections': []}
+
+    def test_the_run_its_reading_its_effect_and_the_next_step(self):
+        from intune_iac.workbench_screens import collection_result_lines
+        text = ' '.join(' '.join(collection_result_lines(self.RUN, 120)).split())
+        self.assertIn('[COLLECTION RESULT]', text)
+        self.assertIn('Run 7: complete; 1 policy observed at 2026-10-15 03:30:00 UTC.', text)
+        self.assertIn('Read: policy list, settings and assignments read in full.', text)
+        self.assertIn('Effect: recorded collection run 7; no policy was changed.', text)
+        self.assertIn('Next: 2 reads this policy again with this observation.', text)
+
+    def test_the_inspector_shows_it_after_a_collect(self):
+        workspace = StateSurfaceTests.workspace(self, 1, dict(self.RUN))
+        text = StateSurfaceTests.summary(self, workspace)
+        self.assertIn('[COLLECTION RESULT]', text)
+        self.assertIn('Run 7: complete', text)
+
+
+class ReconcileReadbackWordsTests(unittest.TestCase):
+    """Journey 28 review S2: reconcile's readback is called that wherever it is shown."""
+    RESULT = {'operation_id': 'a' * 32, 'journal_status': 'reconciled', 'previous_status': 'outcome_unknown',
+              'classification': 'desired_state_observed', 'evidence_class': 'synthetic_local_process_and_modeled_service_only',
+              'effects': {'replayed': False}}
+
+    def test_the_execution_surface_labels_reconciles_readback(self):
+        workspace = StateSurfaceTests.workspace(self, 5, dict(self.RESULT))
+        text = StateSurfaceTests.summary(self, workspace)
+        self.assertIn("Reconcile's readback: desired state observed", text)

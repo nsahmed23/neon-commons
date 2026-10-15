@@ -804,7 +804,7 @@ class Workspace:
                 readback = value.get('classification')
                 return '%s ran; the journal is now %s%s.' % (
                     name, str(value['journal_status']).replace('_', ' '),
-                    ' (readback %s)' % str(readback).replace('_', ' ') if readback else '')
+                    " (reconcile's readback: %s)" % str(readback).replace('_', ' ') if readback else '')
             if isinstance(value.get('artifact_id'), str) and isinstance(value.get('kind'), str):
                 return '%s recorded %s %s%s.' % (
                     name, value['kind'].replace('_', ' '), value['artifact_id'][:12],
@@ -894,14 +894,15 @@ class Workspace:
         return context_strip(self.store.tenant_id, self.selected, facts, width, getattr(self, 'mode_class', None))
 
     def _surface_summary(self, width):
-        from .workbench_screens import word_wrap
+        from .workbench_screens import collection_result_lines, is_collection_run, word_wrap
         value = self.value
         rows = []
         if self._states_here(value):
             # The same three states as the Inspector, from the last read of this policy, before the surface's own detail.
             from .workbench_screens import state_lines
             rows.extend(state_lines(self.facts['states'], width, 'STATE (from the last read of this policy)',
-                                    prefixes=self.facts.get('identity_prefixes'))[1:])
+                                    prefixes=self.facts.get('identity_prefixes'),
+                                    reviewing=value.get('operation_id') if self.tab == 4 else None)[1:])
             rows.append('')
         def field(label, item):
             # Absent and yes/no values read as words; the exact record below keeps the literal.
@@ -924,6 +925,8 @@ class Workspace:
                 or value.get('schema_version') in ('workbench-queue-review/1', 'workbench-queue-history/1')):
             from .workbench_screens import review_lines
             rows.extend(review_lines(value, width))
+        elif is_collection_run(value):
+            rows.extend(collection_result_lines(value, width))
         elif value.get('status') == 'selection_cleared':
             rows.append('[SELECTION CLEARED]')
             rows.extend(word_wrap('No policy is selected. Press 1 for Estate and Enter on a policy to select it; nothing was '
@@ -1115,8 +1118,10 @@ class Workspace:
                 else:
                     field('Status', str(result.get('status', 'unknown')).replace('_', ' '))
                 rows.extend(execution_effect_lines(result, width))
-                # Execute nests its independent readback; reconcile returns it at the top level.
-                field('Readback', str(result.get('classification') or readback.get('classification') or 'not recorded').replace('_', ' '))
+                # Execute nests its independent readback; reconcile returns its own at the top level.
+                reconciled = 'status' not in result and isinstance(result.get('journal_status'), str)
+                field("Reconcile's readback" if reconciled else 'Readback',
+                      str(result.get('classification') or readback.get('classification') or 'not recorded').replace('_', ' '))
                 from .workbench_screens import EXECUTION_ERROR_WORDS
                 code = result.get('error_code') or error.get('code')
                 field('Error', '%s (%s)' % (EXECUTION_ERROR_WORDS[code], code) if code in EXECUTION_ERROR_WORDS

@@ -966,3 +966,88 @@ class RepositoryLinesTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class WhoClaimsWhatTests(unittest.TestCase):
+    """Journey 28 review S2: the engine's report, the store's registration and reconcile's readback, each labelled."""
+
+    def test_an_unknown_outcome_says_the_engine_reported_and_the_store_never_registered(self):
+        from intune_iac.workbench_screens import delivery_lines
+        value = delivery_value(execution={'status': 'unknown', 'error_code': None, 'service_status': None},
+                               readback={'status': 'not_recorded'})
+        joined = '\n'.join(delivery_lines(value, 160))
+        self.assertIn('[?] 4 Execution       outcome unknown: the engine reported succeeded verified, never registered '
+                      'by the store', joined)
+        self.assertIn('[?] 5 Readback        not recorded: execution ended before its own independent readback', joined)
+        value = delivery_value(execution={'status': 'unknown', 'engine_status': None, 'error_code': 'model_response_lost',
+                                          'service_status': None})
+        joined = '\n'.join(delivery_lines(value, 160))
+        self.assertIn('outcome unknown: model_response_lost | no engine result recorded', joined)
+        self.assertNotIn('engine None', joined)
+
+    def test_reconciles_readback_is_labelled_as_its_own(self):
+        from intune_iac.workbench_screens import _event_text, delivery_lines
+        value = delivery_value(reconciliation={'status': 'done', 'classification': 'desired_state_observed',
+                                               'previous_status': 'outcome_unknown', 'count': 1})
+        joined = '\n'.join(delivery_lines(value, 160))
+        self.assertIn("6 Reconciliation  reconcile's readback: desired state observed | after outcome unknown", joined)
+        text = _event_text({'kind': 'reconciled', 'fields': {'classification': 'desired_state_observed',
+                                                             'previous_status': 'outcome_unknown'}})
+        self.assertEqual(text, "reconcile's readback: desired state observed, after outcome unknown")
+
+    def test_the_delivery_next_step_names_reconciles_readback_in_words(self):
+        from intune_iac.workbench_delivery import _next_action
+        stages = {stage['stage']: stage for stage in delivery_value(
+            approval={'status': 'done'}, readback={'status': 'not_recorded'},
+            reconciliation={'status': 'done', 'classification': 'desired_state_observed', 'previous_status': 'outcome_unknown'},
+            deployment_record={'status': 'not_available', 'reason': 'no_verified_readback'})['stages']}
+        text = _next_action(stages, '/w/op', '/w/store')
+        self.assertIn("Reconcile's readback: desired state observed.", text)
+        self.assertNotIn('desired_state_observed', text)
+
+
+class PlanUnderReviewTests(unittest.TestCase):
+    """Journey 28 review S3: when the plan under review is not the policy's newest operation, the state line says so."""
+    STATES = {'operation': {'operation_id': '23c0d15f' + 'a' * 24, 'status': 'prepared', 'journal_status': 'prepared',
+                            'recorded_at': '2026-10-15T03:21:19Z'}}
+
+    def test_the_state_line_says_which_operation_it_describes(self):
+        from intune_iac.workbench_screens import state_lines
+        text = ' '.join(' '.join(state_lines(self.STATES, 160, reviewing='16e3d1d3' + 'b' * 24)).split())
+        self.assertIn('newest for this policy: 23c0d15f prepared', text)
+        self.assertIn('The plan below is a different operation, 16e3d1d3.', text)
+
+    def test_the_same_operation_needs_no_note(self):
+        from intune_iac.workbench_screens import state_lines
+        text = ' '.join(' '.join(state_lines(self.STATES, 160, reviewing='23c0d15f' + 'a' * 24)).split())
+        self.assertNotIn('different operation', text)
+        self.assertNotIn('newest for this policy', text)
+
+
+class NarrowWindowTests(unittest.TestCase):
+    """Journey 28 review L5 and S7: at 60 and 80 columns the band keeps "never replays", and the strip keeps the
+    operation's state, the band's own hazard, before a less severe one."""
+    ELIGIBILITY = {'code': 'maintenance_observation_stale', 'reason': 'service_changed', 'observed_revision': 2,
+                   'service_revision': 3}
+
+    def test_the_band_keeps_never_replays_where_a_form_with_it_fits(self):
+        from intune_iac.workbench_screens import hazard_rows
+        from plugin_tests.test_workbench_hazard import UNKNOWN
+        for width in (60, 80):
+            rows = hazard_rows({'eligibility': self.ELIGIBILITY}, [UNKNOWN], width, here=True)
+            self.assertIn('never replays', rows[0], (width, rows))
+            self.assertIn('+1 more below', ' '.join(rows), (width, rows))
+            for row in rows:
+                self.assertLessEqual(cell_width(row), width, row)
+        for row in hazard_rows({'eligibility': self.ELIGIBILITY}, [UNKNOWN], 40, here=True):
+            self.assertLessEqual(cell_width(row), 40, row)
+
+    def test_the_strip_keeps_the_operation_before_a_less_severe_hazard(self):
+        from intune_iac.workbench_screens import context_strip
+        from plugin_tests.test_workbench_hazard import POLICY, TENANT
+        facts = {'name': 'Windows Privacy Pilot', 'observation': 'fresh', 'eligibility': self.ELIGIBILITY,
+                 'repository': 'current', 'operation': 'outcome_unknown'}
+        self.assertEqual(context_strip(TENANT, POLICY, facts, 60, 'synthetic'),
+                         'SYNTHETIC | TENANT 11111111 | POLICY 22222222 | OP unknown')
+        self.assertEqual(context_strip(TENANT, POLICY, facts, 48, 'synthetic'),
+                         'SYNTHETIC | T 11111111 | P 22222222 | OP unknown')

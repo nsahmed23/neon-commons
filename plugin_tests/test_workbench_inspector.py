@@ -54,7 +54,8 @@ class InspectorReadModelTests(unittest.TestCase):
         shown = []
         value = run_terminal(self.store.root, input_fn=interrupt, result_fn=shown.append)
         self.assertEqual(value['status'], 'interrupted')
-        self.assertIn('diagnostics names anything this interrupt left unfinished', value['recovery'])
+        # Waiting for a command, nothing was running in this process (the words since journey 28 review S1).
+        self.assertIn('Nothing was running', value['recovery'])
         self.assertIn('were not stopped', value['recovery'])
         self.assertEqual(shown[-1]['recovery'], value['recovery'])
 
