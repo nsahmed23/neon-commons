@@ -249,11 +249,24 @@ class RecoveryPolicy:
         return payload
 
 
+def _bound(manifest,context):
+    """The pure binding checks: the manifest names this context's profile and original operation (and, for the adoption
+    families, the proof classification it was observed under). Nothing may be recorded in the context's store before this
+    holds, or an approval of another job could write into this job's store."""
+    observation=manifest.get('observation') if type(manifest) is dict else None
+    if type(observation) is not dict or manifest.get('profile')!=context.profile or observation.get('original')!=context.original:return False
+    return True
+
+
 def execute(manifest,signed,*,context,policy,output):
     if type(context) not in (LiveRecoveryContext,LaboratoryRecoveryContext) or type(policy) is not RecoveryPolicy:_fail('lease_recovery_context_required')
     manifest=_snapshot(manifest)
+    bound=_bound(manifest,context)
     try:payload=policy.verify(manifest,signed)
-    except AppError:service._record_recovery_expiry(context.job.policy,policy,manifest,signed,fail=_fail,expired_code='lease_recovery_expired');raise
+    except AppError:
+        if bound:service._record_recovery_expiry(context.job.policy,policy,manifest,signed,fail=_fail,expired_code='lease_recovery_expired')
+        raise
+    if not bound:_fail('lease_recovery_context_changed')
     # The window is judged where it is recorded, before any observation or request: a reached expiry is latched in the
     # original job's store and refused here, so it stays closed after a backward clock step and a restart.
     deadline=service._deadline(payload)

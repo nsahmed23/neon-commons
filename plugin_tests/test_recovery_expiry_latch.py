@@ -136,14 +136,15 @@ class RecoveryFixture(unittest.TestCase):
                         canonical(self.outcome).decode()))
             db.execute('INSERT INTO ownership VALUES (?,?)', ('scope', self.job_id))
 
-    def build_context(self):
+    def build_context(self, policy=None, job_id=None, original=None):
+        job_id = job_id or self.job_id
         context = object.__new__(self.context_class)
-        context.job = types.SimpleNamespace(policy=self.policy, identifier=self.job_id, root=self.root / 'jobs' / 'original')
-        context.profile, context.original = self.profile, self.original
+        context.job = types.SimpleNamespace(policy=policy or self.policy, identifier=job_id, root=self.root / 'jobs' / 'original')
+        context.profile, context.original = self.profile, original or self.original
         context.binding = types.SimpleNamespace(
             backend_storage_token=lambda credential, timeout: types.SimpleNamespace(_get=lambda: 'token', close=lambda: None))
         context.credential = None
-        context.phase_identifier = self.job_id  # the plan family keys its reservation by the phase operation
+        context.phase_identifier = job_id  # the plan family keys its reservation by the phase operation
         context.phase = types.SimpleNamespace(database_snapshot=lambda db: ({}, None, None),
                                               require_dispatch_quiet=lambda db: None, kind='modeled')
         context.upstream = types.SimpleNamespace(request=self.request)
@@ -206,6 +207,33 @@ class RecoveryFixture(unittest.TestCase):
 
 class ExecuteLatchTests:
     """The tests every family runs; a family's module mixes this in with its fixture."""
+
+    def another_job_context(self):
+        """A valid sealed context for a different original job, in a different service store."""
+        other = unittest.TestCase()
+        old_contracts.RecoveryPlanContracts.setUp(other)
+        self.addCleanup(other.doCleanups)
+        job_b = str(uuid.uuid4())
+        return other, self.build_context(policy=other.policy, job_id=job_b, original=dict(self.original, operation_id=job_b))
+
+    def test_an_expired_approval_for_one_job_writes_nothing_into_another_jobs_store(self):
+        other, context_b = self.another_job_context()
+        signed = self.receipt()
+        self.clocks.elapse(LIFETIME + 1)
+        for _ in range(2):  # the same, then once more: nothing accumulates
+            with self.assertRaises(AppError):
+                self.module.execute(self.manifest, signed, context=context_b, policy=self.recovery_policy,
+                                    output=self.root / 'out' / uuid.uuid4().hex)
+        for store in (other.policy, self.policy):
+            self.assertFalse((store.root / 'clock.json').exists())
+            connection = sqlite3.connect(store.database)
+            try:
+                tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+                self.assertFalse(any(name.startswith('recovery_expired') for name in tables) and
+                                 connection.execute('SELECT count(*) FROM recovery_expired').fetchone()[0])
+            finally:
+                connection.close()
+        self.assert_nothing_happened()
 
     def test_an_expired_approval_stays_refused_after_a_backward_step_and_a_restart(self):
         signed = self.receipt()
