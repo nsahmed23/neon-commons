@@ -33,6 +33,7 @@ from unittest.mock import patch
 from intune_iac import clock
 from intune_iac import identity_binding as ib
 from intune_iac import worker_adoption as adoption
+from intune_iac import worker_adoption_plan_recovery as plan_recovery
 from intune_iac import worker_adoption_recovery as adoption_recovery
 from intune_iac import worker_committed_recovery as committed
 from intune_iac import worker_lease_recovery as lease
@@ -353,6 +354,18 @@ class AdoptionRecoveryTests(ExecuteLatchTests, RecoveryFixture):
     approval_schema = 'signed-adoption-native-lease-recovery-approval/1'
     profile = 'laboratory_adoption_native_lease_recovery'
     adoption_proof = 'original_baseline'
+
+
+class AdoptionPlanRecoveryTests(ExecuteLatchTests, RecoveryFixture):
+    module = plan_recovery
+    policy_class = 'AdoptionPlanRecoveryPolicy'
+    context_class = plan_recovery.LaboratoryAdoptionPlanRecoveryContext
+    policy_schema = 'adoption-plan-native-lease-recovery-policy/1'
+    operation_schema = 'adoption-plan-native-lease-recovery-operation/1'
+    action = 'release_exact_stopped_adoption_plan_lease'
+    approval_schema = 'signed-adoption-plan-native-lease-recovery-approval/1'
+    profile = 'laboratory_adoption_plan_native_lease_recovery'
+    adoption_proof = 'approved_adoption_successor'
 
 
 if __name__ == '__main__':
