@@ -603,6 +603,15 @@ def _plain(value):
     return screen_words(STATE_WORDS.get(value, str(value))) if isinstance(value, str) else str(value)
 
 
+_CLOSING_FULL_STOP = re.compile(r'(?<=[A-Za-z0-9)])\.$')
+
+
+def _fact(key, item):
+    """One detected fact as 'label: value'. A fact that is a sentence (the sign-in message) ends in a full stop; the semicolon that
+    joins the facts takes its place, so no '.;' stands in the row."""
+    return '%s: %s' % (FOUND_LABELS.get(str(key), str(key).replace('_', ' ')), _CLOSING_FULL_STOP.sub('', _plain(item)))
+
+
 def goal_summary(view):
     """The one-line verdict of a goal. The heading of the goal block and the closing line of the screen are both this, from the
     same status, so the two cannot differ."""
@@ -637,8 +646,7 @@ def _goal_lines(view, width):
     lines.append('NEEDED FOR THIS GOAL')
     for row in (row for row in view['rows'] if row['needed']):
         lines.append('  %s: %s' % (row['label'], row['state']))
-        found = '; '.join('%s: %s' % (FOUND_LABELS.get(str(key), str(key).replace('_', ' ')), _plain(item))
-                          for key, item in row['detected'].items())
+        found = '; '.join(_fact(key, item) for key, item in row['detected'].items())
         lines += _flow('Found: %s' % (found or 'nothing'), width, '    ', '      ')
         if row['state'] == 'ready' and not row['missing']:
             lines.append('    Missing: nothing')

@@ -13,7 +13,7 @@ import unittest
 from unittest.mock import patch
 
 from intune_iac import cli, entry
-from plugin_tests.signin_fakes import FakeClis, azure_account, azure_list
+from plugin_tests.signin_fakes import FakeClis, azure_account, azure_list, github_hosts
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTEXT_TENANT = json.loads((ROOT / 'examples/context.json').read_text())['tenant_id']
@@ -63,6 +63,24 @@ class StartWordingTests(unittest.TestCase):
         text = self.flat('--goal', 'discover', '--check-signin', 'azure')
         self.assertEqual(text.count(REPORT_SENTENCE), 1)
         self.assertEqual(text.count('exits 0'), 1)
+
+    def test_a_fact_that_is_a_sentence_loses_its_full_stop_before_the_semicolon_that_joins_it(self):
+        # PKG-CATALOG-5 item 9 (journey 32 run 4): "checked when a token is requested.; graph access: unknown"
+        for width in (60, 100, 120):
+            code, out, err = self.start('--goal', 'discover', '--check-signin', 'azure', columns=width)
+            text = ' '.join(out.split())
+            self.assertEqual((code, err), (0, ''))
+            self.assertNotIn('.;', text, width)
+            self.assertNotIn('. ;', text, width)
+            self.assertIn('session freshness is checked when a token is requested; graph access: unknown', text, width)
+
+    def test_the_stray_full_stop_is_gone_with_both_sign_ins_and_the_sentence_still_ends_where_it_did(self):
+        self.fakes.answer('gh', 'auth', 'status', out=github_hosts(('github.com', 'octo-user', 'success', True)))
+        text = self.flat('--goal', 'discover', '--check-signin', 'all')
+        self.assertNotIn('.;', text)
+        # the full stops that end real sentences elsewhere on the screen are untouched
+        self.assertIn('Missing: nothing', text)
+        self.assertIn('Not needed for this goal: Repository, IaC target, Backend, Execution route.', text)
 
     def test_the_command_it_names_is_one_the_parser_accepts(self):
         args = cli.parser().parse_args(['signin', 'status', '--tenant', CONTEXT_TENANT])
