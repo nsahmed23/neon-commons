@@ -990,6 +990,7 @@ plugin_tests/test_terminal_interrupt_r4.py
 plugin_tests/test_terminal_security_epoch.py
 plugin_tests/test_token_expiry_tenant.py
 plugin_tests/test_token_fd_delivery.py
+plugin_tests/test_validity_registry.py
 plugin_tests/test_validity_shared.py
 plugin_tests/test_verifier_contract.py
 plugin_tests/test_visibility_recovery.py
@@ -1079,6 +1080,7 @@ plugin_tests/test_worker_committed_description_r4.py
 plugin_tests/test_worker_committed_recovery_r4.py
 plugin_tests/test_worker_evidence_close_r4.py
 plugin_tests/test_worker_evidence_domains_r4.py
+plugin_tests/test_worker_evidence_freshness_2.py
 plugin_tests/test_worker_evidence_freshness_floor.py
 plugin_tests/test_worker_evidence_observation_r4.py
 plugin_tests/test_worker_evidence_phase_r4.py
