@@ -1638,6 +1638,12 @@ class StopTests(Fixture):
         follower.join(5)
         self.assertEqual(outcome, [('returned', None)])
 
+    def test_the_serve_thread_ends_after_a_failed_start_whose_shutdown_helper_cannot_start(self):
+        # Pins the dependency of BoundedServer.stop_serving() on the flag that BaseServer.shutdown() sets.
+        live, _ = self.start_with_failing_thread_starts({2, 3})
+        live._thread.join(5)
+        self.assertFalse(live._thread.is_alive(), 'the serve loop did not leave')
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500
