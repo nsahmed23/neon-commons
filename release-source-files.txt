@@ -988,6 +988,7 @@ plugin_tests/test_windows_terminal_r4.py
 plugin_tests/test_windows_views_r4.py
 plugin_tests/test_windows_workbench_r4.py
 plugin_tests/test_windows_worker_evidence_domains_r4.py
+plugin_tests/test_windows_worker_evidence_freshness_floor.py
 plugin_tests/test_windows_worker_evidence_r4.py
 plugin_tests/test_windows_worker_evidence_store_r4.py
 plugin_tests/test_windows_workspace_binding_r4.py
@@ -1054,6 +1055,7 @@ plugin_tests/test_worker_committed_description_r4.py
 plugin_tests/test_worker_committed_recovery_r4.py
 plugin_tests/test_worker_evidence_close_r4.py
 plugin_tests/test_worker_evidence_domains_r4.py
+plugin_tests/test_worker_evidence_freshness_floor.py
 plugin_tests/test_worker_evidence_observation_r4.py
 plugin_tests/test_worker_evidence_phase_r4.py
 plugin_tests/test_worker_evidence_r4.py
