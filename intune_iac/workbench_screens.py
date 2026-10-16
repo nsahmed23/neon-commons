@@ -2447,25 +2447,45 @@ def workflow_fits(size):
 
 
 def workflow_command_rows(root, policy, width):
-    """The plain-text command, `intune-iac workbench workflow --root ROOT --policy ID`, as the rows to copy: root and policy
-    are the workspace's own (None where it has none, which prints the stand-ins ROOT and ID).
+    """The plain-text command, `intune-iac workbench workflow --root ROOT --policy ID`, as the rows to copy, with the
+    workspace's own root and policy; None when either cannot be shown whole (absent, refused by the display rule, or wider
+    than a row), because no stand-in is safe in a command: a bare name could address another store or policy.
 
-    The root is the operand the catalog's path writer writes for a screen (entry.text_paths: shell-quoted, or DIRECTORY for a
-    name display_refused refuses), and the policy is quoted the same way unless it is refused (then ID). This function neither
-    decides what may be shown nor quotes by itself. A command wider than the row breaks between its arguments, every row but
-    the last ending in a backslash (entry._command_rows, as every screen writes a command); an operand that would not fit a
-    row alone is its stand-in, so every row fits and the command is whole."""
-    import shlex
-    from .entry import _command_rows, text_paths
-    from .readiness import display_refused
-    room = max(1, width - 4)                  # a continuation row is indented four cells
-    operand = text_paths(root, None)[3]() if root else None
-    if not operand or cell_width(operand) > room:
-        operand = 'ROOT'
-    named = shlex.quote(str(policy)) if policy and not display_refused(str(policy)) else None
-    if not named or cell_width(named) > room:
-        named = 'ID'
+    The root is quoted by the catalog's path writer (entry.text_paths). A command wider than the row breaks between its
+    arguments, every row but the last ending in a backslash (entry._command_rows, as every screen writes a command)."""
+    from .entry import _command_rows
+    operand, named = _workflow_operands(root, policy, width)
+    if operand is None or named is None:
+        return None
     return _command_rows(['workbench', 'workflow', '--root', operand, '--policy', named], width, 0)
+
+
+def _workflow_operands(root, policy, width):
+    """(root operand, policy operand) as the command writes them, each None where it cannot be shown whole: absent, refused
+    by the display rule, or wider than a continuation row (four cells of indent). Never a stand-in a shell would take
+    for a real name."""
+    import shlex
+    from .entry import text_paths
+    from .readiness import display_refused
+    room = max(1, width - 4)
+    operand = text_paths(root, None)[3]() if root and not display_refused(str(root)) else None
+    if operand is not None and cell_width(operand) > room:
+        operand = None
+    named = shlex.quote(str(policy)) if policy and not display_refused(str(policy)) else None
+    if named is not None and cell_width(named) > room:
+        named = None
+    return operand, named
+
+
+def workflow_command_missing(root, policy, width):
+    """Why the command cannot be printed, in words: the operands that cannot be shown (empty when it can be)."""
+    operand, named = _workflow_operands(root, policy, width)
+    words = []
+    if operand is None:
+        words.append('the root is not known here' if not root else 'the root cannot be shown here')
+    if named is None:
+        words.append('no policy is selected' if not policy else 'the policy id cannot be shown here')
+    return words
 
 
 WORKFLOW_NEEDS_BASE = 'The workflow map needs a larger window (at least %dx%d).' % WORKFLOW_MIN_SIZE
@@ -2481,6 +2501,14 @@ def workflow_unavailable_lines(width, root=None, policy=None, room=None):
     continuation is cut off. The closing sentence and the prose are budgeted apart from it."""
     lead, close = word_wrap(WORKFLOW_NEEDS, width), word_wrap(WORKFLOW_UNAVAILABLE_CLOSE, width)
     command = workflow_command_rows(root, policy, width)
+    if command is None:
+        # An operand that cannot be shown makes no command at all: a stand-in could name another store or policy.
+        notice = word_wrap("%s Plain text: intune-iac workbench workflow, with this workspace's --root and --policy (%s)." % (
+            WORKFLOW_NEEDS_BASE, ' and '.join(workflow_command_missing(root, policy, width))), width)
+        for rows in (notice + close, notice):
+            if room is None or len(rows) <= room:
+                return rows
+        return notice[:room]
     if room is None or len(lead) + len(command) + len(close) <= room:
         return lead + command + close
     if len(lead) + len(command) <= room:

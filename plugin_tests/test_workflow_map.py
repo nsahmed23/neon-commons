@@ -926,12 +926,17 @@ class WorkflowMapLinesTests(unittest.TestCase):
             self.assertTrue(workflow_fits(size), size)
         for size in ((40, 12), (59, 24), (80, 19)):
             self.assertFalse(workflow_fits(size), size)
-        for width in (36, 76):
+        for width in (40, 76):
             # A command too wide for a row breaks between its arguments with a trailing backslash; copied, it is one command.
-            text = ' '.join(' '.join(workflow_unavailable_lines(width)).replace(' \\', '').split())
+            lines = workflow_unavailable_lines(width, '/tmp/store', OBJECT)
+            text = ' '.join(' '.join(lines).replace(' \\', '').split())
             self.assertIn('needs a larger window', text)
-            self.assertIn('intune-iac workbench workflow --root ROOT --policy ID', text)
-            self.assertTrue(all(len(row) <= width for row in workflow_unavailable_lines(width)))
+            self.assertIn('intune-iac workbench workflow --root /tmp/store --policy ' + OBJECT, text)
+            self.assertTrue(all(len(row) <= width for row in lines))
+        # With no root or policy to name there is no command, and the sentence says so.
+        text = ' '.join(' '.join(workflow_unavailable_lines(36)).split())
+        self.assertIn('needs a larger window', text)
+        self.assertNotIn('ROOT', text)
 
     def test_a_projection_with_an_unknown_state_or_no_stages_still_draws_without_claiming_one(self):
         flow = flows()['waiting']
@@ -1146,8 +1151,11 @@ class LayerFrameTests(LayerFixture):
             self.assertIn('needs a larger window', text, size)
             # The workspace knows its root and the selected policy, so the command names them (not the ROOT and ID stand-ins).
             # (A row holds a policy id's 36 cells and the indent from 40 columns; narrower, the stand-in ID is printed.)
-            self.assertIn('intune-iac workbench workflow --root %s --policy %s' % (
-                self.store.root, OBJECT if size[0] >= 40 else 'ID'), text, size)
+            if size[0] >= 40:
+                self.assertIn('intune-iac workbench workflow --root %s --policy %s' % (self.store.root, OBJECT), text, size)
+            else:
+                self.assertNotIn('intune-iac workbench workflow --root', text, size)   # no stand-in: no command
+                self.assertIn('--policy (the policy id cannot be shown here)', text, size)
             self.assertNotIn('approve, execute', text, size)
             self.assertNotIn('[WORKFLOW]', text, size)
             for row in self.plain(frames[-1]):
@@ -2778,19 +2786,14 @@ class WorkflowRouteTests(unittest.TestCase):
             self.assertTrue(row.endswith(' \\'), row)                        # every row but the last continues the command
         self.assertFalse(rows[-1].endswith('\\'))
 
-    def test_a_root_the_display_rule_refuses_is_the_shared_placeholder_never_the_name(self):
+    def test_a_root_the_display_rule_refuses_prints_no_command(self):
         from intune_iac.workbench_screens import workflow_command_rows
         for root in ('/tmp/bad\x1bname', '/tmp/bad​name'):
-            rows = workflow_command_rows(root, OBJECT, 40)
-            self.assertEqual(self.tokens(rows)[4:6], ['DIRECTORY', '--policy'], root)
-            self.assertNotIn('bad', ' '.join(rows))
+            self.assertIsNone(workflow_command_rows(root, OBJECT, 40), root)
 
-    def test_without_a_root_or_a_policy_the_stand_ins_are_named_and_a_token_too_wide_for_a_row_is_one_too(self):
+    def test_every_row_of_a_command_fits_its_width(self):
         from intune_iac.workbench_screens import workflow_command_rows
-        self.assertEqual(self.tokens(workflow_command_rows(None, None, 40))[3:], ['--root', 'ROOT', '--policy', 'ID'])
-        rows = workflow_command_rows('/tmp/' + '/'.join(['dir'] * 12), OBJECT, 40)
-        self.assertEqual(self.tokens(rows)[3:], ['--root', 'ROOT', '--policy', OBJECT])
-        for width in (30, 36, 40, 60, 100):
+        for width in (40, 60, 100):
             for row in workflow_command_rows('/tmp/s', OBJECT, width):
                 self.assertLessEqual(len(row), width, (width, row))
 
@@ -2991,6 +2994,44 @@ class RoundThreeFindingTwoTests(LayerFixture):
                 self.assertEqual(shlex.split(' '.join(row.rstrip('\\') for row in block))[-2:], ['--policy', OBJECT], (size, rows))
                 self.assertFalse(block[-1].endswith('\\'), (size, rows))
             self.assertIn('never replays', ' '.join(' '.join(rows).split()), size)
+
+
+class RoundThreeFindingThreeTests(unittest.TestCase):
+    """Finding 3: no stand-in inside a copyable command."""
+    STAND_INS = {'ROOT', 'DIRECTORY', 'ID', 'PATH'}
+
+    def check(self, root, policy, width, reason):
+        from intune_iac.workbench_screens import workflow_command_rows, workflow_unavailable_lines
+        self.assertIsNone(workflow_command_rows(root, policy, width), (root, policy))
+        lines = workflow_unavailable_lines(width, root, policy)
+        text = ' '.join(' '.join(lines).split())
+        self.assertIn('intune-iac workbench workflow', text)
+        self.assertIn('--root', text)
+        self.assertIn('--policy', text)
+        self.assertIn(reason, text)
+        for line in lines:
+            self.assertFalse(line.rstrip().endswith('\\'), line)
+            self.assertLessEqual(len(line), width, line)
+            self.assertFalse(self.STAND_INS & set(line.replace('(', ' ').replace(')', ' ').replace(',', ' ').split()), line)
+
+    def test_a_control_character_root_prints_no_command_and_says_the_root_cannot_be_shown(self):
+        self.check('/tmp/bad\x1bname', OBJECT, 40, 'the root cannot be shown here')
+
+    def test_an_over_long_root_prints_no_command(self):
+        self.check('/tmp/' + '/'.join(['dir'] * 12), OBJECT, 40, 'the root cannot be shown here')
+
+    def test_a_refused_or_missing_policy_prints_no_command_and_says_which(self):
+        self.check('/tmp/store', 'bad\x1bid', 40, 'the policy id cannot be shown here')
+        self.check('/tmp/store', None, 40, 'no policy is selected')
+        self.check(None, OBJECT, 40, 'the root is not known here')
+
+    def test_the_constrained_frame_never_prints_a_stand_in_operand(self):
+        from intune_iac.workbench_screens import constrained_rows
+        lines, _ = constrained_rows(TENANT, OBJECT, {}, 'synthetic', 40, 12, '60x20', '', layer='workflow',
+                                    route=('/tmp/bad\x1bname', OBJECT))
+        for line in lines:
+            self.assertFalse(self.STAND_INS & set(line.split()), line)
+            self.assertFalse(line.endswith('\\'), line)
 
 
 if __name__ == "__main__":
