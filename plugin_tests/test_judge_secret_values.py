@@ -83,6 +83,33 @@ class JudgeSecretValueTests(unittest.TestCase):
         self.judge.requests.clear()
         self.assertEqual(self.judge.call(evidence=[{'token_required': 'yes', 'tokenizer': 'qwen'}])['status'], 'assessed')
 
+    def test_settings_catalog_definition_ids_are_a_fourth_accepted_product_form(self):
+        setting = 'device_vendor_msft_policy_config_privacy_letappsaccesslocation'
+        while len(setting) % 4:
+            setting += 'x'
+        user_setting = 'user_vendor_msft_' + 'policy_config_start_hidelock' + '_' * 3
+        while len(user_setting) % 4:
+            user_setting += 'x'
+        self.assertEqual((len(setting) % 4, len(setting) >= 32), (0, True))
+        for value in (setting, user_setting):
+            self.judge.requests.clear()
+            self.assertEqual(self.judge.call(evidence=[{'definition': value}])['status'], 'assessed', value)
+        # the same id under a secret-named member stays refused, like every other value
+        self.refused({'key': setting}, location='$.evidence{0}')
+        self.refused({'api_key': setting}, location='$.evidence{0}')
+        # not the form: a prefix mismatch, capitals, or text around it
+        for other in ('Device_vendor_msft_' + 'a' * 20, 'device_vendor_msft_' + 'A' * 24, 'see ' + setting,
+                      'vendor_msft_' + 'a' * 24, setting + '-' + 'Zq9'):
+            with self.subTest(other=other[:20]):
+                if len(other) % 4 == 0:
+                    self.refused({'detail': other}, location='$.evidence{0}')
+        # a mixed-case URL-safe base64 value of the same length is still refused
+        import base64
+        mixed = base64.urlsafe_b64encode(bytes(range(65, 65 + (len(setting) // 4) * 3))).decode()
+        self.assertEqual(len(mixed), len(setting))
+        self.refused({'detail': mixed}, location='$.evidence{0}')
+        self.refused({'detail': 'QUJDREVGR0hJSktMTU5PUFFSU1RVVg=='}, location='$.evidence{0}')
+
     def test_round_three_inputs_are_refused(self):
         hex64 = 'deadbeef' * 8
         for name, evidence in (
