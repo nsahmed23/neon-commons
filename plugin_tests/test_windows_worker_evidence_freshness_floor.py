@@ -271,6 +271,45 @@ class WindowsStoreReaderTests(Shape, unittest.TestCase):
         self.assertEqual(self.rows(), [])
 
 
+    def with_a_time_dependent_judgment(self, at):
+        """No field of a real successful judgment depends on the time (only the two terminal refusals do), so stand one in:
+        from `at` on the successful result reads as no longer a baseline, as a future aging field would."""
+        real = contract.verify_envelope
+
+        def transitioning(*args, **kwargs):
+            verified = real(*args, **kwargs)
+            if kwargs.get('historical') or kwargs['now'] < at:
+                return verified
+            result = verified.result()
+            result.update(baseline_admissible=False, current_status='aged')
+            return contract.VerifiedEvidence(contract._SEAL, verified._raw, result)
+        return patch.object(contract, 'verify_envelope', side_effect=transitioning)
+
+    def test_a_transition_first_observed_inside_the_step_is_recorded(self):
+        self.publish(aging(self.req))  # mark T+1
+        before = self.root_names()
+        with self.with_a_time_dependent_judgment(T + 30), wall(T + 40):  # 39 s ahead of the mark: inside the 60 s step
+            self.assertFalse(self.read()['baseline_admissible'])
+        self.assertGreaterEqual(self.mark(), T + 40)  # recorded at its first observation
+        self.assertNotEqual(self.root_names(), before)
+
+    def test_after_a_wall_step_back_an_observed_transition_does_not_return(self):
+        self.publish(aging(self.req))
+        with self.with_a_time_dependent_judgment(T + 30), wall(T + 40):
+            self.assertFalse(self.read()['baseline_admissible'])
+        clock.reset_process_anchor()  # a restart
+        with self.with_a_time_dependent_judgment(T + 30), wall(T + 10):  # the wall stepped back before the transition
+            self.assertFalse(self.read()['baseline_admissible'])
+
+    def test_an_unchanged_judgment_inside_the_step_is_not_recorded(self):
+        self.publish(aging(self.req))
+        before = self.root_names()
+        with wall(T + 40):
+            self.assertTrue(self.read()['baseline_admissible'])
+        self.assertEqual(self.root_names(), before)
+        self.assertEqual(self.mark(), T + 1)
+
+
 class QualificationScriptTests(unittest.TestCase):
     """The native harness judges current admissibility, so it must do so through a store, never a loose-file inspect."""
 

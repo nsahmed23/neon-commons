@@ -108,6 +108,16 @@ Explicit raw `source_is_synthetic=true` cannot establish an authenticated live
 baseline even when both signatures and live classification labels are present;
 the contradiction is retained with a non-admissible evidence class.
 
+Current `reopen` and the evidence views read the store's durable clock mark first and open a write connection (which leaves
+two permanent root receipts) only to record something: a closed window the mark does not yet cover, a successful judgment at
+the observed time that differs in any field from the judgment at the stored mark (a transition), or an observed time more than
+60 seconds ahead of the mark. The mark, the decision and the receipt check are one read transaction. The time-dependent parts
+of a judgment are exactly the two terminal refusals (`worker_evidence_expired`, `worker_evidence_stale_snapshot`) and the
+earliest-time check (an envelope issued more than the skew ahead of `now` is refused); no field of a successful result depends
+on the time. Limit: no judgment that was observed and recorded is ever reversed. After a wall-clock step back, a transition
+that had not yet been observed can be observed up to 60 seconds of real time later than it would with a mark written on every
+read.
+
 ## Backup and restoration of received history
 
 The ordinary Workbench database-only `backup`/`restore` does not contain received

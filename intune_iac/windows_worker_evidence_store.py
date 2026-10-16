@@ -112,6 +112,14 @@ def _judge(store,db,decide,apply):
     return pending
 
 
+def _judgment(decide,at):
+    """The whole successful result of the decision at an earlier time, or None when it was refused then (or no mark exists).
+    A step-batched read records only when the judgment at now differs from this one."""
+    if at<1:return None
+    try:return decide(at).result()
+    except AppError:return None
+
+
 def _transaction(store,hint,decide,apply):
     """The one owner of the write transaction on a judged path: connection entry, schema validation, BEGIN IMMEDIATE,
     COMMIT, ROLLBACK and connection exit. The connection's own commit-on-exit is never used. Any storage failure is
@@ -232,6 +240,8 @@ def _reopen(store,request_sha256,trust_path,pin_path,scratch,api,*,historical=Fa
                                 if refusal.code not in ('worker_evidence_expired','worker_evidence_stale_snapshot') or mark>=now:raise
                                 write=True  # a closure the mark does not yet cover: record it
                             if not write and now-mark>MARK_STEP:write=True
+                            if not write and now>mark and _judgment(decide,mark)!=verified.result():
+                                write=True  # a transition: recorded at its first observation, never left to a later read
                             if not write:finish(db,verified)
                         finally:
                             if db.in_transaction:db.execute('ROLLBACK')  # nothing was written here
