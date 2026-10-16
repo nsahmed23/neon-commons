@@ -84,9 +84,23 @@ CAPTURE_CONTACT = ('The capture command sends the token to %s in GET requests on
                    'and writes what it reads into NEW_DIR.')
 
 
+# A word as the shell reads it: a run of characters, or a quoted run (a path with a space in it is one word).
+_WORD = re.compile(r"(?:'[^']*'|[^\s'])+")
+
+
+def command_names(text):
+    """The subcommand of each `intune-iac` command a printed step holds, read where a command stands: the program word first, or
+    after a lead-in word that ends in a colon ("Run:", "Then:", "command:"). A program name inside a quoted path, inside a longer
+    word or in the middle of a sentence is not a command, so no step is taken to run a command because of a path in it."""
+    words = _WORD.findall(text)
+    return [words[index + 1] for index, word in enumerate(words[:-1])
+            if word == PROGRAM and (index == 0 or words[index - 1].endswith(':'))]
+
+
 def capture_contact(text):
-    """The sentence that says where capture sends the token, for a printed step that holds the capture command; '' for any other."""
-    if '%s capture ' % PROGRAM not in text:
+    """The sentence that says where capture sends the token, for a printed step that runs the capture command (as command_names
+    reads it, never a substring of the text); '' for any other step."""
+    if 'capture' not in command_names(text):
         return ''
     from urllib.parse import urlsplit
     from .capture import GRAPH_ROOT

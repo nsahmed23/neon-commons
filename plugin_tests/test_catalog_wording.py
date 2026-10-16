@@ -559,5 +559,66 @@ class DirectoryInCommandTests(Base):
             self.assertNotIn('\x1b', rows['blocked'])
 
 
+class CaptureCommandPositionTests(Base):
+    """Round 2, item 2: the capture sentence follows the capture command where it stands as a command, never a substring of the
+    rendered text, so a path such as /tmp/intune-iac capture decoy inside another command does not claim a token is sent."""
+
+    SENTENCE = CaptureContactTests.SENTENCE
+    DECOY_ACTION = ("Run: intune-iac catalog '/tmp/intune-iac capture decoy' --goal adopt --check-signin azure (it runs az account "
+                    "list --output json and nothing else).")
+
+    def test_a_program_name_inside_a_quoted_path_is_not_a_command(self):
+        from intune_iac import readiness
+        for text in ("intune-iac catalog '/tmp/intune-iac capture decoy' --check-signin azure",
+                     self.DECOY_ACTION,
+                     "Run: intune-iac start '/work/a b/intune-iac capture x' --goal discover --check-signin azure",
+                     'Directory: /tmp/intune-iac capture decoy',
+                     'Look in the intune-iac capture decoy folder.'):
+            self.assertEqual(readiness.capture_contact(text), '', text)
+            self.assertNotIn('capture', readiness.command_names(text), text)
+
+    def test_the_command_names_of_a_step_are_read_where_a_command_stands(self):
+        from intune_iac import readiness
+        self.assertEqual(readiness.command_names("intune-iac catalog '/tmp/intune-iac capture decoy' --check-signin azure"), ['catalog'])
+        self.assertEqual(readiness.command_names('Then: intune-iac capture --tenant T --policy POLICY'), ['capture'])
+        self.assertEqual(readiness.command_names('Choose one tenant, then run: intune-iac start DIRECTORY. Then: intune-iac capture --tenant T'),
+                         ['start', 'capture'])
+        self.assertEqual(readiness.command_names('Provide the read token only to this one command: intune-iac capture --tenant T'),
+                         ['capture'])
+        self.assertEqual(readiness.command_names('No command here.'), [])
+        self.assertEqual(readiness.command_names('intune-iac'), [])
+
+    def test_the_three_places_the_model_prints_the_capture_command_still_get_the_sentence(self):
+        from intune_iac import readiness
+        legend = '(POLICY is the policy id, a GUID; NEW_DIR is a folder that does not exist yet)'
+        step = 'intune-iac capture --tenant 11111111-1111-4111-8111-111111111111 --policy POLICY --output NEW_DIR --token-env X ' + legend
+        for text in (step, 'Choose one tenant, then run: intune-iac start DIRECTORY. Then: ' + step,
+                     'Provide the read token only to this one command: ' + step + '.'):
+            self.assertEqual(readiness.capture_contact(text), self.SENTENCE, text)
+
+    def test_a_catalog_whose_next_action_only_names_the_decoy_gets_no_sentence(self):
+        import copy
+        value = copy.deepcopy(self.model('full'))
+        for goal in value['integrations'][0]['goals']:
+            if goal['goal'] == 'discover':
+                goal['blocked']['next_action'] = goal['next_action'] = self.DECOY_ACTION
+        lines = tc.text_of(value, 120)
+        self.assertNotIn(self.SENTENCE, flat(lines))
+        self.assertIn('decoy', flat(lines))  # the action was rendered; only the sentence is absent
+        # the unchanged catalog still says it, in the blocked row and in the next action
+        self.assertEqual(flat(self.lines('full')).count(self.SENTENCE), 2)
+
+    def test_a_start_screen_whose_next_action_only_names_the_decoy_gets_no_sentence(self):
+        from intune_iac.entry import goal_readiness, start_lines, survey
+        value = survey(self.dirs['context'])
+        view = goal_readiness(value, 'discover')
+        # the integration row and the secret row each print the capture command, and each gets the sentence
+        self.assertEqual(flat(start_lines(value, 120, view)).count(self.SENTENCE), 2)
+        for row in view['rows']:
+            if row['needed']:
+                row['next_action'] = self.DECOY_ACTION
+        self.assertNotIn(self.SENTENCE, flat(start_lines(value, 120, view)))
+
+
 if __name__ == '__main__':
     unittest.main()
