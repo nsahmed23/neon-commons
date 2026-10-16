@@ -635,3 +635,30 @@ class RecordedQueueReviewTests(unittest.TestCase):
     def test_a_record_without_the_data_is_unchanged(self):
         bare = dict(self.VALUE, data={})
         self.assertEqual(len(self.rows(bare)), 1)
+
+
+class ReopenedReviewInputsTests(Proposed):
+    """Item 8, L-nofiles (frames 65, 70, 72): a plan review reopened later has no files_written (that came with the
+    proposal call), so it shows the input files the plan itself records it bound: the desired source and the context."""
+
+    def test_a_reopened_review_lists_the_files_the_plan_bound(self):
+        from intune_iac import maintenance
+        review = self.propose('operation one')
+        base = str(self.root / 'operation one')
+        reopened = maintenance.review(self.root / 'operation one')
+        self.assertNotIn('files_written', reopened)
+        text = self.summary(self.workspace(4, reopened))
+        self.assertIn('Input files bound by the plan: %s, %s' % (shlex_quote(base + '.intent-desired.json'),
+                                                                shlex_quote(base + '.intent-context.json')), text)
+        self.assertNotIn('Input files written', text)
+
+    def test_the_fresh_proposal_keeps_its_written_row_and_adds_no_second(self):
+        review = self.propose('operation two')
+        text = self.summary(self.workspace(4, review))
+        self.assertIn('Input files written:', text)
+        self.assertNotIn('Input files bound', text)
+
+    def test_an_unreadable_plan_shows_no_row(self):
+        text = self.summary(self.workspace(4, {'operation_id': 'a' * 32, 'operation_root': '/nonexistent/operation',
+                                              'object_id': states_tests.OBJECT, 'status': 'prepared'}))
+        self.assertNotIn('Input files', text)

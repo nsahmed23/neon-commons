@@ -1315,6 +1315,12 @@ class Workspace:
             if isinstance(value.get('files_written'), list):
                 # A proposal that wrote input files says which, quoted so a path with spaces copies whole.
                 field('Input files written', ', '.join(shlex.quote(str(path)) for path in value['files_written']) or 'none')
+            elif isinstance(value.get('operation_root'), str):
+                # A review opened later has no files_written (the proposal call returned it); the plan records the desired
+                # source and the context it bound, so those are shown as what the plan bound (run 12, frames 65, 70, 72).
+                bound = self._plan_inputs(value['operation_root'])
+                if bound:
+                    field('Input files bound by the plan', ', '.join(shlex.quote(path) for path in bound))
         elif self.tab == 5 and value.get('schema_version') == 'workbench-delivery/1':
             from .workbench_screens import delivery_lines
             rows.extend(delivery_lines(value, width, getattr(self, 'rules', 'ascii'), band_has_next=self._band_has_next()))
@@ -2254,20 +2260,34 @@ class Workspace:
     def _context_file_for(self, command):
         """The context file the plan of the operation a command names bound (the plan's own record), else None. Read
         only; a command that names no operation, or an operation that cannot be read, leaves the refusal general."""
-        cache = self.__dict__.setdefault('_context_file_cache', {})  # each draw asks again; the plan is read once
-        if command in cache:
-            return cache[command]
-        path = None
         try:
             parts = shlex.split(command)
-            if len(parts) >= 2 and parts[0] in ('execute', 'reconcile', 'deployment-record', 'restore-propose'):
+        except (ValueError, AttributeError):
+            return None
+        if len(parts) < 2 or parts[0] not in ('execute', 'reconcile', 'deployment-record', 'restore-propose'):
+            return None
+        context = (self._plan_record(parts[1]) or {}).get('context')
+        path = context.get('path') if isinstance(context, dict) else None
+        return path if isinstance(path, str) and path else None
+
+    def _plan_inputs(self, operation_root):
+        """The input files the plan records it bound (the desired source, then the context), else []."""
+        plan = self._plan_record(operation_root) or {}
+        paths = [(plan.get('desired_source') or {}).get('path'), (plan.get('context') or {}).get('path')]
+        return [path for path in paths if isinstance(path, str) and path]
+
+    def _plan_record(self, operation_root):
+        """The plan.json of an operation directory, read once per directory (each draw asks again); None when unreadable."""
+        cache = self.__dict__.setdefault('_plan_cache', {})
+        root = os.path.abspath(str(operation_root))
+        if root not in cache:
+            try:
                 from . import maintenance
-                context = maintenance._load(os.path.abspath(parts[1]))[1].get('context')
-                path = context.get('path') if isinstance(context, dict) else None
-        except Exception:
-            path = None
-        cache[command] = path if isinstance(path, str) and path else None
-        return cache[command]
+                plan = maintenance._load(root)[1]
+                cache[root] = plan if isinstance(plan, dict) else None
+            except Exception:
+                cache[root] = None
+        return cache[root]
 
     def _operation_id_for(self, command):
         """The id of the operation directory a command names, when this workspace has seen that operation."""
