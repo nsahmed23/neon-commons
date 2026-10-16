@@ -34,8 +34,10 @@ INSTRUCTIONS = (
 
 
 class _Rejected(ValueError):
-    def __init__(self, code):
+    def __init__(self, code, location=None):
         self.code = code
+        # A JSON path such as $.evidence[0].detail; never the value found there.
+        self.location = location
 
 
 def _canonical(value):
@@ -68,6 +70,79 @@ def _validate_evidence(value):
             raise _Rejected("invalid_evidence")
 
     visit(value, 0)
+
+
+# REFUSAL POINT for secret-shaped values. Everything that goes to the external model service (the claim and every
+# string anywhere in the evidence, keys included) passes through _check_no_secret before any network call. The
+# refusal names a JSON path, never the value. The shapes are conservative on purpose: a false refusal costs one
+# advisory assessment, a missed secret costs a credential in a third party's request log.
+_SECRET_SHAPES = (
+    re.compile(r"eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]*"),                  # JWT
+    re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]{16,}"),                                    # Authorization value
+    re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),                                        # PEM private key
+    re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}"
+               r"|AKIA[0-9A-Z]{16})"),                                                        # vendor prefixes
+    re.compile(r"[A-Za-z0-9_.-]{3}\dQ~[A-Za-z0-9_.~-]{20,}"),                                 # Entra client secret
+    re.compile(r"(?i)\b(?:client[_-]?secret|secret|password|passwd|token|api[_-]?key|access[_-]?key)\b[\"']?"
+               r"\s*[:=]\s*[\"']?(?=[^\s\"',;]*\d)[^\s\"',;]{12,}"),                            # name = value in text
+)
+_PIECE_SPLIT = re.compile(r"[\s/:,;\"'()<>{}\[\]?&|\\@=]+")
+_TOKEN_CHARS = re.compile(r"[A-Za-z0-9_+~.-]{24,}")
+_UUID = re.compile(r"[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}")
+_HEX = re.compile(r"[0-9A-Fa-f]+")
+
+
+def _entropy(text):
+    counts = {}
+    for char in text:
+        counts[char] = counts.get(char, 0) + 1
+    return -sum(n / len(text) * math.log2(n / len(text)) for n in counts.values())
+
+
+def _secret_shaped(text):
+    if any(shape.search(text) for shape in _SECRET_SHAPES):
+        return True
+    for piece in _PIECE_SPLIT.split(text):
+        # A random credential mixes cases and digits with high entropy; identifiers, GUIDs and digests do not.
+        if (_TOKEN_CHARS.fullmatch(piece) and not _UUID.fullmatch(piece) and not _HEX.fullmatch(piece)
+                and any(c.isupper() for c in piece) and any(c.islower() for c in piece)
+                and any(c.isdigit() for c in piece) and _entropy(piece) >= 3.8):
+            return True
+    return False
+
+
+def _segment(key):
+    # A key is echoed in the location only when it is plainly an ordinary name.
+    ordinary = re.fullmatch(r"[A-Za-z_][A-Za-z0-9_-]{0,63}", key) and not _secret_shaped(key)
+    return "." + key if ordinary else ".<key>"
+
+
+def _configured_key(config):
+    name = config.get("api_key_env")
+    value = os.environ.get(name) if isinstance(name, str) and re.fullmatch(r"CLM_[A-Z0-9_]{1,120}", name) else None
+    return value if value and len(value) >= 6 else None
+
+
+def _check_no_secret(value, root, key_value=None):
+    def leaf(text, path):
+        if key_value is not None and key_value in text:
+            raise _Rejected("credential_value_in_evidence", path)
+        if _secret_shaped(text):
+            raise _Rejected("secret_shaped_value", path)
+
+    def visit(item, path):
+        if type(item) is dict:
+            for key in sorted(item):
+                where = path + _segment(key)
+                leaf(key, where)
+                visit(item[key], where)
+        elif type(item) is list:
+            for index, child in enumerate(item):
+                visit(child, path + "[" + str(index) + "]")
+        elif type(item) is str:
+            leaf(item, path)
+
+    visit(value, root)
 
 
 def _pairs(items):
@@ -326,6 +401,9 @@ def assess(config_path, claim, evidence):
         if not evidence:
             raise _Rejected("empty_evidence")
         _validate_evidence(evidence)
+        key_value = _configured_key(config)
+        _check_no_secret(claim, "$.claim", key_value)
+        _check_no_secret(evidence, "$.evidence", key_value)
         bundle = _canonical(evidence)
         if len(bundle.encode("utf-8")) > 65536:
             raise _Rejected("evidence_too_large")
@@ -371,6 +449,8 @@ def assess(config_path, claim, evidence):
                        "reason_code": "uncertain_distribution" if uncertain else "candidate_selection"})
     except _Rejected as error:
         result["reason_code"] = error.code
+        if error.location is not None:
+            result["location"] = error.location
     except (TimeoutError, socket.timeout):
         result["reason_code"] = "timeout"
     except urllib.error.HTTPError:
