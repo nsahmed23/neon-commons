@@ -122,6 +122,13 @@ time is still returned as it is, so a closed window still wins, and a held read 
 recorded time again, a transition not yet recorded can be observed at most 60 seconds plus the tolerance of real time later than
 with a mark written on every read. No observed judgment is ever reversed.
 
+Precondition: the 60 seconds plus tolerance bound holds only while the system clock tracks elapsed time within the tolerance.
+The hold compares the wall with this process's own monotonic carry of the wall, as the authorization clock does (`clock.py`,
+`clock_moved_backward`), so it cannot tell a backward step from a slow clock or a stopped time service. If the wall drifts from
+the process's monotonic clock by more than the tolerance, current admission is held in that process, indefinitely if the drift
+keeps growing, until the clock is corrected or the process restarts; `--historical` reads stay available. A held read never
+raised the mark, so a new process whose wall has passed the stored mark admits again. The host clock is the remedy.
+
 ## Backup and restoration of received history
 
 The ordinary Workbench database-only `backup`/`restore` does not contain received

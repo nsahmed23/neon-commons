@@ -191,6 +191,13 @@ class DocumentedLimitsTests(unittest.TestCase):
         self.assertIn('worker_evidence_clock_moved_backward', text)
         self.assertNotIn('exactly', text.split('time-dependent checks')[1][:300])
 
+    def test_the_windows_document_states_the_precondition_and_recovery_of_the_hold(self):
+        text = ' '.join((DOCS / 'WINDOWS-WORKER-EVIDENCE-R4.md').read_text().split())
+        self.assertIn('tracks elapsed time', text)       # the bound holds only while the clock tracks elapsed time
+        self.assertIn('slow clock', text)                # a drifting clock is a hold, not a bound
+        self.assertIn('restarts', text)                  # the recovery: correct the clock or restart the process
+        self.assertIn('never raised the mark', text)     # why a fresh process admits
+
 
 if __name__ == '__main__':
     unittest.main()
