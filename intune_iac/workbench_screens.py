@@ -2836,8 +2836,11 @@ def _entry_state(candidate):
     return ENTRY_STATES.get(state, str(state))
 
 
-def repository_entry_lines(value, width, focus=0):
-    """The policies a repository holds, each with its state in this store; the focused one is marked."""
+def repository_entry_lines(value, width, focus=0, staged=False):
+    """The policies a repository holds, each with its state in this store; the focused one is marked.
+
+    staged: a command is staged for review, so the shell-pins block is left out (it would push the screen's Next off the
+    first page, run 16 N6) and the sentence that pointed at it says where the pins go instead."""
     lines = word_wrap('[REPOSITORY ENTRY] %s' % _path_words(value.get('repository')), width)
     revision = value.get('revision')
     lines += word_wrap(('Commit %s (read from .git)' % str(revision)[:12] if revision else 'No commit could be read from .git')
@@ -2871,12 +2874,17 @@ def repository_entry_lines(value, width, focus=0):
         if candidate.get('resource_address'):
             lines += _labelled('     Address', str(candidate['resource_address']), width, 15)
         explanation = str(candidate.get('explanation', ''))
+        pinned = '--git-executable' in explanation and bool(candidate.get('command'))
+        explanation = explanation.replace(
+            'add --git-executable and --git-sha256 to the command to verify',
+            'add --git-executable and --git-sha256 in a shell (the shell command shows when nothing is staged) to verify'
+            if staged else 'add --git-executable and --git-sha256 to the shell command below to verify')
         if '--git-executable' in explanation:
             # The flags are named by the engine's explanation; what they are is said here, where they are shown (run 12).
             explanation += (' --git-executable is the path of the git program to run and --git-sha256 that program\'s SHA-256; '
                             'give both or neither.')
         lines += _labelled('', explanation, width, 5)
-        if '--git-executable' in explanation and candidate.get('command'):
+        if pinned and not staged:
             # The workspace's repository-import parses no pins, so the pinned form is a shell command (review 34).
             lines += _labelled('', 'The pins work only from a shell; the workspace repository-import cannot take them. '
                                'From a shell:', width, 5)

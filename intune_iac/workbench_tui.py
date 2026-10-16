@@ -1144,7 +1144,9 @@ class Workspace:
                 rows.append('[COMMAND FOR REVIEW] Submit it to record the policy; Esc discards it. Nothing has run.')
                 rows.extend(word_wrap(self.buffer, width))
                 rows.append('')
-            rows.extend(repository_entry_lines(value, width, getattr(self, 'entry_focus', 0)))
+            rows.extend(repository_entry_lines(value, width, getattr(self, 'entry_focus', 0),
+                                               staged=getattr(self, 'mode', None) == 'command'
+                                               and self.buffer.startswith('repository-import ')))
         elif self.tab == 7 and value.get('schema_version') == 'workbench-families/1':
             from .workbench_screens import families_lines
             rows.extend(families_lines(value, width))

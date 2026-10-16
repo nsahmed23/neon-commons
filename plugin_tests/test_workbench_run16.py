@@ -151,5 +151,40 @@ class RootlessCommandsSayWhyTests(unittest.TestCase):
             self.assertIn(first, interrupted_text(result, 80))
 
 
+class GitPinWordsAndStagedFrameTests(unittest.TestCase):
+    """Items 5 (run16-N5, N6): the pin flags go to the shell command below, not the command Enter stages; while a command
+    is staged the shell-pins block is omitted, so the screen's Next stays on the first page."""
+    COMMAND = 'intune-iac workbench repository-import --root /w/store --repository /w/repo --revision abc1234'
+    EXPLANATION = ('Ready to record: every value comes from the repository. The commit is recorded as stated; add '
+                   '--git-executable and --git-sha256 to the command to verify it against the files.')
+
+    def text(self, **kw):
+        from intune_iac.workbench_screens import repository_entry_lines
+        value = {'repository': '/w/repo', 'revision': 'f' * 40, 'tenant_id': 't' * 8, 'status': 'discovered', 'components': [],
+                 'candidates': [{'number': 1, 'object_id': 'o' * 32, 'state': 'ready', 'stack': 's', 'component': 'c',
+                                 'policy_key': 'p', 'backend': 'local', 'backend_source': 'none_declared',
+                                 'explanation': self.EXPLANATION, 'observed': {'present': False}, 'command': self.COMMAND}],
+                 'next_action': 'x'}
+        return ' '.join(' '.join(repository_entry_lines(value, 200, **kw)).split())
+
+    def test_the_flags_are_added_to_the_shell_command_below(self):
+        text = self.text()
+        self.assertIn('add --git-executable and --git-sha256 to the shell command below to verify it against the files', text)
+        self.assertNotIn('to the command to verify', text)
+
+    def test_while_staged_the_shell_block_is_omitted_and_no_sentence_points_at_it(self):
+        text = self.text(staged=True)
+        self.assertNotIn('From a shell', text)
+        self.assertNotIn('GIT_SHA256', text)
+        self.assertNotIn('command below', text)
+        self.assertNotIn('to the command to verify', text)
+        self.assertIn('--git-executable and --git-sha256', text)
+
+    def test_the_workspace_passes_the_staged_state(self):
+        import inspect
+        from intune_iac import workbench_tui
+        self.assertIn('staged=', inspect.getsource(workbench_tui).split('repository_entry_lines(value, width')[1][:200])
+
+
 if __name__ == '__main__':
     unittest.main()
