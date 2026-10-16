@@ -27,7 +27,7 @@ from .workbench_tui import cell_width, clip, pad, safe_text
 
 MIN_SIZE = (60, 20)
 NEEDS = ("The system map needs a larger window (at least %dx%d). Plain text: intune-iac workbench system-map, with this "
-         "workspace's --root and --policy." % MIN_SIZE)
+         "workspace's --root and --policy.")
 UNAVAILABLE = 'System map unavailable: '
 UNAVAILABLE_SCHEMA = 'system-map-unavailable/1'
 HAZARD = 'recorded means on record, not current or successful.'
@@ -100,11 +100,11 @@ def unavailable_lines(reason, width):
     return word_wrap(UNAVAILABLE + reason + '.', width)
 
 
-def no_map_lines(width):
+def no_map_lines(width, rows_needed=MIN_SIZE[1]):
     """What the map says where there is no room for it: that it needs a larger window, and the plain-text route in words.
     A copyable command never holds a stand-in operand (ROOT, ID), so the operands are named, not written, as the workflow
     map's small-window notice does when it cannot show the real ones."""
-    return word_wrap(NEEDS, width)
+    return word_wrap(NEEDS % (MIN_SIZE[0], max(rows_needed, MIN_SIZE[1])), width)
 
 
 # ---- the words of one node and one edge -------------------------------------------------------------------------------
@@ -277,6 +277,9 @@ def render(snapshot, width, height, *, colour=False, unicode=False, focus=None):
     rows += word_wrap('  '.join('%s %s' % (tags[item['id']], safe_text(item.get('label') or item['id']))
                                 for item in snapshot['boundaries']), width)
     rows += word_wrap(HAZARD, width)
+    if len(rows) > height:
+        # The mandatory rows alone are taller than the window: say how tall it must be, never return more rows than it has.
+        return no_map_lines(width, len(rows))
     room = height - len(rows)
     if room > 0:
         rows += _detail(snapshot, next(node for node in nodes if node['id'] == focus), width)[:room]

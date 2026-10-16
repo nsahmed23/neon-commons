@@ -922,7 +922,9 @@ class EveryFieldTests(unittest.TestCase):
                         where = (name, size, colour, unicode)
                         self.assertEqual(controls_in(rows), [], where)
                         self.assertTrue(all(width_of(row) <= size[0] for row in rows), where)
-                        self.assertEqual(spine_columns(asciified(rows)), [4 + 2 * n['layer'] for n in snapshot['nodes']], where)
+                        self.assertLessEqual(len(rows), size[1], where)
+                        if 'larger window' not in ' '.join(rows):       # a long legend can make the map taller than the window
+                            self.assertEqual(spine_columns(asciified(rows)), [4 + 2 * n['layer'] for n in snapshot['nodes']], where)
             for width in (40, 60, 120):
                 rows = screen().text(snapshot, width)
                 self.assertEqual(controls_in(rows), [], (name, width))
@@ -935,6 +937,46 @@ class EveryFieldTests(unittest.TestCase):
         for marker in ('p' + 'a\\u001b', 'e' + 'a\\u001b', 'r' + 'a\\u001b', 'l' + 'a\\u001b', 'x' + 'a\\u001b',
                        'o' + 'a\\u001b', 'v' + 'a\\u001b', 'g' + 'a\\u001b', 'i' + 'a\\u001b', 'f' + 'a\\u001b'):
             self.assertIn(marker, joined)
+
+
+def crowded(count):
+    """A drawable snapshot with `count` nodes (the recorded ones, then uniquely named copies) and no edges."""
+    snapshot = copy.deepcopy(recorded())
+    more = [dict(copy.deepcopy(snapshot['nodes'][0]), id='extra%d' % number) for number in range(count - len(snapshot['nodes']))]
+    return dict(snapshot, nodes=snapshot['nodes'] + more, edges=[])
+
+
+class HeightTests(unittest.TestCase):
+    def test_a_map_taller_than_the_window_is_the_notice_naming_the_height_it_needs(self):
+        snapshot = crowded(21)
+        self.assertIsNone(screen().unavailable_reason(snapshot))
+        rows = screen().render(snapshot, 60, 20, colour=False, unicode=False)
+        self.assertLessEqual(len(rows), 20)
+        joined = ' '.join(row.strip() for row in rows)
+        # a header, 21 nodes, the line that says there is no link, the boundary letters and the hazard sentence
+        self.assertIn('The system map needs a larger window (at least 60x25). Plain text: intune-iac workbench system-map, '
+                      "with this workspace's --root and --policy.", joined)
+        self.assertFalse(any('|- ' in row for row in rows))
+        self.assertTrue(all(width_of(row) <= 60 for row in rows))
+
+    def test_at_the_height_it_names_the_map_is_drawn_whole(self):
+        rows = screen().render(crowded(21), 60, 25, colour=False, unicode=False)
+        self.assertLessEqual(len(rows), 25)
+        self.assertEqual(len([row for row in rows if '|- ' in row]), 21)
+        self.assertTrue(any(screen().HAZARD in row for row in rows))
+        self.assertNotIn('larger window', ' '.join(rows))
+        self.assertIn('larger window', ' '.join(screen().render(crowded(21), 60, 24, colour=False, unicode=False)))
+
+    def test_no_snapshot_in_any_scenario_returns_more_rows_than_the_window_has(self):
+        for name in SCENARIOS:
+            snapshot = SCENARIOS[name]()
+            for size in ALL_SIZES + ((60, 25), (200, 60), (59, 40)):
+                for colour, unicode in MODES:
+                    rows = screen().render(snapshot, size[0], size[1], colour=colour, unicode=unicode)
+                    self.assertLessEqual(len(rows), size[1], (name, size))
+        for count in (8, 12, 21, 40):
+            for size in ALL_SIZES:
+                self.assertLessEqual(len(screen().render(crowded(count), size[0], size[1], colour=False, unicode=False)), size[1])
 
 
 if __name__ == '__main__':
