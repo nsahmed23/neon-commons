@@ -215,3 +215,36 @@ class StatusNamesTheLineTerminalCommandTests(unittest.TestCase):
         for module in ('workbench_diagnostics', 'workbench_screens', 'workbench_repository', 'workbench_tui'):
             source = (Path(__file__).resolve().parents[1] / 'intune_iac' / (module + '.py')).read_text(encoding='utf-8')
             self.assertEqual(re.findall(r'repository-refresh REVISION(?! RESOLUTION_SHA256)', source), [], module)
+
+
+class GitPinsFromAShellTests(unittest.TestCase):
+    """Item 6, low 34: the workspace repository-import takes no git pins, so the repository entry screen says the pins
+    work only from a shell and prints that shell command with both flags."""
+    COMMAND = "intune-iac workbench repository-import --root /w/store --repository /w/repo --revision abc1234"
+    EXPLANATION = ('Ready to record: every value comes from the repository. The commit is recorded as stated; add '
+                   '--git-executable and --git-sha256 to the command to verify it against the files.')
+
+    def lines(self, width=200, **candidate):
+        from intune_iac.workbench_screens import repository_entry_lines
+        value = {'repository': '/w/repo', 'revision': 'f' * 40, 'tenant_id': 't' * 8, 'status': 'discovered', 'components': [],
+                 'candidates': [dict({'number': 1, 'object_id': 'o' * 32, 'state': 'ready', 'stack': 's', 'component': 'c',
+                                      'policy_key': 'p', 'backend': 'local', 'backend_source': 'none_declared',
+                                      'explanation': self.EXPLANATION, 'observed': {'present': False}}, **candidate)],
+                 'next_action': 'x'}
+        return repository_entry_lines(value, width)
+
+    def test_the_screen_says_the_pins_work_only_from_a_shell(self):
+        text = ' '.join(' '.join(self.lines(command=self.COMMAND)).split())
+        self.assertIn('The pins work only from a shell; the workspace repository-import cannot take them. From a shell:', text)
+
+    def test_the_shell_command_is_printed_with_both_flags(self):
+        rows = [row.strip() for row in self.lines(command=self.COMMAND)]
+        self.assertIn(self.COMMAND + ' --git-executable GIT_PATH --git-sha256 GIT_SHA256', rows)
+
+    def test_a_candidate_with_no_pin_flags_in_its_explanation_prints_no_shell_form(self):
+        text = ' '.join(' '.join(self.lines(explanation='Recorded and current.', command=self.COMMAND)).split())
+        self.assertNotIn('From a shell', text)
+
+    def test_a_candidate_without_a_command_prints_no_command(self):
+        text = ' '.join(' '.join(self.lines()).split())
+        self.assertNotIn('From a shell', text)

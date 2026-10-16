@@ -2870,6 +2870,11 @@ def repository_entry_lines(value, width, focus=0):
             explanation += (' --git-executable is the path of the git program to run and --git-sha256 that program\'s SHA-256; '
                             'give both or neither.')
         lines += _labelled('', explanation, width, 5)
+        if '--git-executable' in explanation and candidate.get('command'):
+            # The workspace's repository-import parses no pins, so the pinned form is a shell command (review 34).
+            lines += _labelled('', 'The pins work only from a shell; the workspace repository-import cannot take them. '
+                               'From a shell:', width, 5)
+            lines += word_wrap('     %s --git-executable GIT_PATH --git-sha256 GIT_SHA256' % candidate['command'], width)
     lines.append('')
     lines += word_wrap('Next: ' + str(value.get('next_action')), width)
     if value.get('candidates'):
