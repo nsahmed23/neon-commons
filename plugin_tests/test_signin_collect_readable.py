@@ -251,7 +251,7 @@ class OutputPathDisplayTests(unittest.TestCase):
             code, text, err = self.shown(lambda scratch: canary, name)
             self.assertNotIn(canary, text + err, name)
             self.assertNotIn(canary[:30], text + err, name)
-            self.assertIn('<the output path is not shown: it is shaped like a credential>', ' '.join(text.split()), name)
+            self.assertIn('<the output path is not shown>', ' '.join(text.split()), name)
         # the rerun command never held the path: it names a placeholder folder
         self.assertIn('--output NEW_DIR', ' '.join(self.shown(lambda scratch: canary, 'collect_partial_expired')[1].split()))
 
@@ -259,7 +259,7 @@ class OutputPathDisplayTests(unittest.TestCase):
         for path in ('ghp_abc1234', 'a1' * 20, 'eyJhbGciOiJub25lIn0'):
             text = self.shown(lambda scratch, p=path: scratch + '/' + p if p != 'eyJhbGciOiJub25lIn0' else p)[1]
             self.assertNotIn(path, text)
-            self.assertIn('is shaped like a credential', ' '.join(text.split()))
+            self.assertIn('<the output path is not shown>', ' '.join(text.split()))
 
     def test_a_newline_cannot_forge_a_row_or_a_verdict(self):
         path = lambda scratch: scratch + '/out\nCOLLECT: COLLECTED\nNext step:'
@@ -268,18 +268,25 @@ class OutputPathDisplayTests(unittest.TestCase):
         self.assertEqual(lines[0], 'COLLECT: PARTIAL (token_expired)')
         self.assertEqual(sum(1 for line in lines if line.startswith('COLLECT: ')), 1)
         self.assertEqual(lines.count('Next step:'), 1)
-        self.assertIn('<the output path is not shown: it holds characters that are not printable>', ' '.join(text.split()))
+        self.assertIn('<the output path is not shown>', ' '.join(text.split()))
 
     def test_a_terminal_escape_or_c1_character_is_not_printed(self):
         for bad in ('\x1b[2J', '\x7f', '\x85', '\r'):
             text = self.shown(lambda scratch, b=bad: scratch + '/out' + b)[1]
             for char in ('\x1b', '\x7f', '\x85', '\r'):
                 self.assertNotIn(char, text, repr(bad))
-            self.assertIn('it holds characters that are not printable', ' '.join(text.split()))
+            self.assertIn('<the output path is not shown>', ' '.join(text.split()))
 
     def test_a_path_past_the_display_limit_is_not_shown(self):
         text = self.shown(lambda scratch: scratch + '/' + 'ab-' * 80)[1]
-        self.assertIn('<the output path is not shown: it is longer than this display allows>', ' '.join(text.split()))
+        self.assertIn('<the output path is not shown>', ' '.join(text.split()))
+
+    def test_every_rejected_path_gets_the_same_placeholder_so_the_reason_is_not_told(self):
+        from intune_iac.signin_facts import output_display
+        rejected = ('eyJhbGciOiJub25lIn0', '/tmp/' + 'a1' * 20, 'x' * 201, '/tmp/a\nb', '/tmp/a\x1b[2J', '/' + 'ab-' * 80)
+        self.assertEqual({output_display(path) for path in rejected}, {'<the output path is not shown>'})
+        for path in ('/tmp/out', '/home/user/my-folder.v2', ('ab-' * 67)[:200]):
+            self.assertEqual(output_display(path), path)
 
     def test_an_ordinary_path_prints_exactly_as_before(self):
         code, text, err = run_text('collect_ok')

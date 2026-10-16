@@ -757,19 +757,19 @@ _COLLECT_EXIT_MEANING = '(0 means collected; 2 means partial or blocked; 3 means
 
 
 OUTPUT_DISPLAY_LIMIT = 200
+OUTPUT_NOT_SHOWN = '<the output path is not shown>'
 
 
 def output_display(path):
     """The output path as the text screen may show it: the path itself only when it is printable (no control character of any
     kind, so it cannot start a row or move the cursor), within OUTPUT_DISPLAY_LIMIT, and not credential-shaped (the usability
     rule of credential_signature, on the whole path and on each of its pieces, so a token used as a folder name is caught); else
-    a fixed placeholder that says why and holds nothing of the path. The path is user input and may be anything."""
-    if not isinstance(path, str) or not path.isprintable():
-        return '<the output path is not shown: it holds characters that are not printable>'
-    if len(path) > OUTPUT_DISPLAY_LIMIT:
-        return '<the output path is not shown: it is longer than this display allows>'
-    if credential_signature(path) or any(credential_signature(piece) for piece in re.split(r'[/\\.]', path)):
-        return '<the output path is not shown: it is shaped like a credential>'
+    one fixed placeholder that holds nothing of the path. It is the same for every rejection, so it does not say which rule
+    applied (a value withheld because it may be a credential is not described further). The path is user input and may be
+    anything."""
+    if (not isinstance(path, str) or not path.isprintable() or len(path) > OUTPUT_DISPLAY_LIMIT
+            or credential_signature(path) or any(credential_signature(piece) for piece in re.split(r'[/\\.]', path))):
+        return OUTPUT_NOT_SHOWN
     return path
 
 
