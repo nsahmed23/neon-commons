@@ -1419,6 +1419,18 @@ class StopTests(Fixture):
             socket.create_connection(('127.0.0.1', live.port), timeout=2)
         self.assertFalse(live._thread.is_alive(), 'the serve thread that did start was stopped')
 
+    def test_a_cleanup_note_carries_every_failure_class_of_the_report(self):
+        from intune_iac.companion import note_cleanup_failure
+        from intune_iac.io import AppError
+        report = AppError('companion_live_close_failed', 'The listener could not be closed: OSError')
+        report.__cause__ = OSError('first')
+        report.add_note('Also failed: KeyError')
+        primary = RuntimeError('the error the engineer needs')
+        note_cleanup_failure(primary, report)
+        notes = ' '.join(primary.__notes__)
+        self.assertIn('OSError', notes)
+        self.assertIn('KeyError', notes)
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500

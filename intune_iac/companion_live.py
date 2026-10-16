@@ -182,6 +182,9 @@ class BoundedServer(http.server.ThreadingHTTPServer):
             self._slots.release()
 
 
+_ALSO = 'Also failed: '    # the prefix of the class notes that a delivered report carries
+
+
 def as_close_failure(failure):
     """What a listener that would not stop is called to the engineer: one error with one code, whatever raised it."""
     if isinstance(failure, AppError):
@@ -196,8 +199,10 @@ def note_cleanup_failure(primary, failure):
     carries the code and the class only: never an address, a token or a message."""
     shown = as_close_failure(failure)
     cause = shown.__cause__ or shown
-    primary.add_note('Cleanup also failed: %s (%s). The listener may still be bound until this process exits.'
-                     % (shown.code, type(cause).__name__))
+    # A report that delivered several failures names the later ones by class in its own notes; carry them all.
+    also = ''.join('; also %s' % note[len(_ALSO):] for note in getattr(shown, '__notes__', ()) if note.startswith(_ALSO))
+    primary.add_note('Cleanup also failed: %s (%s%s). The listener may still be bound until this process exits.'
+                     % (shown.code, type(cause).__name__, also))
 
 
 class LiveCompanion:
@@ -552,7 +557,7 @@ class LiveCompanion:
         report = AppError('companion_live_close_failed', 'The listener could not be closed: %s' % type(claimed[0]).__name__)
         report.__cause__ = claimed[0]
         for later in claimed[1:] + ([own] if own is not None else []):
-            report.add_note('Also failed: %s' % type(later).__name__)
+            report.add_note('%s%s' % (_ALSO, type(later).__name__))
         return report
 
     def stop(self):
