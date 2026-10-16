@@ -243,8 +243,8 @@ class StandInCommandSegmentTests(unittest.TestCase):
         for step, verb in self.PROGRAM_SPELLINGS:
             with self.subTest(step=step):
                 said = readiness.without_stand_in(step)
-                if verb is None:
-                    self.assertEqual(said, step)
+                if verb is None:      # not our program, but it holds the stand-in: replaced whole, fail closed (round 5)
+                    self.assertEqual(said, 'this step names the directory, which cannot be shown here')
                     continue
                 self.assertNotIn('DIRECTORY', said)
                 self.assertIn('the %s command with this directory (%s)' % (verb, CANNOT), said)
@@ -268,10 +268,84 @@ class StandInCommandSegmentTests(unittest.TestCase):
         for step, expected in self.OPERATORS:
             with self.subTest(step=step):
                 self.assertEqual(readiness.without_stand_in(step), expected)
-        for step in ('intune-iac start --goal discover && echo DIRECTORY', 'intune-iac catalog | cat',
-                     'echo ok; intune-iac start --goal discover || true'):
+        for step in ('intune-iac catalog | cat', 'echo ok; intune-iac start --goal discover || true'):
             with self.subTest(step=step):
                 self.assertEqual(readiness.without_stand_in(step), step)
+
+    def test_a_part_that_still_names_the_stand_in_is_replaced_whatever_it_is_fail_closed(self):
+        """Round 5: this part is not a start or catalog command, but it holds the token DIRECTORY, so the rule fails closed on it
+        (round 4 kept it unchanged); the part without the token keeps its bytes."""
+        from intune_iac import readiness
+        said = readiness.without_stand_in('intune-iac start --goal discover && echo DIRECTORY')
+        self.assertEqual(said, 'intune-iac start --goal discover && this step names the directory, which cannot be shown here')
+
+    SPELLINGS_R5 = (
+        ('Run: intune-"iac"\tstart DIRECTORY', 'start'),
+        ('Run: intune-iac\tstart\tDIRECTORY', 'start'),
+        ('Run: intune-iac \t start  DIRECTORY', 'start'),
+        ("Run: $'intune-iac' start DIRECTORY", 'start'),
+        ("Run: intune-$'iac' start DIRECTORY", 'start'),
+        ("Run: $'intune'-$'iac' catalog $'DIRECTORY'", 'catalog'),
+        ("Run: intune-iac $'start' DIRECTORY", 'start'),
+        ("Run: intune-iac start $'DIRECTORY' --goal discover", 'start'),
+    )
+
+    def test_tabs_and_ansi_c_quoting_leave_no_stand_in(self):
+        from intune_iac import readiness
+        for step, verb in self.SPELLINGS_R5:
+            with self.subTest(step=step):
+                said = readiness.without_stand_in(step)
+                self.assertNotIn('DIRECTORY', said)
+                self.assertIn('the %s command with this directory (%s)' % (verb, CANNOT), said)
+        for step in ("Run: $'intune-iac' start --goal discover", 'Run: intune-iac\tstart\t--goal\tdiscover'):
+            with self.subTest(step=step):
+                self.assertEqual(readiness.without_stand_in(step), step)
+
+    @staticmethod
+    def shell_reads(text):
+        """The text as an approximate shell reads it: quote characters, backslashes and the $ of $'..' gone, blanks one space."""
+        text = re.sub(r"\$(?=')", '', text)
+        text = re.sub(r"""['"\\]""", '', text)
+        return re.sub(r'[ \t]+', ' ', text)
+
+    @staticmethod
+    def producer_strings():
+        """Every string constant in readiness.py and catalog.py that holds the word DIRECTORY (an AST walk, not a list)."""
+        import ast
+        found = []
+        for name in ('readiness.py', 'catalog.py'):
+            path = Path(__file__).resolve().parents[1] / 'intune_iac' / name
+            for node in ast.walk(ast.parse(path.read_text(encoding='utf-8'))):
+                if isinstance(node, ast.Constant) and isinstance(node.value, str) and 'DIRECTORY' in node.value:
+                    found.append(node.value)
+        return sorted(set(found))
+
+    @classmethod
+    def variants(cls, text):
+        """The producer string spelled every way the closed grammar allows: each word quoted four ways, blanks as tabs, behind
+        another command."""
+        words = text.split(' ')
+        out = [text, text.replace(' ', '\t'), 'echo ok; ' + text, 'true && ' + text, text.replace(' ', ' \t '), 'x | ' + text]
+        for index, word in enumerate(words):
+            for wrap in ("'%s'", '"%s"', "$'%s'", None):
+                said = (wrap % word) if wrap else ('\\' + word if word else word)
+                out.append(' '.join(words[:index] + [said] + words[index + 1:]))
+        return out
+
+    def test_every_producer_string_with_the_stand_in_loses_it_in_every_spelling(self):
+        from intune_iac import readiness
+        strings = self.producer_strings()
+        self.assertGreater(len(strings), 8)           # the walk found the producers (readiness.py and catalog.py)
+        generated = 0
+        token = re.compile(r'(?<![A-Za-z0-9_])DIRECTORY(?![A-Za-z0-9_])')
+        for text in strings:
+            self.assertIsNone(token.search(self.shell_reads(readiness.without_stand_in(text))), text)
+            for variant in self.variants(text):
+                generated += 1
+                with self.subTest(variant=variant):
+                    self.assertIsNone(token.search(self.shell_reads(readiness.without_stand_in(variant))), variant)
+        type(self).producer_counts = (len(strings), generated)
+        self.assertGreater(generated, 100)
 
     def test_a_quoted_option_or_option_value_is_not_a_directory_operand(self):
         from intune_iac import readiness

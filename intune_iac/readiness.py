@@ -477,17 +477,37 @@ def without_stand_in(step):
     """A recorded step as a screen that may not show the directory prints it. The commands in it are found with the product's own
     command reader (entry._segments); every start or catalog command with a directory operand is replaced as a whole by words, so
     that no stand-in survives in any spelling (quoted, escaped, spaced, reordered). A line is first cut at the shell's operators
-    (; && || |, outside quotes) and each part is read as its own command; a part that needs no change is kept as it was."""
+    (; && || |, outside quotes) and each part is read as its own command; a part that needs no change is kept as it was.
+
+    The lines are the product's own recorded steps, a closed grammar: the readiness rows' notes and next actions in this module
+    (readiness.py) and the catalog's own sentences (catalog.py), not arbitrary shell text. So the rule fails closed: after the
+    commands are replaced, any part that still holds the token DIRECTORY once read approximately as the shell reads it (quotes,
+    backslashes and the $ of $'..' removed, blanks one space) is replaced whole by words, whatever it is. A part without the token
+    keeps its bytes. Encodings beyond the producer grammar, such as hex escapes inside $'..' in a tampered record, are out of scope."""
     if not step:
         return step
     out, changed = [], False
     for part, operator in _shell_parts(step):
         said = _without_stand_in_part(part) if part.strip() else part
+        said = _fail_closed(said)
         if said != part:
             changed = True
             said = part[:len(part) - len(part.lstrip())] + said.strip() + part[len(part.rstrip()):]
         out.append(said + operator)
     return ''.join(out) if changed else step
+
+
+NO_NAME_WORDS = 'this step names the directory, which cannot be shown here'
+
+
+def _fail_closed(part):
+    """The part, or words when it still holds the stand-in token as the shell would read it (see without_stand_in)."""
+    import re
+    flat = re.sub(r'[ \t]+', ' ', re.sub(r"""['"\\]""", '', re.sub(r"\$(?=')", '', part)))
+    if not re.search(r'(?<![A-Za-z0-9_])DIRECTORY(?![A-Za-z0-9_])', flat):
+        return part
+    command = re.search(r'intune-iac ?(%s)\b' % '|'.join(DIRECTORY_COMMANDS), flat)
+    return IN_WORDS % command.group(1) if command else NO_NAME_WORDS
 
 
 def _shell_parts(line):
