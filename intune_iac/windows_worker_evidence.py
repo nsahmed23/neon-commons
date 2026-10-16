@@ -10,7 +10,7 @@ from pathlib import PureWindowsPath
 import time
 from uuid import uuid4
 from . import windows_capture as wc,windows_storage as ws,worker_evidence as contract
-from .io import AppError,digest,parse_json
+from .io import AppError,parse_json
 
 EXPORTS={'sodium_init':(C.c_int,[]),'sodium_version_string':(C.c_char_p,[]),
     'crypto_core_ed25519_is_valid_point':(C.c_int,[C.c_void_p]),
@@ -132,10 +132,12 @@ def verifier(pin,scratch):
 
 
 def _inspect(envelope_path,request_path,trust_path,pin_path,scratch,api,*,historical=False):
+    # Loose files have no store to hold a durable high-water mark, so only a historical read (no time judgment) is offered.
+    if not historical:contract.fail('worker_evidence_inspect_requires_store')
     read=lambda path:parse_json(wc._reference_bytes(path,api,contract.MAX_BYTES))
     envelope,request,trust,pin=(read(path) for path in (envelope_path,request_path,trust_path,pin_path))
     with _verifier(pin,scratch,api) as checked:
-        result=contract.verify_envelope(envelope,request,trust,checked,now=int(time.time()) if historical else contract.fresh_now(key='worker-evidence-inspect:'+digest(envelope)),historical=historical).result()
+        result=contract.verify_envelope(envelope,request,trust,checked,now=int(time.time()),historical=historical).result()
         result['native_verifier']=checked.metadata
     return result
 

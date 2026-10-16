@@ -10,7 +10,7 @@ import re
 import time
 from uuid import uuid4
 from . import windows_worker_evidence as native, windows_capture as capture, windows_storage as storage
-from . import worker_evidence as contract
+from . import clock, worker_evidence as contract
 from .io import canonical,digest,parse_json,AppError
 from .workbench_schema import _validate_schema
 from .windows_workbench import WindowsWorkbenchStore
@@ -38,9 +38,48 @@ def _record(value):
     return value
 
 
-def _armed(store,envelope):
-    """The process-floor key: one received envelope in one native store (no portable floor file exists there)."""
-    return 'worker-evidence:'+str(store.root)+':'+digest(envelope)
+CLOCK='worker_evidence_clock'
+
+
+def _mark(db):
+    """The store-wide high-water mark of authenticated reads (one metadata key, like the POSIX store's clock.json)."""
+    value=_metadata(db,CLOCK)
+    if value is None:return 0
+    contract.shape(value,'high_water')
+    if type(value['high_water']) is not int or not 1<=value['high_water']<=9007199254740991:contract.fail('worker_evidence_index_invalid')
+    return value['high_water']
+
+
+def _effective(store,mark):
+    """max(wall, durable mark, the process monotonic carry of the wall): the process floor is the secondary floor."""
+    wall=time.time()
+    return max(int(wall),mark,int(clock._process_floor('worker-evidence-store:'+str(store.root),wall)))
+
+
+def _peek(store):
+    """Read-only reading for the authenticating pass: max(wall, mark). Records nothing."""
+    with store._connection() as db:
+        _validate_schema(db);return _effective(store,_mark(db))
+
+
+def _judge(store,db,run):
+    """Inside the open BEGIN IMMEDIATE transaction: resample the wall, raise the mark, then decide admission on the
+    effective time with run(now). A refusal still commits the raised mark (a closed window stays closed); admission
+    depends on the mark having been recorded. Returns the pending refusal or None."""
+    pending=None
+    try:
+        now=_effective(store,_mark(db))
+        db.execute('INSERT INTO metadata VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',(CLOCK,canonical({'high_water':now}).decode()))
+    except BaseException as error:
+        if isinstance(error,(KeyboardInterrupt,SystemExit)):raise
+        raise AppError('worker_evidence_clock_unrecorded','The authenticated read time could not be recorded; the evidence was not admitted.') from error
+    try:run(now)
+    except AppError as error:pending=error
+    try:db.execute('COMMIT')
+    except BaseException as error:
+        if isinstance(error,(KeyboardInterrupt,SystemExit)):raise
+        raise AppError('worker_evidence_clock_unrecorded','The authenticated read time could not be recorded; the evidence was not admitted.') from error
+    return pending
 
 
 def _read(path,api):return capture._reference_bytes(str(path),api,contract.MAX_BYTES)
@@ -57,25 +96,33 @@ def _ingest(store,envelope_path,request_path,trust_path,pin_path,scratch,api):
         envelope=parse_json(raw_envelope);request=parse_json(raw_request)
         policy=parse_json(_read(trust_path,api));pin=parse_json(_read(pin_path,api))
         with native._verifier(pin,scratch,api) as verify:
-            verified=contract.verify_envelope(envelope,request,policy,verify,now=contract.fresh_now(key=_armed(store,envelope)))
-            result=verified.result();binding=contract.received_binding(verified,digest(request))
-            if result['tenant_id']!=store.tenant_id:contract.fail('workbench_evidence_identity')
-            result['native_verifier']=verify.metadata
-        record={'schema_version':'worker-evidence-received/1','request_sha256':binding['request_sha256'],
-            'bundle_sha256':binding['bundle_sha256'],'envelope_byte_sha256':hashlib.sha256(raw_envelope).hexdigest(),
-            'request_byte_sha256':hashlib.sha256(raw_request).hexdigest(),'attempt':attempt}
-        # Both indexes commit together under the existing native storage barriers.
-        with store._connection(True) as db,db:
-            _validate_schema(db);db.execute('BEGIN IMMEDIATE')
-            prior=_metadata(db,RECEIVED+binding['request_sha256'])
-            if prior is not None:
-                _record(prior)
-                if prior['request_sha256']!=binding['request_sha256']:contract.fail('worker_evidence_index_invalid')
-            head=_metadata(db,HEAD+binding['scope'])
-            repeated=contract.admit_received(binding,prior['bundle_sha256'] if prior else None,head)
-            if prior is None:db.execute('INSERT INTO metadata VALUES (?,?)',(RECEIVED+binding['request_sha256'],canonical(record).decode()))
-            value=canonical({'sequence':binding['sequence'],'event_sha256':binding['event_sha256']}).decode()
-            db.execute('INSERT INTO metadata VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',(HEAD+binding['scope'],value))
+            # Authenticate first on a read-only reading; a rejected input leaves no clock effect.
+            auth=contract.verify_envelope(envelope,request,policy,verify,now=_peek(store),historical=True).result()
+            if auth['tenant_id']!=store.tenant_id:contract.fail('workbench_evidence_identity')
+            holder={}
+            def admit(db,now):
+                verified=contract.verify_envelope(envelope,request,policy,verify,now=now)
+                result=verified.result();binding=contract.received_binding(verified,digest(request))
+                result['native_verifier']=verify.metadata
+                record={'schema_version':'worker-evidence-received/1','request_sha256':binding['request_sha256'],
+                    'bundle_sha256':binding['bundle_sha256'],'envelope_byte_sha256':hashlib.sha256(raw_envelope).hexdigest(),
+                    'request_byte_sha256':hashlib.sha256(raw_request).hexdigest(),'attempt':attempt}
+                prior=_metadata(db,RECEIVED+binding['request_sha256'])
+                if prior is not None:
+                    _record(prior)
+                    if prior['request_sha256']!=binding['request_sha256']:contract.fail('worker_evidence_index_invalid')
+                head=_metadata(db,HEAD+binding['scope'])
+                holder['repeated']=contract.admit_received(binding,prior['bundle_sha256'] if prior else None,head)
+                if prior is None:db.execute('INSERT INTO metadata VALUES (?,?)',(RECEIVED+binding['request_sha256'],canonical(record).decode()))
+                value=canonical({'sequence':binding['sequence'],'event_sha256':binding['event_sha256']}).decode()
+                db.execute('INSERT INTO metadata VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',(HEAD+binding['scope'],value))
+                holder['result']=result;holder['record']=record
+            # Both indexes and the mark commit together under the existing native storage barriers.
+            with store._connection(True) as db,db:
+                _validate_schema(db);db.execute('BEGIN IMMEDIATE')
+                pending=_judge(store,db,lambda now:admit(db,now))
+            if pending is not None:raise pending
+        result,record,repeated=holder['result'],holder['record'],holder['repeated']
         result.update(received_byte_sha256=record['envelope_byte_sha256'],request_byte_sha256=record['request_byte_sha256'],
             stored_attempt=attempt,idempotent=repeated,workbench_profile_enabled=False,platform_qualified=False)
         storage._create_file(root,'result.json',canonical(result),api)
@@ -102,15 +149,27 @@ def _reopen(store,request_sha256,trust_path,pin_path,scratch,api,*,historical=Fa
     if digest(envelope)!=record['bundle_sha256'] or digest(request)!=request_sha256:contract.fail('worker_evidence_stored_bytes_changed')
     policy=parse_json(_read(trust_path,api));pin=parse_json(_read(pin_path,api))
     with native._verifier(pin,scratch,api) as verify:
-        verified=contract.verify_envelope(envelope,request,policy,verify,now=int(time.time()) if historical else contract.fresh_now(key=_armed(store,envelope)),historical=historical)
-        binding=contract.received_binding(verified,request_sha256)
-        with store._connection() as db:
-            _validate_schema(db)
+        holder={}
+        def finish(db,verified):
+            binding=contract.received_binding(verified,request_sha256)
             if _metadata(db,RECEIVED+request_sha256)!=record:contract.fail('worker_evidence_stored_bytes_changed')
             head=_metadata(db,HEAD+binding['scope'])
-        result=contract.stored_result(verified,head)
-        if result['tenant_id']!=store.tenant_id:contract.fail('workbench_evidence_identity')
-        result['native_verifier']=verify.metadata
+            result=contract.stored_result(verified,head)
+            if result['tenant_id']!=store.tenant_id:contract.fail('workbench_evidence_identity')
+            result['native_verifier']=verify.metadata;holder['result']=result
+        if historical:
+            verified=contract.verify_envelope(envelope,request,policy,verify,now=int(time.time()),historical=True)
+            with store._connection() as db:
+                _validate_schema(db);finish(db,verified)
+        else:
+            # Authenticate on a read-only reading, then record the authenticated time and decide in one transaction.
+            auth=contract.verify_envelope(envelope,request,policy,verify,now=_peek(store),historical=True).result()
+            if auth['tenant_id']!=store.tenant_id:contract.fail('workbench_evidence_identity')
+            with store._connection(True) as db,db:
+                _validate_schema(db);db.execute('BEGIN IMMEDIATE')
+                pending=_judge(store,db,lambda now:finish(db,contract.verify_envelope(envelope,request,policy,verify,now=now)))
+            if pending is not None:raise pending
+        result=holder['result']
     return result
 
 

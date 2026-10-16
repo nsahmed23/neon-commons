@@ -385,13 +385,12 @@ def stored_result(verified,head):
     return result
 
 
-def fresh_now(*,floor=None,key=None,persist=False):
-    """A read-only reading for the authenticating pass: max(wall, the store floor); without a floor file, the process
-    monotonic carry of the wall for key. Admission is decided afterwards, on a resample taken under the floor lock by the
-    reader that holds it."""
-    wall=time.time()
-    if floor is not None:return int(clock.Floor(floor).peek(wall)['effective'])
-    return int(clock._process_floor(key,wall))
+def fresh_now(*,floor):
+    """A read-only reading for the first, authenticating pass of a non-historical read: max(wall, the store floor).
+
+    Records nothing, so an input that fails authentication leaves no clock effect. Admission is decided afterwards, on a
+    resample taken under the floor lock by the reader that holds it (see the readers' locked_now)."""
+    return int(clock.Floor(floor).peek(time.time())['effective'])
 
 
 def verify_envelope(envelope,req,policy,verify,*,now,historical=False):
