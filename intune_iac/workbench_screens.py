@@ -1705,12 +1705,34 @@ HELP_MAP_KEYS = (
 )
 
 
-def help_lines(width, map_keys=False, strip=None):
+STRIP_FIELDS = ('OBS', 'REPO', 'OP')  # the labels the full strip prints before its states
+
+
+def hidden_strip_fields(full, shown):
+    """The states the strip left out at this size, from its full text and the text it shows: [(label, value)]."""
+    shown_segments = shown.split(' | ')
+    names = '|'.join(STRIP_FIELDS)
+    hidden = []
+    for label in STRIP_FIELDS:
+        found = re.search(r'(?: \| )%s (.*?)(?= \| (?:%s) |$)' % (label, names), full)
+        if found and not any(seg.startswith(label + ' ') for seg in shown_segments):
+            hidden.append((label, found.group(1)))
+    return hidden
+
+
+def help_lines(width, map_keys=False, strip=None, strip_shown=None):
     """The one reference: keys first, one per row, then the words the screens use.
 
     map_keys: add the keys of the relationship map, after Up, Down.
-    strip: the context line in full, printed under Context for the states the narrow line left out (+N more: ?)."""
-    lines = ['HELP', 'KEYS']
+    strip: the context line in full, printed under Context for the states the narrow line left out (+N more: ?).
+    strip_shown: the line the strip shows at this size; the states it left out are listed first, with their values, so
+    the first screen answers the +N more: ? that sent the engineer here (journey 29 N4)."""
+    lines = ['HELP']
+    hidden = hidden_strip_fields(strip, strip_shown) if strip and strip_shown else []
+    if hidden:
+        lines += word_wrap('Hidden in the strip at this size (+%d more): %s' % (
+            len(hidden), ' | '.join('%s %s' % pair for pair in hidden)), width)
+    lines.append('KEYS')
     for key, text in HELP_KEYS:
         lines += _labelled('  ' + key, text, width, 14)
         if map_keys and key == 'Up, Down':

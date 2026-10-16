@@ -233,6 +233,46 @@ class IdleLimitWordsTests(unittest.TestCase):
         self.assertNotIn('1 minutes', text)
 
 
+class HelpListsTheHiddenStripFieldsTests(unittest.TestCase):
+    """Item 7 (journey 29 N4): where the strip says '+N more: ?', Help's first screen starts with a row naming the hidden
+    fields and their values."""
+    FULL = ('SYNTHETIC | TENANT 029c33b1 | POLICY Windows Privacy Pilot (d665d54b) | OBS source changed | '
+            'REPO current | OP outcome unknown')
+    SHOWN = 'SYNTHETIC | T 029c33b1 | P d665d54b | OBS source changed | +2 more: ?'
+
+    def test_the_hidden_fields_are_listed_with_their_values_right_after_the_title(self):
+        from intune_iac.workbench_screens import help_lines
+        lines = help_lines(60, strip=self.FULL, strip_shown=self.SHOWN)
+        self.assertEqual(lines[0], 'HELP')
+        row = ' '.join(' '.join(lines[1:3]).split())
+        self.assertTrue(row.startswith('Hidden in the strip at this size (+2 more):'), row)
+        self.assertIn('REPO current', row)
+        self.assertIn('OP outcome unknown', row)
+        self.assertNotIn('OBS source changed', row)
+        self.assertNotIn('SYNTHETIC', row)
+
+    def test_no_row_when_the_strip_hides_nothing(self):
+        from intune_iac.workbench_screens import help_lines
+        self.assertNotIn('Hidden in the strip', ' '.join(help_lines(60, strip=self.FULL, strip_shown=self.FULL)))
+        self.assertNotIn('Hidden in the strip', ' '.join(help_lines(60, strip=self.FULL)))
+
+    def test_the_workspace_help_at_60x20_starts_with_the_row(self):
+        from plugin_tests.test_workbench_run11 import StripMarkerTests
+        StripMarkerTests.setUpClass()
+        try:
+            case = StripMarkerTests('strip')
+            case.setUp()
+            ws = case.workspace((60, 20), tab=7, facts=dict(case.FACTS, object_id=case.object_id), value={'navigation': []})
+            rows = ws._surface_summary(56)
+            case.doCleanups()
+        finally:
+            StripMarkerTests.tearDownClass()
+        first = ' '.join(' '.join(row for row in rows[:6]).split())
+        self.assertIn('Hidden in the strip at this size (+', first)
+        self.assertIn('OBS source changed | REPO current | OP outcome unknown', first)
+        self.assertLess(first.index('Hidden in the strip'), first.index('KEYS'))
+
+
 class CompanionEndLineTests(unittest.TestCase):
     """Item 8 (journey 29 N5): one prose line before the JSON end line, which stays as it is for scripts."""
 

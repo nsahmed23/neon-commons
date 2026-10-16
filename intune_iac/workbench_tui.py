@@ -1423,7 +1423,8 @@ class Workspace:
             from .workbench_screens import strip_choice
             facts = self.facts if self.selected and self.facts.get('object_id') == self.selected else {}
             rows.extend(help_lines(width, map_keys=self._map_available(), strip=strip_choice(
-                self.store.tenant_id, self.selected, facts, 10 ** 6, getattr(self, 'mode_class', None))[0]))
+                self.store.tenant_id, self.selected, facts, 10 ** 6, getattr(self, 'mode_class', None))[0],
+                strip_shown=self._strip_choice(self.size[0])[0]))
         if rows: rows.append('')
         return rows
 
