@@ -1097,6 +1097,8 @@ def _is_control(char):
 def _display_safe(text):
     """Text for a sentence: a backslash and every C0 control character (and DEL) written as a visible escape, so a path
     never puts a raw tab, newline or other control character on the screen or starts a forged row."""
+    if not any(_is_control(char) for char in text):
+        return text  # nothing to disambiguate: an ordinary path (a Windows one with backslashes too) prints as it is
     named = {'\\': '\\\\', '\t': '\\t', '\n': '\\n', '\r': '\\r'}
     return ''.join(named.get(char) or ('\\x%02x' % ord(char) if _is_control(char) else char) for char in text)
 

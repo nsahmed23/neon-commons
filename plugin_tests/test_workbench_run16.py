@@ -235,6 +235,30 @@ class InterruptedPathsAreDisplaySafeTests(unittest.TestCase):
             self.assertEqual(rows[0], 'Interrupted while executing operation 678e749f (directory %s).' % quoted)
             self.assertIn('  intune-iac workbench reconcile --operation ' + quoted, rows)
 
+    def operation(self, name):
+        import json
+        import tempfile
+        from pathlib import Path
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        directory = Path(tmp.name) / name
+        directory.mkdir()
+        (directory / 'plan.json').write_text(json.dumps({'operation_id': '678e749f' + '0' * 24}))
+        return str(directory)
+
+    def test_a_backslash_without_a_control_character_prints_as_it_did(self):
+        import shlex
+        path = self.operation('C:\\work\\op')
+        rows = self.rows('execute', 200, path)
+        self.assertEqual(rows[0], 'Interrupted while executing operation 678e749f (directory %s).' % shlex.quote(path))
+        self.assertNotIn('\\\\', rows[0])
+
+    def test_a_backslash_and_a_newline_both_escape_unambiguously(self):
+        path = self.operation('a\\b\nc')
+        first = self.rows('execute', 200, path)[0]
+        self.assertTrue(first.endswith("a\\\\b\\nc')."), first)
+        self.assertFalse(set(first) & set(self.CONTROLS), first)
+
 
 class GitPinWordsAndStagedFrameTests(unittest.TestCase):
     """Items 5 (run16-N5, N6): the pin flags go to the shell command below, not the command Enter stages; while a command
