@@ -48,9 +48,26 @@ class PartialExitTests(RealCaptureBase):  # item 1
         self.assertTrue(Path(self.output).is_dir())  # the real capture wrote it; the product removes nothing
         step = result['next_step']
         self.assertIn(self.output, step)
+        self.assertIn('did not establish', step)
         self.assertIn('intune-iac signin collect --tenant %s --policy %s --output NEW_DIR (a folder that does not exist yet)'
                       % (TENANT_A, POLICY), step)
         self.assertNotIn('rm ', step.replace('perform ', ''))
+
+    def test_the_partial_wording_is_neutral_about_who_created_the_path(self):
+        watch = signin._Watch('sigcanary-0123456789abcdefghijkl')
+        good = json.dumps({'status': 'partial', 'page_count': 1, 'attempt_count': 1, 'retry_count': 0, 'cancelled': False,
+                           'coverage': []}).encode()
+        absent = str(Path(self.box) / 'never-made')
+        result = signin._collector_result(2, good, b'', watch, absent, lambda c, e: {}, 'RERUN', TENANT_A)
+        step = result['next_step']
+        self.assertIn('The collector reported a partial result for the requested output path', step)
+        self.assertNotIn('The run wrote the output folder', step)
+        self.assertIn('did not establish', step)
+        self.assertIn('nothing is at that path now', step)
+        self.assertNotIn('rm ', step.replace('perform ', ''))
+        Path(absent).mkdir()
+        step = signin._collector_result(2, good, b'', watch, absent, lambda c, e: {}, 'RERUN', TENANT_A)['next_step']
+        self.assertIn('a directory is at that path now', step)
 
     def test_the_cli_exits_two_for_a_partial_result_and_prints_it(self):
         out, err = io.StringIO(), io.StringIO()
@@ -84,13 +101,13 @@ class EarlyRefusalTests(RealCaptureBase):  # item 21
         self.fakes.answer('az', 'account', 'get-access-token', out=token_answer(token))
 
     def test_a_token_whose_own_claims_say_expired_is_refused_early_and_the_code_is_relayed(self):
-        self.use(jwt(tid=TENANT_A, exp=1000))
+        self.use(jwt(tid=TENANT_A, exp=1000, upn='alex@example.test'))
         result = self.collect()
         self.assertEqual((result['status'], result['error_code']), ('failed', 'capture_token_expired'))
         self.assertEqual(result['child_exit'], 3)
 
     def test_a_token_whose_own_claims_name_another_tenant_is_refused_early_and_relayed(self):
-        self.use(jwt(tid=TENANT_B, exp=4102444800))
+        self.use(jwt(tid=TENANT_B, exp=4102444800, upn='alex@example.test'))
         result = self.collect()
         self.assertEqual((result['status'], result['error_code']), ('failed', 'capture_token_wrong_tenant'))
 

@@ -40,7 +40,10 @@ def good(**more):
 
 class EnumTests(Base):  # item 1
     def use_token(self, token):
-        self.token = token
+        # the fake token starts with the given letters and names the listed account, like a real az user token
+        from plugin_tests.test_signin_fix1 import jwt_token
+        self.token = token + '.' + jwt_token('x').split('.', 1)[1]
+        token = self.token
         self.fakes.answer('az', 'account', 'get-access-token', out=token_answer(token))
 
     def test_a_lower_cased_token_in_a_coverage_field_is_refused(self):

@@ -317,9 +317,13 @@ def obtain_token(tenant, account=None, deadline=DEFAULT_DEADLINE):
         raise AppError('signin_token_unavailable', 'The Azure CLI could not return a token.')
     token = _token_from(out, tenant)
     # Bind the token to the account that was judged (or confirmed with --account): the default may have changed between the
-    # listing and the token request. The claims are unverified, so they may only refuse.
-    if signin_facts.claim_binding(facts, _unverified_claims(token)) is False:
+    # listing and the token request. The claims are unverified, so they may only refuse, and their absence refuses too.
+    binding = signin_facts.claim_binding(facts, _unverified_claims(token))
+    if binding is False:
         raise SigninBlocked(signin_facts.refused('account_mismatch', tenant))
+    if binding is not True:
+        # No evidence is not a successful binding: a token that names no account is refused, with its own code.
+        raise SigninBlocked(signin_facts.refused('account_binding_unavailable', tenant))
     return token
 
 
@@ -480,6 +484,42 @@ def collector_schema(value):
     return result
 
 
+def check_new_output(destination):
+    """The capture command's own output-path rules (capture._new_directory), checked without creating or changing anything.
+
+    The path must be absolute-izable with no '.' or '..' segment, every ancestor must be an existing real directory (never
+    followed through a symlink), and the final name must not exist (not even as a symlink or a file). Raises the codes the
+    capture command raises, so the refusal comes before a token is minted. Platforms without the needed primitives are left to
+    the capture command, which refuses them itself.
+    """
+    if os.name != 'posix' or not hasattr(os, 'O_DIRECTORY') or not hasattr(os, 'O_NOFOLLOW'):
+        return
+    path = Path(destination).absolute()
+    if path == Path('/') or any(piece in {'.', '..'} for piece in path.parts[1:]):
+        raise AppError('capture_output_unsafe', 'Use a new output directory beneath an existing regular directory.')
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    conflict = AppError('capture_output_conflict', 'Capture requires a new directory with no symlinked ancestors; existing files '
+                        'are preserved. Name a folder that does not exist yet.')
+    try:
+        parent_fd = os.open('/', flags)
+    except OSError:
+        raise conflict from None
+    try:
+        for piece in path.parts[1:-1]:
+            next_fd = os.open(piece, flags, dir_fd=parent_fd)
+            os.close(parent_fd)
+            parent_fd = next_fd
+        try:
+            os.stat(path.name, dir_fd=parent_fd, follow_symlinks=False)
+        except FileNotFoundError:
+            return  # nothing is there: a new directory can be made
+        raise conflict
+    except OSError:
+        raise conflict from None
+    finally:
+        os.close(parent_fd)
+
+
 def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, collect_deadline=COLLECT_DEADLINE):
     """Collect with the reused sign-in: obtain a short-lived read token and hand it to the one collecting child.
 
@@ -500,9 +540,7 @@ def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, col
     for identity in (tenant, policy):
         if isinstance(identity, str) and signin_facts.GUID.fullmatch(identity) and not uuid.UUID(identity).int:
             raise AppError('capture_identity_invalid', 'Capture requires nonzero tenant and policy UUIDs.')
-    if os.path.lexists(output):
-        raise AppError('capture_output_conflict', 'Capture requires a new directory with no symlinked ancestors; existing files '
-                       'are preserved. Name a folder that does not exist yet.')
+    check_new_output(output)
     try:
         token = obtain_token(tenant, account, deadline)
     except SigninBlocked as blocked:
@@ -588,8 +626,12 @@ def _partial_next_step(output, rerun, tenant, shown):
     elif any(item['coverage'] == 'access_denied' for item in shown['coverage']):
         cause = ('The service denied the read; ask your administrator whether the signed-in account may read these Intune objects; '
                  'then ')
-    return ('The run wrote the output folder %s (what was captured before it stopped); this command did not open or remove it, '
-            'and a new run cannot reuse it. %sTo collect again, run: %s.' % (output, cause, rerun))
+    kind = _observe(output)
+    now = {'absent': 'nothing is at that path now', 'symlink': 'a symbolic link is at that path now',
+           'directory': 'a directory is at that path now', 'other': 'something that is not a directory is at that path now'}[kind]
+    return ('The collector reported a partial result for the requested output path %s (%s). This command did not establish who '
+            'created or changed anything there, and did not open or remove it; a new run needs a new output path. %sTo collect '
+            'again, run: %s.' % (output, now, cause, rerun))
 
 
 def _collector_result(code, out, err, watch, output, withheld, rerun='', tenant=TENANT_PLACEHOLDER):

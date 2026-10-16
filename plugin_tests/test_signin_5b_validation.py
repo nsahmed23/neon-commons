@@ -40,6 +40,30 @@ class EarlyValidationTests(Base):  # items 23 and 24
             self.assertEqual(self.fakes.calls(), [])
             self.assertEqual(self.collectors(), [])
 
+    def test_a_new_output_under_a_symlinked_ancestor_is_refused_before_any_token(self):
+        real = Path(self.box) / 'real'
+        real.mkdir()
+        link = Path(self.box) / 'link'
+        link.symlink_to(real, target_is_directory=True)
+        with self.assertRaises(AppError) as caught:
+            signin.collect(TENANT_A, POLICY, str(link / 'new-output'), deadline=5)
+        self.assertEqual(caught.exception.code, 'capture_output_conflict')
+        self.assertEqual(self.fakes.calls(), [])
+        self.assertEqual(list(real.iterdir()), [])  # the check created nothing
+
+    def test_a_missing_ancestor_and_dot_segments_are_refused_and_nothing_is_created(self):
+        for path, code in ((str(Path(self.box) / 'missing' / 'new'), 'capture_output_conflict'),
+                           (str(Path(self.box) / 'a' / '..' / 'new'), 'capture_output_unsafe')):
+            with self.assertRaises(AppError) as caught:
+                signin.collect(TENANT_A, POLICY, path, deadline=5)
+            self.assertEqual(caught.exception.code, code, path)
+        self.assertEqual(self.fakes.calls(), [])
+        self.assertFalse((Path(self.box) / 'missing').exists())
+
+    def test_a_good_new_output_is_accepted_and_not_created_by_the_check(self):
+        signin.check_new_output(str(Path(self.box) / 'fresh'))
+        self.assertFalse((Path(self.box) / 'fresh').exists())
+
     def test_start_check_signin_off_posix_is_the_designed_refusal(self):
         args = argparse.Namespace(check_signin='azure', goal='discover')
         with patch('intune_iac.signin.detect', side_effect=AttributeError('killpg')) as detect, \

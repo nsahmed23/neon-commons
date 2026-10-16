@@ -31,9 +31,20 @@ TOKEN_CALL = 'account get-access-token --resource https://graph.microsoft.com --
 SEGMENTED = 'AAAAAAAAAAAAAAAAAAAA.BBBBBBBBBBBBBBBBBBBB'  # two runs of 20, joined by a separator: under every old run limit
 
 
+def jwt_token(random_part, slash=False, upn='alex@example.test'):
+    """A JWT-shaped fake token that names the listed default account, as a real az user token does (upn claim): since PKG-SETUP-5B
+    round 2 a token that names no account cannot be bound to the judged account and is refused."""
+    import base64
+
+    def part(value):
+        return base64.urlsafe_b64encode(json.dumps(value).encode()).rstrip(b'=').decode()
+
+    signature = random_part + ('/' + random_part[:6] if slash else '')
+    return part({'alg': 'none', 'typ': 'JWT'}) + '.' + part({'upn': upn, 'n': random_part}) + '.' + signature
+
+
 def canary(slash=False):
-    middle = '/' if slash else '-'
-    return 'sigcanary' + middle + secrets.token_urlsafe(30) + 'A1'
+    return jwt_token('sigcanary-' + secrets.token_urlsafe(30) + 'A1', slash)
 
 
 def token_answer(token, tenant=TENANT_A, expires_in=3600, drop=(), **more):

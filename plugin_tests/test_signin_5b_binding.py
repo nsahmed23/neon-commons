@@ -63,11 +63,25 @@ class BindingTests(Base):  # item 8
         self.claims(upn=hidden)
         self.assertEqual(self.collect()['status'], 'collected')
 
-    def test_a_token_that_names_no_account_is_not_refused_because_claims_may_only_refuse(self):
+    def test_a_token_that_names_no_account_cannot_be_bound_and_is_refused_with_its_own_code(self):
+        # PKG-SETUP-5B round 2: missing evidence is not a successful binding; claims may only refuse, and so may their absence.
         self.listing('alex@example.test')
-        self.claims()  # a JWT with no upn, unique_name or appid
-        self.assertEqual(self.collect()['status'], 'collected')
-        self.fakes.answer('az', 'account', 'get-access-token', out=token_answer('opaque-' + 'A' * 40))
+        for label, prepare in (('a JWT with no upn, unique_name or appid', lambda: self.claims()),
+                               ('an opaque token', lambda: self.fakes.answer(
+                                   'az', 'account', 'get-access-token', out=token_answer('opaque-' + 'A' * 40)))):
+            (self.fakes.directory / 'calls.log').unlink(missing_ok=True)
+            prepare()
+            result = self.collect()
+            self.assertEqual((result['status'], result['signin']['status']), ('blocked', 'account_binding_unavailable'), label)
+            self.assertEqual(result['collector_started'], False)
+            self.assertIn('az login --tenant %s' % TENANT_A, result['signin']['next_step'])
+            self.assertNotIn('account_mismatch', json.dumps(result))
+            self.assertEqual(self.collectors(), [])
+            self.assertEqual(len(self.fakes.calls()), 2)  # the listing and the token request; no second listing
+
+    def test_the_claim_must_actually_match_for_collection_to_proceed(self):
+        self.listing('alex@example.test')
+        self.claims(upn='alex@example.test')
         self.assertEqual(self.collect()['status'], 'collected')
 
 

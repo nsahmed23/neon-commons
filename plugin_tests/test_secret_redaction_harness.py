@@ -1114,7 +1114,8 @@ class RedactionHarness(unittest.TestCase):
         from plugin_tests import signin_fakes as sf
         fakes = sf.FakeClis(base=self.inputs)
         self.addCleanup(fakes.cleanup)
-        token = canary('signin')
+        from plugin_tests.test_signin_fix1 import jwt_token
+        token = jwt_token(canary('signin'))
         fakes.answer('az', 'account', 'list', out=sf.azure_list(sf.azure_account(state=listing_state, tenant=tenant or sf.TENANT_A)))
         fakes.answer('az', 'account', 'get-access-token', out=json.dumps(
             {'accessToken': token, 'tenant': sf.TENANT_A, 'expires_on': int(time.time()) + 3600}))

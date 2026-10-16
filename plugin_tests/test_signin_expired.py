@@ -115,7 +115,8 @@ class ExpiredTests(unittest.TestCase):
 
     def test_a_usable_sign_in_yields_the_token_through_the_documented_command_only(self):
         self.listing()
-        token = 'C' * 20 + '.' + 'D' * 30
+        from plugin_tests.test_signin_fix1 import jwt_token  # names the listed account, as a bindable token must (5B round 2)
+        token = jwt_token('C' * 20)
         self.token(out=token_answer(token))
         self.assertEqual(signin.obtain_token(TENANT_A, deadline=5), token)
         self.assertEqual(self.fakes.calls(), [LISTING, TOKEN_CALL % TENANT_A])

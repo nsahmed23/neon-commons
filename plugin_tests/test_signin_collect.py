@@ -31,7 +31,8 @@ TOKEN_CALL = 'account get-access-token --resource https://graph.microsoft.com --
 
 
 def canary():
-    return 'sigcanary-' + secrets.token_urlsafe(36) + 'A1'
+    from plugin_tests.test_signin_fix1 import jwt_token
+    return jwt_token('sigcanary-' + secrets.token_urlsafe(36) + 'A1')
 
 
 def token_answer(token, tenant=TENANT_A):

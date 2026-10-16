@@ -451,6 +451,13 @@ def refused(status, tenant, answered=None):
         return _verdict('azure', 'wrong_tenant', 'The token request answered for tenant %s; the context names tenant %s. Nothing '
                         'proceeds.' % (other.lower(), wanted), 'Sign in to the tenant the context names: %s; then run this '
                         'command again.' % login, tenant)
+    if status == 'account_binding_unavailable':
+        return _verdict('azure', 'account_binding_unavailable',
+                        'The token does not say which account it was issued for (it is opaque, or carries none of the upn, '
+                        'unique_name or appid claims), so it cannot be tied to the account that was judged. Nothing proceeds.',
+                        'Sign in again so that the Azure CLI issues a token that names its account: az login --tenant %s; then run '
+                        'this command again. If it happens again, report it: a token that names no account cannot be used here.'
+                        % wanted, tenant)
     if status == 'account_mismatch':
         return _verdict('azure', 'account_mismatch', 'The token was issued for a different account than the one the Azure CLI '
                         'listed as its default (an unverified claim in the token names another account; such claims may only '

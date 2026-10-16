@@ -11,7 +11,8 @@ import unittest
 
 from intune_iac import cli, signin, signin_facts
 from plugin_tests.signin_fakes import TENANT_A, azure_account, azure_list, github_hosts
-from plugin_tests.test_signin_fix1 import Base, LISTING
+from plugin_tests.test_signin_fix1 import Base, LISTING, jwt_token
+from plugin_tests.test_signin_fix1 import token_answer
 
 LONG_UPN = 'alexander.morgan@contoso.onmicrosoft.com'  # 36 letters and digits: hidden from display, no signature
 OTHER_UPN = 'someone.else.entirely@contoso.onmicrosoft.com'
@@ -26,6 +27,11 @@ def verdict_for(fakes, user, account=None, tenant=TENANT_A, **more):
 
 
 class HiddenNameTests(Base):
+    def name_the_account(self, upn):
+        """The token names the listed account, as a bindable token must (PKG-SETUP-5B round 2)."""
+        self.token = jwt_token('long-upn-canary-0123456789', upn=upn)
+        self.fakes.answer('az', 'account', 'get-access-token', out=token_answer(self.token))
+
     def test_a_realistic_long_upn_is_usable_with_the_name_not_shown_and_the_next_steps_printed(self):
         verdict = verdict_for(self.fakes, LONG_UPN)
         self.assertEqual((verdict['status'], verdict['usable']), ('signed_in', True))
@@ -38,6 +44,7 @@ class HiddenNameTests(Base):
 
     def test_collect_works_for_a_long_upn_and_echoes_nothing(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user=LONG_UPN)))
+        self.name_the_account(LONG_UPN)
         result = self.collect()
         self.assertEqual(result['status'], 'collected')
         self.assertNotIn('alexander', json.dumps(result))
@@ -48,6 +55,7 @@ class HiddenNameTests(Base):
         self.assertIn('the account matches', verdict['message'].lower())
         self.assertNotIn('alexander', json.dumps(verdict))
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user=LONG_UPN)))
+        self.name_the_account(LONG_UPN)
         result = self.collect(account=LONG_UPN)
         self.assertEqual(result['status'], 'collected')
         self.assertNotIn('alexander', json.dumps(result))
