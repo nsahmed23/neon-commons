@@ -484,8 +484,10 @@ class EdgeTableTests(unittest.TestCase):
         table = {'current': 'recorded', 'changed': 'stale', 'consumer_changed': 'stale', 'unreadable': 'unknown',
                  'not_checked': 'unverified'}
         for status, expected in table.items():
-            edge = edges_of(project(with_intent(baseline(), status=status)))['cites:repo.source>atmos.component']
-            self.assertEqual(edge['state'], expected, status)
+            edges = edges_of(project(with_intent(baseline(), status=status)))
+            self.assertEqual(edges['cites:repo.source>atmos.component']['state'], expected, status)
+            # The backend is named by the same intent, so its link is as current as the intent is.
+            self.assertEqual(edges['cites:atmos.component>tofu.backend']['state'], expected, status)
 
     def test_an_adoption_record_that_names_the_generated_files_establishes_generates(self):
         edge = edges_of(project(with_adoption(baseline())))['generates:atmos.component>tofu.engine']

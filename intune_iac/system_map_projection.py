@@ -298,7 +298,9 @@ def _edges(read, nodes, status, scope, intent, operation, delivery):
                            _basis(RECORD_INTENT, 'scope.stack, scope.component', artifact), by_id['atmos.component']['state']))
     if status is not None and artifact and _text(scope.get('backend')):
         edges.append(_edge('cites', 'atmos.component', 'tofu.backend',
-                           _basis(RECORD_INTENT, 'scope.backend', artifact), by_id['tofu.backend']['state']))
+                           # The backend is named by the same intent and status as the component, so the link is as current
+                           # as the component's reading of that intent; the backend node's own state is not the link's.
+                           _basis(RECORD_INTENT, 'scope.backend', artifact), by_id['atmos.component']['state']))
     generated = _adoption_generated(read.get('adoptions'), read.get('object_id'))
     if generated:
         edges.append(_edge('generates', 'atmos.component', 'tofu.engine',
