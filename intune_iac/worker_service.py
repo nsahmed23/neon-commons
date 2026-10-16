@@ -876,10 +876,14 @@ class ServiceJob:
                 while not stopped.wait(0.2):
                     try: permit.poll_active()
                     except BaseException as error:
+                        # The poll reads with a zero busy timeout, so it can collide with a commit of the per-request
+                        # authorization. That tick is skipped: the next one reads again, and check_active, which gates
+                        # every request, stays the only authority.
+                        if isinstance(error, AppError) and error.code == 'service_store_unavailable': continue
                         watchdog_fault.append(getattr(error, 'code', type(error).__name__))
                         if not stopped.is_set(): os.kill(os.getpid(), signal.SIGINT)
                         return
-            watchdog = threading.Thread(target=monitor, daemon=True, name='intune-service-watchdog'); watchdog.start()
+            watchdog =threading.Thread(target=monitor, daemon=True, name='intune-service-watchdog'); watchdog.start()
             result = host.launch(spec, self.root / 'host-run')
         except BaseException as error:
             primary = error

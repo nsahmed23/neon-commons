@@ -385,6 +385,42 @@ class PermitLatchTests(ServiceFixture):
         permit.check_active()
         check.assert_called_once_with(self.job.manifest)
 
+    def test_a_store_collision_in_the_watchdog_poll_is_a_skipped_tick_not_a_fault(self):
+        # The watchdog polls every 0.2 s with a zero busy timeout; a commit by another connection (the per-request
+        # authorization commits) holds the database exclusively for a moment. That tick must be skipped, not stop the job.
+        outcomes, original = [], service.ServicePermit.poll_active
+
+        def recording_poll(permit):
+            try:
+                original(permit)
+            except BaseException as error:
+                outcomes.append(getattr(error, 'code', type(error).__name__))
+                raise
+            outcomes.append('ok')
+
+        def launch(spec, root):
+            holder = sqlite3.connect(self.policy.database, timeout=0, isolation_level=None)
+            try:
+                holder.execute('BEGIN EXCLUSIVE')
+                for _ in range(100):  # real time: the watchdog ticks every 0.2 s
+                    if outcomes: break
+                    time.sleep(0.05)
+                holder.execute('ROLLBACK')
+            finally:
+                holder.close()
+            for _ in range(100):
+                if 'ok' in outcomes: break
+                time.sleep(0.05)
+            return {'status': 'complete'}
+        with patch.object(service.ServicePermit, 'poll_active', recording_poll), \
+                patch.object(service.host, 'launch', side_effect=launch):
+            self.run_job(self.receipt())
+        self.assertEqual(outcomes[0], 'service_store_unavailable')  # the collision happened
+        self.assertIn('ok', outcomes)  # and the watchdog went on polling
+        outcome = self.rows('SELECT outcome FROM jobs')[0][0]
+        self.assertIn('"watchdog_error":null', outcome.replace(' ', ''))
+        self.assertIn('host_completed_service_unverified', outcome)
+
     def test_a_refused_authorization_commits_no_marker(self):
         permit = self.dispatch_running(self.start + 10)
         with self.policy.connection() as db:
