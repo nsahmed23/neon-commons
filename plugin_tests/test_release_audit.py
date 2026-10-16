@@ -28,7 +28,10 @@ class ReleaseAuditTests(unittest.TestCase):
                     builder.write_archive(parent / 'out.zip', ['README.md'], 'source')
 
     def build(self, root, output, runtime=('README.md',)):
+        # Archives are made only from a known, clean Git state; these fixtures are bare folders, so that state is stood in for.
+        known = {'commit': 'a' * 40, 'tree': 'b' * 40, 'dirty': False, 'changes': ''}
         with patch.object(builder, 'ROOT', root), patch.object(builder, 'runtime_files', return_value=list(runtime)), \
+                patch.object(builder, 'git_state', return_value=known), patch.object(builder, 'bind_to_commit', return_value=[]), \
                 patch.object(sys, 'argv', ['build-release.py', '--output-dir', str(output)]), \
                 contextlib.redirect_stdout(io.StringIO()):
             builder.main()
