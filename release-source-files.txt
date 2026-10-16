@@ -884,6 +884,7 @@ plugin_tests/test_capture_reimport_r4.py
 plugin_tests/test_capture_retry.py
 plugin_tests/test_catalog.py
 plugin_tests/test_catalog_acquisition_security.py
+plugin_tests/test_catalog_layer.py
 plugin_tests/test_ci_contract.py
 plugin_tests/test_cli.py
 plugin_tests/test_cli_audit.py
