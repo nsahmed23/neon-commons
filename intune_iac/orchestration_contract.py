@@ -89,6 +89,23 @@ def escape_text(value, limit=MAX_TEXT):
     return ''.join(pieces) + ('...' if len(text) > limit * 4 + 4 else '')
 
 
+# -- free text ------------------------------------------------------------------------------------------------------
+# An absolute path inside a free-text field: a drive or UNC path (whose directory names may hold spaces, as a Windows
+# home does) or a /-rooted or \-rooted run. A reason such as the loop's "refusing C:\Users\x\npm\codex.CMD: ..." names
+# agent configuration and a home path; the contract promises neither is shown, and an evidence path is shown only
+# through evidence_display, so a path found in text is replaced whole, whether or not it lies inside a root.
+_PATH_IN_TEXT = re.compile(
+    r'(?<![\w.:/\\-])(?:'
+    r'(?:[A-Za-z]:[\\/]|\\\\|//)(?:[^\\/:*?"<>|\r\n]+[\\/])*\S*'
+    r'|[\\/]\S*)')
+PATH_PLACEHOLDER = '<path>'
+
+
+def scrub_paths(value):
+    """The text with every absolute path replaced by '<path>'. Idempotent; a non-string is returned unchanged."""
+    return _PATH_IN_TEXT.sub(PATH_PLACEHOLDER, value) if isinstance(value, str) else value
+
+
 # -- evidence paths ------------------------------------------------------------------------------------------------
 def _segments(path):
     """(drive or None, segments) for an absolute path, or None when the path is not a plain absolute path: relative,
@@ -200,7 +217,7 @@ def _data(kind, raw):
         else:
             if value is not None and not isinstance(value, str):
                 raise _bad('data.' + name)
-            out[name] = None if value is None else escape_text(value)
+            out[name] = None if value is None else escape_text(scrub_paths(value))
     return out
 
 

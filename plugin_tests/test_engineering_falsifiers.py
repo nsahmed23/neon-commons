@@ -326,6 +326,32 @@ class RedactionTests(Base):
         self.assertIn('\\x1b]0;owned\\x07', text)
         self.assertTrue(all(c == '\n' or c.isprintable() for c in json.dumps(model, ensure_ascii=False)))
 
+    def test_a_reason_carrying_an_agent_executable_path_never_shows_the_path(self):
+        reasons = [
+            'refusing C:\\Users\\someone\\AppData\\Roaming\\npm\\codex.CMD: a .cmd or .bat shim re-parses arguments; set LOOP_CODEX',
+            'codex executable not found: C:/Users/someone/bin/codex.exe (LOOP_CODEX)',
+            'cannot start /home/someone/.config/agent/codex.toml now',
+            'refusing C:\\Users\\Some One\\AppData\\codex.CMD: a shim',
+            'unc \\\\server\\share\\codex.cmd and //server/x']
+        for number, reason in enumerate(reasons):
+            events = [event(1, 'dispatch.queued', 'T-1', kind='advisor'),
+                      event(2, 'dispatch.unavailable', 'T-1', reason=reason)]
+            model, text = self.view(events)
+            shown = text + json.dumps(model)
+            for forbidden in ('someone', 'Some One', 'codex.', 'CMD', 'AppData', 'server', 'share', '.config'):
+                self.assertNotIn(forbidden, shown, (number, forbidden))
+            self.assertIn('<path>', text)
+        _, text = self.view([event(1, 'dispatch.queued', 'T-1', kind='advisor'),
+                             event(2, 'dispatch.unavailable', 'T-1', reason=reasons[0])])
+        self.assertIn('a .cmd or .bat shim re-parses arguments; set LOOP_CODEX', text)
+
+    def test_a_path_inside_a_configured_root_in_a_reason_is_scrubbed_too(self):
+        events = [event(1, 'dispatch.queued', 'T-1', kind='advisor'),
+                  event(2, 'dispatch.failed', 'T-1', reason='see C:/p/evidence/secret-name.md for why')]
+        _, text = self.view(events, evidence_roots=['C:/p'])
+        self.assertNotIn('secret-name', text)
+        self.assertIn('see <path> for why', text)
+
 
 if __name__ == '__main__':
     unittest.main()
