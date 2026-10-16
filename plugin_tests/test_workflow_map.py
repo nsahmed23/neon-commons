@@ -2666,5 +2666,84 @@ class BlockedObservationStateFiveTests(LayerFixture):
             self.assertTrue(any('service revision %s' % recorded['service_revision'] in text for text in seen), (size, seen))
 
 
+# ---- PKG-UXVIS-5b item 2: PgUp retraces PgDn in the workflow layer ------------------------------------------------------
+
+class WorkflowPagingTests(LayerFixture):
+    """The real key path: the layer opens at the position the records give, some keys move the focus, then PgDn and PgUp."""
+    STARTS = {'at the position': [], 'at the first stage': ['up'] * 5, 'two stages on': ['down'] * 2, 'at the last stage': ['down'] * 5,
+              'one stage up': ['up']}
+
+    def pressed(self, size, start, paging, rules='ascii'):
+        """The frames before the paging keys and after each of them."""
+        if not hasattr(self, 'operation'):
+            self.prepare()
+        opening = typed('select ' + OBJECT) + typed('workflow')
+        ws, frames = self.run_keys(opening + start + paging + [('text', 'q')], size, rules)
+        first = len(opening) + len(start)
+        return [self.plain(frames[first + index]) for index in range(len(paging) + 1)]
+
+    def test_pgup_shows_exactly_the_rows_the_view_showed_before_pgdn_at_80x24_and_60x20(self):
+        for size in ((80, 24), (60, 20)):
+            for name, start in self.STARTS.items():
+                before, down, up = self.pressed(size, start, ['pagedown', 'pageup'])
+                if any('more below: PgDn' in row for row in before):
+                    self.assertNotEqual(down, before, (size, name, 'PgDn moved nothing although rows lie below'))
+                self.assertEqual(up, before, (size, name))
+
+    def test_pgup_steps_back_one_page_at_a_time_through_two_pgdns(self):
+        for size in ((80, 24), (60, 20)):
+            start, first, second, back_one, back_two = self.pressed(size, ['up'] * 5, ['pagedown', 'pagedown', 'pageup', 'pageup'])
+            # A PgDn that moved is undone by the next PgUp; one that moved nothing (the end was already shown) leaves
+            # nothing to undo, so the PgUp that follows undoes the one before it.
+            moved_twice = second != first
+            self.assertEqual(back_one, first if moved_twice else start, size)
+            if moved_twice:
+                self.assertEqual(back_two, start, size)
+
+    def test_a_long_map_pages_down_and_back_up_page_by_page_and_a_command_is_never_split(self):
+        self.prepare()
+        ws = self.layer_workspace()
+        rows = ['row %d' % index for index in range(30)]
+        ws.scroll, seen = 0, [0]
+        for _ in range(7):
+            ws.scroll = ws._workflow_page(rows, 5, 1)
+            seen.append(ws.scroll)
+        self.assertEqual(seen, [0, 5, 10, 15, 20, 25, 25, 25])            # the last page is the one that ends the rows
+        back = []
+        for _ in range(7):
+            ws.scroll = ws._workflow_page(rows, 5, -1)
+            back.append(ws.scroll)
+        self.assertEqual(back, [20, 15, 10, 5, 0, 0, 0])
+        # A row that continues on the next (a trailing backslash) is not split: the page ends before the command.
+        ws._page_trail = []
+        split = ['row %d' % index for index in range(30)]
+        split[4] += ' \\'
+        ws.scroll = 0
+        self.assertEqual(ws._workflow_page(split, 5, 1), 4)
+        # With no trail (the view was scrolled by the focus), PgUp goes to the page that ends at the first row shown.
+        ws._page_trail = []
+        ws.scroll = 7
+        self.assertEqual(ws._workflow_page(rows, 5, -1), 2)
+
+    def test_pgup_at_the_top_and_pgdn_at_the_end_change_nothing_and_both_ends_are_reached(self):
+        for size in ((80, 24), (60, 20)):
+            frames = self.pressed(size, ['up'] * 5, ['pageup', 'pageup', 'pagedown', 'pagedown', 'pagedown'])
+            start, top, still_top, *down = frames
+            self.assertFalse(any('more above: PgUp' in row for row in top), size)       # the first page, header and all
+            self.assertEqual(still_top, top, size)
+            self.assertEqual(down[-1], down[-2], size)
+            self.assertFalse(any('more below: PgDn' in row for row in down[-1]), size)
+
+    def test_a_page_keeps_every_row_it_pages_past_in_reach_so_none_is_skipped(self):
+        # Walking down by pages, every row of the pane shows at least once: 60x20 shows five rows at a time.
+        frames = self.pressed((60, 20), ['up'] * 5, ['pagedown'] * 4)
+        seen = set()
+        for rows in frames:
+            seen.update(row.strip(' |') for row in rows if row.startswith('|'))
+        for label in ('observe', 'adopt', 'intent', 'propose', 'review', 'approve, execute', 'readback', 'reconcile', 'record',
+                      'observed after', 'maintain'):
+            self.assertTrue(any(label in row for row in seen), label)
+
+
 if __name__ == "__main__":
     unittest.main()

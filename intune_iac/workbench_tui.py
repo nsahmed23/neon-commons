@@ -720,6 +720,8 @@ class Workspace:
         self._display_fault = None
         # PageDown (1) or PageUp (-1) asked of the catalog layer, taken by the next draw (it knows the page size).
         self.page_move = 0
+        # The (from, to) rows of the PageDowns the workflow layer took, so a PageUp can put the view back where it was.
+        self._page_trail = []
         self.selected = None
         # Last facts the engine reported about the selected object, for the
         # context strip only; never a source of truth and never persisted.
@@ -1625,6 +1627,30 @@ class Workspace:
         self.follow_focus = True
         self.notice = WORKFLOW_SHOWN
 
+    def _workflow_page(self, data, room, move):
+        """Where PageDown (move 1) or PageUp (move -1) takes the workflow layer's scroll, as the pane holds `room` rows.
+
+        A page is the rows the pane shows, not the window's height less its frame (the generic step, which at 60x20 is
+        more than twice the pane). PageDown goes to the page_end the catalog layer uses, so a command is not split; PageUp
+        goes back to where the PageDown it undoes started (the trail), else to the page that ends at the first row shown.
+        Nothing moves past either end, and a PageDown that moved nothing is not trailed."""
+        from .workbench_screens import page_end
+        room, last = max(1, room), max(0, len(data) - room)
+        trail = list(getattr(self, '_page_trail', []))
+        if move > 0:
+            target = min(last, page_end(data, room, self.scroll))
+            if target > self.scroll:
+                trail.append((self.scroll, target))
+        else:
+            if trail and trail[-1][1] == self.scroll:
+                target = trail.pop()[0]
+            else:
+                trail = []
+                target = next((start for start in range(max(0, self.scroll - room), self.scroll)
+                               if page_end(data, room, start) == self.scroll), max(0, self.scroll - room))
+        self._page_trail = trail[-50:]
+        return target
+
     def _workflow_enter(self):
         """Enter: open the focused stage's surface for the same selected policy, by the read view that shows it. Navigation
         only: nothing is selected, prepared, refreshed, approved, executed or recorded. A stage with nothing to open
@@ -1933,6 +1959,8 @@ class Workspace:
             # a command whole (the key handler only asks; the page size is known here).
             from .workbench_screens import page_target
             self.scroll = page_target(data, room, self.scroll, move)
+        elif move and getattr(self, 'layer', 'summary') == 'workflow':
+            self.scroll = self._workflow_page(data, room, move)
         self.scroll = max(0, min(self.scroll, max(0, len(data) - room)))
         visible = data[self.scroll:self.scroll + room]
         if room > 0 and getattr(self, 'layer', 'summary') == 'catalog':
@@ -2499,6 +2527,7 @@ class Workspace:
         if name == 'workflow' and not returning:
             # A new open starts at the position the records give; b from a surface the layer opened keeps its focus.
             self.workflow_focus = None
+            self._page_trail = []
         self.layer = 'summary'
         current = getattr(self, 'current_view', None)
         # A view is kept for b; so is the view shown before a command that is not a view, whose own result
@@ -2817,8 +2846,9 @@ class Workspace:
                 self.highlight = max(0, min(len(self.rows) - 1, self.highlight + (-1 if key == 'up' else 1)))
             elif key in ('up', 'down') and self.tab in (4, 5) and self.operation_rows and 'operations' in self.value:
                 self.operation_highlight = max(0, min(len(self.operation_rows) - 1, self.operation_highlight + (-1 if key == 'up' else 1)))
-            elif key in ('pageup', 'pagedown') and getattr(self, 'layer', 'summary') == 'catalog':
-                # The catalog's commands wrap over several rows: the page the next draw goes to never ends inside one.
+            elif key in ('pageup', 'pagedown') and getattr(self, 'layer', 'summary') in ('catalog', 'workflow'):
+                # The catalog's commands wrap over several rows: the page the next draw goes to never ends inside one. The
+                # workflow map pages by what its pane shows (the window's height is not the pane's), and PageUp retraces.
                 self.page_move = 1 if key == 'pagedown' else -1
             elif key in ('up', 'down', 'pageup', 'pagedown'):
                 self.scroll += {'up': -1, 'down': 1, 'pageup': -max(1, self.size[1] - 8), 'pagedown': max(1, self.size[1] - 8)}[key]
