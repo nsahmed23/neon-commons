@@ -156,6 +156,19 @@ class CaptureTests(Base):
                 cli.parser().parse_args(['capture', '--help'])
             self.assertIn('never permit a call or an action', ' '.join(out.getvalue().split()))
 
+    def test_expiry_language_wins_over_the_mere_word_tenant(self):
+        def answer(code, message):
+            return json.dumps({'error': {'code': code, 'message': message}}).encode()
+
+        self.assertEqual(target.classify_denial(answer('InvalidAuthenticationToken',
+            f'The access token expired for tenant {TENANT}.')), 'token_expired')
+        self.assertEqual(target.classify_denial(answer('InvalidAuthenticationToken',
+            'Lifetime validation failed, the token is expired for this tenant.')), 'token_expired')
+        self.assertEqual(target.classify_denial(answer('InvalidAuthenticationToken',
+            'The access token is from the wrong issuer.')), 'token_wrong_tenant')
+        self.assertEqual(target.classify_denial(answer('InvalidAuthenticationTokenTenant', 'anything')), 'token_wrong_tenant')
+        self.assertIsNone(target.classify_denial(answer('InvalidAuthenticationToken', 'Tenant policy blocked the request.')))
+
     def test_service_answering_expired_stops_after_that_one_call(self):
         body = {'error': {'code': 'InvalidAuthenticationToken', 'message': 'Access token has expired or is not yet valid.',
                           'innerError': {'client-request-id': 'req-' + secrets.token_hex(4)}}}

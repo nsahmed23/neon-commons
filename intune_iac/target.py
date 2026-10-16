@@ -209,11 +209,15 @@ def classify_denial(body):
     code, message = error.get('code'), error.get('message')
     code = code if type(code) is str else ''
     message = message.lower() if type(message) is str else ''
-    if code == 'InvalidAuthenticationTokenTenant' or (code == 'InvalidAuthenticationToken'
-                                                      and ('wrong issuer' in message or 'tenant' in message)):
+    # An explicit tenant code wins; then explicit expiry language (a message may name a tenant and still be an expiry);
+    # the wrong-tenant fallback needs wrong-issuer or comparably specific language, never the mere word "tenant".
+    if code == 'InvalidAuthenticationTokenTenant':
         return 'token_wrong_tenant'
-    if code == 'ExpiredAuthenticationToken' or (code == 'InvalidAuthenticationToken' and 'expired' in message):
+    if code == 'ExpiredAuthenticationToken' or (code == 'InvalidAuthenticationToken' and 'expire' in message):
         return 'token_expired'
+    if code == 'InvalidAuthenticationToken' and ('wrong issuer' in message or 'issuer' in message
+                                                 or 'different tenant' in message or 'must match the tenant' in message):
+        return 'token_wrong_tenant'
     return None
 
 
