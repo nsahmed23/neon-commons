@@ -1210,6 +1210,55 @@ class StopTests(Fixture):
         self.assertEqual(caught.exception.code, 'companion_live_close_failed')
         self.assertIsInstance(caught.exception.__cause__, KeyboardInterrupt)
 
+    def test_a_retry_that_delivers_a_claimed_failure_with_its_own_leaves_the_state_consumed(self):
+        from intune_iac.io import AppError
+        live = self.start()
+        first, second = OSError('first, in the background'), KeyError('second, in the retry')
+        self.scripted_drain(live, first, second)
+        live.end('idle', wait=False)
+        self.settle(live)
+        with self.assertRaises(AppError):
+            live.stop()
+        with self.assertRaises(AppError) as again:
+            live.wait_step()
+        self.assertEqual(again.exception.code, 'companion_live_close_unsettled')
+        self.assertIsNone(again.exception.__cause__)
+
+    def test_a_failure_published_between_the_state_read_and_the_claim_is_delivered_exactly_once(self):
+        from intune_iac.io import AppError
+        live = self.start()
+        failure = OSError('background, published in the gap')
+        with live._lock:
+            live._state, live._generation = 'stopping', 7
+        real_claim = live._claim
+
+        published = []
+
+        def claim_after_a_publish(*arguments, **keywords):
+            if not published:
+                published.append(True)
+                live._publish(7, 'close_failed', failure, background=True)
+            return real_claim(*arguments, **keywords)
+        patch = mock.patch.object(live, '_claim', claim_after_a_publish)
+        patch.start()
+        self.addCleanup(patch.stop)
+        outcomes = []
+
+        def step():
+            try:
+                outcomes.append(('returned', live.wait_step()))
+            except AppError as error:
+                outcomes.append((error.code, error.__cause__))
+        step()
+        if not published:
+            published.append(True)
+            live._publish(7, 'close_failed', failure, background=True)    # a version with no gap: published here
+        step()
+        step()
+        deliveries = [cause for code, cause in outcomes if code == 'companion_live_close_failed']
+        self.assertEqual(deliveries, [failure], outcomes)
+        self.assertEqual(outcomes[-1][0], 'companion_live_close_unsettled')
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500
