@@ -1392,6 +1392,33 @@ class StopTests(Fixture):
         self.assertEqual(str(caught.exception), 'inside the block')
         self.assertIn('companion_live_close_failed', ' '.join(getattr(caught.exception, '__notes__', [])))
 
+    def start_with_a_failing_thread_start(self, failing_call):
+        from intune_iac.companion_live import LiveCompanion
+        live = LiveCompanion(lambda settings: '', lambda: {})
+        real_start, calls = threading.Thread.start, []
+
+        def start(thread):
+            calls.append(thread)
+            if len(calls) == failing_call:
+                raise RuntimeError("can't start new thread")
+            return real_start(thread)
+        with mock.patch.object(threading.Thread, 'start', start):
+            with self.assertRaises(RuntimeError):
+                live.start()
+        self.addCleanup(live.stop)
+        return live
+
+    def test_a_failed_serve_thread_start_leaves_nothing_bound(self):
+        live = self.start_with_a_failing_thread_start(1)
+        with self.assertRaises(OSError):
+            socket.create_connection(('127.0.0.1', live.port), timeout=2)
+
+    def test_a_failed_watchdog_start_leaves_nothing_bound_and_no_thread_serving(self):
+        live = self.start_with_a_failing_thread_start(2)
+        with self.assertRaises(OSError):
+            socket.create_connection(('127.0.0.1', live.port), timeout=2)
+        self.assertFalse(live._thread.is_alive(), 'the serve thread that did start was stopped')
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500

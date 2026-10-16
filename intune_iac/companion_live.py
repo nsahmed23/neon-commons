@@ -245,11 +245,36 @@ class LiveCompanion:
         self.address = 'http://%s:%d%s' % (LOOPBACK, self.port, self.base)
         self.allowed_hosts = {'%s:%d' % (LOOPBACK, self.port), 'localhost:%d' % self.port}
         self.last_page = monotonic()
-        self._thread = threading.Thread(target=server.serve_forever, kwargs={'poll_interval': 0.05}, daemon=True)
-        self._thread.start()
-        self._watchdog = threading.Thread(target=self._watch, daemon=True)
-        self._watchdog.start()
+        try:
+            self._thread = threading.Thread(target=server.serve_forever, kwargs={'poll_interval': 0.05}, daemon=True)
+            self._thread.start()
+            self._watchdog = threading.Thread(target=self._watch, daemon=True)
+            self._watchdog.start()
+        except BaseException as failure:
+            self._abort_start(failure)
+            raise
         return self
+
+    def _abort_start(self, failure):
+        """The listener is bound but never reached its caller, so nothing else would ever close it: close the port, stop and
+        boundedly join whichever thread did start, and note any cleanup failure on the original startup failure."""
+        self._stop.set()
+        try:
+            if self._thread is not None and self._thread.ident is not None:      # the serve loop is running
+                if not self._bounded_shutdown():
+                    self._raw_close(wake=True)
+            self._close_listener()
+            if not self._listener_closed():
+                raise AppError('companion_live_close_failed', 'The listening socket is still open.')
+        except BaseException as cleanup:
+            note_cleanup_failure(failure, cleanup)
+        if self._watchdog is not None and self._watchdog.ident is None:
+            self._watchdog = None                                                # never started: nothing to join
+        elif self._watchdog is not None:
+            self._watchdog.join(STOP_WAIT_SECONDS)
+        with self._changed:
+            self._state = 'closed'          # this object never ran; a later stop() has nothing left to do
+            self._changed.notify_all()
 
     def touch(self):
         with self._lock:
