@@ -19,6 +19,7 @@ import secrets
 import subprocess
 import sys
 import tempfile
+import traceback
 import unittest
 from unittest.mock import patch
 
@@ -34,6 +35,17 @@ def close_if_open(fd):
         os.close(fd)
     except OSError:
         pass
+
+
+def recording_handle(handle_class, seen):
+    # Records what a ClientSecretHandle was given, so a route's test proves the canary was consumed there. The class
+    # itself is kept (the readers check its exact type); only its constructor is wrapped.
+    original = handle_class.__init__
+
+    def init(self, value, *a, **k):
+        seen.append(value)
+        original(self, value, *a, **k)
+    return patch.object(handle_class, '__init__', init)
 
 
 def canary(label):
@@ -76,8 +88,24 @@ class RedactionHarness(unittest.TestCase):
         self.inputs = self.root / 'inputs'
         self.inputs.mkdir()
 
-    def run_cli(self, argv, canaries, env=None):
-        """Run cli.main in process; return (exit code, stdout, stderr, child argument lists)."""
+    def listing(self, directory):
+        found = {}
+        for p in Path(directory).iterdir():
+            try:
+                if p != self.root:
+                    found[p] = p.stat().st_mtime_ns
+            except OSError:
+                pass  # another process removed it between listing and stat
+        return found
+
+    def run_cli(self, argv, canaries, env=None, expect=0):
+        """Run cli.main in process with the work root as the working directory.
+
+        Returns (exit code, stdout, stderr, children). The call must exit with `expect`; the text of any uncaught
+        exception is scanned like stderr (and then re-raised); every child process's argv AND environment is recorded
+        and must hold no canary; the parent environment must be exactly baseline plus the declared route variables;
+        and no new file may appear in the system temporary directory outside this test's own directory.
+        """
         env = env or {}
         baseline = dict(os.environ)
         children = []
@@ -85,24 +113,48 @@ class RedactionHarness(unittest.TestCase):
 
         class Recording(real):
             def __init__(self, args, *a, **k):
-                children.append(args)
+                children.append({'argv': [str(x) for x in args] if isinstance(args, (list, tuple)) else [str(args)],
+                                 'env': dict(k.get('env') or os.environ)})
                 super().__init__(args, *a, **k)
 
+        system_tmp = Path(tempfile.gettempdir())
+        before_tmp = self.listing(system_tmp)
         out, err = io.StringIO(), io.StringIO()
-        with patch('subprocess.Popen', Recording), patch.dict(os.environ, env):
-            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-                code = cli.main(argv)
-            after = dict(os.environ)
+        uncaught = None
+        previous = os.getcwd()
+        os.chdir(self.work)
+        try:
+            with patch('subprocess.Popen', Recording), patch.dict(os.environ, env):
+                with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                    try:
+                        code = cli.main(argv)
+                    except BaseException:
+                        uncaught = traceback.format_exc()
+                        code = None
+                after = dict(os.environ)
+        finally:
+            os.chdir(previous)
         self.assertEqual(after, {**baseline, **env}, 'the command changed the parent environment')
+        leaks = Leaks(*canaries)
+        if uncaught is not None:
+            self.assertEqual(leaks.in_bytes(uncaught.encode()), [], 'canary in an uncaught exception')
+            self.fail('uncaught exception: ' + uncaught.splitlines()[-1])
         self.assert_clean(canaries, out.getvalue(), err.getvalue(), children)
+        after_tmp = self.listing(system_tmp)
+        new_tmp = [p for p, stamp in after_tmp.items() if before_tmp.get(p) != stamp]
+        for path in new_tmp:
+            files = [path] if path.is_file() else [q for q in path.rglob('*') if q.is_file()]
+            for item in files:
+                self.assertEqual(leaks.in_bytes(item.read_bytes()), [], 'canary in a system temporary file')
+        self.assertEqual(code, expect, "unexpected exit code; stdout: " + out.getvalue()[:600])
         return code, out.getvalue(), err.getvalue(), children
 
     def assert_clean(self, canaries, out, err, children, tree=None):
         leaks = Leaks(*canaries)
         self.assertEqual(leaks.in_bytes(out.encode()), [], 'canary on stdout')
         self.assertEqual(leaks.in_bytes(err.encode()), [], 'canary on stderr')
-        self.assertEqual(leaks.in_bytes(json.dumps([[str(x) for x in c] if isinstance(c, (list, tuple)) else str(c)
-                                                    for c in children]).encode()), [], 'canary in child argv')
+        self.assertEqual(leaks.in_bytes(json.dumps(children, sort_keys=True).encode()), [],
+                         'canary in a child process argv or environment')
         self.assertEqual(leaks.in_tree(tree or self.work), [], 'canary in a file the command wrote')
 
     # start and doctor ------------------------------------------------------------------------------------
@@ -150,8 +202,10 @@ class RedactionHarness(unittest.TestCase):
         def laboratory(cfg, **kwargs):
             return ib.bind_laboratory(cfg, **kwargs, transport=RecordedServices(), clock=Clock())
 
+        consumed = []
         try:
-            with patch.object(ib, 'bind_live', side_effect=laboratory):
+            with patch.object(ib, 'bind_live', side_effect=laboratory), \
+                    recording_handle(ib.ClientSecretHandle, consumed):
                 code, out, _, _ = self.run_cli(['target', 'authenticate', '--input', str(path),
                     '--provider-secret-fd', str(descriptors[0]), '--backend-secret-fd', str(descriptors[1])],
                     (provider, backend))
@@ -159,6 +213,7 @@ class RedactionHarness(unittest.TestCase):
             for fd in descriptors:
                 close_if_open(fd)
         self.assertEqual(json.loads(out)['assurance'], 'laboratory_recorded_responses')
+        self.assertEqual(consumed, [provider, backend], 'each descriptor secret must have reached its handle')
 
     # capture (token by environment-variable name, local fake service) ------------------------------------
 
@@ -265,8 +320,12 @@ class RedactionHarness(unittest.TestCase):
         state = json.loads((job / 'state.json').read_text())
         state['next_due'] = '2026-01-01T00:00:00Z'
         write_json(job / 'state.json', state)
-        code, out, _, _ = self.run_cli(['workbench', 'observer-run', '--job', str(job)], (secret, issued),
-                                       {'HARNESS_OBSERVER_SECRET': secret})
+        import intune_iac.observation_jobs as jobs
+        consumed = []
+        with recording_handle(jobs.ClientSecretHandle, consumed):
+            code, out, _, _ = self.run_cli(['workbench', 'observer-run', '--job', str(job)], (secret, issued),
+                                           {'HARNESS_OBSERVER_SECRET': secret})
+        self.assertEqual(consumed, [secret], 'the observer must have consumed its environment secret')
         self.assertEqual(json.loads(out)['status'], 'complete')
         self.assertEqual(created['status'], 'created')
 
@@ -288,10 +347,32 @@ class RedactionHarness(unittest.TestCase):
         # The canary sits under an innocent key; a key-name scan would not see it.
         write_json(evidence, [{'id': 'record-1', 'text': 'enabled', 'detail': leaked}])
         code, out, _, _ = self.run_cli(['judge', '--config', str(config), '--claim', 'The setting is enabled.',
-                                        '--evidence', str(evidence)], (key, leaked), {'CLM_HARNESS_KEY': key})
+                                        '--evidence', str(evidence)], (key, leaked), {'CLM_HARNESS_KEY': key},
+                                        expect=2)
         bodies = json.dumps([r['body'] for r in fake.requests]).encode()
         self.assertEqual(Leaks(key, leaked).in_bytes(bodies), [], 'canary in the judge request body')
         self.assertEqual(fake.requests, [], 'evidence with a secret-shaped value must not be sent at all')
+
+    def test_judge_path_sends_benign_evidence_with_the_api_key_only_in_the_authorization_header(self):
+        from plugin_tests.test_judge import JudgeTests
+        key = canary('judgekey')
+        fake = JudgeTests('setUp')
+        fake.setUp()
+        self.addCleanup(fake.tearDown)
+        fake.config['api_key_env'] = 'CLM_HARNESS_KEY'
+        for name, source in {'tokenizer.json': fake.tokenizer, 'head.pt': fake.head}.items():
+            (self.inputs / name).write_bytes(source.read_bytes())
+        config = self.inputs / 'judge-config.json'
+        write_json(config, fake.config)
+        evidence = self.inputs / 'benign.json'
+        write_json(evidence, [{'id': 'record-1', 'text': 'enabled'}])
+        code, out, _, _ = self.run_cli(['judge', '--config', str(config), '--claim', 'The setting is enabled.',
+                                        '--evidence', str(evidence)], (key,), {'CLM_HARNESS_KEY': key})
+        self.assertEqual(len(fake.requests), 1, 'exactly one request must reach the fake endpoint')
+        request = fake.requests[0]
+        self.assertEqual(request['authorization'], 'Bearer ' + key, 'the key must have been consumed where it belongs')
+        self.assertEqual(Leaks(key).in_bytes(json.dumps(request['body']).encode()), [], 'the key reached the body')
+        self.assertEqual(json.loads(out)['status'], 'assessed')
 
 
 if __name__ == '__main__':
