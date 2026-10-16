@@ -682,6 +682,12 @@ def recorded_step_for_screen(text, hidden):
 UNSHOWN_STEP = 'A next step names a path whose name is not shown here.'
 
 
+def shown_step(text, hidden=False):
+    """A recorded step or note as a screen prints it: as recorded, or the fixed explanation (UNSHOWN_STEP, which holds no command)
+    when it names a path the screen may not show. Nothing to say (an empty value) stays as it is."""
+    return (recorded_step_for_screen(text, hidden) or UNSHOWN_STEP) if text else text
+
+
 def guard_rows(rows):
     """Every row that leaves a text form passes the product's own escape for control characters (workbench_tui.safe_text, which
     the workspace and word_wrap use): no C0 character other than the newline that ends a row, no DEL and no C1 character reaches
@@ -778,10 +784,13 @@ def _goal_lines(view, width):
         else:
             lines.append('    %s:' % ('Could not check' if row['state'] == 'unknown' else 'Missing'))
             for note in row['missing']:
-                lines += _flow(screen_note(note, view['directory'], said=True), width, '      - ', '        ', commands=True)
+                said = screen_note(note, view['directory'], said=True)
+                # a recorded note (one screen_note did not write) is printed only when no word in it is refused
+                lines += _flow(said if said != note else shown_step(note), width, '      - ', '        ', commands=True)
         lines.append('    Next action (%s):' % row['owner_role'])
-        lines += _flow(row['next_action'], width, '      ', '      ', commands=True)
-        contact = capture_contact(row['next_action'])
+        step = shown_step(row['next_action'])
+        lines += _flow(step, width, '      ', '      ', commands=True)
+        contact = capture_contact(step)
         if contact:
             lines += _flow(contact, width, '      ', '      ')
     others = [row['label'] for row in view['rows'] if not row['needed']]

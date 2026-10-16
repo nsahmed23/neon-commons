@@ -1213,6 +1213,87 @@ class OperandRenderingTests(Base):
             self.assertIn('ghp_abc1234.json', json.dumps(value))
             self.assertIn('ghp_abc1234.json', json.dumps(survey))
 
+    # -- round 6, item 1: plain data (a result that is not the builders' own) ---------------------------------------------------
+    EXPLANATION = 'A next step names a path whose name is not shown here.'
+
+    def plain_pair(self, temp, *names):
+        """(a catalog, a survey, the folder) of a copy of the start tests' estate; the first two as plain data (written as JSON and
+        read back)."""
+        import json
+        from intune_iac import catalog as module, entry
+        folder = self.estate_in(temp, *names)
+        survey = entry.survey(folder, relative_to=temp)
+        value = module.build(survey, doctor=tc.doctor(), relative_to=temp)
+        return json.loads(json.dumps(value)), json.loads(json.dumps(survey)), folder
+
+    def test_a_plain_goal_next_action_with_an_operand_the_rule_refuses_is_not_printed_as_a_command(self):
+        import tempfile
+        from intune_iac import catalog as module
+        planted = "Run: intune-iac workbench workspace --root '/tmp/cafe" + chr(0x301) + "'"
+        with tempfile.TemporaryDirectory() as temp:
+            value, _, _ = self.plain_pair(temp, 'work')
+            goal = value['integrations'][0]['goals'][0]
+            goal['next_action'] = planted
+            goal['blocked'] = dict(goal['blocked'], state='blocked', row='Planted row', row_state='missing', missing=None,
+                                   next_action=planted)
+            lines = module.catalog_lines(value, 120)
+            shown = '\n'.join(lines)
+            for fragment in ('cafe', chr(0x301), '\\u0301'):
+                self.assertNotIn(fragment, shown, fragment)
+            self.assertGreaterEqual(flat(lines).count(self.EXPLANATION), 2)  # the blocked row and the next action
+            # a step that names nothing refused stays as recorded
+            goal['next_action'] = 'Run: intune-iac workbench workspace --root store'
+            self.assertIn('intune-iac workbench workspace --root store', flat(module.catalog_lines(value, 120)))
+
+    def test_a_plain_not_checked_sign_in_message_is_written_again_from_the_directory_even_when_it_is_shown(self):
+        import shlex
+        import tempfile
+        from intune_iac import catalog as module
+        planted = ("Sign-in is not checked. Run: intune-iac catalog '/tmp/cafe" + chr(0x301) + "' --check-signin azure (it runs az "
+                   "account list --output json and nothing else, and reads no token).")
+        with tempfile.TemporaryDirectory() as temp:
+            value, _, folder = self.plain_pair(temp, 'work')
+            for goal in value['integrations'][0]['goals']:
+                self.assertEqual(goal['authenticated']['state'], 'not_checked')
+                goal['authenticated']['message'] = planted
+            shown = '\n'.join(module.catalog_lines(value, 120))
+            for fragment in ('cafe', chr(0x301), '\\u0301'):
+                self.assertNotIn(fragment, shown, fragment)
+            self.assertIn('intune-iac catalog %s --check-signin azure' % shlex.quote(str(folder)),
+                          flat(module.catalog_lines(value, 120)))
+
+    def test_a_plain_readiness_view_prints_no_step_or_note_with_an_operand_the_rule_refuses(self):
+        import tempfile
+        from intune_iac import entry
+        planted = "Run: intune-iac workbench workspace --root '/tmp/cafe" + chr(0x301) + "'"
+        with tempfile.TemporaryDirectory() as temp:
+            _, survey, _ = self.plain_pair(temp, 'work')
+            view = entry.goal_readiness(survey, 'adopt')
+            needed = [row for row in view['rows'] if row['needed']]
+            needed[0]['state'], needed[0]['missing'], needed[0]['next_action'] = 'missing', [planted], planted
+            needed[1]['next_action'] = 'Run: intune-iac start DIRECTORY'  # names nothing refused: as recorded
+            lines = entry.start_lines(survey, 120, view)
+            shown = '\n'.join(lines)
+            for fragment in ('cafe', chr(0x301), '\\u0301'):
+                self.assertNotIn(fragment, shown, fragment)
+            self.assertGreaterEqual(flat(lines).count(self.EXPLANATION), 2)  # the note and the next action of the planted row
+            self.assertIn('Run: intune-iac start DIRECTORY', flat(lines))
+
+    def test_a_plain_catalog_of_a_refused_directory_prints_neither_the_directory_nor_a_step_that_names_it(self):
+        import tempfile
+        from intune_iac import catalog as module
+        with tempfile.TemporaryDirectory() as temp:
+            value, _, folder = self.plain_pair(temp, 'ghp_abc1234')
+            goals = value['integrations'][0]['goals']
+            goals[0]['next_action'] = "Run: intune-iac workbench workspace --root '%s'" % (folder / 'store')
+            goals[1]['next_action'] = 'No action needed.'
+            lines = module.catalog_lines(value, 120)
+            shown = '\n'.join(lines)
+            for fragment in ('ghp_', 'abc1234'):
+                self.assertNotIn(fragment, shown, fragment)
+            self.assertIn(self.EXPLANATION, flat(lines))
+            self.assertIn('No action needed.', flat(lines))  # a step that names nothing is not hidden with the others
+
     def test_the_json_forms_keep_today_rendering_for_a_refused_directory(self):
         import tempfile
         from intune_iac import catalog as module, entry

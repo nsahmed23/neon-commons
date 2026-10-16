@@ -265,7 +265,21 @@ def _text_build(result, survey, goal, relative_to):
     for item in data['integrations'][0]['goals']:
         if item['authenticated']['state'] == 'not_checked':
             item['authenticated']['message'] = SIGNIN_CHECK % flag
+    _shown_goal_steps(data['integrations'][0]['goals'], directory)
     return data, frozenset(placeholders)
+
+
+def _shown_goal_steps(goals, directory):
+    """The steps and the note each goal recorded, as a screen prints them: as recorded when no word in them is refused, otherwise
+    the fixed explanation without a command (entry.shown_step). A note that screen_note writes itself is left for it."""
+    from . import entry
+    for item in goals:
+        for holder in (item, item['blocked']):
+            if holder.get('next_action'):
+                holder['next_action'] = entry.shown_step(holder['next_action'])
+        missing = item['blocked'].get('missing')
+        if missing and readiness_model.screen_note(missing, directory, said=True) == missing:
+            item['blocked']['missing'] = entry.shown_step(missing)
 
 
 def _plain_text_build(value):
@@ -284,11 +298,13 @@ def _plain_text_build(value):
             row['command'] = None
             row['note'] = 'the command names a path whose name is not shown here'
     goals = data['integrations'][0]['goals']
-    if hidden:
-        flag = _signin_flag(directory, goals[0]['goal'] if len(goals) == 1 else None, lambda value: entry.DIRECTORY_PLACEHOLDER)
-        for item in goals:
-            if item['authenticated']['state'] == 'not_checked':
-                item['authenticated']['message'] = SIGNIN_CHECK % flag
+    # every unchecked sign-in message is written again from the directory, shown or not: a recorded one may name anything
+    flag = _signin_flag(directory, goals[0]['goal'] if len(goals) == 1 else None,
+                        (lambda value: entry.DIRECTORY_PLACEHOLDER) if hidden else shlex.quote)
+    for item in goals:
+        if item['authenticated']['state'] == 'not_checked':
+            item['authenticated']['message'] = SIGNIN_CHECK % flag
+    _shown_goal_steps(goals, directory)
     return data, frozenset(placeholders)
 
 
