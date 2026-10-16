@@ -60,8 +60,10 @@ class RealExportTests(Base):
     def test_the_command_prints_that_line_for_the_real_fixture(self):
         result = self.cli('--records', REAL, '--evidence-root', 'C:/Dev/Projects/intune-rescue')
         self.assertEqual(result.returncode, 0, result.stderr)
-        line = next(item for item in result.stdout.splitlines() if item.startswith(REAL_TASK))
-        self.assertIn('unknown; later cancelled (attested by the controller); late result recorded', line)
+        lines = result.stdout.splitlines()
+        start = next(i for i, item in enumerate(lines) if item.startswith(REAL_TASK))
+        block = ' '.join(' '.join(lines[start:]).split())  # wrapped at 80 columns, so the words may span lines
+        self.assertIn('unknown; later cancelled (attested by the controller); late result recorded', block)
         self.assertIn('Export check: OK', result.stdout)
 
     def test_a_duplicated_export_line_changes_nothing(self):

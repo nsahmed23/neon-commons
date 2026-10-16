@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import json
 import os
+import re
+import sys
 
 from .io import AppError
 from .orchestration_contract import RECORD_CONTRACT, InvalidRoot, escape_text, normalize_roots
@@ -22,6 +24,10 @@ NOT_CONFIGURED = ('Engineering records are not configured: pass --records DIR, a
                   'Nothing is shown here; the rest of the product works as before.')
 MAX_LOG_BYTES = 64 * 1024 * 1024
 MAX_FAULTS_SHOWN = 20
+PIPED_WIDTH = 80  # the width when the output is not a terminal
+NARROW_BELOW = 72  # under this width every task field gets its own line
+HANG = '    '
+_GLUE = re.compile(r'\d+[,;:.)]*|\d\d:\d\d:\d\d[,;:.)]*|UTC[,;:.)]*')  # a number, or a time zone, never starts a line apart from its word
 
 
 class ControllerLogUnreadable(ValueError):
@@ -77,14 +83,85 @@ def _fault_line(fault):
     return '  %s%s: %s' % (escape_text(fault['code']), ' (%s)' % where[2:] if where else '', escape_text(fault['detail'], 300))
 
 
-def _task_line(row):
+def _task_fields(row):
+    """The task line as its fields: the first holds the id, kind, role and state words; the rest follow in a fixed order."""
     incarnation = ', incarnation %s' % row['incarnation'] if row['adoptions'] and row['incarnation'] else ''
     reason = 'reason recorded (free text, not shown) | ' if row['reason_recorded'] else ''
     parts = ['%s  %s  %s  %s' % (row['task'], row['kind'] or 'kind not recorded', row['role'], row['words']),
              'last %s seq %d' % (row['last_event_type'], row['last_seq']),
              'adoptions %d%s' % (row['adoptions'], incarnation),
              '%s%s' % (reason, 'evidence recorded inside a configured root' if row['evidence_recorded'] else 'evidence none')]
-    return escape_text(' | '.join(parts), 600)
+    return escape_text(' | '.join(parts), 600).split(' | ')
+
+
+def _wrap_words(text, width, indent, prefix=None):
+    """Lines of at most width columns, broken only at spaces. A number, a time and its zone stay with the word
+    before them. A word wider than the line stays whole (the terminal then has no choice). The first line starts
+    with prefix when given (kept as it is), the others with indent."""
+    units = []
+    for word in text.split():
+        if units and (_GLUE.fullmatch(word) or units[-1].count('`') % 2):  # also a quoted command stays whole
+            units[-1] += ' ' + word
+        else:
+            units.append(word)
+    lines, current, lead = [], '', indent if prefix is None else prefix
+    for unit in units:
+        candidate = current + ' ' + unit if current else unit
+        if current and len(lead) + len(candidate) > width:
+            lines.append(lead + current)
+            current, lead = unit, indent
+        else:
+            current = candidate
+    lines.append(lead + current)
+    return lines
+
+
+def _task_lines(row, width):
+    """One task as lines: whole when it fits; at a narrow width one field per line under the id; otherwise broken
+    only between fields, with a hanging indent (a field wider than the line is wrapped at spaces)."""
+    fields = _task_fields(row)
+    if width is None or len(' | '.join(fields)) <= width:
+        return [' | '.join(fields)]
+    if width < NARROW_BELOW:
+        head = fields[0].split('  ', 3)
+        lines = []
+        if len(head) == 4:
+            lines.append('  '.join(head[:3]))
+            fields = [head[3]] + fields[1:]
+        for field in fields:
+            lines += _wrap_words(field, width, '  ')
+        return lines
+    lines, current = [], ''
+    for position, field in enumerate(fields):
+        candidate = current + ' | ' + field if current else field
+        if len(candidate) <= width:
+            current = candidate
+            continue
+        if current:
+            lines.append(current)
+        if position == 0:
+            head = field.split('  ', 3)
+            wrapped = _wrap_words(head[-1], width, HANG, '  '.join(head[:-1]) + '  ') if len(head) == 4 else _wrap_words(field, width, HANG, '')
+            lines += wrapped[:-1]
+            current = wrapped[-1]
+        elif len(HANG + field) <= width:
+            current = HANG + field
+        else:
+            wrapped = _wrap_words(field, width, HANG)
+            lines += wrapped[:-1]
+            current = wrapped[-1]
+    lines.append(current)
+    return lines
+
+
+def _wrap_line(line, width):
+    """Any other line, broken at spaces with its own indent plus two for the continuation."""
+    if width is None or len(line) <= width:
+        return [line]
+    lead = len(line) - len(line.lstrip(' '))
+    wrapped = _wrap_words(line, width, ' ' * (lead + 2))
+    wrapped[0] = ' ' * lead + wrapped[0].lstrip(' ')
+    return wrapped
 
 
 def _verification_lines(counts):
@@ -98,7 +175,18 @@ def _verification_lines(counts):
     return []
 
 
-def render_lines(view):
+def render_lines(view, width=None):
+    """The text view. With a width every line is broken at spaces (task lines at their field boundaries); with None
+    every line stays whole."""
+    placed = set()  # indexes of lines that are already laid out to the width
+    out = _plain_lines(view, width, placed)
+    wrapped = []
+    for index, line in enumerate(out):
+        wrapped += [line] if index in placed else _wrap_line(line, width)
+    return wrapped
+
+
+def _plain_lines(view, width, placed):
     header, check = view['source']['header'], view['source']['check']
     out = ['Engineering view (read-only): what the orchestration records say. It cannot dispatch, approve or cancel anything.']
     if header:
@@ -121,7 +209,10 @@ def render_lines(view):
             out.append('  ... and %d more' % (len(faults) - MAX_FAULTS_SHOWN))
     tasks = view['tasks']
     out.append('Tasks (%d):' % len(tasks) if tasks else 'Tasks: none recorded in this export.')
-    out += [_task_line(row) for row in tasks]
+    for row in tasks:
+        start = len(out)
+        out += _task_lines(row, width)
+        placed.update(range(start, len(out)))
     out += [escape_text(note, 400) for note in view['notes']]
     out += _verification_lines(view['verifications'])
     log = view['controller_log']
@@ -150,5 +241,18 @@ def command(args):
 
 
 def lines_for(result):
-    """The text form of whatever `command` returned."""
-    return [result['message']] if result.get('engineering') == 'not_configured' else render_lines(result)
+    """The text form of whatever `command` returned, laid out to the terminal width (80 columns when piped)."""
+    width = output_width()
+    if result.get('engineering') == 'not_configured':
+        return _wrap_line(result['message'], width)
+    return render_lines(result, width)
+
+
+def output_width():
+    """The real terminal width when stdout is a terminal, otherwise a fixed 80 columns."""
+    try:
+        if sys.stdout.isatty():
+            return max(20, os.get_terminal_size(sys.stdout.fileno()).columns)
+    except (OSError, ValueError, AttributeError):
+        pass
+    return PIPED_WIDTH

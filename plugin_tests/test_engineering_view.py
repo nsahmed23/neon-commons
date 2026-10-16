@@ -1,5 +1,6 @@
 """The reducer, the plain command and the controller-log count (PKG-UXVIS-4 item 3)."""
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -224,8 +225,7 @@ class CommandTests(unittest.TestCase):
     def test_with_no_records_path_it_says_so_in_a_sentence_and_exits_zero(self):
         result = self.cli()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(len(result.stdout.strip().splitlines()), 1)
-        self.assertIn('Engineering records are not configured', result.stdout)
+        self.assertIn('Engineering records are not configured', ' '.join(result.stdout.split()))
         self.assertIn('--records', result.stdout)
         result = self.cli('--json')
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -282,6 +282,76 @@ class CommandTests(unittest.TestCase):
     def test_help_lists_the_command(self):
         result = subprocess.run([sys.executable, str(CLI), '--help'], text=True, capture_output=True, cwd='/tmp')
         self.assertIn('engineering', result.stdout)
+
+
+
+def busy_events():
+    """A task read as unknown, cancelled by attestation, with a late result, adopted once: the widest row."""
+    return (lifecycle('T-1001', kind='repair', terminal='dispatch.completed')
+            + lifecycle('T-1002', start=10, kind='advisor', terminal='dispatch.timed_out')
+            + [event(13, 'dispatch.cancelled', 'T-1002', cleanup_confirmed=True, reason='controller attested'),
+               event(14, 'dispatch.started', 'T-1002', adopted=True, incarnation=RUNNER_B),
+               event(15, 'advisor.late_result', 'T-1002', role='controller')])
+
+
+class ReadableTests(unittest.TestCase):
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        self.dir = self.root / 'records'
+        write_export(self.dir, busy_events())
+
+    def model(self):
+        from intune_iac.engineering_view import build_view
+        return build_view(self.dir)
+
+    def lines(self, width):
+        from intune_iac.engineering_view import render_lines
+        return render_lines(self.model(), width)
+
+    def tokens(self, lines):
+        return sorted(word for line in lines for word in line.split() if word != '|')
+
+    def test_no_line_is_wider_than_the_width_and_no_token_is_split(self):
+        whole = self.tokens(self.lines(None))
+        for width in (80, 60, 40):
+            lines = self.lines(width)
+            self.assertEqual([line for line in lines if len(line) > width], [], width)
+            self.assertEqual(self.tokens(lines), whole, width)
+
+    def test_a_narrow_width_puts_one_field_per_line_under_the_task_id(self):
+        lines = self.lines(60)
+        index = next(i for i, line in enumerate(lines) if line.startswith('T-1002'))
+        self.assertNotIn(' | ', lines[index])
+        following = []
+        for line in lines[index + 1:]:
+            if not line.startswith(' '):
+                break
+            following.append(line.strip())
+        self.assertTrue(any(line.startswith('last advisor.late_result seq 15') for line in following), following)
+        self.assertTrue(any(line.startswith('adoptions 1, incarnation ' + RUNNER_B) for line in following), following)
+        self.assertTrue(any(line.startswith('evidence none') for line in following), following)
+
+    def test_a_wide_width_breaks_only_at_a_field_boundary_with_a_hanging_indent(self):
+        lines = self.lines(100)
+        index = next(i for i, line in enumerate(lines) if line.startswith('T-1002'))
+        self.assertTrue(lines[index + 1].startswith('    '), lines[index:index + 2])
+        self.assertFalse(lines[index].endswith(('adoptions', 'seq', 'last')), lines[index])
+
+    def test_a_number_never_starts_a_line_alone_from_its_word(self):
+        for width in (60, 45):
+            for line in self.lines(width):
+                self.assertFalse(re.match(r'\s*\d+\b', line) and line.strip().split()[0].isdigit(), (width, line))
+
+    def run_cli(self, *args):
+        return subprocess.run([sys.executable, str(CLI), 'engineering', *map(str, args)], text=True,
+                              capture_output=True, cwd='/tmp')
+
+    def test_piped_output_is_wrapped_to_80_columns(self):
+        result = self.run_cli('--records', self.dir)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual([line for line in result.stdout.splitlines() if len(line) > 80], [])
 
 
 if __name__ == '__main__':
