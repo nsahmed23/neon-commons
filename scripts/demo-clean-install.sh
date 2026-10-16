@@ -18,7 +18,8 @@
 # copied once into a new folder that only this run can enter (under TMPDIR, or /tmp), and every check and every use reads
 # those copies, hashed again just before first use; the folder is removed when the script ends. No Python or pip setting of the
 # caller's (PYTHONPATH, PYTHONSTARTUP, PIP_*, VIRTUAL_ENV and the rest) reaches an interpreter the script starts: they are removed
-# before the first one starts, each helper interpreter runs with -I, and its home is a private folder.
+# before the first one starts, each helper interpreter runs with -I, and its home is a private folder. Every start of a product
+# script also runs with -B, so that no step leaves a bytecode cache in the product folder; a step near the end checks that none did.
 #
 # Many Debian and Ubuntu hosts ship CPython without ensurepip, so `python3 -m venv` fails there. Either install the
 # python3.12-venv package, or give --pip-wheel PATH (any pip wheel file, read in place): the virtual environment is
@@ -314,7 +315,7 @@ fi
 
 # The commands are single-quoted text that `step` evaluates, so a path is expanded where it is used and is never read as shell syntax.
 step venv "$venv_command" || summary
-step wheelhouse '"$PYTHON" -I scripts/verify-dependencies.py --wheelhouse "$WHEELS"' '"status": "verified"' || summary
+step wheelhouse '"$PYTHON" -I -B scripts/verify-dependencies.py --wheelhouse "$WHEELS"' '"status": "verified"' || summary
 # The staged wheel runs as code, so it is hashed again just before each run of it.
 before_pip() { if [ "$PIP_WHEEL_GIVEN" = yes ]; then recheck "pip wheel" "$PIP_WHEEL" "$PIP_WHEEL_SHA256" 64; fi; }
 before_pip
@@ -344,6 +345,16 @@ step workflow "intune-iac workbench workflow --root demo/store --policy 22222222
 step engineering "intune-iac engineering" 'Engineering records are not configured'
 step families "intune-iac workbench families" '"available": true'
 step synthetic-estate "intune-iac synthetic generate --output demo/estate --policies 3" '"synthetic": true'
+
+# A product folder that holds a bytecode cache is not the build that was listed (doctor counts it as an unlisted file, because
+# Python runs cached bytecode in place of its source). Every start of a product script above uses -B; this says so on the record.
+no_bytecode() {
+    local found
+    found=$(find . -path ./.venv -prune -o -name '*.pyc' -print -quit)
+    if [ -n "$found" ]; then printf 'bytecode cache found: %s\n' "$found"; return 1; fi
+    printf 'no bytecode cache outside .venv\n'
+}
+step no-bytecode no_bytecode 'no bytecode cache outside .venv'
 
 # What the build says it is, so the run names the exact files it exercised.
 build_line() {

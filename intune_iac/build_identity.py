@@ -25,10 +25,11 @@ MAX_LISTED_FILES = 20000
 MAX_NAMED_FILES = 20
 MAX_WALKED_FILES = 200000
 # What the unlisted-file look does not count, named in every report so nobody has to guess: the two folders the candidate guide
-# itself creates at the top of the unpacked folder (the environment and the demonstration folder), and bytecode caches.
+# itself creates at the top of the unpacked folder (the environment that holds the dependencies, and the demonstration folder).
+# A bytecode cache elsewhere is counted: Python runs cached bytecode in place of the source it was made from, so a cache that no
+# SHA256SUMS line covers can change what a listed module does while the listed source stays intact.
 NOT_COUNTED_AT_TOP = ('.venv', 'demo')
-NOT_COUNTED_ANYWHERE = ('__pycache__',)
-NOT_COUNTED = ['.venv (the top-level folder)', 'demo (the top-level folder)', '__pycache__ folders (bytecode caches)']
+NOT_COUNTED = ['.venv (the top-level folder)', 'demo (the top-level folder)']
 _LINE = re.compile(r'^([0-9a-f]{64})  (\S[^\n]*)$')
 _GIT_ID = re.compile(r'^[0-9a-f]{40}$')
 _KINDS = ('runtime', 'source')
@@ -105,7 +106,7 @@ def _unlisted(root, digests):
         top = here == root
         kept = []
         for name in sorted(dirs):
-            if (top and name in NOT_COUNTED_AT_TOP) or name in NOT_COUNTED_ANYWHERE:
+            if top and name in NOT_COUNTED_AT_TOP:
                 continue
             if (here / name).is_symlink():
                 files.append(name)
@@ -150,6 +151,9 @@ def report(root=None):
     else:
         note = ('Every file listed in ' + LISTING_FILE + ' is present and unchanged, and no other file is present. '
                 'Not counted: ' + ', '.join(NOT_COUNTED) + '.')
+    if any('__pycache__' in name.split('/') for name in unlisted):
+        note += (' A bytecode cache counts: Python runs cached bytecode in place of its source. Delete the __pycache__ folders; the '
+                 'commands in the candidate guide start Python with -B and write none.')
     return {'status': 'modified' if modified or unlisted else 'identified', 'archive_kind': record['archive_kind'],
             'product_version': record['product_version'], 'commit': record['commit'], 'tree': record['tree'],
             'dirty': record['dirty'], 'built_at': record['built_at'], 'file_count': record['file_count'],

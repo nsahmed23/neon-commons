@@ -85,9 +85,9 @@ class ScriptCase(unittest.TestCase):
         self.log = self.base / 'calls.log'
         self.pip_log = self.base / 'pip-calls.log'
 
-    def make_archive(self, path, product=None):
-        members = {'scripts/intune-iac.py': product or base.STUB_PRODUCT, 'scripts/verify-dependencies.py': base.STUB_VERIFY,
-                   LOCK: '# a stand-in lock: these tests run the plumbing, not an install\n'}
+    def make_archive(self, path, product=None, verify=None, extra=None):
+        members = {'scripts/intune-iac.py': product or base.STUB_PRODUCT, 'scripts/verify-dependencies.py': verify or base.STUB_VERIFY,
+                   LOCK: '# a stand-in lock: these tests run the plumbing, not an install\n', **(extra or {})}
         members['SHA256SUMS'] = ''.join(f'{sha256(text.encode())}  {name}\n' for name, text in sorted(members.items()))
         with zipfile.ZipFile(path, 'w') as archive:
             for name, text in members.items():
@@ -375,6 +375,44 @@ class IsolationTests(ScriptCase):
                     self.assertTrue(rest.startswith(' -I'), 'started without -I: ' + interpreter + rest)
 
 
+# A dependency check that imports a package of the product folder, as the real one imports intune_iac.io: unless the interpreter that
+# runs it is told not to write bytecode, it leaves a __pycache__ folder in the product.
+STUB_VERIFY_IMPORTING = '''import pathlib, sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+import helper_pkg
+print('{"status": "verified"}')
+'''
+
+
+class BytecodeTests(ScriptCase):
+    """Round 4, item 3: nothing the script starts writes a bytecode cache into the product folder, and a cache that does appear
+    there fails the run at its own step (the product's doctor counts it as an unlisted file)."""
+
+    def run_in(self, work, **make):
+        archive = self.make_archive(self.base / (work + '.zip'), **make)
+        result = self.run_script('--pip-wheel', self.pip_wheel, '--pip-wheel-sha256', self.wheel_digest(), archive, self.wheels,
+                                 self.base / work, sha256(archive.read_bytes()))
+        product = self.base / work / 'extract/intune-iac'
+        caches = sorted(str(p.relative_to(product)) for p in product.rglob('__pycache__') if '.venv' not in p.relative_to(product).parts)
+        return result, caches
+
+    def test_the_dependency_check_leaves_no_bytecode_cache_in_the_product(self):
+        result, caches = self.run_in('work-importing', verify=STUB_VERIFY_IMPORTING, extra={'helper_pkg/__init__.py': 'VALUE = 1\n'})
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(caches, [], 'a step wrote bytecode into the product folder')
+        rows = [line for line in result.stdout.splitlines() if line.startswith('no-bytecode')]
+        self.assertTrue(rows and 'PASS' in rows[0], 'the run does not check that the product folder holds no cache: ' + repr(rows))
+
+    def test_a_cache_left_in_the_product_fails_the_run_at_its_own_step(self):
+        leave = ("print('0.9.0'); import pathlib; c = pathlib.Path(__file__).resolve().parents[1] / 'intune_iac' / '__pycache__'; "
+                 "c.mkdir(parents=True, exist_ok=True); (c / 'x.cpython-312.pyc').write_bytes(b'cache')")
+        result, caches = self.run_in('work-leaving', product=base.STUB_PRODUCT.replace("print('0.9.0')", leave))
+        self.assertEqual(caches, ['intune_iac/__pycache__'], 'the stand-in product did not leave a cache, so this run proves nothing')
+        rows = [line for line in result.stdout.splitlines() if line.startswith('no-bytecode')]
+        self.assertTrue(rows and 'FAIL' in rows[0], 'the cache went unnoticed: ' + repr(rows))
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+
+
 class MemberSetTests(ScriptCase):
     """Item 4: one command compares an archive's complete member set with its SHA256SUMS before anything is unpacked, and the
     guide and the script run the same text."""
@@ -497,8 +535,8 @@ class MemberSetTests(ScriptCase):
 
 class UnlistedFileTests(unittest.TestCase):
     """Item 4: `doctor` names files under the unpacked folder that SHA256SUMS does not list, and does not say `identified`
-    while there are any. It does not count the folders the guide creates at the top of the unpacked folder, or bytecode caches,
-    and it says so."""
+    while there are any. It does not count the folders the guide creates at the top of the unpacked folder, and it says so. A
+    bytecode cache outside the environment folder counts: Python runs cached bytecode in place of the source it was made from."""
 
     def setUp(self):
         self.fixture = base.FixtureBuild(self)
@@ -519,9 +557,11 @@ class UnlistedFileTests(unittest.TestCase):
         self.assertEqual(value['status'], 'identified')
         self.assertEqual(value.get('unlisted_files'), [])
         self.assertEqual(value.get('unlisted_count'), 0)
-        counted_not = ' '.join(value.get('unlisted_not_counted', []))
-        for name in ('.venv', 'demo', '__pycache__'):
+        self.assertEqual(len(value.get('unlisted_not_counted', [])), 2, value.get('unlisted_not_counted'))
+        counted_not = ' '.join(value['unlisted_not_counted'])
+        for name in ('.venv', 'demo'):
             self.assertIn(name, counted_not)
+        self.assertNotIn('__pycache__', counted_not + value['note'])
 
     def test_a_file_the_list_does_not_name_is_reported_and_the_copy_is_not_identified(self):
         self.put('extra.py')
@@ -532,14 +572,24 @@ class UnlistedFileTests(unittest.TestCase):
         self.assertEqual(value.get('unlisted_count'), 2)
         self.assertIn('not list', value['note'])
 
-    def test_what_the_guide_creates_and_bytecode_caches_are_not_counted(self):
+    def test_what_the_guide_creates_is_not_counted_and_that_includes_the_caches_inside_the_environment(self):
         self.put('.venv/lib/site.py')
+        self.put('.venv/lib/python3.12/site-packages/pkg/__pycache__/mod.cpython-312.pyc')
         self.put('demo/journey.json')
         self.put('demo/store/db/entry.txt')
-        self.put('docs/__pycache__/x.cpython-312.pyc')
         value = self.report()
         self.assertEqual(value['status'], 'identified')
         self.assertEqual(value.get('unlisted_files'), [])
+
+    def test_a_bytecode_cache_in_the_product_is_unlisted_and_the_copy_is_not_identified(self):
+        self.put('intune_iac/__pycache__/judge.cpython-312.pyc', 'a crafted cache that stands in for a listed module')
+        self.put('docs/__pycache__/x.cpython-312.pyc')
+        value = self.report()
+        self.assertNotEqual(value['status'], 'identified')
+        self.assertEqual(value.get('unlisted_files'), ['docs/__pycache__/x.cpython-312.pyc',
+                                                       'intune_iac/__pycache__/judge.cpython-312.pyc'])
+        self.assertEqual(value.get('unlisted_count'), 2)
+        self.assertIn('bytecode', value['note'])
 
     def test_the_same_names_deeper_in_the_tree_are_counted(self):
         self.put('docs/demo/notes.txt')

@@ -90,9 +90,12 @@ sha256sum --check --quiet SHA256SUMS
 status is not 0. The list includes `BUILD-IDENTITY.json`, the small record that names this build (version, commit,
 tree, build time and a content digest); `doctor` prints it later, so a change to it is caught here too. `doctor`
 also names any file under the unpacked folder that the list does not name, except what the guide itself creates (the
-`.venv` and `demo` folders at the top of the unpacked folder) and `__pycache__` folders, which its `build` block lists as
-not counted. These checks show that the files are the ones the build produced. They do not show who built them: trust
-comes from getting the digest from the person who shared the build, over a different route than the archive.
+`.venv` and `demo` folders at the top of the unpacked folder), which its `build` block lists as not counted. A bytecode
+cache (a `__pycache__` folder) in the product counts as an unlisted file, because Python runs cached bytecode in place of
+the source it was made from; every command in this guide that runs a script of the product starts Python with `-B`, so
+none is written. The `.venv` folder holds the dependencies and is the one place caches belong. These checks show that the
+files are the ones the build produced. They do not show who built them: trust comes from getting the digest from the
+person who shared the build, over a different route than the archive.
 
 ## Install
 
@@ -114,7 +117,7 @@ the lock; then copy the folder to the target machine:
 
 ```sh
 .venv/bin/python -m pip --isolated download --require-hashes --only-binary :all: --dest ./wheelhouse -r requirements-runtime-linux-x86_64-cp312.lock
-.venv/bin/python scripts/verify-dependencies.py --wheelhouse ./wheelhouse
+.venv/bin/python -B scripts/verify-dependencies.py --wheelhouse ./wheelhouse
 ```
 
 (If the first machine has no environment yet, run the `venv` line above first; pip is all that is needed there.)
@@ -490,7 +493,8 @@ unchanged, and no other file is present), `modified` (the files named in `modifi
 files named in `unlisted_files` are present although the archive did not list them, so what you are running is not
 the build named above), `inconsistent` (the file list no longer matches the identity record), `unreadable`, or
 `not_a_release_build` (a source checkout, which has no build identity). `unlisted_not_counted` lists what the look for
-unlisted files skips: the `.venv` and `demo` folders at the top, and `__pycache__` folders.
+unlisted files skips: the `.venv` and `demo` folders at the top. A `__pycache__` folder in the product is listed under
+`unlisted_files`; delete it, and start Python with `-B` when you run a script of the product.
 
 **Exit status.** 0 is a successful local result; `start`, `catalog` and `engineering` are reports and end with 0
 whatever they find. 2 means blocked, partial or unavailable (read the printed reason), and is also what a usage error

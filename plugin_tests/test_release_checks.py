@@ -84,6 +84,29 @@ class QuickstartCommandTests(unittest.TestCase):
             self.assertIn(needed, lines, 'the quickstart code blocks must show it')
 
 
+class BytecodeCommandTests(unittest.TestCase):
+    """Round 4, item 3: every start of a product script in the guide and in the demonstration script runs without writing
+    bytecode, so that the copy stays identified, and the guide says that a cache in the product counts as an unlisted file."""
+
+    START = re.compile(r'(?:python3?|\.venv/bin/python|"\$PYTHON")([^\n`|;]*?)scripts/(?:verify-dependencies|intune-iac)\.py')
+
+    def test_every_start_of_a_product_script_passes_dash_B(self):
+        starts = []
+        for label, text in (('the guide', base.guide_text()), ('the script', DEMO.read_text())):
+            starts += [(label, match.group(0)) for match in self.START.finditer(text)]
+        self.assertGreaterEqual(len(starts), 4, starts)
+        for label, start in starts:
+            with self.subTest(start):
+                self.assertTrue(re.search(r'(?:^|\s)-[A-Za-z]*B[A-Za-z]*\s', start),
+                                f'{label} starts a product script that may write bytecode: {start}')
+
+    def test_the_guide_says_that_a_cache_in_the_product_counts_and_that_its_commands_write_none(self):
+        text = squashed(guide_section('Check the download'))
+        for phrase in ('counts as an unlisted file', 'starts Python with `-B`', 'the `.venv` and `demo` folders'):
+            self.assertIn(phrase, text)
+        self.assertNotIn('and `__pycache__` folders', text)
+
+
 class GuideDigestTests(unittest.TestCase):
     """The guide shows only the forms the script accepts and says where a digest is to be taken from."""
 
