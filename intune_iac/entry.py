@@ -588,11 +588,17 @@ def _plain(value):
     return STATE_WORDS.get(value, str(value)) if isinstance(value, str) else str(value)
 
 
+def goal_summary(view):
+    """The one-line verdict of a goal. The heading of the goal block and the closing line of the screen are both this, from the
+    same status, so the two cannot differ."""
+    return 'GOAL READINESS: %s (status: %s)' % (view['goal'], view['status'])
+
+
 def _goal_lines(view, width):
     """The goal's readiness: its status, the selected directory, host and tenant, the needed rows and what is not checked."""
     from .workbench_screens import word_wrap
     host = view['host']
-    lines = ['GOAL READINESS: %s (status: %s)' % (view['goal'], view['status'])]
+    lines = [goal_summary(view)]
     lines += _flow('Directory: %s' % view['directory'], width, '', '    ')
     lines += _flow('Host: os %s, platform %s, machine %s, Python %s' % (host['os_name'], host['sys_platform'], host['machine'],
                                                                        host['python_version']), width, '', '    ')
@@ -687,4 +693,8 @@ def start_lines(value, width, goal=None, goal_hint=False):
         shown = shlex.quote(directory) if directory.isprintable() else 'DIRECTORY'
         lines += _flow('Catalog of what this build supports and where each goal stands: intune-iac catalog %s' % shown,
                        width, '', '    ', commands=True)
+    if goal:
+        # The goal block is longer than a 40-row pane, which then shows only the tail of the screen: the verdict closes the
+        # screen too. It is a short fixed line and is never wrapped, so a pane always shows it whole.
+        lines.append(goal_summary(goal))
     return lines
