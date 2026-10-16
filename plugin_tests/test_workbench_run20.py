@@ -334,5 +334,30 @@ class LayerKeyHintTests(LayerFixture):
         self.assertNotIn('Esc, then a', text)
 
 
+class ReconciledIsNotProofTests(LayerFixture):
+    """Sol review of c679413, finding 1: a reconciliation can find the change NOT applied, so `reconciled` alone gets the
+    plain prepare step. The new-change wording needs the carried-out-and-verified status. (The read model holds a
+    reconciliation `classification` at workbench_diagnostics.py:228-229, but this step does not read it.)"""
+
+    def test_reconciled_alone_gets_the_plain_prepare_step(self):
+        from intune_iac.workbench_screens import lifecycle_next
+        current = {'freshness': {'status': 'current'}}
+        plain = lifecycle_next(8, current, 0.0, None)
+        reconciled = dict(current, newest_operation={'short_id': '0f1a0891', 'journal_status': 'reconciled'})
+        step = lifecycle_next(8, reconciled, 0.0, None)
+        self.assertNotIn('only for a new change', step)
+        self.assertEqual(step, plain)
+        verified = dict(current, newest_operation={'short_id': '0f1a0891', 'journal_status': 'succeeded_verified'})
+        self.assertIn('only for a new change', lifecycle_next(8, verified, 0.0, None))
+
+    def test_reconciled_gets_no_note_on_the_inspector_action(self):
+        from intune_iac.workbench import _proposal_note
+        prefixes = {'a' * 32: '0f1a0891'}
+        attention = {'newest_operation': {'operation_id': 'a' * 32, 'journal_status': 'reconciled'}}
+        self.assertIsNone(_proposal_note(None, attention, prefixes))
+        attention['newest_operation']['journal_status'] = 'succeeded_verified'
+        self.assertIn('already carried out', _proposal_note(None, attention, prefixes))
+
+
 if __name__ == '__main__':
     unittest.main()

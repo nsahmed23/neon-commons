@@ -872,10 +872,11 @@ def _prepare_next(newest, newest_open=None):
     if journal == 'outcome_unknown' and short:
         return ('operation %s ended with an unknown outcome; Reconcile it (a: actions) before preparing another proposal; '
                 'it never replays the change' % short)
-    if journal in ('succeeded_verified', 'reconciled') and short:
-        done = 'carried out and verified' if journal == 'succeeded_verified' else 'reconciled'
-        return ('operation %s was %s; v shows its delivery stages. Prepare a proposal from the recorded intent (a: actions) '
-                'only for a new change' % (short, done))
+    if journal == 'succeeded_verified' and short:
+        # Only this status proves the change was applied and verified; a reconciliation can find it was not, so
+        # `reconciled` alone keeps the plain step.
+        return ('operation %s was carried out and verified; v shows its delivery stages. Prepare a proposal from the '
+                'recorded intent (a: actions) only for a new change' % short)
     return PREPARE_NEXT
 
 
