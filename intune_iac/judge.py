@@ -72,10 +72,15 @@ def _validate_evidence(value):
     visit(value, 0)
 
 
-# REFUSAL POINT for secret-shaped values. Everything that goes to the external model service (the claim and every
-# string anywhere in the evidence, keys included) passes through _check_no_secret before any network call. The
-# refusal names a JSON path, never the value. The shapes are conservative on purpose: a false refusal costs one
-# advisory assessment, a missed secret costs a credential in a third party's request log.
+# REFUSAL POINT for secret-shaped values. Everything that goes to the external model service passes through
+# _check_no_secret before any network call: the claim, every key and string anywhere in the evidence, and every other
+# configurable string in the request (the model alias). A refusal names a POSITION, never text: a mapping member is
+# {n}, its place in sorted key order, and a list item is [n]. LIMIT, stated here because it is real: the scan refuses
+# common credential forms and cannot prove a secret is absent. A secret split across fields, or in a format not
+# listed here, passes. The judge is optional and advisory; do not put secrets in evidence.
+_SECRET_NAME = (r"(?:password|passwd|pwd|secret|token|apikey|api[_-]?key|accountkey|account[_-]?key|"
+                r"sharedaccesskey|shared[_-]?access[_-]?key|sharedaccesssignature|access[_-]?key|"
+                r"private[_-]?key|credential|authorization|(?<![A-Za-z])sig)")
 _SECRET_SHAPES = (
     re.compile(r"eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]*"),                  # JWT
     re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]{16,}"),                                    # Authorization value
@@ -83,13 +88,30 @@ _SECRET_SHAPES = (
     re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}"
                r"|AKIA[0-9A-Z]{16})"),                                                        # vendor prefixes
     re.compile(r"[A-Za-z0-9_.-]{3}\dQ~[A-Za-z0-9_.~-]{20,}"),                                 # Entra client secret
-    re.compile(r"(?i)\b(?:client[_-]?secret|secret|password|passwd|token|api[_-]?key|access[_-]?key)\b[\"']?"
-               r"\s*[:=]\s*[\"']?(?=[^\s\"',;]*\d)[^\s\"',;]{12,}"),                            # name = value in text
+    re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://[^/\s:@]*:[^/\s@]{3,}@"),                          # URL userinfo password
 )
+# name = value / name: value / "name": "value" / connection-string pairs, where the NAME is a secret keyword.
+_SECRET_PAIR = re.compile(r"(?i)" + _SECRET_NAME + r"[\"']?\s*[:=]\s*[\"']?([^\s\"',;&]{6,})")
+_PLACEHOLDER = re.compile(r"(?i)[*x#.•-]+|[<\[{(]?(?:redacted|hidden|removed|omitted|masked)[>\]})]?")
+_SECRET_KEY = re.compile(r"(?:^|_)(?:password|passwd|pwd|secret|token|apikey|api_key|accountkey|account_key|sharedaccesskey|"
+                         r"shared_access_key|sharedaccesssignature|access_key|private_key|credentials?|authorization|sig)(?:_|$)")
+
+
+def _snake(key):
+    return "_".join(p for p in re.split(r"[^a-z0-9]+", re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", key).lower()) if p)
+
+
 _PIECE_SPLIT = re.compile(r"[\s/:,;\"'()<>{}\[\]?&|\\@=]+")
 _TOKEN_CHARS = re.compile(r"[A-Za-z0-9_+~.-]{24,}")
-_UUID = re.compile(r"[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}")
+_UUID_ANY = re.compile(r"[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}")
+_HEX_RUN = re.compile(r"(?<![0-9A-Fa-f])[0-9A-Fa-f]{32,}(?![0-9A-Fa-f])")
 _HEX = re.compile(r"[0-9A-Fa-f]+")
+_B64_RUN = re.compile(r"[A-Za-z0-9+/_=-]{32,}")
+_B64_ONLY = re.compile(r"[A-Za-z0-9+/_=-]+")
+_POLICY_KEY = re.compile(r"p_[0-9a-f]{32}_[0-9a-f]{32}")
+_DIGEST_VALUE = re.compile(r"(?i)(?:sha1|sha256|sha512):[0-9a-f]{40,128}")
+_DIGEST_NAMES = frozenset(("sha1", "sha256", "sha512", "digest", "hash", "checksum", "commit", "tree", "head",
+                           "revision", "fingerprint"))
 
 
 def _entropy(text):
@@ -99,50 +121,99 @@ def _entropy(text):
     return -sum(n / len(text) * math.log2(n / len(text)) for n in counts.values())
 
 
-def _secret_shaped(text):
+def _placeholder(value):
+    return bool(_PLACEHOLDER.fullmatch(value))
+
+
+def _digest_key(key):
+    # Only the key's last component counts: source_sha256, evidenceSha256 and commit qualify; commit_message does not.
+    parts = [p for p in re.split(r"[^a-z0-9]+", re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", key).lower()) if p]
+    return bool(parts) and parts[-1] in _DIGEST_NAMES
+
+
+def _base64_like(run):
+    run = run.strip("=")
+    if len(run) < 32 or _HEX.fullmatch(run):
+        return False
+    upper, lower, digit = (any(c.isupper() for c in run), any(c.islower() for c in run), any(c.isdigit() for c in run))
+    if not ((upper and lower) or (digit and (upper or lower))):
+        return False
+    return _entropy(run) >= (4.0 if digit else 4.4)
+
+
+def _variants(text):
+    found, current = [text], text
+    for _ in range(3):
+        decoded = urllib.parse.unquote(current)
+        if decoded == current:
+            break
+        found.append(decoded)
+        current = decoded
+    return found
+
+
+def _shaped_once(text, digest_ok):
     if any(shape.search(text) for shape in _SECRET_SHAPES):
         return True
+    if any(not _placeholder(m.group(1)) for m in _SECRET_PAIR.finditer(text)):
+        return True
+    if not digest_ok:
+        # Hex and base64 runs are allowed only as a whole value under a digest-named key (or as sha256:<hex>).
+        if _HEX_RUN.search(text):
+            return True
+        stripped = _UUID_ANY.sub(" ", text)
+        for run in _B64_RUN.findall(stripped):
+            if _base64_like(run) or any(_base64_like(part) for part in run.split("/")):
+                return True
     for piece in _PIECE_SPLIT.split(text):
         # A random credential mixes cases and digits with high entropy; identifiers, GUIDs and digests do not.
-        if (_TOKEN_CHARS.fullmatch(piece) and not _UUID.fullmatch(piece) and not _HEX.fullmatch(piece)
+        if (_TOKEN_CHARS.fullmatch(piece) and not _UUID_ANY.fullmatch(piece) and not _HEX.fullmatch(piece)
                 and any(c.isupper() for c in piece) and any(c.islower() for c in piece)
                 and any(c.isdigit() for c in piece) and _entropy(piece) >= 3.8):
             return True
     return False
 
 
-def _segment(key):
-    # A key is echoed in the location only when it is plainly an ordinary name.
-    ordinary = re.fullmatch(r"[A-Za-z_][A-Za-z0-9_-]{0,63}", key) and not _secret_shaped(key)
-    return "." + key if ordinary else ".<key>"
+def _secret_shaped(text, digest_ok=False):
+    digest_ok = (digest_ok and _B64_ONLY.fullmatch(text) is not None or _DIGEST_VALUE.fullmatch(text) is not None
+                 or _POLICY_KEY.fullmatch(text) is not None)
+    return any(_shaped_once(variant, digest_ok) for variant in _variants(text))
 
 
-def _configured_key(config):
+def _read_key(config):
+    """Read the API key once. The same frozen value is checked against the request and then used in its header."""
     name = config.get("api_key_env")
-    value = os.environ.get(name) if isinstance(name, str) and re.fullmatch(r"CLM_[A-Z0-9_]{1,120}", name) else None
-    return value if value and len(value) >= 6 else None
+    if name is None:
+        return None, None
+    if not isinstance(name, str) or not re.fullmatch(r"CLM_[A-Z0-9_]{1,120}", name):
+        return name, None
+    return name, os.environ.get(name)
 
 
 def _check_no_secret(value, root, key_value=None):
-    def leaf(text, path):
+    def leaf(text, path, digest_ok=False):
         if key_value is not None and key_value in text:
             raise _Rejected("credential_value_in_evidence", path)
-        if _secret_shaped(text):
+        if _secret_shaped(text, digest_ok):
             raise _Rejected("secret_shaped_value", path)
 
-    def visit(item, path):
+    def visit(item, path, digest_ok):
         if type(item) is dict:
-            for key in sorted(item):
-                where = path + _segment(key)
+            for position, key in enumerate(sorted(item)):
+                where = path + "{" + str(position) + "}"
                 leaf(key, where)
-                visit(item[key], where)
+                child = item[key]
+                if (type(child) is str and _SECRET_KEY.search(_snake(key)) and len(child) >= 6
+                        and not _placeholder(child)):
+                    raise _Rejected("secret_shaped_value", where)
+                visit(child, where, _digest_key(key))
         elif type(item) is list:
             for index, child in enumerate(item):
-                visit(child, path + "[" + str(index) + "]")
+                visit(child, path + "[" + str(index) + "]", digest_ok)
         elif type(item) is str:
-            leaf(item, path)
+            leaf(item, path, digest_ok)
 
-    visit(value, root)
+    visit(value, root, False)
 
 
 def _pairs(items):
@@ -330,13 +401,12 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
         raise _Rejected("redirect_rejected")
 
 
-def _request(config, payload):
+def _request(config, payload, frozen_key):
     headers = {"Content-Type": "application/json", "Accept": "application/json"}
-    key_env = config.get("api_key_env")
+    key_env, key = frozen_key  # read once by _read_key; the value checked against the request is the value sent
     if key_env is not None:
         if not isinstance(key_env, str) or not re.fullmatch(r"CLM_[A-Z0-9_]{1,120}", key_env):
             raise _Rejected("invalid_credential_config")
-        key = os.environ.get(key_env)
         if not key or any(ord(c) < 33 or ord(c) > 126 for c in key):
             raise _Rejected("credential_unavailable")
         headers["Authorization"] = f"Bearer {key}"
@@ -401,9 +471,14 @@ def assess(config_path, claim, evidence):
         if not evidence:
             raise _Rejected("empty_evidence")
         _validate_evidence(evidence)
-        key_value = _configured_key(config)
+        frozen_key = _read_key(config)
+        key_value = frozen_key[1] if frozen_key[1] and len(frozen_key[1]) >= 6 else None
         _check_no_secret(claim, "$.claim", key_value)
         _check_no_secret(evidence, "$.evidence", key_value)
+        # The result echoes the configured identity and the request carries its alias, so they are scanned before any
+        # of them is copied into either.
+        _check_no_secret(config["model_identity"]["alias"], "$.request.model", key_value)
+        _check_no_secret(config["model_identity"], "$.config.model_identity", key_value)
         bundle = _canonical(evidence)
         if len(bundle.encode("utf-8")) > 65536:
             raise _Rejected("evidence_too_large")
@@ -427,8 +502,13 @@ def assess(config_path, claim, evidence):
         payload = {"state": state, "model": identity["alias"], "temperature": identity["temperature"],
                    "questions": {QUESTION_ID: {"type": "choice", "instructions": INSTRUCTIONS,
                                                 "criteria": dict(CRITERIA)}}}
+        # Every configurable string in the request is scanned; "state" was scanned structurally above and "questions"
+        # is constant text. The Authorization credential is the one intended secret and is not part of the payload.
+        for name in payload:
+            if name not in ("state", "questions"):
+                _check_no_secret(payload[name], "$.request." + name, key_value)
         result["request_sha256"] = _digest(payload)
-        response = _request(config, payload)
+        response = _request(config, payload, frozen_key)
         if head_path is not None and _sha_file(head_path) != identity["head_sha256"]:
             raise _Rejected("head_changed_during_request")
         probs, confidence = _distribution(response, identity["alias"])

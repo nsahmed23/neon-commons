@@ -33,6 +33,12 @@ Only numeric loopback HTTP destinations and `localhost` are allowed without addi
 
 For optional server authentication, add `"api_key_env": "CLM_API_KEY"` and set that environment variable to the service bearer key. Only names starting with `CLM_` are accepted. Keys never appear in returned receipts. A configured missing key is an unavailable assessment. CLM's shared bearer key is not tenant identity or execution permission.
 
+## Secrets in evidence: what the scan does and does not do
+
+Before anything is sent, the adapter scans the claim, every key and string in the evidence, and the configured model alias. It refuses common credential forms: tokens and keys with known prefixes, JWTs, bearer values, private keys, URLs with a password, `name=value` pairs whose name is a secret keyword (password, secret, token, key, signature and similar, including percent-encoded forms), mapping keys that look like secrets, long hex runs and long base64 runs. Hex and base64 are allowed only as the whole value under a digest-named key (sha256, digest, hash, checksum, commit, tree, head, revision, fingerprint), as `sha256:<hex>`, as a policy key `p_<32 hex>_<32 hex>`, or as a canonical GUID. A refusal gives a reason code and a position such as `$.evidence{3}[0]` (`{n}` is the member's place in sorted key order, `[n]` a list index), never the text.
+
+The scan cannot prove a secret is absent. A secret split across fields, or in a format not listed here, passes. The judge is optional and advisory and its evidence is supplied by the engineer, so do not put secrets in evidence.
+
 ## Token safety and evidence binding
 
 The adapter uses the actual System One protocol from `src/clm/server.py`, `schema.py` and `engine.py`: `POST /v1/systemone` with a string `state`, model alias, inference temperature, and a single `choice` question keyed `evidence_assessment`. The three labels and their complete descriptions are fixed, ordered `supported`, `contradicted`, `insufficient`. They cannot be replaced through configuration.

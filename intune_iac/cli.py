@@ -185,7 +185,7 @@ def parser():
     graph=commands.add_parser('graph',help='Build/query the typed relationship graph').add_subparsers(dest='graph_command',required=True)
     build=graph.add_parser('build');build.add_argument('--input',required=True);build.add_argument('--context');build.add_argument('--atmos-root');build.add_argument('--output',required=True);build.add_argument('--state-dir',default='.intune-iac/attempts')
     query=graph.add_parser('query');query.add_argument('--graph',required=True);query.add_argument('--query',required=True);query.add_argument('--subject')
-    judge=commands.add_parser('judge',help='Request an advisory assessment from the configured CLM service')
+    judge=commands.add_parser('judge',help='Request an advisory assessment from the configured CLM service (refuses common credential forms in the claim and evidence; it cannot prove a secret is absent, so do not put secrets in evidence)')
     judge.add_argument('--config',required=True);judge.add_argument('--claim',required=True);judge.add_argument('--evidence',required=True)
     cap=commands.add_parser('capture',help='Capture public Graph beta pages using an explicitly supplied read token')
     cap.add_argument('--tenant',required=True);cap.add_argument('--policy',required=True);cap.add_argument('--output',required=True);cap.add_argument('--token-env',default='INTUNE_GRAPH_TOKEN',help=_TOKEN_ENV_HELP)
