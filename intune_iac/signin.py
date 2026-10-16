@@ -12,7 +12,15 @@ GH_TOKEN, GITHUB_TOKEN, AZURE_CLIENT_SECRET and INTUNE_GRAPH_TOKEN are never for
 on, a token that sits in the environment.
 
 Every process runs through _bounded: output is read incrementally under one combined ceiling, and a process that passes the
-ceiling or its deadline is killed (with its process group) and reaped before the error is raised.
+ceiling or its deadline is killed (with its process group) and reaped before the error is raised. The parent never blocks on
+end-of-file: after the kill it waits CLEANUP_GRACE for the pipes to close, and if a writer still holds one (a descendant that
+left the session with setsid) it refuses the run as cleanup_unconfirmed.
+
+Limit: the product's own supervised spawn (protected._supervise and its procfs census, protected._cleanup_process_group) was
+examined and not reused. It denies network access to its child and is bound to the protected-approval model, and its own
+docstring says it is cooperative process-group cleanup, not host containment, so a setsid descendant escapes its census as
+well. Here, a descendant that left the session AND closed every inherited pipe cannot be detected by this parent; only a Linux
+cgroup (or a subreaper) could contain it, and no such mechanism exists in the product to reuse.
 """
 from __future__ import annotations
 
@@ -95,38 +103,68 @@ def _bounded(argv, deadline, limit, pass_fds=()):
     out_fd, err_fd = process.stdout.fileno(), process.stderr.fileno()
     chunks = {out_fd: [], err_fd: []}
     total = 0
+    selector = selectors.DefaultSelector()
     try:
-        with selectors.DefaultSelector() as selector:
-            for stream in (process.stdout, process.stderr):
-                os.set_blocking(stream.fileno(), False)
-                selector.register(stream, selectors.EVENT_READ)
-            while selector.get_map():
-                remaining = end - time.monotonic()
-                if remaining <= 0:
-                    raise CliError('deadline')
-                for key, _ in selector.select(min(remaining, 0.2)):
-                    try:
-                        data = os.read(key.fd, 65536)
-                    except BlockingIOError:
-                        continue
-                    if not data:
-                        selector.unregister(key.fileobj)
-                        continue
-                    total += len(data)
-                    if total > limit:
-                        raise CliError('output_too_large')
-                    chunks[key.fd].append(data)
+        for stream in (process.stdout, process.stderr):
+            os.set_blocking(stream.fileno(), False)
+            selector.register(stream, selectors.EVENT_READ)
+        while selector.get_map():
+            remaining = end - time.monotonic()
+            if remaining <= 0:
+                raise CliError('deadline')
+            for key, _ in selector.select(min(remaining, 0.2)):
+                try:
+                    data = os.read(key.fd, 65536)
+                except BlockingIOError:
+                    continue
+                if not data:
+                    selector.unregister(key.fileobj)
+                    continue
+                total += len(data)
+                if total > limit:
+                    raise CliError('output_too_large')
+                chunks[key.fd].append(data)
         try:
             code = process.wait(timeout=max(end - time.monotonic(), 0.05))
         except subprocess.TimeoutExpired:
             raise CliError('deadline') from None
-    except BaseException:
+    except BaseException as error:
         _kill(process)
+        if isinstance(error, CliError) and not _streams_closed(selector):
+            # Something outside the killed group still holds a pipe open (for example a descendant that left the session).
+            # The parent stops reading and never blocks on end-of-file, but it cannot say the run is cleaned up.
+            raise CliError('cleanup_unconfirmed') from None
         raise
     finally:
+        selector.close()
         process.stdout.close()
         process.stderr.close()
     return code, b''.join(chunks[out_fd]), b''.join(chunks[err_fd])
+
+
+CLEANUP_GRACE = 0.5  # seconds after the kill in which every pipe must reach end-of-file
+
+
+def _streams_closed(selector):
+    """After the kill: True when every pipe reached end-of-file within CLEANUP_GRACE (so no writer is left holding one).
+
+    A descendant that closed its pipes and left the session cannot be seen this way; see the limit in the module notes.
+    """
+    end = time.monotonic() + CLEANUP_GRACE
+    while selector.get_map():
+        remaining = end - time.monotonic()
+        if remaining <= 0:
+            return False
+        for key, _ in selector.select(min(remaining, 0.05)):
+            try:
+                data = os.read(key.fd, 65536)  # discarded: only end-of-file matters now
+            except BlockingIOError:
+                continue
+            except OSError:
+                data = b''
+            if not data:
+                selector.unregister(key.fileobj)
+    return True
 
 
 def _run(argv, deadline):
@@ -246,6 +284,9 @@ def obtain_token(tenant, account=None, deadline=DEFAULT_DEADLINE):
         code, out, err = _run(['az', 'account', 'get-access-token', '--resource', GRAPH_RESOURCE, '--tenant', tenant,
                                '--output', 'json'], deadline)
     except CliError as error:
+        if error.code == 'cleanup_unconfirmed':
+            raise AppError('signin_cleanup_unconfirmed', 'The Azure CLI left a process running that could not be confirmed '
+                           'gone, so its answer is refused.') from None
         raise AppError('signin_token_deadline' if error.code == 'deadline' else 'signin_token_unavailable',
                        'The Azure CLI did not return a token in time.' if error.code == 'deadline'
                        else 'The Azure CLI could not return a token.') from None
@@ -273,7 +314,7 @@ def _expires_on(value):
 def _token_from(text, tenant):
     try:
         value = json.loads(text)
-    except ValueError:
+    except (ValueError, RecursionError):
         value = None
     token = value.get('accessToken') if isinstance(value, dict) else None
     if not isinstance(token, str) or not _TOKEN_SHAPE.fullmatch(token):
@@ -298,12 +339,22 @@ def _token_from(text, tenant):
 
 COLLECT_DEADLINE = 120.0
 _SCRIPT = Path(__file__).resolve().parents[1] / 'scripts' / 'intune-iac.py'
-_COLLECTOR_STATUS = ('captured', 'partial')
 _PATH_FIELDS = ('output', 'export', 'context', 'receipt')
-_PLAIN_CODE = re.compile(r'[a-z][a-z0-9_]{0,39}')
-_COUNT_LIMIT = 1_000_000
-_CREDENTIAL_CODES = ('token_wrong_tenant', 'token_expired')
+COUNT_BOUND = 100_000
 FRAGMENT = 8
+# Closed enums: the exact values the capture command can produce. A child-supplied string outside them is never relayed.
+COLLECTOR_STATUS = frozenset({'captured', 'partial'})  # capture.py:464
+COLLECTOR_KINDS = frozenset({'policies', 'settings', 'assignments'})  # capture.py:349-351
+COLLECTOR_COVERAGE = frozenset({'complete', 'partial', 'access_denied'})  # capture.py:352, 381, 418
+COLLECTOR_REASONS = frozenset({  # capture.py: limit() 121-129 (cancelled, page_limit, byte_limit, time_limit and auth_stop), read()
+    # 151-214 (transport_failed, invalid_transport_response, retry_exhausted, retry_delay_limit, progress_failed), 358-422; the
+    # two auth_stop codes come from target.classify_denial (target.py:215, 217).
+    'cancelled', 'page_limit', 'byte_limit', 'time_limit', 'token_expired', 'token_wrong_tenant', 'transport_failed',
+    'invalid_transport_response', 'retry_exhausted', 'retry_delay_limit', 'progress_failed', 'untrusted_continuation',
+    'duplicate_or_looped_page', 'access_denied', 'http_error', 'malformed_json', 'error_envelope', 'invalid_collection_body',
+    'invalid_collection_count', 'missing_record_identity', 'duplicate_record_identity', 'invalid_continuation',
+    'collection_count_mismatch', 'selected_policy_missing'})
+_CREDENTIAL_CODES = frozenset({'token_wrong_tenant', 'token_expired'})
 
 
 def collector_command(tenant, policy, output, descriptor):
@@ -313,13 +364,21 @@ def collector_command(tenant, policy, output, descriptor):
 
 
 class _Watch:
-    """Recognises the token in text without holding it: digests of every FRAGMENT-character window of it."""
+    """Recognises the token in text without holding it: digests of every FRAGMENT-character window of it.
+
+    The windows are taken from the lower-cased token and from its hex encoding, and text is lower-cased before it is
+    compared, so a case change or a hex encoding of the token does not get past it. This is the second line of defence:
+    the first is that no child-supplied string outside a closed enum is ever relayed.
+    """
 
     def __init__(self, token):
-        self.digests = {hashlib.sha256(token[i:i + FRAGMENT].encode()).digest() for i in range(max(len(token) - FRAGMENT + 1, 1))}
+        lowered = token.lower()
+        forms = (lowered, token.encode('utf-8').hex())
+        self.digests = {hashlib.sha256(form[i:i + FRAGMENT].encode()).digest()
+                        for form in forms for i in range(max(len(form) - FRAGMENT + 1, 1))}
 
     def hit(self, text):
-        data = text.encode('utf-8', 'replace')
+        data = text.lower().encode('utf-8', 'replace')
         return any(hashlib.sha256(data[i:i + FRAGMENT]).digest() in self.digests for i in range(max(len(data) - FRAGMENT + 1, 0)))
 
 
@@ -339,16 +398,18 @@ def _strings(value, found, depth=0):
 
 
 def _count(value):
-    return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= _COUNT_LIMIT
+    return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= COUNT_BOUND
 
 
 def collector_schema(value):
     """The only fields of a successful capture result the product shows, or None when the result is outside the schema.
 
-    status, three counts, cancelled and the coverage list (kind, coverage, reason: plain codes only). A credential problem is
-    reduced to its code. No other field of the child's output is ever relayed.
+    status, three counts, cancelled and the coverage list (kind, coverage, reason), each of the strings a member of a closed
+    enum. A credential problem is reduced to one of two codes. No other field of the child's output is ever relayed, and a
+    string outside an enum makes the whole result invalid.
     """
-    if not isinstance(value, dict) or value.get('status') not in _COLLECTOR_STATUS or value.get('cancelled') not in (True, False):
+    status = value.get('status') if isinstance(value, dict) else None
+    if not isinstance(status, str) or status not in COLLECTOR_STATUS or value.get('cancelled') not in (True, False):
         return None
     if not all(_count(value.get(name)) for name in ('page_count', 'attempt_count', 'retry_count')):
         return None
@@ -360,15 +421,15 @@ def collector_schema(value):
         if not isinstance(item, dict):
             return None
         kind, state, reason = item.get('kind'), item.get('coverage'), item.get('reason')
-        if not (isinstance(kind, str) and _PLAIN_CODE.fullmatch(kind) and isinstance(state, str) and _PLAIN_CODE.fullmatch(state)
-                and (reason is None or (isinstance(reason, str) and _PLAIN_CODE.fullmatch(reason)))):
+        if not (isinstance(kind, str) and kind in COLLECTOR_KINDS and isinstance(state, str) and state in COLLECTOR_COVERAGE
+                and (reason is None or (isinstance(reason, str) and reason in COLLECTOR_REASONS))):
             return None
         shown.append({'kind': kind, 'coverage': state, 'reason': reason})
     result = {'status': value['status'], 'page_count': value['page_count'], 'attempt_count': value['attempt_count'],
               'retry_count': value['retry_count'], 'cancelled': value['cancelled'], 'coverage': shown}
     problem = value.get('credential_problem')
     code = problem.get('code') if isinstance(problem, dict) else None
-    if code in _CREDENTIAL_CODES:
+    if isinstance(code, str) and code in _CREDENTIAL_CODES:
         result['credential_problem'] = code
     return result
 
@@ -406,6 +467,9 @@ def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, col
         try:
             code, out, err = _bounded(argv, collect_deadline, COLLECT_OUTPUT_LIMIT, pass_fds=(read_end,))
         except CliError as error:
+            if error.code == 'cleanup_unconfirmed':
+                # A descendant outside the killed group still holds a pipe: nothing the collector produced is trusted.
+                return {'status': 'failed', 'error_code': 'cleanup_unconfirmed', 'collector_started': True, 'child_exit': None}
             if error.code == 'output_too_large':
                 return {'status': 'failed', 'error_code': 'collector_output_too_large', 'collector_started': True, 'child_exit': None}
             if error.code == 'deadline':
@@ -428,7 +492,7 @@ def _collector_result(code, out, err, watch, output):
         return {'status': 'failed', 'error_code': _error_code(text_err), 'collector_started': True, 'child_exit': code}
     try:
         value = json.loads(text_out)
-    except ValueError:
+    except (ValueError, RecursionError):
         return {'status': 'failed', 'error_code': 'collector_output_invalid', 'collector_started': True, 'child_exit': 0}
     found = []
     if not _strings(value, found):
@@ -450,7 +514,7 @@ def _error_code(text):
     for line in reversed(text.splitlines()):
         try:
             value = json.loads(line)
-        except ValueError:
+        except (ValueError, RecursionError):
             continue
         error = value.get('error') if isinstance(value, dict) else None
         code = error.get('code') if isinstance(error, dict) else None

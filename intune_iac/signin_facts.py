@@ -37,21 +37,42 @@ NOT_SHOWN = '<not shown>'
 KNOWN_CLOUDS = frozenset({'AzureCloud', 'AzureChinaCloud', 'AzureUSGovernment', 'AzureGermanCloud'})
 _UPN = re.compile(r'[A-Za-z0-9][A-Za-z0-9._+-]{0,63}@[A-Za-z0-9][A-Za-z0-9-]{0,62}(?:\.[A-Za-z0-9][A-Za-z0-9-]{0,62}){1,4}')
 _PLAIN_HOST = re.compile(r'[a-z0-9][a-z0-9-]{0,23}(?:\.[a-z0-9][a-z0-9-]{0,23}){0,4}', re.I)
-_CODE = re.compile(r'[a-z]+(?:_[a-z]+){0,5}')
-_ALNUM_RUNS = re.compile(r'[A-Za-z0-9]+')
+_SEPARATORS = re.compile(r'[^A-Za-z0-9]')
+RUN_LIMIT, DOMAIN_RUN_LIMIT, BLOCK_LIMIT = 24, 48, 12
 
 
-def _opaque(text):
-    """True when the text looks like a credential even though separators divide it into short runs.
+def _credential_shaped(normalized, limit):
+    """The three checks on a value whose separators are already removed."""
+    return (len(normalized) >= limit or normalized.startswith('eyJ')
+            or (len(normalized) >= BLOCK_LIMIT and not any(c.islower() for c in normalized)))
 
-    Any run of 24 or more letters and digits; a run of 12 or more with no lower-case letter (a base64 or hex block, not a
-    word); a JWT prefix; or 32 or more letters and digits in the local part (48 in the domain) once every separator is removed.
+
+def opaque(text):
+    """True when the text looks like a credential even though separators divide it into short pieces.
+
+    The one helper for names, hosts and the like. Every separator (anything that is not a letter or a digit) is removed first;
+    then the normalised value is refused when it has 24 or more characters, starts with a JWT prefix, or has 12 or more
+    characters and no lower-case letter (a base64 or hex block, not a word). An e-mail-like name is judged in two parts, the
+    local part by the same rule and the domain at 48, so a long but ordinary UPN is still shown.
     """
-    runs = _ALNUM_RUNS.findall(text)
-    if any(len(run) >= 24 or run.startswith('eyJ') or (len(run) >= 12 and not any(c.islower() for c in run)) for run in runs):
-        return True
-    local, _, domain = text.partition('@')
-    return (sum(len(r) for r in _ALNUM_RUNS.findall(local)) >= 32 or sum(len(r) for r in _ALNUM_RUNS.findall(domain)) >= 48)
+    if _UPN.fullmatch(text):
+        local, _, domain = text.partition('@')
+        return _credential_shaped(_SEPARATORS.sub('', local), RUN_LIMIT) or _credential_shaped(_SEPARATORS.sub('', domain), DOMAIN_RUN_LIMIT)
+    return _credential_shaped(_SEPARATORS.sub('', text), RUN_LIMIT)
+
+
+# The error codes the collecting command (capture and the descriptor reader) can produce, and the product's own: a closed set.
+CHILD_ERROR_CODES = frozenset({
+    'capture_identity_invalid', 'capture_output_unsafe', 'capture_output_conflict', 'capture_platform_unavailable',
+    'capture_limit_invalid', 'capture_provenance_invalid', 'capture_token_env_invalid', 'capture_token_missing',
+    'capture_token_invalid', 'capture_transport_invalid', 'capture_write_failed', 'output_conflict',
+    'identity_explicit_credential_fd_required', 'identity_credential_fd_type', 'identity_credential_fd_private',
+    'identity_credential_fd_limit', 'identity_credential_fd_read_only', 'identity_credential_fd_deadline',
+    'identity_credential_invalid', 'identity_credential_fd_not_pending', 'identity_credential_control_character',
+    'identity_credential_fd_empty', 'identity_separate_credential_fds_required', 'identity_configuration_invalid',
+    'identity_fd_platform_unsupported', 'missing_dependencies', 'invalid_request', 'unknown_command', 'invalid_parameters',
+    'collector_failed', 'collector_output_withheld', 'collector_output_invalid', 'collector_output_too_large',
+    'cleanup_unconfirmed'})
 
 
 def shown_name(value):
@@ -60,14 +81,14 @@ def shown_name(value):
         return NOT_SHOWN
     if GUID.fullmatch(value):
         return value.lower()
-    if (_UPN.fullmatch(value) or (NAME.fullmatch(value) and len(value) <= 64)) and not _opaque(value) and not _TOKENISH.search(value):
+    if (_UPN.fullmatch(value) or (NAME.fullmatch(value) and len(value) <= 64)) and not opaque(value) and not _TOKENISH.search(value):
         return value
     return NOT_SHOWN
 
 
 def shown_host(value):
     """A host name as it may be displayed: short labels, no opaque run; else NOT_SHOWN."""
-    if isinstance(value, str) and len(value) <= 64 and _PLAIN_HOST.fullmatch(value) and not _opaque(value):
+    if isinstance(value, str) and len(value) <= 64 and _PLAIN_HOST.fullmatch(value) and not opaque(value):
         return value
     return NOT_SHOWN
 
@@ -78,14 +99,12 @@ def shown_cloud(value):
 
 
 def shown_code(value):
-    """A plain snake_case error code made of lower-case words (no digits, no opaque run), else None."""
-    if isinstance(value, str) and len(value) <= 48 and _CODE.fullmatch(value) and all(len(w) <= 20 for w in value.split('_')):
-        return value
-    return None
+    """An error code the collecting command or the product can produce (CHILD_ERROR_CODES, a closed set), else None."""
+    return value if isinstance(value, str) and value in CHILD_ERROR_CODES else None
 
 
-def _facts(provider, state, accounts=(), reason=None):
-    return {'provider': provider, 'state': state, 'reason': reason, 'accounts': list(accounts)}
+def _facts(provider, state, accounts=(), reason=None, **extra):
+    return {'provider': provider, 'state': state, 'reason': reason, 'accounts': list(accounts), **extra}
 
 
 def _load(text):
@@ -108,7 +127,7 @@ def parse_azure(text):
         return _facts('azure', 'unknown', reason='malformed_answer')
     if not value:
         return _facts('azure', 'not_signed_in')
-    accounts, seen, unrecognized = [], {}, False
+    accounts, seen, unrecognized, default_rows = [], {}, False, 0
     for entry in value:
         user = entry.get('user') if isinstance(entry, dict) else None
         tenant = shown(entry.get('tenantId'), GUID) if isinstance(entry, dict) else None
@@ -128,6 +147,8 @@ def parse_azure(text):
             continue
         key = (tenant.lower(), raw_name, raw_cloud)
         default = entry.get('isDefault') is True
+        if default and session == SESSION_ACTIVE:
+            default_rows += 1  # counted per source row, before rows for one account are merged
         if key in seen:
             seen[key]['default'] = seen[key]['default'] or default
             continue
@@ -138,8 +159,8 @@ def parse_azure(text):
     if not accounts:
         return _facts('azure', 'unknown', reason='account_state_unrecognized' if unrecognized else 'malformed_answer')
     if any(a['session'] == SESSION_ACTIVE for a in accounts):
-        return _facts('azure', 'signed_in', accounts)
-    return _facts('azure', 'expired', accounts)
+        return _facts('azure', 'signed_in', accounts, default_rows=default_rows)
+    return _facts('azure', 'expired', accounts, default_rows=default_rows)
 
 
 def parse_github(text, code, error_text):
@@ -254,11 +275,14 @@ def evaluate(facts, tenant=None, account=None):
                         'Sign in again to the tenant the context names: %s; then run this command again.' % login, tenant)
     defaults = [a for a in active if a['default']]
     names = {_identity(a) for a in active}
-    if len(defaults) > 1:
-        # Contradictory: more than one account is marked as the one the CLI uses. Never resolved by --account or by order.
+    rows = facts.get('default_rows') if isinstance(facts, dict) else None
+    source_rows = rows if isinstance(rows, int) and not isinstance(rows, bool) else 0
+    if len(defaults) > 1 or source_rows > 1:
+        # Contradictory: more than one row is marked as the one the CLI uses (counted before identical rows are merged).
+        # Never resolved by --account or by order.
         listing = '; '.join(_who(a) for a in defaults)
         return _verdict('azure', 'several_accounts',
-                        'The Azure CLI marks several accounts as its default: %s. The product does not pick one.' % listing,
+                        'The Azure CLI marks more than one entry as its default: %s. The product does not pick one.' % listing,
                         'Make exactly one the default with: az account set --subscription SUBSCRIPTION (or sign out the others '
                         'with: az logout --username NAME); then run this command again.', tenant, signed_in=active)
     default = defaults[0] if defaults else None

@@ -15,6 +15,7 @@ dir={directory}
 printf '%s\\n' "$*" >> "$dir/calls.log"
 key="$1_$2"
 [ -f "$dir/{tool}.$key.out" ] || exit 127
+if [ -f "$dir/{tool}.$key.escape" ]; then setsid sleep 60 & echo $! > "$dir/escaped.pid"; sleep 0.3; fi
 [ -f "$dir/{tool}.$key.flood" ] && exec yes AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 [ -f "$dir/{tool}.$key.sleep" ] && exec sleep "$(cat "$dir/{tool}.$key.sleep")"
 cat "$dir/{tool}.$key.out"
@@ -52,6 +53,15 @@ class FakeClis:
                 target.unlink(missing_ok=True)
             else:
                 target.write_text(value)
+
+    def escape(self, tool, first, second, out="[]"):
+        """Make the fake leave a session-escaped sleeper holding its stdout open (see escaped.pid)."""
+        self.answer(tool, first, second, out=out)
+        Path(str(self.directory / ("%s.%s_%s" % (tool, first, second))) + ".escape").write_text("1")
+
+    def escaped_pid(self):
+        path = self.directory / "escaped.pid"
+        return int(path.read_text()) if path.exists() and path.read_text().strip() else None
 
     def flood(self, tool, first, second):
         """Make the fake print without end (to test the output ceiling)."""

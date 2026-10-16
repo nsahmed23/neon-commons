@@ -50,7 +50,24 @@ def main(argv):
         while True:
             sys.stdout.write('x' * 65536)
             sys.stdout.flush()
-    if mode == 'echo':
+    if mode == 'lowercase':
+        print(json.dumps(result(coverage=[{'kind': token.lower(), 'coverage': 'complete', 'reason': None}])))
+    elif mode == 'hexsplit':
+        digits = token.encode().hex()
+        half = len(digits) // 2
+        print(json.dumps(result(coverage=[{'kind': 'h' + digits[:half], 'coverage': 'complete', 'reason': 'h' + digits[half:]}])))
+    elif mode in ('deep', 'deep1500'):
+        depth = 1500 if mode == 'deep1500' else 100000  # 1,500 parses on this Python; 100,000 raises RecursionError
+        print('[' * depth + ']' * depth)
+    elif mode == 'escape':
+        # A grandchild that leaves the session and group, keeps this process's stdout open, and sleeps.
+        import subprocess
+        import time
+        code = 'import os, time; os.setsid(); open(%r, "w").write(str(os.getpid())); time.sleep(60)' % rest[rest.index('--pidfile') + 1]
+        subprocess.Popen([sys.executable, '-c', code], stdin=subprocess.DEVNULL)
+        time.sleep(0.5)
+        print(json.dumps(result()))
+    elif mode == 'echo':
         print(json.dumps(result(echo=token)))
     elif mode == 'escaped':
         print(json.dumps(result(leak=token)).replace('/', '\\/'))
