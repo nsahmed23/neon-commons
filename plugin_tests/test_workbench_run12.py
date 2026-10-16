@@ -613,3 +613,25 @@ class ConsumerVerifiedWordsTests(unittest.TestCase):
         self.assertIn('Consumer: mismatch', ' '.join(refresh_result_lines(value, 140)))
         status = {'scope': {}, 'consumer': {'status': 'mismatch', 'reasons': ['policy_key_identity']}, 'freshness': {'status': 'stale'}}
         self.assertIn('Consumer mismatch: policy_key_identity', ' '.join(repository_lines(status, 140)))
+
+
+class RecordedQueueReviewTests(unittest.TestCase):
+    """Item 8, L-bare (frame 49): the line that follows recording a queue review names the finding, the policy and the
+    next step (reading it back), all from the record's own data (workbench_queue.amend)."""
+    VALUE = {'artifact_id': '53e45c2369a0' + '0' * 52, 'kind': 'queue_review', 'created': True, 'recorded_at': '2026-10-16T01:17:47Z',
+             'data': {'finding': 'reporting_incomplete', 'object_id': '22222222-2222-4222-8222-222222222222', 'version': 2,
+                      'previous_artifact_id': 'f' * 64}}
+
+    def rows(self, value=None):
+        from intune_iac.workbench_screens import recorded_lines
+        return recorded_lines(value or self.VALUE, 118)
+
+    def test_the_record_names_finding_policy_version_and_next(self):
+        text = '\n'.join(row.strip() for row in self.rows())
+        self.assertIn('Review version 2 of reporting incomplete for policy 22222222: an annotation, never approval or '
+                      'execution.', text)
+        self.assertIn('Next: In the workspace:\nqueue-review reporting_incomplete', text)
+
+    def test_a_record_without_the_data_is_unchanged(self):
+        bare = dict(self.VALUE, data={})
+        self.assertEqual(len(self.rows(bare)), 1)

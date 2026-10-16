@@ -2851,6 +2851,12 @@ def recorded_lines(value, width):
         lines += refresh_result_lines(value, width, header=False)
     if kind == 'deployment_receipt':
         lines += word_wrap('v opens Delivery; its stage 7 shows this record.', width)
+    if kind == 'queue_review' and data.get('finding') and data.get('object_id'):
+        # The record's own facts (workbench_queue.amend): which finding and policy, and the way to read it back.
+        lines += word_wrap('Review version %s of %s for policy %s: an annotation, never approval or execution.' % (
+            data.get('version', 'unknown'), _as_words(data['finding']), short_id(str(data['object_id']))), width)
+        lines += word_wrap('Next: In the workspace:', width)
+        lines += word_wrap('  queue-review %s' % data['finding'], width)
     if kind == 'workflow_run' and data:
         links = ['linked to %s %s' % ('operation' if row.get('relation') == 'related_operation' else 'observation',
                                        str(row.get('target_id'))[:12])
