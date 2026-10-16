@@ -857,7 +857,8 @@ def spine_columns(rows):
 
 BOUNDARY_IDS = {'a newline': '\n', 'an escape': '\x1b[31m', 'an empty id': '', 'a wide character': '界',
                 'a combining mark': '́', 'a case-expanding letter': 'ß', 'a carriage return': '\r',
-                'a line separator': chr(0x2028), 'a C1 control': '\x85', 'a lower-case letter': 'tenant'}
+                'a line separator': chr(0x2028), 'a C1 control': '\x85', 'a lower-case letter': 'tenant',
+                'a one-cell letter outside ASCII': 'élan'}
 
 
 class BoundaryTagTests(unittest.TestCase):
@@ -875,6 +876,8 @@ class BoundaryTagTests(unittest.TestCase):
                     self.assertEqual(spine_columns(asciified(shown)), [4 + 2 * n['layer'] for n in snapshot['nodes']], where)
                     host = [row for row in shown if re.match(r'[> ] . ', row) and ('|- opentofu' in row or '├─ opentofu' in row)]
                     self.assertEqual([row[2] for row in host], [expected], where)
+                    if not unicode:
+                        self.assertTrue(all(ord(char) < 128 for row in shown for char in row), where)
 
     def test_the_plain_text_form_holds_the_same_tags_without_a_control(self):
         for name, identifier in BOUNDARY_IDS.items():
