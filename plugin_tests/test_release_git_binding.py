@@ -7,6 +7,8 @@ import json
 import shutil
 import sys
 import unittest
+import zipfile
+from pathlib import Path
 from unittest.mock import patch
 
 from plugin_tests import test_release_candidate as base
@@ -18,8 +20,10 @@ ALLOWANCE = 'release-sensitive-allow.txt'
 
 
 def check_only(repo):
-    """What `--check-only` prints for the repository: it may report a state that --output-dir refuses."""
-    with patch.object(builder, 'ROOT', repo.root), patch.object(builder, 'runtime_files', return_value=['README.md']), \
+    """What `--check-only` prints for a repository fixture, or for a folder given as a path: it may report a state that
+    --output-dir refuses."""
+    root = repo if isinstance(repo, Path) else repo.root
+    with patch.object(builder, 'ROOT', root), patch.object(builder, 'runtime_files', return_value=['README.md']), \
             patch.object(sys, 'argv', ['build-release.py', '--check-only']), contextlib.redirect_stdout(io.StringIO()) as out:
         try:
             builder.main()
@@ -188,6 +192,47 @@ class CapturedStateTests(GitCase):
         for commit in ('HEAD', 'main', '--help', 'A' * 40, 'a' * 39, ''):
             with self.subTest(commit), self.assertRaises(ValueError):
                 builder.bind_to_commit({}, {'commit': commit})
+
+
+class ContentDigestTests(GitCase):
+    """Round 5: `--check-only` reports the content digests a build would record, computed as the build computes them, so that an
+    extracted source tree (which has no .git) can show that the source archive holds everything the runtime archive was made from."""
+
+    def extracted_source(self, repo):
+        target = repo.parent / 'extracted'
+        with zipfile.ZipFile(repo.output / f'Intune_IaC_Plugin_{builder.__version__}_Source.zip') as archive:
+            archive.extractall(target)
+        return target / 'intune-iac-source'
+
+    def test_check_only_reports_the_digests_that_a_real_build_records(self):
+        repo = hard.GitFixture(self)
+        report = check_only(repo)
+        repo.build()
+        self.assertEqual(report.get('runtime_content_sha256'), repo.identity('runtime')['content_sha256'])
+        self.assertEqual(report.get('source_content_sha256'), repo.identity('source')['content_sha256'])
+        self.assertNotEqual(report['runtime_content_sha256'], report['source_content_sha256'], 'the runtime archive holds fewer files')
+
+    def test_an_extracted_source_tree_reproduces_both_digests_without_a_git_checkout(self):
+        repo = hard.GitFixture(self)
+        repo.build()
+        tree = self.extracted_source(repo)
+        self.assertFalse((tree / '.git').exists())
+        report = check_only(tree)
+        self.assertIsNone(report['checkout']['commit'], 'the extracted tree is not a checkout')
+        self.assertEqual(report.get('runtime_content_sha256'), repo.identity('runtime')['content_sha256'])
+        self.assertEqual(report.get('source_content_sha256'), repo.identity('source')['content_sha256'])
+
+    def test_the_digests_follow_the_captured_files_and_not_the_identity_record_or_the_listing(self):
+        repo = hard.GitFixture(self)
+        repo.build()
+        tree = self.extracted_source(repo)
+        self.assertTrue((tree / 'BUILD-IDENTITY.json').is_file() and (tree / 'SHA256SUMS').is_file())
+        before = check_only(tree)
+        (tree / 'README.md').write_text('edited in the extracted tree\n')
+        after = check_only(tree)
+        for key in ('runtime_content_sha256', 'source_content_sha256'):
+            self.assertNotEqual(after.get(key), before.get(key), key + ' did not follow an edited member')
+        self.assertNotEqual(after.get('runtime_content_sha256'), repo.identity('runtime')['content_sha256'])
 
 
 if __name__ == '__main__':

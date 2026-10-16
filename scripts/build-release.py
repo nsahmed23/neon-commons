@@ -114,6 +114,18 @@ def build_time():
     return moment.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
+def content_digests(snapshot, runtime):
+    """The content_sha256 that the runtime and the source archive's BUILD-IDENTITY.json record, from the captured files alone.
+
+    The runtime digest covers the runtime members and the source digest every captured member, each without the identity record
+    and without SHA256SUMS, which are written afterwards. --check-only reports these and the build embeds them, so an extracted
+    source tree (which has no .git) can show that it holds everything the runtime archive was made from.
+    """
+    def digest(names):
+        return build_identity.content_digest({name: hashlib.sha256(snapshot[name]).hexdigest() for name in names})
+    return digest(sorted(runtime)), digest(sorted(snapshot))
+
+
 def with_identity(content, identity):
     """The archive members plus BUILD-IDENTITY.json, and the content digest the record holds.
 
@@ -419,7 +431,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     mode=parser.add_mutually_exclusive_group(required=True)
     mode.add_argument('--output-dir',help='Create exact runtime/source archives in a new external output directory')
-    mode.add_argument('--check-only',action='store_true',help='Read and validate the complete reviewed source/runtime snapshot without creating archives')
+    mode.add_argument('--check-only',action='store_true',help='Read and validate the complete reviewed source/runtime snapshot without creating archives, and report the content digests the archives would record')
     args=parser.parse_args();out=None if args.check_only else Path(args.output_dir).resolve()
     root = ROOT.resolve()
     if out is not None and (root==out or root in out.parents):raise ValueError('Use an output directory outside the source checkout.')
@@ -462,6 +474,9 @@ def main():
                 ['captured files that differ from the commit: ' + ', '.join(differing[:20])] if differing else [])
             raise ValueError('Archives are made only from a clean checkout of the commit they name (' + '; '.join(reasons)
                              + '); commit or discard the changes. A reviewed allowance counts only as the committed one.')
+    # The content digests the identity records will hold, worked out once from the captured files: --check-only reports them and the
+    # build checks the digests it embeds against them.
+    expected_runtime, expected_source = content_digests(snapshot, runtime)
     # What is about to be archived is looked at once, here, before anything is written.
     allowances = read_allowances(allowance_bytes) if allowance_bytes is not None else {}
     findings, counted, scanned_bytes = scan_content(snapshot)
@@ -484,6 +499,7 @@ def main():
             'source_inventory_sha256':hashlib.sha256(inventory_bytes).hexdigest(),
             'source_snapshot_sha256':hashlib.sha256(json.dumps(source_hashes,sort_keys=True,separators=(',',':')).encode()).hexdigest(),
             'runtime_in_reviewed_source':True,'archives_created':False,'sensitive_content':sensitive,
+            'runtime_content_sha256':expected_runtime,'source_content_sha256':expected_source,
             'checkout':{'commit':state['commit'],'tree':state['tree'],'dirty':state['dirty'],'differing_files':differing[:20],
                         'differing_count':len(differing),
                         'archives':'refused unless the commit is known and the checkout is clean'},
@@ -502,13 +518,17 @@ def main():
         return dict(build,archive_kind=kind,product_version=__version__,companion=companion)
     # Each archive names the other: the runtime archive by the source content digest (known before either is
     # written), the source archive by the runtime archive's own digest (the runtime archive is written first).
-    source_digest=build_identity.content_digest({name:hashlib.sha256(data).hexdigest() for name,data in snapshot.items()})
+    source_digest=expected_source
     runtime_content,runtime_digest=with_identity({name: snapshot[name] for name in runtime},
         identity('runtime',{'archive_kind':'source','content_sha256':source_digest}))
+    if runtime_digest != expected_runtime:
+        raise ValueError('The runtime content digest embedded in the archive differs from the one --check-only reports.')
     runtime_receipt=dict(write_archive(out/f'Intune_IaC_Plugin_{__version__}.zip',runtime_content,'intune-iac'),
                          content_sha256=runtime_digest)
     source_content,source_digest=with_identity(snapshot,identity('source',
         {'archive_kind':'runtime','archive_sha256':runtime_receipt['sha256']}))
+    if source_digest != expected_source:
+        raise ValueError('The source content digest embedded in the archive differs from the one --check-only reports.')
     source_receipt=dict(write_archive(out/f'Intune_IaC_Plugin_{__version__}_Source.zip',source_content,'intune-iac-source'),
                         content_sha256=source_digest)
     receipts=[runtime_receipt,source_receipt]
