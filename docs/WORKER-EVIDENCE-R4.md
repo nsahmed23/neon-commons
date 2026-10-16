@@ -58,7 +58,7 @@ The integrated entrypoint is `scripts/intune-worker-evidence.py`:
 python -B scripts/intune-worker-evidence.py request --manifest MANIFEST --trust TRUST --output NEW_REQUEST
 python -B scripts/intune-worker-evidence.py prepare --request REQUEST --trust TRUST --publisher PUBLISHER --job-root JOB --policy WORKER_POLICY --capture-root CAPTURE --store-root WORKBENCH --output NEW_STATEMENT
 python -B scripts/intune-worker-evidence.py assemble --statement STATEMENT --signature DETACHED_SIGNATURE --request REQUEST --trust TRUST --verifier VERIFIER_PIN --scratch PRIVATE_SCRATCH --output NEW_ENVELOPE
-python -B scripts/intune-worker-evidence.py inspect --envelope ENVELOPE --request REQUEST --trust TRUST --verifier VERIFIER_PIN --scratch PRIVATE_SCRATCH
+python -B scripts/intune-worker-evidence.py inspect --historical --envelope ENVELOPE --request REQUEST --trust TRUST --verifier VERIFIER_PIN --scratch PRIVATE_SCRATCH
 python -B scripts/intune-worker-evidence.py ingest --envelope ENVELOPE --request REQUEST --trust TRUST --verifier VERIFIER_PIN --scratch PRIVATE_SCRATCH --evidence-store EXISTING_PRIVATE_STORE
 python -B scripts/intune-worker-evidence.py reopen --request-sha256 REQUEST_CONTENT_SHA256 --trust TRUST --verifier VERIFIER_PIN --scratch PRIVATE_SCRATCH --evidence-store EXISTING_PRIVATE_STORE
 ```
@@ -69,6 +69,12 @@ The existing authorized external signer signs the actual NUL-terminated domain
 Transport the restricted evidence through the existing approved private channel;
 these commands do not deploy a listener, transfer tenant captures publicly or
 configure another CI platform.
+
+`inspect` of a loose file is historical-only: without `--historical` it is refused with
+`worker_evidence_inspect_requires_store`, because a loose file has no store to hold the durable clock
+mark that keeps an expired or stale envelope from becoming admissible again after a wall step back or a
+restart. `assemble` checks its output with the same historical read. For current admissibility use
+`ingest` into a private evidence store, then `reopen`; both judge on the store's floor.
 
 `ingest` first retains exact bounded incoming envelope and request bytes in a NEW
 private attempt directory, including invalid JSON/signatures. It distinguishes

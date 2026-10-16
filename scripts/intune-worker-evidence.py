@@ -30,6 +30,9 @@ def main():
             if action=='ingest':part.add_argument('--evidence-store',required=True)
     args=parser.parse_args()
     try:
+        # A loose file has no store to hold the durable clock mark, so a current judgment is refused here (as on the Windows
+        # route): current admissibility is `ingest` followed by `reopen`; `inspect --historical` is history only.
+        if args.action=='inspect' and not args.historical:contract.fail('worker_evidence_inspect_requires_store')
         policy=host.load(args.trust)
         if args.action=='request':
             value=contract.make_request(host.load(args.manifest),policy,uuid.uuid4().hex);host.write_new(args.output,value)
@@ -44,7 +47,7 @@ def main():
                 req=None if args.action=='ingest' else host.load(args.request)
                 if args.action=='assemble':
                     envelope={'schema_version':'signed-worker-evidence/1','payload':host.load(args.statement),'signature':base64.b64encode(host.read(args.signature,64)).decode()}
-                    result=contract.verify_envelope(envelope,req,policy,verifier,now=int(time.time())).result();host.write_new(args.output,envelope)
+                    result=contract.verify_envelope(envelope,req,policy,verifier,now=int(time.time()),historical=True).result();host.write_new(args.output,envelope)
                 else:
                     if args.action=='ingest':result=host.ingest_raw(args.evidence_store,host.read(args.envelope),host.read(args.request),policy,verifier)
                     else:result=contract.verify_envelope(host.load(args.envelope),req,policy,verifier,now=int(time.time()),historical=args.historical).result()
