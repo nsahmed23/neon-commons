@@ -1272,6 +1272,35 @@ def is_inspection(value):
 DISPLAY_FAULT = 'workbench_display_fault'
 
 
+def page_end(lines, room, start):
+    """The row after the last one of the page of `lines` that starts at row `start` and holds `room` rows: a page never
+    ends between a command's row and the row that continues it (a row ending in a backslash is continued by the next), so
+    the break moves before the command and the command stands whole on the next page (journey 33 run 1, review B finding
+    4). A command as tall as the page cannot be kept whole and is broken where the page ends."""
+    room = max(1, room)
+    plain = min(start + room, len(lines))
+    end = plain
+    while end > start + 1 and lines[end - 1].rstrip().endswith('\\'):
+        end -= 1
+    return end if end > start + 1 else plain
+
+
+def page_starts(lines, room):
+    """The first row of each page of `lines`, `room` rows a page at most, none of them ending inside a command (page_end)."""
+    starts = [0]
+    while starts[-1] + max(1, room) < len(lines):
+        starts.append(page_end(lines, room, starts[-1]))
+    return starts
+
+
+def page_target(lines, room, scroll, move):
+    """Where PageDown (move 1) or PageUp (move -1) goes from `scroll`: the next page start after it, or the last before it."""
+    starts = page_starts(lines, room)
+    if move > 0:
+        return next((start for start in starts if start > scroll), scroll)
+    return max((start for start in starts if start < scroll), default=0)
+
+
 def display_fault_lines(kind, width):
     """The body of a screen that could not be drawn: what happened in words, its code and the fault's kind, whose fault
     it is, and the keys that still work. The fault's own message is not echoed: it may hold a recorded value."""

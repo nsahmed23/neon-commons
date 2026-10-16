@@ -708,6 +708,8 @@ class Workspace:
         self._origin = None
         # The kind of fault the body is saying while a frame is redrawn after one (draw).
         self._display_fault = None
+        # PageDown (1) or PageUp (-1) asked of the catalog layer, taken by the next draw (it knows the page size).
+        self.page_move = 0
         self.selected = None
         # Last facts the engine reported about the selected object, for the
         # context strip only; never a source of truth and never persisted.
@@ -1858,6 +1860,7 @@ class Workspace:
         self.size = self._terminal_size()
         width, height = self.size
         if width < MIN_SIZE[0] or height < MIN_SIZE[1] or self._workflow_too_small():
+            self.page_move = 0      # no body is drawn to page: a request made here must not move it when the window grows
             return self._compose_constrained(width, height)
         inner = width - 2
         from .workbench_screens import hazard_rows, tab_line
@@ -1915,8 +1918,19 @@ class Workspace:
             focused = next((index for index, line in enumerate(data) if isinstance(line, MapLine) and line.focused), None)
             if focused is not None and room:
                 self.scroll = focused if focused < self.scroll else max(self.scroll, focused - room + 1)
+        move, self.page_move = getattr(self, 'page_move', 0), 0
+        if move and getattr(self, 'layer', 'summary') == 'catalog':
+            # PageDown or PageUp in the catalog: to the next or the previous page, as the rows divide into pages that keep
+            # a command whole (the key handler only asks; the page size is known here).
+            from .workbench_screens import page_target
+            self.scroll = page_target(data, room, self.scroll, move)
         self.scroll = max(0, min(self.scroll, max(0, len(data) - room)))
         visible = data[self.scroll:self.scroll + room]
+        if room > 0 and getattr(self, 'layer', 'summary') == 'catalog':
+            # A page of the catalog never ends inside a command: it ends before the one it would cut, and that command
+            # starts the next page (page_starts), so every frame shows a command whole or not at all.
+            from .workbench_screens import page_end
+            visible = data[self.scroll:page_end(data, room, self.scroll)]
         mapped = {index for index, line in enumerate(visible) if isinstance(line, MapLine)}
         # The marks of the first MAP_GUTTER cells stay where they are; the rest of a map row pans, and a row the window
         # cuts says so with an ellipsis, so a cut word is never read as a whole one.
@@ -1927,7 +1941,7 @@ class Workspace:
         facts = getattr(self, 'facts', {}) if getattr(self, 'selected', None) else {}
         scope = self._scope(facts)
         from .workbench_screens import mode_word
-        footer = status_line(str(scope), min(self.scroll + 1, len(data)), min(self.scroll + room, len(data)), len(data),
+        footer = status_line(str(scope), min(self.scroll + 1, len(data)), self.scroll + len(visible), len(data),
                              width, ellipsis, short=mode_word(scope) if scope in MODE_CLASSES else None)
         if staged_rows:
             footer = fit(staged_rows[0], width, ellipsis)
@@ -1944,7 +1958,7 @@ class Workspace:
         frame.extend(side + ' ' + pad(line, content) + ' ' + side for line in shown)
         frame.extend(side + ' ' * inner + side for _ in range(available - len(shown)))
         frame.extend([ruled(bottom[0], bottom[1], bottom[2], inner,
-                            ' more below: PgDn ' if self.scroll + room < len(data) else None),
+                            ' more below: PgDn ' if self.scroll + len(visible) < len(data) else None),
                       pad(footer, width)] + ([pad(fit(staged_rows[1], width, ellipsis), width)] if staged_rows else []) + [
                       pad(prompt, width)] + [pad(row, width) for row in key_rows] + [
                       pad(typing_line(width, self.mode, self._submit_word()) if self.mode else
@@ -2794,6 +2808,9 @@ class Workspace:
                 self.highlight = max(0, min(len(self.rows) - 1, self.highlight + (-1 if key == 'up' else 1)))
             elif key in ('up', 'down') and self.tab in (4, 5) and self.operation_rows and 'operations' in self.value:
                 self.operation_highlight = max(0, min(len(self.operation_rows) - 1, self.operation_highlight + (-1 if key == 'up' else 1)))
+            elif key in ('pageup', 'pagedown') and getattr(self, 'layer', 'summary') == 'catalog':
+                # The catalog's commands wrap over several rows: the page the next draw goes to never ends inside one.
+                self.page_move = 1 if key == 'pagedown' else -1
             elif key in ('up', 'down', 'pageup', 'pagedown'):
                 self.scroll += {'up': -1, 'down': 1, 'pageup': -max(1, self.size[1] - 8), 'pagedown': max(1, self.size[1] - 8)}[key]
             elif key == 'enter' and self.tab == 0 and self.rows:

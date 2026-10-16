@@ -10,7 +10,9 @@ import tempfile
 import unittest
 from unittest import mock
 
+from plugin_tests import test_catalog as tc
 from plugin_tests import test_catalog_layer as catalog_layer
+from plugin_tests import test_readiness as tr
 from plugin_tests.test_workflow_map import LayerFixture, OBJECT, typed
 
 NAME = 'Windows Privacy Pilot'
@@ -198,10 +200,13 @@ class DisplayFaultTests(LayerFixture):
 
 
 def estate_catalog(directory='/work/estate dir'):
-    """The catalog record of an estate like journey 33 run 1's: the real goals and kinds, and saved projects with the
-    state words and the one resume command each (a wizard session, a generated project, an operation and a store)."""
-    data = copy.deepcopy(catalog_layer.value())
-    data['directory'] = directory
+    """The catalog record of an estate like journey 33 run 1's, built by the product from a survey of `directory`: the
+    real goals and kinds (whose sign-in commands name the directory), and saved projects with the state words and the
+    one resume command each (a wizard session, a generated project, an operation and a store)."""
+    from intune_iac import catalog as catalog_module
+    survey = tr.survey_of(tr.repository_item(), tr.context_item())
+    survey['directory'] = directory
+    data = catalog_module.build(survey, doctor=tc.doctor())
     data['projects'] = [
         {'kind': 'wizard_session', 'label': 'Wizard session', 'path': 'estate dir/session.json', 'summary': 'step complete',
          'state': STATE, 'command': "intune-iac wizard --session 'estate dir/session.json'", 'note': None},
@@ -353,6 +358,112 @@ class IdentifierWrapTests(CatalogLayerCase):
         for row in rows:
             self.assertNotRegex(row, r'^-[0-9a-f]{4}-', 'a row that continues a GUID cut inside its groups')
             self.assertNotRegex(row, r'[0-9a-f]{8}-[0-9a-f]{4}-4222$', 'a row that ends inside a GUID')
+
+
+class CommandPagingTests(CatalogLayerCase):
+    """Item 5 (journey 33 run 1, review B finding 4): a command that wraps with `\\` continuation rows stood on two pages,
+    complete only across both (frames 29 and 30, 31 and 32, 37 and 38). Paging now breaks before such a command when
+    the page would end inside it; every row is still shown, in order, and the last page is still the end of the text."""
+
+    FILLER = {'kind': 'repository', 'label': 'Repository', 'path': 'repo', 'summary': 'atmos.yaml', 'state': STATE,
+              'command': 'intune-iac workbench repository-entry --root store --repo repo', 'note': None}
+
+    def catalog_with(self, extra):
+        """The estate catalog with `extra` more saved projects before the others, in a directory whose name is `extra`
+        letters longer: each shifts the rows that follow, and the sign-in commands wrap in different places."""
+        data = estate_catalog('/work/journey 33/estate directory/' + 'd' * extra)
+        data['projects'] = [copy.deepcopy(self.FILLER) for _ in range(extra)] + data['projects']
+        return data
+
+    @staticmethod
+    def commands_of(data, width):
+        """Each command of the layer's text as its rows: a run of rows, every one but the last ending in a backslash."""
+        from intune_iac.catalog import catalog_lines
+        blocks, block = [], []
+        for line in catalog_lines(data, width):
+            block.append(line.strip())
+            if not line.rstrip().endswith('\\'):
+                if len(block) > 1:
+                    blocks.append(block)
+                block = []
+        return blocks
+
+    @staticmethod
+    def within(rows, block):
+        return any(rows[at:at + len(block)] == block for at in range(len(rows) - len(block) + 1))
+
+    def assert_commands_whole(self, size):
+        crossings = 0
+        for extra in range(6):
+            data = self.catalog_with(extra)
+            pages = [self.body(page) for page in self.pages(self.layer(size, data))]
+            commands = self.commands_of(data, size[0] - 4)
+            self.assertGreater(len(commands), 3)                   # the layer holds commands that wrap
+            self.assertGreater(len(pages), 4)
+            for number, rows in enumerate(pages[:-1], 1):
+                self.assertFalse(rows[-1].endswith('\\'), 'extra %d, page %d ends inside a command: %r' % (extra, number, rows[-3:]))
+            for command in commands:
+                self.assertTrue(any(self.within(rows, command) for rows in pages), 'extra %d: %r on no one page' % (extra, command))
+            # Every row of the text is shown, in order (a page may repeat rows the page before it showed).
+            shown = iter([row for rows in pages for row in rows])
+            from intune_iac.catalog import catalog_lines
+            for line in (line.strip() for line in catalog_lines(data, size[0] - 4) if line.strip()):
+                self.assertTrue(any(line == row for row in shown), 'extra %d: %r is shown on no page' % (extra, line))
+            crossings += sum(len(command) - 1 for command in commands)
+        self.assertGreater(crossings, 0)
+
+    def test_at_80x24_no_page_ends_inside_a_command_and_each_command_is_whole_on_a_page(self):
+        self.assert_commands_whole((80, 24))
+
+    def test_at_60x20_no_page_ends_inside_a_command_and_each_command_is_whole_on_a_page(self):
+        self.assert_commands_whole((60, 20))
+
+    def test_page_up_returns_through_the_same_pages_page_down_went_through(self):
+        for size in ((80, 24), (60, 20)):
+            ws = self.layer(size, self.catalog_with(2))
+            down = self.pages(ws)
+            starts = []
+            for _ in range(len(down) + 3):
+                starts.append(ws.scroll)
+                ws.key_reader = catalog_layer.Keys('pageup', 'eof')
+                try:
+                    ws.input('')
+                except EOFError:
+                    pass
+                catalog_layer.rows_of(ws)
+            self.assertEqual(ws.scroll, 0, size)
+            # Paging down again gives the pages it gave before.
+            self.assertEqual([self.body(page) for page in self.pages(ws)], [self.body(page) for page in down], size)
+
+    def test_a_page_key_pressed_where_no_body_is_drawn_does_not_move_the_page_when_the_window_grows(self):
+        ws = self.layer((80, 24), self.catalog_with(2))
+        ws._terminal_size = lambda: (39, 11)
+        ws.key_reader = catalog_layer.Keys('pagedown', 'eof')
+        try:
+            ws.input('')
+        except EOFError:
+            pass
+        ws._terminal_size = lambda: (80, 24)
+        catalog_layer.rows_of(ws)
+        self.assertEqual(ws.scroll, 0)
+
+    def test_scrolling_by_a_row_is_not_paging_and_still_moves_one_row(self):
+        ws = self.layer((80, 24), self.catalog_with(2))
+        catalog_layer.rows_of(ws)
+        ws.key_reader = catalog_layer.Keys('down', 'down', 'up', 'eof')
+        try:
+            ws.input('')
+        except EOFError:
+            pass
+        self.assertEqual(ws.scroll, 1)
+
+    def test_page_starts_never_split_a_command_and_do_not_loop_on_a_command_taller_than_the_page(self):
+        from intune_iac.workbench_screens import page_starts
+        rows = ['text'] * 5 + ['cmd \\', '  more \\', '  end'] + ['text'] * 6
+        self.assertEqual(page_starts(rows, 7), [0, 5, 12])       # 7 rows would end at "  more \"; the break moves before the command
+        self.assertEqual(page_starts(['a \\'] * 6 + ['end'], 3), [0, 3, 6])   # taller than the page: the plain break
+        self.assertEqual(page_starts(['x'] * 10, 0), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])   # a window with no body row still ends
+        self.assertEqual(page_starts([], 5), [0])
 
 
 class NarrowChromeTests(CatalogLayerCase):
