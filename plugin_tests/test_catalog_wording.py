@@ -302,5 +302,51 @@ class ResumeBaseTests(Base):
             self.assertEqual(flat(self.lines('full', width=width, relative_to=str(self.base()))).count(self.SENTENCE), 1, width)
 
 
+class StateWordsTests(Base):
+    """Item 6: one legend line under the saved projects, and authentication said the way the goal rows say it (not checked)."""
+
+    def test_one_legend_line_under_the_saved_projects_defines_the_words(self):
+        lines = self.lines('full')
+        text = flat(lines)
+        self.assertEqual(text.count('discovered = '), 1)
+        legend = next(i for i, line in enumerate(lines) if line.strip().startswith('Words used above: '))
+        last_project = max(i for i, line in enumerate(lines) if line.strip().startswith('Resume'))
+        self.assertTrue(last_project < legend < lines.index('NEXT ACTION'), (last_project, legend))
+        legend_text = flat(lines[legend:lines.index('NEXT ACTION')])
+        for word in ('discovered = ', 'usable here = ', 'no live connection = ', 'synthetic only = ', 'not qualified = '):
+            self.assertIn(word, legend_text)
+
+    def test_no_projects_no_legend(self):
+        self.assertNotIn('Words used above', flat(self.lines('offline')))
+
+    def test_authentication_is_not_checked_as_the_goal_rows_say_not_a_flat_negative(self):
+        text = flat(self.lines('full'))
+        self.assertNotIn('(not authenticated)', text)
+        self.assertNotIn('not authenticated', text)
+        self.assertIn('this product has no live connection (authentication not checked)', text)
+        self.assertIn('source-asserted, authentication not checked', text)
+        self.assertIn('authenticated: not checked', text)  # the goal rows' own word
+
+    def test_the_recorded_words_stay_in_the_json_form(self):
+        model = self.model('full')
+        states = ' '.join(project['state'] for project in model['projects'])
+        self.assertIn('this product has no live connection (not authenticated)', states)
+        self.assertIn('source-asserted, not authenticated', states)
+
+    def test_the_start_screen_uses_the_same_words(self):
+        from plugin_tests.test_start_goal import run_cli
+        for goal in (None, 'discover'):
+            argv = [str(self.dirs['full'])] + ([] if goal is None else ['--goal', goal])
+            text = flat(run_cli(*argv, width=120)[1].split('\n'))
+            self.assertNotIn('not authenticated', text)
+            self.assertIn('this product has no live connection (authentication not checked)', text)
+            self.assertIn('discovered | usable here |', text)
+
+    def test_the_words_fit_every_width(self):
+        for width in (60, 80, 120):
+            for line in self.lines('full', width=width):
+                self.assertLessEqual(len(line), width, line)
+
+
 if __name__ == '__main__':
     unittest.main()

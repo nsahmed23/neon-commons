@@ -430,6 +430,21 @@ STATE_WORDS = {OFFLINE: PRODUCT_CONNECTION_WORDS, 'source_asserted_not_authentic
                'not_qualified': 'not qualified'}
 
 
+# STATE_WORDS are the words the JSON forms record (catalog --json carries them in each project's state), so they are frozen. Two of
+# them read as a flat negative where the goal rows of the catalog say that authentication is not checked: a screen says them that
+# way, through screen_words.
+SCREEN_WORDS = {PRODUCT_CONNECTION_WORDS: 'this product has no live connection (authentication not checked)',
+                STATE_WORDS['source_asserted_not_authenticated']: 'source-asserted, authentication not checked'}
+STATE_LEGEND = ('Words used above: discovered = found in this directory; usable here = the product can open it offline from here; '
+                'no live connection = this product holds none, so authentication is not checked; synthetic only = modeled data, '
+                'not a live tenant; not qualified = no record qualifies it for live use.')
+
+
+def screen_words(words):
+    """The ' | ' separated state words of one item as a screen says them (see SCREEN_WORDS)."""
+    return ' | '.join(SCREEN_WORDS.get(part, part) for part in words.split(' | '))
+
+
 def _count(number, noun, plural=None):
     return '%d %s' % (number, noun if number == 1 else plural or noun + 's')
 
@@ -585,7 +600,7 @@ def _plain(value):
         return ', '.join('%s %s' % (str(key).replace('_', ' '), _plain(item)) for key, item in value.items())
     if isinstance(value, (list, tuple)):
         return '; '.join(_plain(item) for item in value) or 'none'
-    return STATE_WORDS.get(value, str(value)) if isinstance(value, str) else str(value)
+    return screen_words(STATE_WORDS.get(value, str(value))) if isinstance(value, str) else str(value)
 
 
 def goal_summary(view):
@@ -663,8 +678,8 @@ def start_lines(value, width, goal=None, goal_hint=False):
             states = item['states']
             # Usable here, offline; "configured" read as if a live connection were set up (item 15).
             configured = 'usable here' if states.get('configured') else 'not usable here: ' + str(states.get('configured_reason', 'incomplete')).replace('_', ' ')
-            words = ' | '.join(['discovered', configured, STATE_WORDS.get(states['authenticated'], states['authenticated']),
-                                STATE_WORDS.get(states['qualified'], states['qualified'])])
+            words = screen_words(' | '.join(['discovered', configured, STATE_WORDS.get(states['authenticated'], states['authenticated']),
+                                             STATE_WORDS.get(states['qualified'], states['qualified'])]))
             for part in word_wrap(words, max(10, width - len(label))):
                 lines.append(' ' * len(label) + part)
     else:

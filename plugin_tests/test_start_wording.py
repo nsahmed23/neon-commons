@@ -17,7 +17,9 @@ from plugin_tests.signin_fakes import FakeClis, azure_account, azure_list
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTEXT_TENANT = json.loads((ROOT / 'examples/context.json').read_text())['tenant_id']
-PRODUCT_WORDS = 'this product has no live connection (not authenticated)'
+# The screen says authentication is not checked, as the catalog's goal rows do (PKG-CATALOG-5, item 6); the JSON forms keep the
+# recorded words ("(not authenticated)").
+PRODUCT_WORDS = 'this product has no live connection (authentication not checked)'
 CLI_LABEL = "Azure CLI sign-in (the Azure CLI's own, not a connection of this product): Signed in to tenant"
 REPORT_SENTENCE = ('This screen is a report and exits 0 whatever it finds; for a pass or fail exit code run: '
                    'intune-iac signin status --tenant %s' % CONTEXT_TENANT)  # a command row carries no closing full stop

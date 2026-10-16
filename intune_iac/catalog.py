@@ -22,7 +22,7 @@ import shlex
 from pathlib import Path
 
 from . import integration_manifest, readiness as readiness_model
-from .entry import STATE_WORDS
+from .entry import STATE_LEGEND, STATE_WORDS, screen_words
 
 VERSION = 'integration-catalog/1'
 STATES = ('available', 'configured', 'authenticated', 'operation_ready', 'blocked', 'unsupported')
@@ -330,12 +330,14 @@ def catalog_lines(value, width):
             # that directory is not in the data: say once, above the commands, where they are typed.
             lines += _flow(RESUME_BASE, width, '  ', '  ')
         for project in value['projects']:
-            lines += _flow('%s %s: %s | %s' % (project['label'], project['path'], project['summary'], project['state']),
+            lines += _flow('%s %s: %s | %s' % (project['label'], project['path'], project['summary'], screen_words(project['state'])),
                            width, '  ', '    ')
             if project['command']:
                 lines += _flow('Resume: ' + project['command'], width, '    ', '    ', commands=True)
             else:
                 lines += _flow('Resume: no command (%s)' % project['note'], width, '    ', '    ')
+        # What the state words mean, once, under the projects they describe.
+        lines += _flow(STATE_LEGEND, width, '  ', '  ')
     else:
         lines += word_wrap('Nothing recognized here yet.', width)
     lines.append('NEXT ACTION')
