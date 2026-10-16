@@ -1382,6 +1382,16 @@ class StopTests(Fixture):
             live.stop()
         self.assertIn('AppError', ' '.join(getattr(caught.exception, '__notes__', [])))
 
+    def test_an_exception_inside_a_with_block_is_not_replaced_by_a_failing_exit(self):
+        from intune_iac.companion_live import LiveCompanion
+        with self.assertRaises(RuntimeError) as caught:
+            with LiveCompanion(lambda settings: '', lambda: {}) as live:
+                self.addCleanup(live.stop)
+                self.break_close(live)
+                raise RuntimeError('inside the block')
+        self.assertEqual(str(caught.exception), 'inside the block')
+        self.assertIn('companion_live_close_failed', ' '.join(getattr(caught.exception, '__notes__', [])))
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500

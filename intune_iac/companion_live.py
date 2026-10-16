@@ -182,6 +182,24 @@ class BoundedServer(http.server.ThreadingHTTPServer):
             self._slots.release()
 
 
+def as_close_failure(failure):
+    """What a listener that would not stop is called to the engineer: one error with one code, whatever raised it."""
+    if isinstance(failure, AppError):
+        return failure
+    shown = AppError('companion_live_close_failed', 'The listener could not be closed: %s' % type(failure).__name__)
+    shown.__cause__ = failure
+    return shown
+
+
+def note_cleanup_failure(primary, failure):
+    """Attach a cleanup failure to the error that is already escaping, so the engineer still gets that error. The note
+    carries the code and the class only: never an address, a token or a message."""
+    shown = as_close_failure(failure)
+    cause = shown.__cause__ or shown
+    primary.add_note('Cleanup also failed: %s (%s). The listener may still be bound until this process exits.'
+                     % (shown.code, type(cause).__name__))
+
+
 class LiveCompanion:
     """One listener: start() binds it and starts its watchdog, wait() blocks until it ends, stop() ends it (safe to repeat)."""
 
@@ -599,4 +617,10 @@ class LiveCompanion:
         return self.start()
 
     def __exit__(self, *exc):
-        self.stop()
+        try:
+            self.stop()
+        except BaseException as failure:
+            # An exception already leaving the block is the one the caller needs: the cleanup failure is noted on it.
+            if exc[1] is None:
+                raise
+            note_cleanup_failure(exc[1], failure)

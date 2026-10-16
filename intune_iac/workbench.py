@@ -1257,6 +1257,7 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
     page = {'kind': 'overview', 'limit': 10, 'offset': 0, 'query': ''}
     held = []  # the loopback listeners this session started; the session ends them, and each ends itself when idle
     def stop_companions(escaping=None):
+        """Stop what the session holds. True if a cleanup failure was attached to the `escaping` error instead of raised."""
         # A listener leaves `held` only once it has stopped: one that will not close stays, so "companion stop" can be
         # tried again and "companion serve" stays refused. If it never closes, the process exit releases the port.
         from .companion import as_close_failure, note_cleanup_failure
@@ -1273,11 +1274,11 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                     continue
             held.remove(listener)
         if failure is None:
-            return
+            return False
         if escaping is not None:
             # An error is already leaving the session: the cleanup failure is attached to it, not raised in its place.
             note_cleanup_failure(escaping, failure)
-            return
+            return True
         raise as_close_failure(failure)
     def show_page(specification=None):
         target = page if specification is None else specification
@@ -1573,8 +1574,9 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             except EOFError:
                 stop_companions()
                 return {'status': 'closed', 'evidence_class': 'local_interface_result', 'history_persisted': True}
-            except KeyboardInterrupt:
-                stop_companions()
+            except KeyboardInterrupt as interrupt:
+                if stop_companions(interrupt):
+                    raise      # the interrupt, with the cleanup failure noted on it, not the cleanup failure in its place
                 # The same result as run_terminal's outer handler: what was running, what it left, the next step.
                 during = _interrupted_during(current)
                 result = {'status': 'interrupted', 'evidence_class': 'local_interface_result',

@@ -19,7 +19,7 @@ import os
 from pathlib import Path
 import tempfile
 
-from .companion_live import IDLE_SECONDS, POLL_SECONDS, LiveCompanion
+from .companion_live import IDLE_SECONDS, POLL_SECONDS, LiveCompanion, as_close_failure, note_cleanup_failure  # noqa: F401
 from .companion_page import render_page, snapshot_record
 from .graph_projection import project
 from .io import AppError
@@ -111,24 +111,6 @@ def start_live(read, *, idle_seconds=IDLE_SECONDS, poll_seconds=POLL_SECONDS):
                    'in its history. Ctrl+C stops it; it also stops after %d minutes without a page request. '
                    'No browser was opened.' % (live.address, max(1, round(idle_seconds / 60))))
     return live
-
-
-def as_close_failure(failure):
-    """What a listener that would not stop is called to the engineer: one error with one code, whatever raised it."""
-    if isinstance(failure, AppError):
-        return failure
-    shown = AppError('companion_live_close_failed', 'The listener could not be closed: %s' % type(failure).__name__)
-    shown.__cause__ = failure
-    return shown
-
-
-def note_cleanup_failure(primary, failure):
-    """Attach a cleanup failure to the error that is already escaping, so the engineer still gets that error. The note
-    carries the code and the class only: never an address, a token or a message."""
-    shown = as_close_failure(failure)
-    cause = shown.__cause__ or shown
-    primary.add_note('Cleanup also failed: %s (%s). The listener may still be bound until this process exits.'
-                     % (shown.code, type(cause).__name__))
 
 
 def release_listener(live, primary=None):

@@ -391,6 +391,22 @@ class FailingStopTests(Fixture):
             self.run_terminal('select ' + self.object_id, 'companion serve', self.raise_on_stop(KeyboardInterrupt('stop interrupted')),
                               end_of_input)
 
+    def test_an_interrupt_is_not_replaced_by_a_failing_cleanup(self):
+        from intune_iac.workbench import _run_terminal
+        script = ['select ' + self.object_id, 'companion serve', self.break_close]
+
+        def feed(prompt):
+            while script:
+                step = script.pop(0)
+                if callable(step):
+                    step()
+                else:
+                    return step
+            raise KeyboardInterrupt
+        with self.assertRaises(KeyboardInterrupt) as caught:
+            _run_terminal(self.root, input_fn=feed, result_fn=lambda value: None)
+        self.assertIn('companion_live_close_failed', ' '.join(getattr(caught.exception, '__notes__', [])))
+
     def test_with_nothing_escaping_a_failing_stop_at_the_end_is_raised(self):
         from intune_iac.io import AppError
         def end_of_input():
