@@ -299,6 +299,20 @@ INTEGRATION_WORKER_FILES = {
     'validity.py': '695df1d0c14273da219f67b1787e68029ce6e5939be2dc02955b7d2145f99525',
     'clock.py': '49bd3d46c5ffcc554cbcc157a70a27504046807b940836844d16069b79e0e4c8',
 }
+SETUP3_LABEL = 'setup-3-credential-descriptors'
+SETUP3_WORKER_FILES = {
+    'protected_worker.py': '191c0c7549c8fcd1b9cfa2ff43311bdc23282f9e3d357602268a113f170d5299',
+    'protected.py': '29dc883cda8124d21c778f23c6187ee3fce35fc9692c676c0fc943fbdcdb477b',
+    'provider_execution.py': '653e4191156444fd05a0937c8c3a5f5a6c6097fa07e9cb5f34a1278cdb2a7731',
+    'approval_authority.py': '97d13b0d57b7679b50425c44f2d14562324070f4dff9b2807d591db0ef1a4960',
+    'provider_journey.py': '6de3a3a6e9de2eab56a3e80e06551045b15eafae22b161e0362c6c1bc1ac4acc',
+    'azure_backend.py': '83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab',
+    'execution.py': 'd77a3c1519621bcc04c74034d4cfb55c4e0b5fadde74e50980c36b1d520feadd',
+    'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
+    'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
+    'validity.py': '695df1d0c14273da219f67b1787e68029ce6e5939be2dc02955b7d2145f99525',
+    'clock.py': '49bd3d46c5ffcc554cbcc157a70a27504046807b940836844d16069b79e0e4c8',
+}
 
 class InventoryPinTests(unittest.TestCase):
     """Appending an entry is a deliberate release act that updates these literals; nothing else may change."""
@@ -345,7 +359,8 @@ class InventoryPinTests(unittest.TestCase):
              {'label': BOOT_LABEL, 'files': BOOT_WORKER_FILES},
              {'label': CUTOFF_LABEL, 'files': CUTOFF_WORKER_FILES},
              {'label': CUTOFF2_LABEL, 'files': CUTOFF2_WORKER_FILES},
-             {'label': INTEGRATION_LABEL, 'files': INTEGRATION_WORKER_FILES}])
+             {'label': INTEGRATION_LABEL, 'files': INTEGRATION_WORKER_FILES},
+             {'label': SETUP3_LABEL, 'files': SETUP3_WORKER_FILES}])
 
     def test_each_entry_names_only_its_own_component_set(self):
         # An entry carries the file set of its own release: the earlier set until clock.py was bound, the current set
