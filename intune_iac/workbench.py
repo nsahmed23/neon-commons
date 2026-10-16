@@ -932,6 +932,47 @@ def _workflow(store, object_id, *, service_root=None):
     return project(_workflow_read(store, object_id, service_root=service_root))
 
 
+# What the system map reads of the integration manifest's pinned setup context: the tool and provider pins only.
+SYSTEM_MAP_PINS = ('engine', 'engine_version', 'atmos_version', 'provider_source', 'provider_version')
+
+
+def _setup_pins():
+    """The manifest's pinned tool and provider versions and its integration label, as plain data; a manifest that cannot be
+    read is carried as its error code, never left out, so the map says unknown and why."""
+    from . import integration_manifest
+    try:
+        manifest = integration_manifest.load()
+    except AppError as error:
+        return {'error_code': error.code}
+    pinned = manifest['setup_context']['pinned']
+    return {'pinned': {key: pinned[key] for key in SYSTEM_MAP_PINS if isinstance(pinned.get(key), str)},
+            'integration_label': manifest['integration']['label']}
+
+
+def _system_map_read(store, object_id, *, service_root=None):
+    """The values the system map reads for one policy: the workflow map's read model (states, the newest operation's
+    delivery, the adoption records) plus, additively, `repository_record` (the newest repository intent's recorded source
+    files, effective pointer and resource address, or None when it has none) and `setup_pins` (see _setup_pins).
+    Read-only. Raises AppError for a policy the store does not hold."""
+    from .workbench_views import _intents, _latest
+    read = _workflow_read(store, object_id, service_root=service_root)
+    intent = _latest(_intents(store, object_id, None))
+    record = None
+    if intent is not None:
+        data = intent['data']
+        record = {'artifact_id': intent['artifact_id'], 'effective_pointer': data.get('effective_pointer'),
+                  'resource_address': data.get('resource_address'),
+                  'sources': [{'path': row['path']} for row in (data.get('resolution') or {}).get('sources') or []
+                              if isinstance(row, dict) and isinstance(row.get('path'), str)]}
+    return {**read, 'repository_record': record, 'setup_pins': _setup_pins()}
+
+
+def _system_map(store, object_id, *, service_root=None):
+    """The system map's projection (schema system-map/1) of one policy; read-only."""
+    from .system_map_projection import project
+    return project(_system_map_read(store, object_id, service_root=service_root))
+
+
 def _session_service_root(store, explicit=None):
     """The modeled service a read uses: the one named, else the one the store's latest adoption names (as the workspace
     does); None when neither exists or the adopted one cannot be opened for this tenant."""
