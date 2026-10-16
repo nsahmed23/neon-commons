@@ -500,10 +500,56 @@ def without_stand_in(step):
 NO_NAME_WORDS = 'this step names the directory, which cannot be shown here'
 
 
+def _shell_flatten(text):
+    """The text as the shell reads its words, approximately: quotes removed and blanks outside quotes one space. Single quotes
+    keep every backslash; double quotes keep a backslash unless it escapes $, a backtick, " , \\ or a newline; outside quotes a
+    backslash escapes the next character. Inside $'..' (ANSI-C) every backslash is dropped, the closed side of the approximation.
+    A quote that never closes runs to the end of the text."""
+    out, i, quote = [], 0, None
+    while i < len(text):
+        char = text[i]
+        if quote == "'":
+            if char == "'":
+                quote = None
+            else:
+                out.append(char)
+        elif quote == '$':          # $'..'
+            if char == "'":
+                quote = None
+            elif char != '\\':
+                out.append(char)
+        elif quote == '"':
+            if char == '"':
+                quote = None
+            elif char == '\\' and i + 1 < len(text) and text[i + 1] in '$`"\\\n':
+                i += 1
+                out.append(text[i] if text[i] != '\n' else '')
+            else:
+                out.append(char)
+        elif char == '\\':
+            i += 1
+            if i < len(text):
+                out.append(text[i])
+        elif char == "'":
+            quote = "'"
+        elif char == '"':
+            quote = '"'
+        elif char == '$' and text[i + 1:i + 2] == "'":
+            quote = '$'
+            i += 1
+        elif char in ' \t':
+            if not out or out[-1] != ' ':
+                out.append(' ')
+        else:
+            out.append(char)
+        i += 1
+    return ''.join(out)
+
+
 def _fail_closed(part):
     """The part, or words when it still holds the stand-in token as the shell would read it (see without_stand_in)."""
     import re
-    flat = re.sub(r'[ \t]+', ' ', re.sub(r"""['"\\]""", '', re.sub(r"\$(?=')", '', part)))
+    flat = _shell_flatten(part)
     if not re.search(r'(?<![A-Za-z0-9_])DIRECTORY(?![A-Za-z0-9_])', flat):
         return part
     command = re.search(r'intune-iac ?(%s)\b' % '|'.join(DIRECTORY_COMMANDS), flat)

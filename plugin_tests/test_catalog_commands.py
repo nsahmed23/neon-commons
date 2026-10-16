@@ -279,6 +279,36 @@ class StandInCommandSegmentTests(unittest.TestCase):
         said = readiness.without_stand_in('intune-iac start --goal discover && echo DIRECTORY')
         self.assertEqual(said, 'intune-iac start --goal discover && this step names the directory, which cannot be shown here')
 
+    # Round 6: the flattening is quote-aware. (text, what the shell reads in it, hand-worked): a part goes to words exactly when the
+    # shell would read the token DIRECTORY. Single quotes keep every backslash; double quotes keep a backslash unless it escapes
+    # $, a backtick, ", \ or a newline; outside quotes a backslash escapes the next character.
+    SHELL_READS = (
+        ("echo 'D\\IRECTORY'", False),         # single quotes: D\IRECTORY
+        ('echo "D\\IRECTORY"', False),         # double quotes keep the backslash before I: D\IRECTORY
+        ('echo D\\IRECTORY', True),            # unquoted: \I is I, so DIRECTORY
+        ('echo "D\\\\IRECTORY"', False),       # double quotes: \\ is one backslash: D\IRECTORY
+        ('echo D\\\\IRECTORY', False),         # unquoted: \\ is one backslash: D\IRECTORY
+        ('echo "D\\$IRECTORY"', False),        # \$ is $: D$IRECTORY
+        ('echo D"\\IRECTORY"', False),         # D then "\I" kept: D\IRECTORY
+        ('echo D\\"IRECTORY', False),          # unquoted \" is a quote character: D"IRECTORY
+        ('echo "DIRECT\\ORY"', False),         # DIRECT\ORY
+        ("echo 'DIRECTORY'", True),
+        ('echo "DIRECTORY"', True),
+        ('echo D"IR"ECTORY', True),
+        ("echo 'D'\\I'RECTORY'", True),        # D, \I is I, RECTORY: DIRECTORY
+        ("echo 'D\\'IRECTORY", False),         # single quotes end at the second quote: D\ then IRECTORY
+    )
+
+    def test_the_net_reads_quoting_as_the_shell_does(self):
+        from intune_iac import readiness
+        for text, names_it in self.SHELL_READS:
+            with self.subTest(text=text):
+                said = readiness.without_stand_in(text)
+                if names_it:
+                    self.assertEqual(said, 'this step names the directory, which cannot be shown here')
+                else:
+                    self.assertEqual(said, text)       # byte for byte
+
     SPELLINGS_R5 = (
         ('Run: intune-"iac"\tstart DIRECTORY', 'start'),
         ('Run: intune-iac\tstart\tDIRECTORY', 'start'),
