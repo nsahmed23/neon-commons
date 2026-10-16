@@ -76,7 +76,8 @@ class TextByDefaultTests(ReadableBase):
         self.assertIn('GITHUB: BLOCKED (invalid)', out)
         self.assertIn('github.com as octo-user (gh state: error)', ' '.join(out.split()))
         self.assertIn('Account: none usable', out)
-        self.assertEqual(verdict_lines, ['AZURE: READY', 'GITHUB: BLOCKED (invalid)'])
+        # each provider's verdict opens its block and, since PKG-CATALOG-5 item 8, is repeated as the last lines before the exit code
+        self.assertEqual(verdict_lines, ['AZURE: READY', 'GITHUB: BLOCKED (invalid)'] * 2)
 
     def test_an_undetermined_sign_in_names_the_reason_code(self):
         self.fakes.answer('az', 'account', 'list', out='{not json')

@@ -706,9 +706,10 @@ def _account_row(verdict, entry):
 def status_lines(report, width, code, shown=None):
     """The text screen for `signin status`: for each provider a verdict line first (READY, REPORTED or BLOCKED with the reason
     code), the tenant wanted and found, the account with the default marked, the cause, and the next step on its own rows;
-    then one line that access is unknown, and what the exit code means. Pure: it reads the report's display fields and, per
+    then one line that access is unknown, each provider's verdict line again (so a 20-row pane shows it), and what the exit code
+    means. Pure: it reads the report's display fields and, per
     provider, the presentation from evaluate_with_presentation (shown); without one it says the canonical message."""
-    lines = []
+    lines, verdict_lines = [], []
     for name, label in _PROVIDER_LABELS:
         verdict = report.get(name)
         if not isinstance(verdict, dict):
@@ -716,7 +717,8 @@ def status_lines(report, width, code, shown=None):
         if lines:
             lines.append('')
         present = (shown or {}).get(name) or {'code': None, 'rule': None, 'sentence': verdict.get('message') or ''}
-        lines.append(_verdict_line(label, verdict, present))
+        verdict_lines.append(_verdict_line(label, verdict, present))
+        lines.append(verdict_lines[-1])
         entries = verdict.get('signed_in') or []
         if name == 'azure':
             found = []
@@ -736,6 +738,9 @@ def status_lines(report, width, code, shown=None):
     meaning = {'ready': '(2 means blocked).', 'reported': '(2 means blocked).', 'blocked': '(0 means ready).'}.get(status, '')
     lines.append('')
     lines += _wrap(ACCESS_UNKNOWN_LINE, width)
+    # The provider blocks are longer than a 20-row pane, which then shows only their tail and scrolls the opening verdicts off.
+    # Each verdict closes the screen too: the very lines that opened the blocks, built once from the same judgment, never wrapped.
+    lines += verdict_lines
     lines += _wrap(('Exit code %s: %s %s' % (code, status, meaning)).strip(), width)
     return lines
 
