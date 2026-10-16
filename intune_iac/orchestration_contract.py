@@ -45,13 +45,12 @@ _EVENT_ID = re.compile(r'[0-9a-f]{32}|[0-9a-f]{64}')
 _ATTEMPT = re.compile(r'[0-9a-f]{32}')
 _ROLE = re.compile(r'[a-z]{1,16}')
 # Verification fields. outcome: loop/verify.py:266. requirement: the loop's REQ-nn ids. commit and tree: git object
-# names in hex. gate: a closed set. The gates of the loop's contract (contracts/intune-acceptance.json, REQ-12:
-# aggregate-regression, temporal, journey-28, frame-review) and the further gate names found in the loop's own real
-# export (plugin_tests/fixtures/orchestration/real-export: journey-13, -29, -30, -31 and work-order-verification),
-# because verify-record takes the gate name as an argument and the loop has recorded those. Any other name is a fault.
+# names in hex. gate: the fixed names of the loop's contract (contracts/intune-acceptance.json, REQ-12:
+# aggregate-regression, temporal, frame-review) and work-order-verification (recorded in the loop's real export), plus
+# journey-N, N of one to three digits: the loop adds a journey gate per journey (journey-13 to journey-32 so far) and a
+# digit pattern cannot carry a name. Any other name is an unknown-gate fault and is never shown.
 VERIFICATION_OUTCOMES = frozenset(('pass', 'fail', 'blocked', 'incomplete'))
-GATES = frozenset(('aggregate-regression', 'temporal', 'journey-28', 'frame-review', 'journey-13', 'journey-29',
-                   'journey-30', 'journey-31', 'work-order-verification'))
+_GATE = re.compile(r'aggregate-regression|temporal|frame-review|work-order-verification|journey-[0-9]{1,3}')
 _REQUIREMENT = re.compile(r'REQ-[0-9A-Za-z._-]{1,32}')
 _GIT_HEX = re.compile(r'[0-9a-f]{7,64}')
 
@@ -69,7 +68,7 @@ DATA_FIELDS = {
     'dispatch.cancelled': {'cleanup_confirmed': FLAG, 'reason': REASON},
     'dispatch.completed': {'tree': _GIT_HEX},
     'repair.reported': {'tree': _GIT_HEX},
-    'verification.completed': {'outcome': VERIFICATION_OUTCOMES, 'requirement': _REQUIREMENT, 'gate': GATES,
+    'verification.completed': {'outcome': VERIFICATION_OUTCOMES, 'requirement': _REQUIREMENT, 'gate': _GATE,
                                'commit': _GIT_HEX, 'tree': _GIT_HEX},
     'verification.corrected': {'corrects': _EVENT_ID, 'replaced_by': _EVENT_ID},
 }

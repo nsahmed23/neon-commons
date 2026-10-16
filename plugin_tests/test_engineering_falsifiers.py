@@ -447,12 +447,12 @@ class RedactionTests(Base):
 
     def test_a_gate_outside_the_loops_gate_set_is_a_contract_fault_that_does_not_show_it(self):
         good = {'outcome': 'pass', 'requirement': 'REQ-12', 'commit': 'f' * 40, 'tree': 'a' * 40}
-        from intune_iac.orchestration_contract import GATES
-        self.assertTrue({'aggregate-regression', 'temporal', 'journey-28', 'frame-review'} <= GATES)
-        for gate in sorted(GATES):
+        accepted = ('aggregate-regression', 'temporal', 'frame-review', 'work-order-verification', 'journey-1',
+                    'journey-28', 'journey-32', 'journey-999')
+        for gate in accepted:
             model, _ = self.view([event(1, 'verification.completed', None, role='verifier', gate=gate, **good)])
             self.assertEqual(model['faults'], [], gate)
-        for gate in ('nsahm', 'alice-gate', 'journey-9999', 'Temporal'):
+        for gate in ('nsahm', 'alice-gate', 'journey-1000', 'journey-', 'journey-ab', 'journey-1a', 'journey-28 x', 'Temporal'):
             model, text = self.view([event(1, 'verification.completed', None, role='verifier', gate=gate, **good)])
             self.assertEqual([f['code'] for f in model['faults']], ['invalid_field'], gate)
             self.assertIn('unknown gate (not shown)', text)
