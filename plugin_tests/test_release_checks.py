@@ -179,7 +179,7 @@ class CiStepTests(unittest.TestCase):
                 result = self.compare(self.ci_root(reported=reported))
                 self.assertNotEqual(result.returncode, 0, result.stdout)
                 for text in (kind, recorded, computed):
-                    self.assertIn(text, result.stderr + result.stdout)
+                    self.assertIn(text, result.stderr, 'the failure message itself names the kind and both digests')
 
     def test_the_ci_handoff_describes_the_comparison_and_no_longer_a_byte_for_byte_rebuild(self):
         text = squashed((base.ROOT / 'docs/CI.md').read_text(encoding='utf-8'))
