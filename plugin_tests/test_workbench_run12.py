@@ -545,3 +545,19 @@ class RelatedOperationsTests(unittest.TestCase):
         self.assertIn('Related operations (1)\n    b668ad2f succeeded verified (2 journal records; latest T2)', text)
         self.assertNotIn('Related proposals', text)
         self.assertNotIn('b668ad2fa6c5', text)
+
+
+class JournalLastRecordedTests(unittest.TestCase):
+    """Item 8, L-lastrecorded (frame 23): `last recorded` beside a later deployment record read as the latest record of
+    anything; the Operation row says it is the operation's journal."""
+
+    def row(self, **operation):
+        from intune_iac.workbench_screens import state_lines
+        states = {'operation': dict({'operation_id': 'd' * 32, 'journal_status': 'succeeded_verified',
+                                     'status': 'succeeded_verified', 'recorded_at': '2026-10-16T01:16:31Z'}, **operation)}
+        return ' '.join(' '.join(state_lines(states, 140)).split())
+
+    def test_the_time_is_labelled_as_the_journals(self):
+        text = self.row()
+        self.assertIn('dddddddd succeeded verified; journal last recorded 2026-10-16 01:16:31 UTC', text)
+        self.assertNotIn('; last recorded', text)

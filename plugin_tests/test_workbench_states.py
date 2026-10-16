@@ -699,7 +699,7 @@ class ApprovalWindowStateTests(unittest.TestCase):
         self.assertIn('approval window closed (recorded)', self.line('closed_recorded'))
         self.assertIn("approval held: this host's clock reads earlier than a time it recorded", self.line('clock_moved_backward'))
         self.assertIn('approval window open', self.line('open'))
-        self.assertIn('last recorded 2026-10-15 05:18:29 UTC', self.line('open'))
+        self.assertIn('journal last recorded 2026-10-15 05:18:29 UTC', self.line('open'))
 
     def test_the_band_and_strip_name_a_hold(self):
         from intune_iac.workbench_screens import context_strip, hazard_rows

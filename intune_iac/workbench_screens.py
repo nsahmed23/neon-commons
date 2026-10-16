@@ -668,7 +668,7 @@ def state_lines(states, width, heading='STATE', prefixes=None, reviewing=None, s
         if operation.get('approval_window') in WINDOW_STATE_WORDS:
             text += '; ' + WINDOW_STATE_WORDS[operation['approval_window']]
         if operation.get('recorded_at'):
-            text += '; last recorded %s' % readable_time(operation['recorded_at'])
+            text += '; journal last recorded %s' % readable_time(operation['recorded_at'])
         if reviewing and operation.get('operation_id') != reviewing:
             text = 'newest for this policy: %s. The plan below is a different operation, %s.' % (
                 text, short_id(reviewing, prefixes))

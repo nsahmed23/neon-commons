@@ -1503,7 +1503,7 @@ class RunEightScreensTests(unittest.TestCase):
                                 'approval_window': 'closed', 'recorded_at': '2026-10-15T16:17:03Z'}}
         shown = {'operation_id': '9aac2657' + 'b' * 24, 'state': 'expired'}
         text = _flat(state_lines(states, 160, strip_operation=shown))
-        self.assertIn('e112edba prepared; approval window closed; last recorded 2026-10-15 16:17:03 UTC. '
+        self.assertIn('e112edba prepared; approval window closed; journal last recorded 2026-10-15 16:17:03 UTC. '
                       'The strip shows operation 9aac2657 (expired), not the newest.', text)
         self.assertNotIn('The strip shows', _flat(state_lines(states, 160)))
 
