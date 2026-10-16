@@ -440,19 +440,37 @@ def _takes_directory(tokens):
     """Whether a command (its arguments after the program name, as the product's command reader cut them) names a directory
     operand: a start or catalog command with an argument that is neither an option nor an option's value. Quoting is read as the
     shell reads it, so 'DIRECTORY' and DIRECTORY are the same operand, and the order of the arguments does not matter."""
-    import shlex
-    if not tokens or tokens[0] not in DIRECTORY_COMMANDS:
+    words = _shell_words(tokens)
+    if words is None:
+        # a quote that never closes: the shell would not run it, but a reader might fix it; if the stand-in is in it, it goes
+        return any('DIRECTORY' in token for token in tokens)
+    if not words or words[0] not in DIRECTORY_COMMANDS:
         return False
     previous = None
-    for token in tokens[1:]:
-        try:
-            words = shlex.split(token)
-        except ValueError:
-            words = [token]
-        if words and not token.startswith('-') and previous not in VALUE_OPTIONS:
+    for word in words[1:]:
+        if not word.startswith('-') and previous not in VALUE_OPTIONS:
             return True
-        previous = token
+        previous = word
     return False
+
+
+def _shell_words(tokens):
+    """Each argument as the shell reads it (quotes removed), so that 'start', "--goal" and 'DIRECTORY' are what they say; None
+    when a quote never closes."""
+    import shlex
+    words = []
+    for token in tokens:
+        try:
+            parts = shlex.split(token)
+        except ValueError:
+            return None
+        words.append(''.join(parts))
+    return words
+
+
+def _verb(tokens):
+    words = _shell_words(tokens)
+    return (words[0] if words else '') or tokens[0].strip('\'"')
 
 
 def without_stand_in(step):
@@ -461,8 +479,10 @@ def without_stand_in(step):
     that no stand-in survives in any spelling (quoted, spaced, reordered). Any other step is as it is."""
     if not step or 'intune-iac' not in step:
         return step
+    import re
     from .entry import _segments
-    segments = _segments(step)
+    # the program name is an argument the shell unquotes too
+    segments = _segments(re.sub(r"""(['"])intune-iac\1""", PROGRAM, step))
     if not any(kind == 'command' and _takes_directory(body) for kind, body in segments):
         return step
     parts, after_words = [], False
@@ -475,7 +495,7 @@ def without_stand_in(step):
             if body:
                 parts.append(body)
         elif _takes_directory(body):
-            parts.append(IN_WORDS % body[0])
+            parts.append(IN_WORDS % _verb(body))
             after_words = True
         else:
             parts.append('%s %s' % (PROGRAM, ' '.join(body)))

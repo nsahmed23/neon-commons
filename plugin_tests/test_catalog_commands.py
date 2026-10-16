@@ -197,6 +197,40 @@ class StandInCommandSegmentTests(unittest.TestCase):
                     self.assertNotIn('intune-iac %s' % verb, said)
                     self.assertIn('the %s command with this directory (%s)' % (verb, CANNOT), said)
 
+    QUOTED = (
+        ("Run: intune-iac 'start' DIRECTORY --goal discover", 'start'),
+        ('Run: intune-iac "catalog" DIRECTORY', 'catalog'),
+        ('Run: intune-iac "start" \'DIRECTORY\' --goal discover', 'start'),
+        ("Run: intune-iac start --goal 'discover' 'DIRECTORY'", 'start'),
+        ('Run: intune-iac start "--goal" discover DIRECTORY', 'start'),
+        ("Run: intune-iac catalog '--check-signin' azure DIRECTORY", 'catalog'),
+        ("Run: 'intune-iac' start DIRECTORY", 'start'),
+        ('Run: "intune-iac" \'catalog\' "DIRECTORY"', 'catalog'),
+        ('Run: intune-iac start "DIRECTORY --goal discover', 'start'),           # a quote that never closes
+        ("Run: intune-iac 'catalog DIRECTORY", 'catalog'),
+    )
+    NO_OPERAND = (
+        'Run: intune-iac start "--goal" discover',
+        "Run: intune-iac start '--check-signin' azure",
+        "Run: intune-iac 'catalog' \"--goal\" 'discover'",
+        'Run: intune-iac "start" --goal "discover"',
+    )
+
+    def test_quoting_is_read_as_the_shell_reads_it(self):
+        from intune_iac import readiness
+        for step, verb in self.QUOTED:
+            with self.subTest(step=step):
+                said = readiness.without_stand_in(step)
+                self.assertNotIn('DIRECTORY', said)
+                self.assertNotIn('intune-iac', said)
+                self.assertIn('the %s command with this directory (%s)' % (verb, CANNOT), said)
+
+    def test_a_quoted_option_or_option_value_is_not_a_directory_operand(self):
+        from intune_iac import readiness
+        for step in self.NO_OPERAND:
+            with self.subTest(step=step):
+                self.assertEqual(readiness.without_stand_in(step), step)
+
     def test_the_rest_of_the_step_survives_and_other_commands_are_untouched(self):
         from intune_iac import readiness
         said = readiness.without_stand_in('Choose one tenant, then run: intune-iac start DIRECTORY. Then: intune-iac capture --tenant T')
