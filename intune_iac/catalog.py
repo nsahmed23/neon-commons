@@ -270,8 +270,11 @@ def _state_lines(goal, width):
         text = 'yes: ' + ' '.join(unsupported['reasons'])
     else:
         text = 'nothing recorded as unsupported in this build.'
-    text += ' Live: not run. Live blockers recorded: %s.' % ', '.join(b.replace('_', ' ') for b in unsupported['live_blockers'])
     lines += row('unsupported', text)
+    # The live state and what a live run is blocked by are recorded for the product, not for this goal: their own row, so
+    # that blocked stays about this goal here and unsupported about what the manifest does not list.
+    lines += row('live', 'not run; recorded blockers for a live run: %s.' % ', '.join(
+        b.replace('_', ' ') for b in unsupported['live_blockers']))
     return lines
 
 

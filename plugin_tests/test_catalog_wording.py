@@ -113,5 +113,49 @@ class VerdictOnTheLastScreenTests(Base):
                 self.assertIn('blocked: no prerequisite is reported as not ready', text)
 
 
+class LiveRowTests(Base):
+    """Item 2: the live state and its recorded blockers have their own row; `unsupported` and `blocked` keep their own meaning."""
+
+    def test_every_goal_has_a_live_row_with_the_recorded_blockers_and_nothing_else_carries_them(self):
+        from intune_iac import integration_manifest
+        blockers = [word.replace('_', ' ') for word in integration_manifest.load()['live_blockers']]
+        for fixture in ('offline', 'full'):
+            lines = self.lines(fixture)
+            for goal in GOALS:
+                with self.subTest(fixture=fixture, goal=goal):
+                    rows = goal_rows(lines, goal)
+                    self.assertEqual(list(rows), ['available', 'configured', 'authenticated', 'operation-ready', 'blocked',
+                                                  'unsupported', 'live'])
+                    self.assertTrue(rows['live'].startswith('not run; recorded blockers for a live run: '), rows['live'])
+                    self.assertTrue(rows['live'].endswith(blockers[-1] + '.'), rows['live'])
+                    for blocker in blockers:
+                        self.assertIn(blocker, rows['live'])
+                        for name in ('available', 'configured', 'authenticated', 'operation-ready', 'blocked', 'unsupported'):
+                            self.assertNotIn(blocker, rows[name], (name, blocker))
+                    self.assertNotIn('Live', rows['unsupported'])
+                    self.assertEqual(rows['unsupported'], 'nothing recorded as unsupported in this build.')
+
+    def test_unsupported_keeps_the_operations_the_manifest_does_not_list(self):
+        from intune_iac import integration_manifest
+        manifest = copy.deepcopy(integration_manifest.load())
+        for kind in manifest['object_kinds']:
+            kind['operations'] = [item for item in kind['operations'] if item['name'] != 'adoption']
+        rows = goal_rows(self.lines('offline', manifest=manifest), 'adopt')
+        self.assertTrue(rows['unsupported'].startswith('yes: The manifest lists no adoption operation'), rows['unsupported'])
+        self.assertNotIn('Live', rows['unsupported'])
+        self.assertNotIn('blockers', rows['unsupported'])
+        self.assertIn('provider not qualified', rows['live'])
+
+    def test_blocked_stays_about_this_goal_here(self):
+        rows = goal_rows(self.lines('offline'), 'inspect')
+        self.assertEqual(rows['blocked'], 'no prerequisite is reported as not ready')
+        self.assertNotIn('cloud executor', rows['blocked'])
+
+    def test_the_layout_below_90_columns_keeps_the_live_row_too(self):
+        for width in (60, 80):
+            text = flat(self.lines('offline', width=width))
+            self.assertEqual(text.count('recorded blockers for a live run:'), 4, width)
+
+
 if __name__ == '__main__':
     unittest.main()
