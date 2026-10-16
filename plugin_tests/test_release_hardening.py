@@ -616,17 +616,13 @@ class GitFixture:
             builder.main()
         return json.loads(out.getvalue())
 
-    def identity(self, kind='runtime'):
-        name = f'Intune_IaC_Plugin_{builder.__version__}' + ('' if kind == 'runtime' else '_Source') + '.zip'
-        prefix = 'intune-iac/' if kind == 'runtime' else 'intune-iac-source/'
-        with zipfile.ZipFile(self.output / name) as archive:
-            return json.loads(archive.read(prefix + 'BUILD-IDENTITY.json'))
-
     def member(self, name, kind='source'):
-        archive_name = f'Intune_IaC_Plugin_{builder.__version__}' + ('' if kind == 'runtime' else '_Source') + '.zip'
-        prefix = 'intune-iac/' if kind == 'runtime' else 'intune-iac-source/'
-        with zipfile.ZipFile(self.output / archive_name) as archive:
-            return archive.read(prefix + name)
+        archive = f'Intune_IaC_Plugin_{builder.__version__}' + ('' if kind == 'runtime' else '_Source') + '.zip'
+        with zipfile.ZipFile(self.output / archive) as opened:
+            return opened.read(('intune-iac/' if kind == 'runtime' else 'intune-iac-source/') + name)
+
+    def identity(self, kind='runtime'):
+        return json.loads(self.member('BUILD-IDENTITY.json', kind))
 
 
 class GitBindingTests(unittest.TestCase):
@@ -678,10 +674,16 @@ class GitBindingTests(unittest.TestCase):
                 repo = GitFixture(self)
                 prepare(repo)
                 (repo.root / 'release-source-files.txt').write_text('README.md\nNOTES.md\nEXTRA.md\nrelease-source-files.txt\n')
-                with self.assertRaises(ValueError) as caught:
+                try:
                     repo.build()
-                self.assertIn('EXTRA.md', str(caught.exception))
-                self.assertIn('not committed', str(caught.exception))
+                except ValueError as refusal:
+                    message = str(refusal)
+                except Exception as other:      # a crash is not a refusal that names the path
+                    self.fail(f'expected a refusal naming EXTRA.md, got {other!r}')
+                else:
+                    self.fail('the build accepted an inventoried path that is not in the commit')
+                self.assertIn('EXTRA.md', message)
+                self.assertIn('not committed', message)
                 self.assertFalse(repo.output.exists() and any(repo.output.iterdir()), 'no archive was written')
 
     def test_a_checkout_that_moves_while_the_snapshot_is_read_aborts_the_build(self):
