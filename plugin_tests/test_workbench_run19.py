@@ -4,13 +4,18 @@ Item 1 (DEF-INSPECTOR-AFTER-VIEWS) drives the real workspace over the real engin
 workflow map's tests do (LayerFixture): after `:views` (Coverage) every move to the Inspector reached the Inspector.
 Items 2 to 5 are the catalog layer at the smaller windows of journey 33 run 1 (frame review B, findings 1 to 4).
 """
+import copy
+import tempfile
 import unittest
 from unittest import mock
 
+from plugin_tests import test_catalog_layer as catalog_layer
 from plugin_tests.test_workflow_map import LayerFixture, OBJECT, typed
 
 NAME = 'Windows Privacy Pilot'
 INVALID = ('invalid_workbench_request', 'Invalid workbench request')
+GUID = '22222222-2222-4222-8222-222222222222'
+STATE = 'discovered | usable here | this product has no live connection (not authenticated) | synthetic only'
 
 
 def key(char):
@@ -189,6 +194,82 @@ class DisplayFaultTests(LayerFixture):
         text = self.squash(frames[opened])
         self.assertIn('invalid_workbench_request', text)
         self.assertNotIn('DISPLAY FAULT', text)
+
+
+def estate_catalog(directory='/work/estate dir'):
+    """The catalog record of an estate like journey 33 run 1's: the real goals and kinds, and saved projects with the
+    state words and the one resume command each (a wizard session, a generated project, an operation and a store)."""
+    data = copy.deepcopy(catalog_layer.value())
+    data['directory'] = directory
+    data['projects'] = [
+        {'kind': 'wizard_session', 'label': 'Wizard session', 'path': 'estate dir/session.json', 'summary': 'step complete',
+         'state': STATE, 'command': "intune-iac wizard --session 'estate dir/session.json'", 'note': None},
+        {'kind': 'generated_project', 'label': 'Generated project', 'path': 'generated',
+         'summary': 'unchanged | session session.json', 'state': STATE, 'command': None, 'note': 'nothing to resume from here'},
+        {'kind': 'operation', 'label': 'Operation', 'path': 'operation-1',
+         'summary': 'prepared | %s:description_changed' % GUID, 'state': STATE,
+         'command': 'intune-iac workbench delivery --operation operation-1', 'note': None},
+        {'kind': 'store', 'label': 'Store', 'path': 'store', 'summary': 'tenant 11111111-1111-4111-8111-111111111111',
+         'state': STATE, 'command': "intune-iac workbench workspace --root store --service-root 'estate dir/service'",
+         'note': None}]
+    return data
+
+
+class CatalogLayerCase(unittest.TestCase):
+    """The catalog layer opened the way the workspace opens it: the command is sent and its result received."""
+
+    def layer(self, size, data=None, rules='ascii'):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        ws = catalog_layer.workspace(directory.name, size=size)
+        ws.rules = rules
+        ws._send('catalog')
+        ws.receive(data if data is not None else estate_catalog())
+        return ws
+
+    @staticmethod
+    def body(rows):
+        """The rows inside the frame's side rules, with the rules and the padding off."""
+        return [row[1:-1].strip() for row in rows if row[:1] in '|│' and row[-1:] in '|│']
+
+
+class CatalogPlainTextRouteTests(CatalogLayerCase):
+    """Item 2 (journey 33 run 1, review B finding 1): below 60x20 the layer says the catalog needs a larger window and
+    now also says how to get the same text without one."""
+
+    ROUTE = 'Plain text: intune-iac catalog'
+
+    def test_at_40x12_the_layer_names_the_plain_text_route_in_the_rows_it_has(self):
+        rows = catalog_layer.rows_of(self.layer((40, 12)))
+        body = self.body(rows)
+        self.assertEqual(len(body), 3, rows)                       # three rows are all a 40x12 frame has for the body
+        self.assertIn('Plain text: intune-iac catalog DIR', body)
+        text = ' '.join(body)
+        self.assertIn('The catalog needs a larger window: at least 60x20.', text)
+        self.assertIn('Esc closes it.', text)
+        self.assertNotIn('more below', ' '.join(rows))             # nothing is scrolled out of view
+        for row in rows:
+            self.assertLessEqual(len(row), 40, row)
+
+    def test_the_route_is_not_drawn_where_the_catalog_itself_is(self):
+        rows = catalog_layer.rows_of(self.layer((60, 20)))
+        self.assertNotIn(self.ROUTE, ' '.join(rows))
+        self.assertIn('INTEGRATION CATALOG', ' '.join(rows))
+
+    def test_where_the_row_holds_the_directory_the_route_names_it_as_the_catalog_prints_it(self):
+        for size in ((59, 24), (80, 19)):
+            body = self.body(catalog_layer.rows_of(self.layer(size)))
+            self.assertIn("Plain text: intune-iac catalog '/work/estate dir'", body, size)
+        # A directory the row cannot hold, or none, leaves the placeholder the product uses for an argument.
+        for directory in ('/a/directory/with/a/long/name/that/cannot/fit', None):
+            body = self.body(catalog_layer.rows_of(self.layer((40, 12), estate_catalog(directory))))
+            self.assertIn('Plain text: intune-iac catalog DIR', body, directory)
+
+    def test_a_directory_with_a_control_character_reaches_the_row_escaped(self):
+        body = self.body(catalog_layer.rows_of(self.layer((80, 19), estate_catalog('/work/a\nb'))))
+        self.assertTrue(any(row.startswith('Plain text: intune-iac catalog') for row in body), body)
+        for row in body:
+            self.assertTrue(all(32 <= ord(char) < 127 for char in row), repr(row))
 
 
 if __name__ == '__main__':

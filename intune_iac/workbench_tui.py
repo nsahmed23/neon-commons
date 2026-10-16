@@ -282,7 +282,18 @@ LAYERS = {'details': 'typed details', 'raw': 'raw record', 'actions': 'actions',
           'workflow': 'read-only'}
 # The catalog layer needs this many columns and rows to show its lines whole; below it says so instead of cutting them.
 CATALOG_MIN = (60, 20)
-CATALOG_NEEDS = 'The catalog needs a larger window: at least %dx%d. Esc closes it; nothing else here has changed.' % CATALOG_MIN
+# Two rows at 40 columns, so the plain-text route (CATALOG_ROUTE) has the third row of a 40x12 frame's body.
+CATALOG_NEEDS = 'The catalog needs a larger window: at least %dx%d. Esc closes it.' % CATALOG_MIN
+CATALOG_ROUTE = 'Plain text: intune-iac catalog %s'
+
+
+def catalog_route(directory, width):
+    """The plain-text route below the catalog's minimum window: the command that prints the same text. It names the
+    surveyed directory as the catalog's own commands quote it when the row holds that, else the placeholder DIR."""
+    named = CATALOG_ROUTE % shlex.quote(directory) if isinstance(directory, str) and directory else None
+    return named if named is not None and cell_width(safe_text(named)) <= width else CATALOG_ROUTE % 'DIR'
+
+
 CATALOG_HELP_LINES = ('? help | : command | Esc close catalog | b back | q exit', '? help | Esc close | b back | q exit',
                       'Esc close | b back | q exit', 'Esc close | q exit')
 CATALOG_READ_ONLY = 'The catalog is read-only; Esc closes it.'
@@ -1535,7 +1546,8 @@ class Workspace:
         from .workbench_screens import word_wrap
         columns, rows = getattr(self, 'size', None) or (width + 2, CATALOG_MIN[1])
         if columns < CATALOG_MIN[0] or rows < CATALOG_MIN[1]:
-            return word_wrap(CATALOG_NEEDS, width)
+            held = self.value.get('directory') if self.value.get('schema_version') == 'integration-catalog/1' else None
+            return word_wrap(CATALOG_NEEDS, width) + word_wrap(catalog_route(held, width), width)
         if self.value.get('schema_version') != 'integration-catalog/1':
             return word_wrap('No catalog is loaded. Esc closes this layer.', width)
         from .catalog import catalog_lines
