@@ -1,28 +1,19 @@
-"""PKG-CATALOG-6 rounds 7 to 10: the fail-closed net (readiness._fail_closed) against the real shell, not hand cases.
+"""PKG-CATALOG-6 round 11: the allowlist (readiness.without_stand_in) against the real shell.
 
-bash is asked what words each of about fifty thousand strings is. Two properties are asserted.
-
-Safety, exact, for every string and for both invocations below: whenever bash's words hold the token DIRECTORY, the net replaces
-the part. Precision, for every string outside the declared classes: the net replaces only when bash reads DIRECTORY.
-
-The classes are the same as in the docstring of readiness.without_stand_in. Fail-closed classes, where the net replaces the part
-whatever it holds: ACTIVE special parameters, ACTIVE assignment expansions, word-start comments (not in the producers' grammar,
-and able to hide an active expansion from a quote reader) and command substitution (not in the shell run, which cannot contain a
-parenthesis or a backtick; the unit tests in test_catalog_commands cover it). The one conservative class, where the net replaces
-whenever the token appears after flattening, is text bash fails on. A class is labelled from what bash does,
-by a small scanner of quotes, escapes and word starts (classify): an expansion inside single or ANSI-C quotes is not active, and
-a # counts as a comment only at the start of a word.
+The net reads text by a grammar, not by a shell parser: SIMPLE text is words of [A-Za-z0-9_./:,-] or single-quoted strings of those
+and spaces, separated by spaces; anything else is always replaced. bash is asked what words each string is, and three properties are
+asserted. Safety, exact, for every string and for both invocations below: whenever bash's words hold the token DIRECTORY, the net
+replaces the part. Exactness for simple strings: the trivial reading (strip the single quotes, split on spaces) equals bash's words,
+and the net replaces exactly when they hold the token. Fail closed for the rest: a string that is not simple is always replaced.
 
 Invocations: the default one, under env -i with $0 and the positional parameters empty; and one with $0 and $1 to $9 all set to
-DIRECTORY (safety only), because a parameter can hold anything at copy time.
+DIRECTORY (safety only), because a parameter can hold anything at copy time. Every string is asked behind a command name X, so
+that no word is a shell builtin or an assignment; the handler records the words of every command bash could not find.
 
-The strings are over the letters of DIRECTORY plus x and -, quotes, backslash, newline, space, tab, carriage return, $, { and }, and
-spell DIRECTORY with noise inserted ($"" $'' ${x} $x, parameters, assignments, comments), because a random string almost never holds
-nine letters. There is no ( ` < > ; | & * ? [ or ~, so bash can neither run, glob nor redirect: every command word is an unknown
-name, and a handler records the words of every command.
+The strings are random over the letters of DIRECTORY plus x and the shell's special characters (quotes, backslash, $, braces, blanks,
+newline, CR), random over the simple characters, and DIRECTORY with noise inserted ($"" $'' ${x} $x, parameters, assignments,
+comments, quotes, blanks). There is no ( ` < > ; | & * ? [ or ~, so bash can neither run, glob nor redirect.
 """
-import itertools
-import os
 import random
 import re
 import shutil
@@ -30,12 +21,17 @@ import subprocess
 import unittest
 
 ALPHABET = ['D', 'I', 'R', 'E', 'C', 'T', 'O', 'Y', 'x', '-', "'", '"', '\\', '\n', ' ', '\t', '\r', '$', '{', '}']
+SIMPLE_ALPHABET = ['D', 'I', 'R', 'E', 'C', 'T', 'O', 'Y', 'x', '-', '.', '/', ':', ',', '_', ' ', ' ', "'", "'"]
 NOISE = ["'", '"', '\\', '\n', ' ', '\t', '\r', '$""', "$''", '${x}', '$x', '$', '${x-', '}', '$@', '$1',
          '$?', '$#', '$0', '${0-', '${x:=', '${x=', '${x:?', '${x?', '${x:=}', '${x=}', ' #', '\t#', '\n#', '#', '$*', '${#}']
+SIMPLE_NOISE = [' ', "'", '-', '.', '/', ':', ',', '_', 'x', "' '"]
 TOKEN = re.compile(r'(?<![A-Za-z0-9_])DIRECTORY(?![A-Za-z0-9_])')
+# The allowlist, written again here from the contract (not imported from the code under test).
+SIMPLE_WORD = r"(?:[A-Za-z0-9_./:,-]|'[A-Za-z0-9_./:, -]*')+"
+SIMPLE = re.compile(r' *(?:%s(?: +%s)*)? *' % (SIMPLE_WORD, SIMPLE_WORD))
 # One bash process (env -i, no rc files). Each input is read up to a NUL from stdin; eval runs it with globbing off; the handler
-# records the words of every command bash could not find (all of them: no name in the alphabet is a command); the status after eval
-# is not 0 for a syntax or substitution error, which the main shell survives.
+# records the words of every command bash could not find; the status after eval is not 0 for a syntax or substitution error,
+# which the main shell survives.
 SCRIPT = r"""
 set -f
 command_not_found_handle() { local w; for w in "$@"; do printf 'W%s\0' "$w"; done; return 0; }
@@ -48,14 +44,10 @@ while IFS= read -r -d '' s; do
   printf 'S%s\0' "$?"
 done
 """
-# Targeted inputs: the special parameters, the assignment expansions and real comments alone, and ones that carry state or hide.
-TARGETED = ['DIREC$?TORY', 'DIREC$#TORY', 'DIREC$0TORY', 'DIREC$1TORY', 'DIREC$9TORY', '${0-DIRECTORY}', '${0:-DIRECTORY}',
-            '${?-DIRECTORY}', 'X ${x:=DIREC} ${x}TORY', 'X ${x=DIREC} ${x}TORY', 'X ${x:?DIRECTORY}', 'X ${x?DIRECTORY}',
-            'D${x:=IRECTORY}', 'D${x=IRECTORY}', '${x:=DIRECTORY}', '${x=DIRECTORY}', 'X "${x:=DIREC}${x}TORY"',
-            'DIREC${x:=}TORY', '${x:=DIREC}${x}TORY', 'X ${y:=DIR} ${y}ECTORY',
-            '$0', '$1', '"$@"', '$*', 'X $0 $1 $@ $*', 'X "$0"', 'X ${0}', 'X ${1}', 'X ${@}', "X '$0'", "X $'$0'", 'X \\$0',
-            '# DIRECTORY', 'X #DIRECTORY', 'X\t#DIRECTORY', 'X DIREC #TORY', "X 'a' #DIRECTORY", 'DIRECTORY #', 'X DIRECTORY # Y',
-            'X a#DIRECTORY', 'X \\#DIRECTORY', "X '#' DIRECTORY", 'X\n#DIRECTORY\nY']
+TARGETED = ['DIREC$?TORY', 'DIREC$#TORY', 'DIREC$0TORY', 'DIREC$1TORY', '${0-DIRECTORY}', '${0:-DIRECTORY}', 'X ${x:=DIREC} ${x}TORY',
+            'X ${x=DIREC} ${x}TORY', 'X ${x:?DIRECTORY}', 'D${x:=IRECTORY}', 'X "${x:=DIREC}${x}TORY"', 'X $0 $1 $@ $*', "X '$0'",
+            '# DIRECTORY', 'X #DIRECTORY', 'X\t#DIRECTORY', 'X DIREC #TORY', 'DIRECTORY #', 'X a#DIRECTORY', "X '#' DIRECTORY",
+            'X\n#DIRECTORY\nY', "D\t#IREC'TORY\n$*", 'DIRECTORY', "'DIRECTORY'", 'X DIRECTORY', "X 'DIREC' TORY", "X 'DIREC''TORY'"]
 
 
 def bash_available():
@@ -71,127 +63,40 @@ def bash_available():
 
 
 def strings():
-    generator = random.Random(20261018)
+    generator = random.Random(20261019)
     for text in TARGETED:
         yield text
-        for noise in NOISE:               # each targeted input behind and inside noise
+        for noise in NOISE:
             yield noise + text
             yield text[:4] + noise + text[4:]
-    for _ in range(25000):
+    for _ in range(12000):
         yield ''.join(generator.choice(ALPHABET) for _ in range(generator.randint(1, 8)))
-    for _ in range(3000):
+    for _ in range(1500):
         yield ''.join(generator.choice(ALPHABET) for _ in range(generator.randint(6, 12)))
-    # DIRECTORY with noise inserted: seeded pairs of insertions, then seeded strings with 1 to 6 insertions
+    for _ in range(10000):                    # random over the simple characters
+        yield ''.join(generator.choice(SIMPLE_ALPHABET) for _ in range(generator.randint(1, 14)))
     word = 'DIRECTORY'
-    for _ in range(6000):
+    for _ in range(6000):                     # DIRECTORY with noise inserted
         first = generator.randint(0, len(word))
         text = word[:first] + generator.choice(NOISE) + word[first:]
         at = generator.randint(0, len(text))
         yield text[:at] + generator.choice(NOISE) + text[at:]
-    for _ in range(12000):
+    for _ in range(8000):
         text = word
         for _ in range(generator.randint(1, 6)):
             at = generator.randint(0, len(text))
             text = text[:at] + generator.choice(NOISE) + text[at:]
         yield text
-
-
-SPECIALS = '@*#?$!-0123456789'
-
-
-def brace_end(text, start):
-    """The index of the } closing a ${ whose content begins at start (nested ${ counted, quotes and escapes skipped), or -1."""
-    depth, k = 1, start
-    while k < len(text):
-        char = text[k]
-        if char == '\\':
-            k += 2
-            continue
-        if char in '\'"':
-            end = k + 1
-            while end < len(text) and text[end] != char:
-                end += 2 if (char == '"' and text[end] == '\\') else 1
-            if end >= len(text):
-                return -1
-            k = end
-        elif char == '$' and text[k + 1:k + 2] == '{':
-            depth += 1
-            k += 1
-        elif char == '}':
-            depth -= 1
-            if depth == 0:
-                return k
-        k += 1
-    return -1
-
-
-def classify(text, word_start=True):
-    """The classes bash's own reading puts a string in: {'special', 'assignment', 'comment'}. An expansion is active outside single
-    and ANSI-C quotes (and inside double quotes); a # starts a comment only at the start of a word, which ends the scan."""
-    found, i, n, state = set(), 0, len(text), None
-    while i < n:
-        char = text[i]
-        if state == "'":
-            state = None if char == "'" else state
-            i += 1
-        elif state == '$':                      # $'..'
-            if char == '\\':
-                i += 2
-                continue
-            state = None if char == "'" else state
-            i += 1
-        else:
-            if state == '"' and char == '"':
-                state, i = None, i + 1
-                continue
-            if char == '\\':
-                i += 2
-                word_start = False
-                continue
-            if state is None and char == "'":
-                state, i, word_start = "'", i + 1, False
-                continue
-            if state is None and char == '"':
-                state, i, word_start = '"', i + 1, False
-                continue
-            if char == '$' and state is None and text[i + 1:i + 2] == "'":
-                state, i, word_start = '$', i + 2, False
-                continue
-            if char == '$' and state is None and text[i + 1:i + 2] == '"':
-                state, i, word_start = '"', i + 2, False
-                continue
-            if char == '$':
-                following = text[i + 1:i + 2]
-                if following and following in SPECIALS:
-                    found.add('special')
-                    i += 2
-                elif following == '{':
-                    close = brace_end(text, i + 2)
-                    content = text[i + 2:close] if close != -1 else text[i + 2:]
-                    if content[:1] and content[0] in SPECIALS:
-                        found.add('special')
-                    elif re.match(r'[A-Za-z_][A-Za-z0-9_]*:?[=?]', content):
-                        found.add('assignment')
-                    else:
-                        default = re.match(r'[A-Za-z_][A-Za-z0-9_]*:?-', content)
-                        if default:          # the default word of an unset name is expanded: its expansions are active
-                            found |= classify(content[default.end():], word_start=False) - {'comment'}
-                    i = (close + 1) if close != -1 else n
-                else:
-                    i += 1
-                word_start = False
-                continue
-            if char == '#' and state is None and word_start:
-                found.add('comment')
-                break
-            word_start = state is None and char in ' \t\n'
-            i += 1
-    return found
+    cores = ['DIRECTORY', "'DIRECTORY'", "DIREC''TORY", "'DIREC'TORY", "'a DIRECTORY b'", 'DIRECTORY/x', 'x/DIRECTORY', 'DIRECTORY.',
+             'DIRECTORY,', 'DIRECTORYx', 'xDIRECTORY', "'DIRECTORY x'"]
+    for _ in range(8000):                     # DIRECTORY (whole, quoted or broken) between simple text: mostly simple, many with the token
+        around = [''.join(generator.choice(SIMPLE_ALPHABET) for _ in range(generator.randint(0, 5))) for _ in range(2)]
+        yield around[0] + generator.choice(cores) + around[1]
 
 
 def ask_bash(bash, inputs, parameters=()):
-    """[(words, failed)] for each input, from one bash process run under env -i. parameters are $0, $1, ... for the run."""
-    data = b''.join(text.encode('ascii') + b'\0' for text in inputs)
+    """[(words, failed)] for each input, asked behind a command name X, from one bash process run under env -i."""
+    data = b''.join(('X ' + text).encode('ascii') + b'\0' for text in inputs)
     arguments = list(parameters) or ['']
     run = subprocess.run([shutil.which('env'), '-i', bash, '--norc', '--noprofile', '-c', SCRIPT, *arguments], input=data,
                          capture_output=True, timeout=1800)
@@ -206,48 +111,41 @@ def ask_bash(bash, inputs, parameters=()):
     return results
 
 
-@unittest.skipUnless(bash_available(), 'no working bash and env on this host: the differential test needs the real shell to ask')
-class NetAgainstBashTests(unittest.TestCase):
-    def test_classify_labels_what_bash_does_not_raw_characters(self):
-        for text, expected in (
-                ('X $?', {'special'}), ("X '$?'", set()), ("X $'$?'", set()), ('X "$?"', {'special'}), ('X \\$?', set()),
-                ('X ${0-a}', {'special'}), ('X ${x:=a}', {'assignment'}), ("X '${x:=a}'", set()), ('X ${x-a}', set()),
-                ('X $#', {'special'}), ('X #a', {'comment'}), ('X a#b', set()), ('X\t#a', {'comment'}), ('X $# #a', {'special', 'comment'}),
-                ('X \\#a', set()), ("X '#a'", set()), ('X "#a"', set()), ('# a', {'comment'}), ('X ${#}', {'special'}),
-                ('X #a $?', {'comment'})):
-            self.assertEqual(classify(text), expected, text)
+def squeeze(text):
+    return ' '.join(text.split())
 
-    def test_safety_and_precision_of_the_net_against_bash(self):
-        """Safety, exact, for every string: whenever bash's words hold DIRECTORY the net replaces the part. Precision, for every
-        string outside the declared classes: the net replaces only when bash reads DIRECTORY."""
+
+@unittest.skipUnless(bash_available(), 'no working bash and env on this host: the differential test needs the real shell to ask')
+class AllowlistAgainstBashTests(unittest.TestCase):
+    def test_safety_exactness_for_simple_text_and_fail_closed_for_the_rest(self):
         from intune_iac import readiness
         inputs = list(strings())
         results = ask_bash(bash_available(), inputs)
         self.assertEqual(len(results), len(inputs))
-        safety, precision = [], []
-        count = dict(positives=0, dollar_positives=0, failed=0, special=0, assignment=0, comment=0, replaced_in_a_class=0,
-                     precision_checked=0)
+        safety, exactness, open_ones = [], [], []
+        count = dict(simple=0, simple_with_token=0, non_simple=0, positives=0, dollar_positives=0, failed=0)
         for text, (words, error) in zip(inputs, results):
-            replaced = readiness._fail_closed(text) != text
+            replaced = readiness.without_stand_in(text) != text
+            words = words[1:]                      # the command name X
             named = bool(TOKEN.search(' '.join(words)))
             count['positives'] += named
             count['dollar_positives'] += named and '$' in text
+            count['failed'] += error
             if named and not replaced:
                 safety.append((text, 'bash words %r, not replaced' % (words,)))
-            if error:
-                count['failed'] += 1
-                if TOKEN.search(readiness._shell_flatten(text)) and not replaced:
-                    safety.append((text, 'bash failed, token after flattening, not replaced'))
-                continue
-            classes = classify(text)
-            for name in classes:
-                count[name] += 1
-            if classes:
-                count['replaced_in_a_class'] += replaced and not named
-                continue
-            count['precision_checked'] += 1
-            if replaced != named:
-                precision.append((text, 'bash words %r, replaced %r' % (words, replaced)))
+            if SIMPLE.fullmatch(text):
+                count['simple'] += 1
+                trivial = squeeze(text.replace("'", ''))
+                if squeeze(' '.join(words)) != trivial:
+                    exactness.append((text, 'bash words %r, trivial reading %r' % (words, trivial)))
+                token = bool(TOKEN.search(trivial))
+                count['simple_with_token'] += token
+                if replaced != token:
+                    exactness.append((text, 'token %r, replaced %r' % (token, replaced)))
+            else:
+                count['non_simple'] += 1
+                if not replaced:
+                    open_ones.append(text)
         # the same strings once more with $0 and $1 to $9 set to DIRECTORY: a parameter can hold anything at copy time. Only the
         # strings that can expand a parameter need asking again.
         with_parameters = [text for text in inputs if '$' in text]
@@ -255,23 +153,25 @@ class NetAgainstBashTests(unittest.TestCase):
         self.assertEqual(len(again), len(with_parameters))
         parameter_positives = 0
         for text, (words, error) in zip(with_parameters, again):
-            replaced = readiness._fail_closed(text) != text
-            if TOKEN.search(' '.join(words)):
+            if TOKEN.search(' '.join(words[1:])):
                 parameter_positives += 1
-                if not replaced:
+                if readiness.without_stand_in(text) == text:
                     safety.append((text, 'parameters DIRECTORY: bash words %r, not replaced' % (words,)))
-        type(self).compared = (len(inputs), count, len(with_parameters), parameter_positives, len(safety), len(precision))
+        type(self).compared = (len(inputs), count, len(with_parameters), parameter_positives, len(safety), len(exactness),
+                               len(open_ones))
         self.assertGreater(count['positives'], 1000, 'the comparison must see bash read the token often, or it proves nothing')
         self.assertGreater(count['dollar_positives'], 200, 'and often through a $ construct')
-        self.assertGreater(parameter_positives, 500, 'and with the parameters set to DIRECTORY')
-        for name in ('failed', 'special', 'assignment', 'comment'):
-            self.assertGreater(count[name], 20, 'the %s class is exercised' % name)
+        self.assertGreater(count['simple_with_token'], 1000, 'and often in simple text')
+        self.assertGreater(count['simple'], 5000)
+        self.assertGreater(count['non_simple'], 5000)
+        self.assertGreater(parameter_positives, 200, 'and with the parameters set to DIRECTORY')
         self.assertEqual(safety[:20], [], 'safety: a stand-in bash reads would be kept')
-        self.assertEqual(precision[:20], [], 'precision outside the declared classes')
+        self.assertEqual(exactness[:20], [], 'simple text is read trivially, exactly as bash reads it')
+        self.assertEqual(open_ones[:20], [], 'text that is not simple is always replaced')
         print('differential: %d strings (%d asked again with the parameters set to DIRECTORY, %d of them read as DIRECTORY); %s; '
-              'safety violations %d; precision mismatches %d' % (type(self).compared[0], type(self).compared[2],
-                                                                type(self).compared[3], type(self).compared[1],
-                                                                type(self).compared[4], type(self).compared[5]))
+              'safety violations %d; simple-text mismatches %d; non-simple not replaced %d' % (
+                  type(self).compared[0], type(self).compared[2], type(self).compared[3], type(self).compared[1],
+                  type(self).compared[4], type(self).compared[5], type(self).compared[6]))
 
 
 if __name__ == '__main__':

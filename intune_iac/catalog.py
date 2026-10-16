@@ -335,9 +335,12 @@ def _shown_goal_steps(goals, operand, hidden=False):
         missing = item['blocked'].get('missing')
         if missing:
             written = readiness_model.screen_note(missing, operand, hidden=hidden)
-            item['blocked']['missing'] = written if written != missing else entry.shown_step(missing)
-            if hidden:
-                item['blocked']['missing'] = readiness_model.without_stand_in(item['blocked']['missing'])
+            if written != missing:
+                item['blocked']['missing'] = written          # the product's own words for a hidden directory: not a recorded step
+            else:
+                item['blocked']['missing'] = entry.shown_step(missing)
+                if hidden:
+                    item['blocked']['missing'] = readiness_model.without_stand_in(item['blocked']['missing'])
 
 
 def _plain_text_build(value):

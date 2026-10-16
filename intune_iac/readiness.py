@@ -427,304 +427,52 @@ directory_hidden = display_refused
 NO_CHECK_HIDDEN = ('No sign-in check was run. To look for an existing Azure sign-in, run the start command with this directory, '
                     '--goal %s and --check-signin azure (the directory cannot be shown here; it runs az account list '
                     '--output json and nothing else).')
-# What the recorded steps say where the engineer's own directory goes, and what a screen that may not show the directory says in
-# its place: words, not a command (DIRECTORY is a valid relative path, so a copied command would address that folder).
+# What a screen that may not show the directory says in place of a recorded step that names it: words, not a command (DIRECTORY is
+# a valid relative path, so a copied command would address that folder).
 IN_WORDS = 'the %s command with this directory (the directory cannot be shown here)'
-# The commands that take the surveyed directory as an operand, and their options that take a value (so that a value is not read
-# as the operand).
+NO_NAME_WORDS = 'this step names the directory, which cannot be shown here'
+NOT_SHOWN_WORDS = 'this step is not shown here: the directory cannot be shown'
 DIRECTORY_COMMANDS = ('start', 'catalog')
-VALUE_OPTIONS = ('--goal', '--check-signin')
-
-
-def _takes_directory(tokens):
-    """Whether a command (its arguments after the program name, as the product's command reader cut them) names a directory
-    operand: a start or catalog command with an argument that is neither an option nor an option's value. Quoting is read as the
-    shell reads it, so 'DIRECTORY' and DIRECTORY are the same operand, and the order of the arguments does not matter."""
-    words = _shell_words(tokens)
-    if words is None:
-        # a quote that never closes: the shell would not run it, but a reader might fix it; if the stand-in is in it, it goes
-        return any('DIRECTORY' in token for token in tokens)
-    if not words or words[0] not in DIRECTORY_COMMANDS:
-        return False
-    previous = None
-    for word in words[1:]:
-        if not word.startswith('-') and previous not in VALUE_OPTIONS:
-            return True
-        previous = word
-    return False
-
-
-def _shell_words(tokens):
-    """Each argument as the shell reads it (quotes removed), so that 'start', "--goal" and 'DIRECTORY' are what they say; None
-    when a quote never closes."""
-    import shlex
-    words = []
-    for token in tokens:
-        try:
-            parts = shlex.split(token)
-        except ValueError:
-            return None
-        words.append(''.join(parts))
-    return words
-
-
-def _verb(tokens):
-    words = _shell_words(tokens)
-    return (words[0] if words else '') or tokens[0].strip('\'"')
+# The allowlist. SIMPLE text is words of the characters the producers' own steps need, [A-Za-z0-9_./:,-], or single-quoted strings
+# of those and spaces, separated by spaces. Nothing else is simple: no backslash, double quote, dollar, backtick, hash, tab, newline,
+# braces, parentheses, brackets, angle brackets, asterisk, question mark, tilde, exclamation mark, ampersand, semicolon or bar
+# outside the separators below. A line is cut into parts only at the simple separators.
+_SIMPLE_WORD = r"(?:[A-Za-z0-9_./:,-]|'[A-Za-z0-9_./:, -]*')+"
+_SIMPLE_PART = re.compile(r' *(?:%s(?: +%s)*)? *' % (_SIMPLE_WORD, _SIMPLE_WORD))
+_SEPARATOR = re.compile(r'( && | \|\| | \| |; )')
+_TOKEN = re.compile(r'(?<![A-Za-z0-9_])DIRECTORY(?![A-Za-z0-9_])')
 
 
 def without_stand_in(step):
-    """A recorded step as a screen that may not show the directory prints it. The commands in it are found with the product's own
-    command reader (entry._segments); every start or catalog command with a directory operand is replaced as a whole by words, so
-    that no stand-in survives in any spelling (quoted, escaped, spaced, reordered). A line is first cut at the shell's operators
-    (; && || |, outside quotes) and each part is read as its own command; a part that needs no change is kept as it was.
+    """A recorded step as a screen that may not show the directory prints it. Safety does not depend on parsing the shell: the
+    text is read by an ALLOWLIST, and anything outside it is replaced.
 
-    The grammar (final). The lines are the product's own recorded steps, a closed grammar: the readiness rows' notes and next
-    actions in this module (readiness.py) and the catalog's own sentences (catalog.py), not arbitrary shell text. So the rule fails
-    closed: after the commands are replaced, any part that still holds the token DIRECTORY once read as the shell reads it in a
-    clean environment (_shell_flatten: quoting, backslashes, $"..", $'..', empty expansions, ${NAME-word} defaults, blanks one
-    space) is replaced whole by words, whatever it is; so is any part with a command substitution, $( or a backtick outside single
-    quotes, or with an assignment expansion (${NAME=w} ${NAME:=w} ${NAME?w} ${NAME:?w}), which is not modelled. A part without
-    the token keeps its bytes.
+    The producers are the product's own recorded steps: the readiness rows' notes and next actions in this module and the
+    catalog's own sentences in catalog.py. A line is cut into parts only at ' && ', ' || ', ' | ' and '; '. A part that is SIMPLE
+    (_SIMPLE_PART: words of [A-Za-z0-9_./:,-] or single-quoted strings of those and spaces, separated by spaces) is read trivially,
+    by splitting on spaces and stripping the quotes: with the token DIRECTORY in it, the part becomes words (the start or catalog
+    sentence when it holds such a command, else a generic one); without it, the part stays byte for byte. A part that is NOT
+    simple always becomes words, whatever it holds. That is fail closed by grammar: backslashes, other quotes, expansions,
+    substitutions, comments, braces, tabs, newlines and every other construct are not parsed, so none of them can hide a stand-in.
 
-    One definition of the classes (the test_shell_differential module uses the same names). Fail-closed classes, where the part is
-    replaced whatever it holds: every ACTIVE special-parameter expansion ($0 to $9 $@ $* $# $? $- $$ $!, plain or braced, outside
-    single and ANSI-C quotes and inside double quotes: a parameter can hold anything at copy time), every ACTIVE assignment
-    expansion (${NAME=w} ${NAME:=w} ${NAME?w} ${NAME:?w}), command substitution ($( or a backtick) and every word-start comment
-    (a # at the start of a word is not in the producers' grammar, and a comment can hide an active expansion from a quote
-    reader). The one conservative class, where the net replaces whenever the token appears after flattening, is text bash itself
-    fails on (a syntax or substitution error). Safety is exact: whenever bash would read DIRECTORY in a part, the part is
-    replaced, also when $0 and the positional parameters hold DIRECTORY.
-    Outside the grammar, and not read: redirections, globbing, variables that are set when the line is copied, and encodings in
-    a tampered record such as hex escapes inside $'..'. The test_shell_differential module checks safety and precision against
-    bash over about fifty thousand strings, in two invocations."""
+    The cost: non-simple text is replaced even when it holds no stand-in, on screens that may not show the directory only (for
+    example a step with a parenthesised legend, such as the capture command's). The test_shell_differential module checks the
+    allowlist against bash: the trivial reading of simple text equals bash's words, safety is exact (also with $0 and the positional
+    parameters set to DIRECTORY), and text that is not simple is always replaced."""
     if not step:
         return step
-    out, changed = [], False
-    for part, operator in _shell_parts(step):
-        said = _without_stand_in_part(part) if part.strip() else part
-        said = _fail_closed(said)
-        if said != part:
-            changed = True
-            said = part[:len(part) - len(part.lstrip())] + said.strip() + part[len(part.rstrip()):]
-        out.append(said + operator)
-    return ''.join(out) if changed else step
-
-
-NO_NAME_WORDS = 'this step names the directory, which cannot be shown here'
-
-
-def _shell_flatten(text, found=None, at_start=True):
-    """The text as the shell reads its words, approximately: quotes removed and blanks outside quotes one space. Single quotes
-    keep every backslash; double quotes keep a backslash unless it escapes $, a backtick, " , \\ or a newline; outside quotes a
-    backslash escapes the next character. Inside $'..' (ANSI-C) every backslash is dropped, the closed side of the approximation.
-    A quote that never closes runs to the end of the text.
-
-    Expansions are read for a clean environment, where no variable is set: $"..." is a double-quoted string (the $ is dropped, as
-    for $'..'); $NAME (greedy) and ${NAME...} are empty, except that ${NAME-word} and ${NAME:-word} are the word, which is what
-    bash gives for an unset NAME. These cannot be read, and each fails closed (when found is a list, True is appended to it and
-    the caller replaces the part): a command substitution, $( or a backtick outside single quotes; an assignment expansion,
-    ${NAME=w} ${NAME:=w} ${NAME?w} ${NAME:?w} (it carries state to later words); and every active special parameter, $0 to $9
-    $@ $* $# $? $- $$ $! plain or braced (its value is whatever the shell or its caller holds)."""
-    out, i, quote, n = [], 0, None, len(text)
-    word_start = at_start
-    while i < n:
-        char = text[i]
-        was_word_start, word_start = word_start, False
-        if quote == "'":
-            if char == "'":
-                quote = None
-            else:
-                out.append(char)
-        elif quote == '$':          # $'..'
-            if char == "'":
-                quote = None
-            elif char == '\\' and text[i + 1:i + 2] in ("'", '\\', '"'):
-                i += 1                  # \' \\ \" are the character itself (so \' does not end the quote)
-                out.append(text[i])
-            elif char != '\\':
-                out.append(char)
-        elif quote == '"':
-            if char == '"':
-                quote = None
-            elif char == '\\' and i + 1 < n and text[i + 1] in '$`"\\\n':
-                i += 1
-                out.append(text[i] if text[i] != '\n' else '')
-            elif char == '`':
-                _note_substitution(found)
-            elif char == '$' and text[i + 1:i + 2] not in ("'", '"'):
-                value, i = _expansion(text, i, found)
-                out.append(value)
-                continue
-            else:
-                out.append(char)
-        elif char == '\\':
-            i += 1
-            if i < n and text[i] != '\n':      # backslash-newline is a line continuation: both vanish
-                out.append(text[i])
-        elif char == "'":
-            quote = "'"
-        elif char == '"':
-            quote = '"'
-        elif char == '`':
-            _note_substitution(found)
-        elif char == '$' and text[i + 1:i + 2] == "'":
-            quote = '$'
-            i += 1
-        elif char == '$' and text[i + 1:i + 2] == '"':
-            quote = '"'
-            i += 1
-        elif char == '$':
-            value, i = _expansion(text, i, found)
-            out.append(value)
+    pieces = _SEPARATOR.split(step)
+    for index in range(0, len(pieces), 2):
+        part = pieces[index]
+        simple = _SIMPLE_PART.fullmatch(part)
+        plain = part.replace("'", '')
+        if simple and not _TOKEN.search(plain):
             continue
-        elif char == '#' and was_word_start:
-            _note_substitution(found)       # a comment is not in the grammar and hides what follows from this reading: fails closed
-            out.append(char)
-        elif char in ' \t':
-            word_start = True
-            if not out or out[-1] != ' ':
-                out.append(' ')
-        else:
-            word_start = char == '\n'
-            out.append(char)
-        i += 1
-    return ''.join(out)
-
-
-def _note_substitution(found):
-    if found is not None:
-        found.append(True)
-
-
-def _expansion(text, i, found):
-    """(the value, the index after it) of the $ at text[i], outside single and ANSI-C quotes, in a clean environment (see
-    _shell_flatten). A $ that begins nothing is itself."""
-    import re
-    following = text[i + 1:i + 2]
-    if following == '(':
-        _note_substitution(found)
-        return '$', i + 1
-    if following == '{':
-        close = _matching_brace(text, i + 2)
-        if close is None:
-            return '', len(text)
-        content = text[i + 2:close]
-        parts = re.fullmatch(r'([A-Za-z_][A-Za-z0-9_]*)(:?)([-=+?])(.*)', content, re.S)
-        if content[:1] in tuple('@*#?$!-0123456789') and content[:1] != '' or (parts and parts.group(3) in '=?'):
-            # An active special parameter (its value is whatever the shell or its caller holds) and an assignment expansion (it
-            # carries state to later words) are not modelled: both fail closed.
-            _note_substitution(found)
-            return '', close + 1
-        value = _shell_flatten(parts.group(4), found, False) if parts and parts.group(3) == '-' else ''
-        return value, close + 1
-    name = re.compile(r'[A-Za-z_][A-Za-z0-9_]*').match(text, i + 1)
-    if name:
-        return '', name.end()
-    if following and following in '@*#?$!-0123456789':
-        _note_substitution(found)           # an active special parameter: fails closed
-        return '', i + 2
-    return '$', i + 1
-
-
-def _matching_brace(text, start):
-    """The index of the } that closes a ${ whose content begins at start, or None. Quotes, escapes and nested ${ are skipped."""
-    depth, k, n = 1, start, len(text)
-    while k < n:
-        char = text[k]
-        if char == '\\':
-            k += 2
-            continue
-        if char in '\'"':
-            k = text.find(char, k + 1)
-            while char == '"' and k > 0 and text[k - 1] == '\\' and k != -1:
-                k = text.find(char, k + 1)
-            if k == -1:
-                return None
-        elif char == '$' and text[k + 1:k + 2] == '{':
-            depth += 1
-            k += 1
-        elif char == '}':
-            depth -= 1
-            if depth == 0:
-                return k
-        k += 1
-    return None
-
-
-def _fail_closed(part):
-    """The part, or words when it still holds the stand-in token as the shell would read it (see without_stand_in)."""
-    import re
-    substitutions = []
-    flat = _shell_flatten(part, substitutions)
-    if not substitutions and not re.search(r'(?<![A-Za-z0-9_])DIRECTORY(?![A-Za-z0-9_])', flat):
-        return part
-    command = re.search(r'intune-iac ?(%s)\b' % '|'.join(DIRECTORY_COMMANDS), flat)
-    return IN_WORDS % command.group(1) if command else NO_NAME_WORDS
-
-
-def _shell_parts(line):
-    """[(text, operator)] : the line cut at ; && || | outside quotes and escapes. The pieces joined again are the line."""
-    import re
-    piece = re.compile(r"""'[^']*'|"(?:[^"\\]|\\.)*"|\\.|&&|\|\||\||;|[^'"\\&|;]+|.""", re.S)
-    parts, text = [], ''
-    for match in piece.finditer(line):
-        word = match.group()
-        if word in ('&&', '||', '|', ';'):
-            parts.append((text, word))
-            text = ''
-        else:
-            text += word
-    parts.append((text, ''))
-    return parts
-
-
-def _program_as_shell_reads_it(text):
-    """The text with every word whose shell value is exactly the program name written as that name (intune-"iac", intune\\-iac,
-    'intune'-iac ...), so that the command reader finds it. Other words are untouched."""
-    import shlex
-    from .entry import _TOKEN
-    out, last = [], 0
-    for match in _TOKEN.finditer(text):
-        word = match.group()
-        if word == PROGRAM:
-            continue
-        try:
-            value = ''.join(shlex.split(word))
-        except ValueError:
-            continue
-        if value == PROGRAM:
-            out.append(text[last:match.start()] + PROGRAM)
-            last = match.end()
-    return ''.join(out) + text[last:]
-
-
-def _without_stand_in_part(step):
-    """without_stand_in for one command line without operators."""
-    from .entry import _segments
-    original = step
-    step = _program_as_shell_reads_it(step)
-    if PROGRAM not in step:
-        return original
-    segments = _segments(step)
-    if not any(kind == 'command' and _takes_directory(body) for kind, body in segments):
-        return original
-    parts, after_words = [], False
-    for kind, body in segments:
-        if kind == 'text':
-            body = body.strip()
-            if after_words and body[:1].isupper():
-                parts[-1] += '.'      # the command reader swallowed the full stop that ended the sentence the command stood in
-            after_words = False
-            if body:
-                parts.append(body)
-        elif _takes_directory(body):
-            parts.append(IN_WORDS % _verb(body))
-            after_words = True
-        else:
-            parts.append('%s %s' % (PROGRAM, ' '.join(body)))
-            after_words = False
-    return ' '.join(parts)
+        command = re.search(r'%s +(%s)\b' % (re.escape(PROGRAM), '|'.join(DIRECTORY_COMMANDS)), plain)
+        names = _TOKEN.search(plain) if simple else 'DIRECTORY' in part
+        said = (IN_WORDS % command.group(1) if command else NO_NAME_WORDS) if names else NOT_SHOWN_WORDS
+        pieces[index] = part[:len(part) - len(part.lstrip(' '))] + said + part[len(part.rstrip(' ')):]
+    return ''.join(pieces)
 
 
 def screen_note(note, operand=None, legend='', hidden=False):

@@ -172,300 +172,149 @@ class RefusedFileNameTests(unittest.TestCase):
         self.assertIn('Resume: intune-iac wizard --session NEW_SESSION.json --input work/export.json', text)
 
 
-class StandInCommandSegmentTests(unittest.TestCase):
-    """Round 2 (Sol, Medium): the safety must not depend on one serialized spelling. A start or catalog command whose directory
-    operand a hidden directory supplies is replaced as a whole by words, however it is spelled."""
+class StandInAllowlistTests(unittest.TestCase):
+    """PKG-CATALOG-6 round 11: on a screen that may not show the directory, a recorded step is read by an ALLOWLIST, not by a
+    shell parser. SIMPLE text is words of [A-Za-z0-9_./:,-] (or single-quoted strings of those and spaces) separated by spaces,
+    and the parts of a line are cut only at ' && ', ' || ', ' | ' and '; '. A simple part with the token DIRECTORY is words; a
+    simple part without it stays byte for byte; anything else (a backslash, a double quote, a dollar, a backtick, a hash, braces,
+    parentheses, a tab or newline, ...) is always words, with or without the token. Earlier rounds kept some non-simple text
+    that held no stand-in unchanged; under this contract it becomes words (each such test says so)."""
 
-    SPELLINGS = (
-        "Run: intune-iac {verb} DIRECTORY --goal discover --check-signin azure",
-        "Run: intune-iac {verb} 'DIRECTORY' --goal discover --check-signin azure",
-        'Run: intune-iac {verb} "DIRECTORY" --goal discover',
-        'Run:   intune-iac    {verb}     DIRECTORY     --goal   discover',
-        'Run: intune-iac {verb} --goal discover DIRECTORY --check-signin azure',
-        'Run: intune-iac {verb} --check-signin azure --goal discover DIRECTORY',
-        'Choose one tenant, then run: intune-iac {verb} DIRECTORY. Then: intune-iac capture --tenant T',
-        'Run: intune-iac {verb} DIRECTORY and pass its result to this check.',
+    GENERIC = 'this step names the directory, which cannot be shown here'
+    NOT_SHOWN = 'this step is not shown here: the directory cannot be shown'
+    START = 'the start command with this directory (%s)' % CANNOT
+    CATALOG = 'the catalog command with this directory (%s)' % CANNOT
+
+    SIMPLE_WITH_THE_STAND_IN = (
+        ('Run: intune-iac start DIRECTORY', START),
+        ("Run: intune-iac start 'DIRECTORY' --goal discover --check-signin azure", START),
+        ('Run: intune-iac catalog DIRECTORY --goal discover', CATALOG),
+        ('Run: intune-iac start --goal discover DIRECTORY', START),
+        ('Run: intune-iac start DIRECTORY and pass its result to this check.', START),
+        ('Name the tenant as a GUID, then run: intune-iac start DIRECTORY', START),
+        ('Run:   intune-iac    start     DIRECTORY     --goal   discover', START),
+        ('x DIRECTORY', GENERIC), ("x 'a DIRECTORY'", GENERIC), ('DIRECTORY/store', GENERIC), ('x DIRECTORY.', GENERIC),
     )
-
-    def test_no_spelling_leaves_a_copyable_stand_in(self):
-        from intune_iac import readiness
-        for verb in ('start', 'catalog'):
-            for spelling in self.SPELLINGS:
-                with self.subTest(verb=verb, spelling=spelling):
-                    said = readiness.without_stand_in(spelling.format(verb=verb))
-                    self.assertNotIn('DIRECTORY', said)
-                    self.assertNotIn('intune-iac %s' % verb, said)
-                    self.assertIn('the %s command with this directory (%s)' % (verb, CANNOT), said)
-
-    QUOTED = (
-        ("Run: intune-iac 'start' DIRECTORY --goal discover", 'start'),
-        ('Run: intune-iac "catalog" DIRECTORY', 'catalog'),
-        ('Run: intune-iac "start" \'DIRECTORY\' --goal discover', 'start'),
-        ("Run: intune-iac start --goal 'discover' 'DIRECTORY'", 'start'),
-        ('Run: intune-iac start "--goal" discover DIRECTORY', 'start'),
-        ("Run: intune-iac catalog '--check-signin' azure DIRECTORY", 'catalog'),
-        ("Run: 'intune-iac' start DIRECTORY", 'start'),
-        ('Run: "intune-iac" \'catalog\' "DIRECTORY"', 'catalog'),
-        ('Run: intune-iac start "DIRECTORY --goal discover', 'start'),           # a quote that never closes
-        ("Run: intune-iac 'catalog DIRECTORY", 'catalog'),
+    SIMPLE_WITHOUT_IT = (
+        'Run: intune-iac start --goal discover', 'Run: intune-iac catalog --check-signin azure',
+        'Run: intune-iac doctor to see the host profiles and which tools are on the search path.',
+        'Run intune-iac start REPOSITORY_DIRECTORY from a Git checkout that holds atmos.yaml', "intune-iac catalog 'estate dir'",
+        'Run: intune-iac capture --tenant 11111111-1111-4111-8111-111111111111 --policy POLICY --output NEW_DIR', 'x', '',
+        'See examples/context.json', 'x DIRECTORYX XDIRECTORY', "x 'a b' c",
     )
-    # Round 4: a program word whose shell value is exactly intune-iac counts, however it is quoted or escaped
-    PROGRAM_SPELLINGS = (
-        ('Run: intune-"iac" start DIRECTORY', 'start'),
-        ('Run: intune\\-iac start DIRECTORY', 'start'),
-        ("Run: 'intune'-iac catalog DIRECTORY", 'catalog'),
-        ('Run: "intune-iac" \'start\' "DIRECTORY"', 'start'),
-        ("Run: 'intune-'\"iac\" catalog DIRECTORY", 'catalog'),
-        ('Run: intu\\ne-iac start DIRECTORY', 'start'),         # the shell reads \\n as n: still the program
-        ('Run: intune-"iac"x start DIRECTORY', None),           # another program: its value is not intune-iac
+    # (text, why it is not simple): always words
+    NON_SIMPLE = (
+        'Run: intune-"iac"\tstart DIRECTORY', 'Run: intune\\-iac start DIRECTORY', "Run: $'intune-iac' start DIRECTORY",
+        'Run: intune-iac start "DIRECTORY"', 'Run: intune-iac start DIRECTORY$x', 'echo DIREC${x}TORY', 'echo DIREC$""TORY',
+        'echo $(date)', 'echo `date`', 'echo $0', 'echo "$@"', 'echo D\\IRECTORY', 'echo DIREC\\\nTORY', 'X #a\'b\n$*',
+        'echo ${x:=DIREC} ${x}TORY', 'echo\tDIRECTORY', 'echo DIRECTORY\n', 'echo DIRECTORY;', 'echo (DIRECTORY)',
+        # stand-in free, and unchanged before round 11: now words
+        'echo "D\\IRECTORY"', "echo 'D\\IRECTORY'", 'echo ${x-a}', 'echo $?', 'echo # a', 'Run: intune-iac start "--goal" discover',
+        'Run: $\'intune-iac\' start --goal discover', 'Run: intune-iac\tstart\t--goal\tdiscover', 'echo "a"', 'echo a*',
+        'Provide a bounded context JSON (tenant, cloud), then run: intune-iac start --goal discover',
     )
-    NO_OPERAND = (
-        'Run: intune-"iac" start --goal discover',
-        'Run: intune\\-iac catalog --check-signin azure',
-        'Run: echo ok; intune-iac start --goal discover',
-        'Run: intune-iac start "--goal" discover',
-        "Run: intune-iac start '--check-signin' azure",
-        "Run: intune-iac 'catalog' \"--goal\" 'discover'",
-        'Run: intune-iac "start" --goal "discover"',
-    )
-
-    def test_quoting_is_read_as_the_shell_reads_it(self):
-        from intune_iac import readiness
-        for step, verb in self.QUOTED:
-            with self.subTest(step=step):
-                said = readiness.without_stand_in(step)
-                self.assertNotIn('DIRECTORY', said)
-                self.assertNotIn('intune-iac', said)
-                self.assertIn('the %s command with this directory (%s)' % (verb, CANNOT), said)
-
-    def test_the_program_word_is_read_as_the_shell_reads_it(self):
-        from intune_iac import readiness
-        for step, verb in self.PROGRAM_SPELLINGS:
-            with self.subTest(step=step):
-                said = readiness.without_stand_in(step)
-                if verb is None:      # not our program, but it holds the stand-in: replaced whole, fail closed (round 5)
-                    self.assertEqual(said, 'this step names the directory, which cannot be shown here')
-                    continue
-                self.assertNotIn('DIRECTORY', said)
-                self.assertIn('the %s command with this directory (%s)' % (verb, CANNOT), said)
-
     OPERATORS = (
-        ('Run: echo ok; intune-iac start DIRECTORY', 'Run: echo ok; the start command with this directory (%s)' % CANNOT),
-        ('true && intune-iac catalog DIRECTORY --goal discover', 'true && the catalog command with this directory (%s)' % CANNOT),
-        ('intune-iac start DIRECTORY && echo ok', 'the start command with this directory (%s) && echo ok' % CANNOT),
-        ('intune-iac start DIRECTORY || echo no', 'the start command with this directory (%s) || echo no' % CANNOT),
-        ('intune-iac start DIRECTORY | cat', 'the start command with this directory (%s) | cat' % CANNOT),
-        ('intune-iac start --goal discover && intune-iac catalog DIRECTORY',
-         'intune-iac start --goal discover && the catalog command with this directory (%s)' % CANNOT),
-        ('intune-iac start --goal discover | intune-iac catalog DIRECTORY',
-         'intune-iac start --goal discover | the catalog command with this directory (%s)' % CANNOT),
-        ('intune-iac start DIRECTORY; intune-iac start --goal discover',
-         'the start command with this directory (%s); intune-iac start --goal discover' % CANNOT),
+        ('Run: echo ok; intune-iac start DIRECTORY', 'Run: echo ok; ' + START),
+        ('true && intune-iac catalog DIRECTORY --goal discover', 'true && ' + CATALOG),
+        ('intune-iac start DIRECTORY && echo ok', START + ' && echo ok'),
+        ('intune-iac start DIRECTORY || echo no', START + ' || echo no'),
+        ('intune-iac start DIRECTORY | cat', START + ' | cat'),
+        ('intune-iac start --goal discover && intune-iac catalog DIRECTORY', 'intune-iac start --goal discover && ' + CATALOG),
+        ('intune-iac start --goal discover | intune-iac catalog DIRECTORY', 'intune-iac start --goal discover | ' + CATALOG),
+        ('intune-iac start DIRECTORY; intune-iac start --goal discover', START + '; intune-iac start --goal discover'),
+        ('echo ok; echo $(date)', 'echo ok; ' + NOT_SHOWN),
+        ('intune-iac start --goal discover && echo DIRECTORY', 'intune-iac start --goal discover && ' + GENERIC),
+        ('echo ok | echo "a DIRECTORY"', 'echo ok | ' + GENERIC),
     )
 
-    def test_each_part_of_a_line_is_its_own_command(self):
+    def test_a_simple_part_with_the_stand_in_is_words(self):
         from intune_iac import readiness
-        for step, expected in self.OPERATORS:
-            with self.subTest(step=step):
-                self.assertEqual(readiness.without_stand_in(step), expected)
-        for step in ('intune-iac catalog | cat', 'echo ok; intune-iac start --goal discover || true'):
-            with self.subTest(step=step):
-                self.assertEqual(readiness.without_stand_in(step), step)
+        for text, expected in self.SIMPLE_WITH_THE_STAND_IN:
+            with self.subTest(text=text):
+                self.assertEqual(readiness.without_stand_in(text), expected)
 
-    def test_a_part_that_still_names_the_stand_in_is_replaced_whatever_it_is_fail_closed(self):
-        """Round 5: this part is not a start or catalog command, but it holds the token DIRECTORY, so the rule fails closed on it
-        (round 4 kept it unchanged); the part without the token keeps its bytes."""
+    def test_a_simple_part_without_the_stand_in_stays_byte_for_byte(self):
         from intune_iac import readiness
-        said = readiness.without_stand_in('intune-iac start --goal discover && echo DIRECTORY')
-        self.assertEqual(said, 'intune-iac start --goal discover && this step names the directory, which cannot be shown here')
+        for text in self.SIMPLE_WITHOUT_IT:
+            with self.subTest(text=text):
+                self.assertEqual(readiness.without_stand_in(text), text)
 
-    # Round 6: the flattening is quote-aware. (text, what the shell reads in it, hand-worked): a part goes to words exactly when the
-    # shell would read the token DIRECTORY. Single quotes keep every backslash; double quotes keep a backslash unless it escapes
-    # $, a backtick, ", \ or a newline; outside quotes a backslash escapes the next character.
-    SHELL_READS = (
-        ("echo 'D\\IRECTORY'", False),         # single quotes: D\IRECTORY
-        ('echo "D\\IRECTORY"', False),         # double quotes keep the backslash before I: D\IRECTORY
-        ('echo D\\IRECTORY', True),            # unquoted: \I is I, so DIRECTORY
-        ('echo "D\\\\IRECTORY"', False),       # double quotes: \\ is one backslash: D\IRECTORY
-        ('echo D\\\\IRECTORY', False),         # unquoted: \\ is one backslash: D\IRECTORY
-        ('echo "D\\$IRECTORY"', False),        # \$ is $: D$IRECTORY
-        ('echo D"\\IRECTORY"', False),         # D then "\I" kept: D\IRECTORY
-        ('echo D\\"IRECTORY', False),          # unquoted \" is a quote character: D"IRECTORY
-        ('echo "DIRECT\\ORY"', False),         # DIRECT\ORY
-        ("echo 'DIRECTORY'", True),
-        ('echo "DIRECTORY"', True),
-        ('echo D"IR"ECTORY', True),
-        ("echo 'D'\\I'RECTORY'", True),        # D, \I is I, RECTORY: DIRECTORY
-        ("echo 'D\\'IRECTORY", False),         # single quotes end at the second quote: D\ then IRECTORY
-    )
-
-    # Round 8: the $ class. (text, does bash read the token DIRECTORY in it, with no variable set). Worked by hand.
-    DOLLARS = (
-        ('echo DIREC$""TORY', True),             # $"..." is a double-quoted string: empty
-        ('echo DIREC$\'\'TORY', True),            # $'..' likewise
-        ('echo DIREC$xTORY', False),              # $xTORY is one name (greedy): unset, so DIREC
-        ('echo DIREC${x}TORY', True),             # ${x} is empty
-        ('echo D${x-IRECTORY}', True),            # ${x-w} is w when x is unset
-        ('echo D${x+IRECTORY}', False),           # ${x+w} is empty when x is unset
-        ('echo DIREC$@TORY', True),
-        ('echo DIREC$*TORY', True),
-        ('echo DIREC$1TORY', True),               # $1 is one digit: empty
-        ('echo DIREC$!TORY', True),
-        ('echo "DIREC$xTORY"', False),
-        ('echo "DIREC${x}TORY"', True),
-        ('echo "DIREC$""TORY"', False),            # inside double quotes $" is a literal $ then the quote ends: DIREC$ and TORY
-        ("echo 'DIREC$xTORY'", False),             # single quotes keep the $
-        ('echo DIREC\\$""TORY', False),           # \\$ is a literal $: DIREC$TORY
-        ('echo "DIREC\\$x"', False),
-        ('echo $', False),
-        ('echo D$ IRECTORY', False),
-    )
-    SUBSTITUTIONS = (
-        ('echo $(date)', True), ('echo `date`', True), ('echo "$(date)"', True), ('echo "`date`"', True),
-        ("echo '$(date)'", False), ("echo '`date`'", False), ('echo \\`date', False), ('echo \\$(date)', False),
-        ('echo $((1+1))', True),
-        # Round 9: an assignment expansion carries state to later words, so any part holding one fails closed, with or without
-        # the token in sight; the forms that carry no state (-, :-, +, :+) and single-quoted text are read as before.
-        ('echo ${x:=DIREC} ${x}TORY', True), ('echo ${x=DIREC} ${x}TORY', True), ('echo ${x:=a}', True), ('echo ${x=a}', True),
-        ('echo ${x?a}', True), ('echo ${x:?a}', True), ('echo "${x:=a}"', True), ("echo '${x:=a}'", False),
-        ('echo ${x-a}', False), ('echo ${x:-a}', False), ('echo ${x+a}', False), ('echo ${x:+a}', False),
-        ('echo \\${x:=a}', False),
-        # Round 10: a parameter can hold anything at copy time (the shell's own name, a caller's arguments), so every ACTIVE
-        # special-parameter expansion fails closed, plain or braced, bare or in double quotes, with or without the token in sight;
-        # in single quotes, ANSI-C quotes or after a backslash it is inactive text.
-        ('echo $0', True), ('echo $1', True), ('echo $9', True), ('echo $@', True), ('echo $*', True), ('echo $#', True),
-        ('echo $?', True), ('echo $-', True), ('echo $$', True), ('echo $!', True), ('echo "$@"', True), ('echo "$0"', True),
-        ('echo ${0}', True), ('echo ${1}', True), ('echo ${@}', True), ('echo ${#}', True), ('echo "${?}"', True),
-        ('echo ${0-a}', True), ('echo ${#+a}', True), ("echo '$?'", False), ("echo $'$?'", False), ('echo \\$?', False),
-        ("echo '${0}'", False), ('echo $x $xy $_a', False), ('echo ${x}', False),
-        # a comment is not in the grammar; a word-start # hides what follows from a quote reader (an apostrophe in it, a $* after
-        # its newline), so a part with one fails closed. A # inside a word, quoted or escaped is text.
-        ("X #a'b\n$*", True), ('X #a', True), ('X\t#a', True), ('# a', True), ("X a#b", False), ("X '#a'", False),
-        ('X "#a"', False), ('X \\#a', False), ('X ${x-#a}', False), ('X $x#a', False),
-    )
-
-    def test_dollar_constructs_are_read_as_the_shell_reads_them(self):
+    def test_non_simple_text_is_always_words_with_or_without_the_stand_in(self):
         from intune_iac import readiness
-        generic = 'this step names the directory, which cannot be shown here'
-        for text, names_it in self.DOLLARS + self.SUBSTITUTIONS:
+        for text in self.NON_SIMPLE:
             with self.subTest(text=text):
                 said = readiness.without_stand_in(text)
-                self.assertEqual(said, generic if names_it else text)
-
-    def test_an_unquoted_backslash_newline_is_removed_as_the_shell_removes_it(self):
-        """Round 7: outside quotes the shell drops a backslash followed by a newline, so DIREC, backslash, newline, TORY is DIRECTORY."""
-        from intune_iac import readiness
-        generic = 'this step names the directory, which cannot be shown here'
-        self.assertEqual(readiness.without_stand_in('echo DIREC\\\nTORY'), generic)
-        self.assertEqual(readiness.without_stand_in('echo D\\\nIRE\\\nCTORY'), generic)
-        said = readiness.without_stand_in('Run: intune-iac start DIREC\\\nTORY --goal discover')
-        self.assertNotIn('DIREC', said)
-        self.assertIn('the start command with this directory (%s)' % CANNOT, said)
-        for text in ('echo DIREC\\\\\nTORY', 'echo "DIREC\\IRECTORY"', "echo 'DIREC\\\nTORY'"):   # a backslash pair, or quoted
-            self.assertEqual(readiness.without_stand_in(text), text, text)
-
-    def test_the_net_reads_quoting_as_the_shell_does(self):
-        from intune_iac import readiness
-        for text, names_it in self.SHELL_READS:
-            with self.subTest(text=text):
-                said = readiness.without_stand_in(text)
-                if names_it:
-                    self.assertEqual(said, 'this step names the directory, which cannot be shown here')
-                else:
-                    self.assertEqual(said, text)       # byte for byte
-
-    SPELLINGS_R5 = (
-        ('Run: intune-"iac"\tstart DIRECTORY', 'start'),
-        ('Run: intune-iac\tstart\tDIRECTORY', 'start'),
-        ('Run: intune-iac \t start  DIRECTORY', 'start'),
-        ("Run: $'intune-iac' start DIRECTORY", 'start'),
-        ("Run: intune-$'iac' start DIRECTORY", 'start'),
-        ("Run: $'intune'-$'iac' catalog $'DIRECTORY'", 'catalog'),
-        ("Run: intune-iac $'start' DIRECTORY", 'start'),
-        ("Run: intune-iac start $'DIRECTORY' --goal discover", 'start'),
-    )
-
-    def test_tabs_and_ansi_c_quoting_leave_no_stand_in(self):
-        from intune_iac import readiness
-        for step, verb in self.SPELLINGS_R5:
-            with self.subTest(step=step):
-                said = readiness.without_stand_in(step)
+                self.assertNotEqual(said, text)
                 self.assertNotIn('DIRECTORY', said)
-                self.assertIn('the %s command with this directory (%s)' % (verb, CANNOT), said)
-        for step in ("Run: $'intune-iac' start --goal discover", 'Run: intune-iac\tstart\t--goal\tdiscover'):
-            with self.subTest(step=step):
-                self.assertEqual(readiness.without_stand_in(step), step)
+                self.assertIn(said, (self.GENERIC, self.NOT_SHOWN, self.START, self.CATALOG))
 
-    @staticmethod
-    def shell_reads(text):
-        """The text as an approximate shell reads it: quote characters, backslashes and the $ of $'..' gone, blanks one space."""
-        text = re.sub(r"\$(?=')", '', text)
-        text = re.sub(r"""['"\\]""", '', text)
-        return re.sub(r'[ \t]+', ' ', text)
+    def test_a_line_is_cut_only_at_the_simple_separators_and_each_part_is_read_alone(self):
+        from intune_iac import readiness
+        for text, expected in self.OPERATORS:
+            with self.subTest(text=text):
+                self.assertEqual(readiness.without_stand_in(text), expected)
 
     @staticmethod
     def producer_strings():
-        """Every string constant in readiness.py and catalog.py that holds the word DIRECTORY (an AST walk, not a list)."""
+        """Every string constant in readiness.py and catalog.py that holds the word DIRECTORY (an AST walk, not a list), with the
+        program name written in for %s."""
         import ast
         found = []
         for name in ('readiness.py', 'catalog.py'):
             path = Path(__file__).resolve().parents[1] / 'intune_iac' / name
             for node in ast.walk(ast.parse(path.read_text(encoding='utf-8'))):
                 if isinstance(node, ast.Constant) and isinstance(node.value, str) and 'DIRECTORY' in node.value:
-                    found.append(node.value)
+                    found.append(node.value.replace('%s', 'intune-iac'))
         return sorted(set(found))
+
+    # the allowlist, written again here from the contract (not imported from the code under test)
+    SIMPLE_WORD = r"(?:[A-Za-z0-9_./:,-]|'[A-Za-z0-9_./:, -]*')+"
+    SIMPLE_PART = re.compile(r' *(?:%s(?: +%s)*)? *' % (SIMPLE_WORD, SIMPLE_WORD))
+    TOKEN = re.compile(r'(?<![A-Za-z0-9_])DIRECTORY(?![A-Za-z0-9_])')
 
     @classmethod
     def variants(cls, text):
-        """The producer string spelled every way the closed grammar allows: each word quoted four ways, blanks as tabs, behind
-        another command."""
+        """The producer string spelled other ways: each word quoted four ways, blanks as tabs, behind another command."""
         words = text.split(' ')
-        out = [text, text.replace(' ', '\t'), 'echo ok; ' + text, 'true && ' + text, text.replace(' ', ' \t '), 'x | ' + text]
+        out = [text, text.replace(' ', '\t'), 'echo ok; ' + text, 'true && ' + text, text.replace(' ', ' \t '), 'x | ' + text,
+               "x '" + text.replace("'", '')[:40] + "'"]
         for index, word in enumerate(words):
             for wrap in ("'%s'", '"%s"', "$'%s'", None):
                 said = (wrap % word) if wrap else ('\\' + word if word else word)
                 out.append(' '.join(words[:index] + [said] + words[index + 1:]))
         return out
 
-    def test_every_producer_string_with_the_stand_in_loses_it_in_every_spelling(self):
+    def test_every_producer_string_and_every_variant_loses_the_stand_in_and_non_simple_ones_are_words(self):
         from intune_iac import readiness
         strings = self.producer_strings()
         self.assertGreater(len(strings), 8)           # the walk found the producers (readiness.py and catalog.py)
-        generated = 0
-        token = re.compile(r'(?<![A-Za-z0-9_])DIRECTORY(?![A-Za-z0-9_])')
+        generated, simple_kept = 0, 0
         for text in strings:
-            self.assertIsNone(token.search(self.shell_reads(readiness.without_stand_in(text))), text)
-            for variant in self.variants(text):
+            for variant in [text] + self.variants(text):
                 generated += 1
+                said = readiness.without_stand_in(variant)
                 with self.subTest(variant=variant):
-                    self.assertIsNone(token.search(self.shell_reads(readiness.without_stand_in(variant))), variant)
-        type(self).producer_counts = (len(strings), generated)
+                    parts = re.split(r'( && | \|\| | \| |; )', variant)[::2]
+                    self.assertIsNone(self.TOKEN.search(said.replace("'", '')), variant)
+                    if all(self.SIMPLE_PART.fullmatch(part) for part in parts):
+                        if not any(self.TOKEN.search(part.replace("'", '')) for part in parts):
+                            self.assertEqual(said, variant)       # simple, stand-in free: byte for byte
+                            simple_kept += 1
+                    else:
+                        self.assertNotEqual(said, variant)        # a non-simple part is words
+        type(self).producer_counts = (len(strings), generated, simple_kept)
         self.assertGreater(generated, 100)
-
-    def test_a_quoted_option_or_option_value_is_not_a_directory_operand(self):
-        from intune_iac import readiness
-        for step in self.NO_OPERAND:
-            with self.subTest(step=step):
-                self.assertEqual(readiness.without_stand_in(step), step)
-
-    def test_the_rest_of_the_step_survives_and_other_commands_are_untouched(self):
-        from intune_iac import readiness
-        said = readiness.without_stand_in('Choose one tenant, then run: intune-iac start DIRECTORY. Then: intune-iac capture --tenant T')
-        self.assertTrue(said.startswith('Choose one tenant, then run: the start command with this directory'), said)
-        self.assertIn('Then: intune-iac capture --tenant T', said)
-        self.assertIn('.', said.split('(')[1])        # the full stop the command swallowed is back
-        for untouched in ('Run: intune-iac doctor to see the host profiles', 'Run: intune-iac start --goal discover',
-                          'Run: intune-iac catalog --check-signin azure', 'Run: intune-iac capture --output NEW_DIR', ''):
-            self.assertEqual(readiness.without_stand_in(untouched), untouched)
 
     def test_the_catalog_applies_it_to_every_recorded_step_of_a_hidden_directory(self):
         from intune_iac import catalog
-        for spelling in self.SPELLINGS:
-            step = spelling.format(verb='start')
-            goals = [{'goal': 'discover', 'next_action': step, 'blocked': {'next_action': step, 'missing': step}}]
+        for text, expected in self.SIMPLE_WITH_THE_STAND_IN[:6] + tuple((t, None) for t in self.NON_SIMPLE[:8]):
+            goals = [{'goal': 'discover', 'next_action': text, 'blocked': {'next_action': text, 'missing': text}}]
             catalog._shown_goal_steps(goals, 'DIRECTORY', True)
-            for text in (goals[0]['next_action'], goals[0]['blocked']['next_action'], goals[0]['blocked']['missing']):
-                self.assertNotIn('DIRECTORY', text, spelling)
+            for said in (goals[0]['next_action'], goals[0]['blocked']['next_action'], goals[0]['blocked']['missing']):
+                with self.subTest(text=text):
+                    self.assertNotIn('DIRECTORY', said)
+                    if expected:
+                        self.assertEqual(said, expected)
 
 
 class LayerRouteTests(unittest.TestCase):
