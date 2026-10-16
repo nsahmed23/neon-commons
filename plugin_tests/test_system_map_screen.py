@@ -327,8 +327,11 @@ class SizeTests(unittest.TestCase):
         self.assertIn('Enter opens 9 Repository', '\n'.join(rows))
 
     def test_a_focus_the_map_does_not_hold_falls_back_to_the_first_node(self):
-        rows = screen().render(recorded(), 120, 40, colour=False, unicode=False, focus='nothing')
+        snapshot = recorded()
+        rows = screen().render(snapshot, 120, 40, colour=False, unicode=False, focus='nothing')
         self.assertIn('FOCUS repository', '\n'.join(rows))
+        self.assertTrue(node_row(rows, snapshot, 'repo.source').startswith('> '))
+        self.assertFalse(node_row(rows, snapshot, 'observation').startswith('> '))
 
     def test_at_40x12_there_is_no_map_and_the_sentence_names_the_plain_text_route(self):
         snapshot = recorded()
