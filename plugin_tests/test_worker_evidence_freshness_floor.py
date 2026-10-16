@@ -11,6 +11,7 @@ import contextlib
 import fcntl
 import json
 import os
+import stat
 import subprocess
 import sys
 import tempfile
@@ -320,6 +321,61 @@ class PosixStoreReaderTests(Shape, unittest.TestCase):
             return real(path, data)
         error = self.refused(patch.object(host.protected, '_exclusive', side_effect=selective), T + 1, expiring(self.req))
         self.assertEqual(error.code, 'worker_evidence_clock_unrecorded')
+
+    def failing_cleanup(self, kind):
+        """OSError from closing a descriptor of this kind ('dir' = the directory lock, 'file' = the floor lock file), but only
+        while _locked_now is releasing: armed when the body of the locked section ends."""
+        real_locked, real_close, armed = host._locked_now, os.close, []
+
+        @contextlib.contextmanager
+        def arming(root):
+            try:
+                with real_locked(root) as value:
+                    try:
+                        yield value
+                    finally:
+                        armed.append(True)
+            finally:
+                armed.clear()  # only the release inside _locked_now is failing
+
+        def close(fd):
+            wanted = stat.S_ISDIR if kind == 'dir' else stat.S_ISREG
+            hit = bool(armed) and wanted(os.fstat(fd).st_mode)
+            real_close(fd)
+            if hit:
+                raise OSError('injected close failure')
+
+        stack = contextlib.ExitStack()
+        stack.enter_context(patch.object(host, '_locked_now', new=arming))
+        stack.enter_context(patch.object(os, 'close', new=close))
+        return stack
+
+    def check_cleanup_failure(self, kind):
+        with self.failing_cleanup(kind), wall(T + 20), self.assertRaises(AppError) as raised:
+            host.ingest(self.root, expiring(self.req), self.req, self.policy, OK)
+        self.assertEqual(raised.exception.code, 'worker_evidence_expired')  # the temporal refusal is not replaced
+        self.assertIn('injected', ''.join(getattr(raised.exception, '__notes__', [])) + repr(raised.exception.__context__))
+        with self.failing_cleanup(kind), wall(T + 25):  # admitted: the read stands, with the cleanup failure noted
+            result = host.ingest(self.root, aging(make_request(self.policy, '8' * 32)), make_request(self.policy, '8' * 32),
+                                 self.policy, OK)
+        self.assertFalse(result['idempotent'])
+        self.assertEqual(result['lock_cleanup_failures'], ['OSError'])
+        self.assertNotIn('closure_recorded', result)
+        with wall(T + 26):
+            self.assertTrue(host.reopen(self.root, digest(make_request(self.policy, '8' * 32)), self.policy, OK)['baseline_admissible'])
+
+    def test_a_directory_close_failure_neither_replaces_a_refusal_nor_undoes_an_admission(self):
+        self.check_cleanup_failure('dir')
+
+    def test_a_floor_lock_exit_failure_neither_replaces_a_refusal_nor_undoes_an_admission(self):
+        self.check_cleanup_failure('file')
+
+    def test_a_cleanup_failure_on_an_expired_reopen_keeps_the_temporal_code(self):
+        self.publish(expiring(self.req))
+        for kind in ('dir', 'file'):
+            with self.failing_cleanup(kind), wall(T + 20), self.assertRaises(AppError) as raised:
+                self.read()
+            self.assertEqual(raised.exception.code, 'worker_evidence_expired')
 
 
 if __name__ == '__main__':

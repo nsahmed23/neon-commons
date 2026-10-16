@@ -243,7 +243,7 @@ def ingest_raw(store_root,envelope_raw,request_raw,policy,verifier):
         # Authenticate first (structure, trust, binding, signature) on a read-only time reading: a rejected input leaves no clock effect.
         contract.verify_envelope(frozen_envelope,req,policy,verifier,now=contract.fresh_now(floor=root/'clock.json'),historical=True)
         # Then judge time under the floor lock and keep it through the acceptance commit.
-        with _locked_now(root) as (now,recorded):
+        with _locked_now(root) as (now,recorded,cleanup_notes):
             verified=_decide(frozen_envelope,req,policy,verifier,now,recorded)
             # Only process-owned parsed persisted bytes and verified content feed the ledger.
             result=verified.result();binding=contract.received_binding(verified,digest(req))
@@ -268,6 +268,7 @@ def ingest_raw(store_root,envelope_raw,request_raw,policy,verifier):
             except (sqlite3.Error,OSError):
                 # Creating the database, opening it, BEGIN IMMEDIATE, the receipt writes or the acceptance commit failed: not recorded, not admitted.
                 contract.unrecorded()
+        if cleanup_notes:result['lock_cleanup_failures']=list(cleanup_notes)
         protected._sync(root)
         write_new(attempt/'result.json',result)
         return dict(result,stored_attempt=attempt.name,idempotent=prior is not None)
@@ -293,9 +294,11 @@ def reopen(store_root,request_sha256,policy,verifier,*,historical=False):
     # Authenticate on a read-only reading, then record what an authenticated read saw (a closed window stays closed across a
     # restart) and decide under the floor lock.
     contract.verify_envelope(envelope,req,policy,verifier,now=contract.fresh_now(floor=root/'clock.json'),historical=True)
-    with _locked_now(root) as (now,recorded):
+    with _locked_now(root) as (now,recorded,cleanup_notes):
         verified=_decide(envelope,req,policy,verifier,now,recorded)
-        return _stored(root,row,request_sha256,verified)
+        result=_stored(root,row,request_sha256,verified)
+    if cleanup_notes:result['lock_cleanup_failures']=list(cleanup_notes)
+    return result
 
 
 def _stored(root,row,request_sha256,verified):
@@ -322,15 +325,20 @@ def _decide(envelope,req,policy,verifier,now,recorded):
 def _locked_now(root):
     """The store floor lock, outermost (directory flock, then the floor lock, then SQLite: the order validity.py uses).
 
-    Resamples the wall under the lock, persists the observation and yields (effective time, recorded), so no other writer
-    can move the floor between this sample and the caller's acceptance. recorded is False when the lock or the write failed
-    (the whole recording boundary, directory open and flock included); the caller then refuses an admission and flags a
-    temporal refusal, which the read-only effective time still establishes. Call only after the input authenticated."""
+    Resamples the wall under the lock, persists the observation and yields (effective time, recorded, notes), so no other
+    writer can move the floor between this sample and the caller's acceptance. recorded is False when the lock or the write
+    failed (the whole recording boundary, directory open and flock included); the caller then refuses an admission and flags
+    a temporal refusal, which the read-only effective time still establishes.
+
+    Releasing the locks never replaces the outcome: an OSError from the release is added as a note to an exception already in
+    flight, and otherwise appended to notes (the caller attaches it to its result; the read stands, since the mark and any
+    receipt were committed inside the section). Call only after the input authenticated."""
     import fcntl
     from contextlib import ExitStack
     from . import clock
-    floor=clock.Floor(root/'clock.json')
-    with ExitStack() as held:
+    floor=clock.Floor(root/'clock.json');notes=[];primary=None
+    held=ExitStack()
+    try:
         locked=True
         try:
             directory=os.open(root,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW);held.callback(os.close,directory)
@@ -340,11 +348,20 @@ def _locked_now(root):
             held.enter_context(floor.locked())
         except OSError:locked=False
         if not locked:
-            yield contract.fresh_now(floor=root/'clock.json'),False
-            return
-        wall=time.time();recorded=True
-        try:reading=floor.observe_locked(wall)
-        except (OSError,AppError) as error:
-            if isinstance(error,AppError) and error.code in ('clock_floor_invalid','clock_reading_invalid'):raise
-            recorded=False;reading=floor.observe_locked(wall,persist=False)
-        yield int(reading['effective']),recorded
+            now,recorded=contract.fresh_now(floor=root/'clock.json'),False
+        else:
+            wall=time.time();recorded=True
+            try:reading=floor.observe_locked(wall)
+            except (OSError,AppError) as error:
+                if isinstance(error,AppError) and error.code in ('clock_floor_invalid','clock_reading_invalid'):raise
+                recorded=False;reading=floor.observe_locked(wall,persist=False)
+            now=int(reading['effective'])
+        yield now,recorded,notes
+    except BaseException as error:
+        primary=error;raise
+    finally:
+        try:held.close()
+        except OSError as cleanup:
+            if primary is not None:
+                if hasattr(primary,'add_note'):primary.add_note('Lock release also failed: '+type(cleanup).__name__+': '+str(cleanup))
+            else:notes.append(type(cleanup).__name__)
