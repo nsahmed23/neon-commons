@@ -429,14 +429,58 @@ NO_CHECK_HIDDEN = ('No sign-in check was run. To look for an existing Azure sign
                     '--output json and nothing else).')
 # What the recorded steps say where the engineer's own directory goes, and what a screen that may not show the directory says in
 # its place: words, not a command (DIRECTORY is a valid relative path, so a copied command would address that folder).
-START_STAND_IN = '%s start DIRECTORY' % PROGRAM
-START_IN_WORDS = 'the start command with this directory (the directory cannot be shown here)'
+IN_WORDS = 'the %s command with this directory (the directory cannot be shown here)'
+# The commands that take the surveyed directory as an operand, and their options that take a value (so that a value is not read
+# as the operand).
+DIRECTORY_COMMANDS = ('start', 'catalog')
+VALUE_OPTIONS = ('--goal', '--check-signin')
+
+
+def _takes_directory(tokens):
+    """Whether a command (its arguments after the program name, as the product's command reader cut them) names a directory
+    operand: a start or catalog command with an argument that is neither an option nor an option's value. Quoting is read as the
+    shell reads it, so 'DIRECTORY' and DIRECTORY are the same operand, and the order of the arguments does not matter."""
+    import shlex
+    if not tokens or tokens[0] not in DIRECTORY_COMMANDS:
+        return False
+    previous = None
+    for token in tokens[1:]:
+        try:
+            words = shlex.split(token)
+        except ValueError:
+            words = [token]
+        if words and not token.startswith('-') and previous not in VALUE_OPTIONS:
+            return True
+        previous = token
+    return False
 
 
 def without_stand_in(step):
-    """A recorded step as a screen that may not show the directory prints it: the start command with the stand-in DIRECTORY is
-    said in words. Any other step is as it is."""
-    return step.replace(START_STAND_IN, START_IN_WORDS) if step else step
+    """A recorded step as a screen that may not show the directory prints it. The commands in it are found with the product's own
+    command reader (entry._segments); every start or catalog command with a directory operand is replaced as a whole by words, so
+    that no stand-in survives in any spelling (quoted, spaced, reordered). Any other step is as it is."""
+    if not step or 'intune-iac' not in step:
+        return step
+    from .entry import _segments
+    segments = _segments(step)
+    if not any(kind == 'command' and _takes_directory(body) for kind, body in segments):
+        return step
+    parts, after_words = [], False
+    for kind, body in segments:
+        if kind == 'text':
+            body = body.strip()
+            if after_words and body[:1].isupper():
+                parts[-1] += '.'      # the command reader swallowed the full stop that ended the sentence the command stood in
+            after_words = False
+            if body:
+                parts.append(body)
+        elif _takes_directory(body):
+            parts.append(IN_WORDS % body[0])
+            after_words = True
+        else:
+            parts.append('%s %s' % (PROGRAM, ' '.join(body)))
+            after_words = False
+    return ' '.join(parts)
 
 
 def screen_note(note, operand=None, legend='', hidden=False):

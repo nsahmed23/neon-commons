@@ -166,6 +166,51 @@ class RefusedFileNameTests(unittest.TestCase):
         self.assertIn('Resume: intune-iac wizard --session NEW_SESSION.json --input work/export.json', text)
 
 
+class StandInCommandSegmentTests(unittest.TestCase):
+    """Round 2 (Sol, Medium): the safety must not depend on one serialized spelling. A start or catalog command whose directory
+    operand a hidden directory supplies is replaced as a whole by words, however it is spelled."""
+
+    SPELLINGS = (
+        "Run: intune-iac {verb} DIRECTORY --goal discover --check-signin azure",
+        "Run: intune-iac {verb} 'DIRECTORY' --goal discover --check-signin azure",
+        'Run: intune-iac {verb} "DIRECTORY" --goal discover',
+        'Run:   intune-iac    {verb}     DIRECTORY     --goal   discover',
+        'Run: intune-iac {verb} --goal discover DIRECTORY --check-signin azure',
+        'Run: intune-iac {verb} --check-signin azure --goal discover DIRECTORY',
+        'Choose one tenant, then run: intune-iac {verb} DIRECTORY. Then: intune-iac capture --tenant T',
+        'Run: intune-iac {verb} DIRECTORY and pass its result to this check.',
+    )
+
+    def test_no_spelling_leaves_a_copyable_stand_in(self):
+        from intune_iac import readiness
+        for verb in ('start', 'catalog'):
+            for spelling in self.SPELLINGS:
+                with self.subTest(verb=verb, spelling=spelling):
+                    said = readiness.without_stand_in(spelling.format(verb=verb))
+                    self.assertNotIn('DIRECTORY', said)
+                    self.assertNotIn('intune-iac %s' % verb, said)
+                    self.assertIn('the %s command with this directory (%s)' % (verb, CANNOT), said)
+
+    def test_the_rest_of_the_step_survives_and_other_commands_are_untouched(self):
+        from intune_iac import readiness
+        said = readiness.without_stand_in('Choose one tenant, then run: intune-iac start DIRECTORY. Then: intune-iac capture --tenant T')
+        self.assertTrue(said.startswith('Choose one tenant, then run: the start command with this directory'), said)
+        self.assertIn('Then: intune-iac capture --tenant T', said)
+        self.assertIn('.', said.split('(')[1])        # the full stop the command swallowed is back
+        for untouched in ('Run: intune-iac doctor to see the host profiles', 'Run: intune-iac start --goal discover',
+                          'Run: intune-iac catalog --check-signin azure', 'Run: intune-iac capture --output NEW_DIR', ''):
+            self.assertEqual(readiness.without_stand_in(untouched), untouched)
+
+    def test_the_catalog_applies_it_to_every_recorded_step_of_a_hidden_directory(self):
+        from intune_iac import catalog
+        for spelling in self.SPELLINGS:
+            step = spelling.format(verb='start')
+            goals = [{'goal': 'discover', 'next_action': step, 'blocked': {'next_action': step, 'missing': step}}]
+            catalog._shown_goal_steps(goals, 'DIRECTORY', True)
+            for text in (goals[0]['next_action'], goals[0]['blocked']['next_action'], goals[0]['blocked']['missing']):
+                self.assertNotIn('DIRECTORY', text, spelling)
+
+
 class LayerRouteTests(unittest.TestCase):
     def test_the_narrow_route_row_prints_a_notice_never_a_command_with_a_stand_in(self):
         for label, name in NAMES.items():
