@@ -1345,7 +1345,11 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                     from .companion import start_live, write_static
                     read = _companion_read(store, selected)
                     if values[0] == 'serve':
-                        if held: raise AppError('companion_running', 'A companion listener is already running; "companion stop" ends it.')
+                        if any(not getattr(listener, 'is_closed', False) for listener in held):
+                            raise AppError('companion_running', 'A companion listener is already running; "companion stop" ends it.')
+                        # What is held is closed already (it stopped itself at the idle limit): retire it. Its stop() returns
+                        # at once, or delivers the failure a background stop queued, which is shown instead of a new listener.
+                        stop_companions()
                         read()
                         listener = start_live(read)
                         held.append(listener)

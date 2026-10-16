@@ -434,6 +434,20 @@ class FailingStopTests(Fixture):
         self.assertEqual(codes, ['companion_live_close_failed'], 'the failure is shown, never hidden')
         self.assertFalse(self.listeners[0].is_closed, 'the listener is still bound; process exit is the last resort')
 
+    def test_serve_starts_again_after_the_listener_stopped_itself_at_the_idle_limit(self):
+        results = self.run_terminal('select ' + self.object_id, 'companion serve', lambda: self.listeners[0].end('idle'),
+                                    'companion serve', 'quit')
+        shown = [item['error']['code'] if item.get('status') == 'error' else 'serving'
+                 for item in results if isinstance(item, dict) and (item.get('status') == 'error' or 'address' in item)]
+        self.assertEqual(shown, ['serving', 'serving'])
+        self.assertTrue(self.listeners[0].is_closed)
+        self.assertEqual(len(self.listeners), 2)
+
+    def test_serve_is_still_refused_while_the_held_listener_is_not_closed(self):
+        results = self.run_terminal('select ' + self.object_id, 'companion serve', 'companion serve', 'quit')
+        codes = [item['error']['code'] for item in results if isinstance(item, dict) and item.get('status') == 'error']
+        self.assertEqual(codes, ['companion_running'])
+
 
 class ActionsMenuTests(Fixture):
     def actions(self):
