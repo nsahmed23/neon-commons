@@ -476,15 +476,66 @@ def _verb(tokens):
 def without_stand_in(step):
     """A recorded step as a screen that may not show the directory prints it. The commands in it are found with the product's own
     command reader (entry._segments); every start or catalog command with a directory operand is replaced as a whole by words, so
-    that no stand-in survives in any spelling (quoted, spaced, reordered). Any other step is as it is."""
-    if not step or 'intune-iac' not in step:
+    that no stand-in survives in any spelling (quoted, escaped, spaced, reordered). A line is first cut at the shell's operators
+    (; && || |, outside quotes) and each part is read as its own command; a part that needs no change is kept as it was."""
+    if not step:
         return step
+    out, changed = [], False
+    for part, operator in _shell_parts(step):
+        said = _without_stand_in_part(part) if part.strip() else part
+        if said != part:
+            changed = True
+            said = part[:len(part) - len(part.lstrip())] + said.strip() + part[len(part.rstrip()):]
+        out.append(said + operator)
+    return ''.join(out) if changed else step
+
+
+def _shell_parts(line):
+    """[(text, operator)] : the line cut at ; && || | outside quotes and escapes. The pieces joined again are the line."""
     import re
+    piece = re.compile(r"""'[^']*'|"(?:[^"\\]|\\.)*"|\\.|&&|\|\||\||;|[^'"\\&|;]+|.""", re.S)
+    parts, text = [], ''
+    for match in piece.finditer(line):
+        word = match.group()
+        if word in ('&&', '||', '|', ';'):
+            parts.append((text, word))
+            text = ''
+        else:
+            text += word
+    parts.append((text, ''))
+    return parts
+
+
+def _program_as_shell_reads_it(text):
+    """The text with every word whose shell value is exactly the program name written as that name (intune-"iac", intune\\-iac,
+    'intune'-iac ...), so that the command reader finds it. Other words are untouched."""
+    import shlex
+    from .entry import _TOKEN
+    out, last = [], 0
+    for match in _TOKEN.finditer(text):
+        word = match.group()
+        if word == PROGRAM:
+            continue
+        try:
+            value = ''.join(shlex.split(word))
+        except ValueError:
+            continue
+        if value == PROGRAM:
+            out.append(text[last:match.start()] + PROGRAM)
+            last = match.end()
+    return ''.join(out) + text[last:]
+
+
+def _without_stand_in_part(step):
+    """without_stand_in for one command line without operators."""
     from .entry import _segments
-    # the program name is an argument the shell unquotes too
-    segments = _segments(re.sub(r"""(['"])intune-iac\1""", PROGRAM, step))
+    original = step
+    step = _program_as_shell_reads_it(step)
+    if PROGRAM not in step:
+        return original
+    segments = _segments(step)
     if not any(kind == 'command' and _takes_directory(body) for kind, body in segments):
-        return step
+        return original
     parts, after_words = [], False
     for kind, body in segments:
         if kind == 'text':

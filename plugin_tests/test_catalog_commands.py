@@ -209,7 +209,20 @@ class StandInCommandSegmentTests(unittest.TestCase):
         ('Run: intune-iac start "DIRECTORY --goal discover', 'start'),           # a quote that never closes
         ("Run: intune-iac 'catalog DIRECTORY", 'catalog'),
     )
+    # Round 4: a program word whose shell value is exactly intune-iac counts, however it is quoted or escaped
+    PROGRAM_SPELLINGS = (
+        ('Run: intune-"iac" start DIRECTORY', 'start'),
+        ('Run: intune\\-iac start DIRECTORY', 'start'),
+        ("Run: 'intune'-iac catalog DIRECTORY", 'catalog'),
+        ('Run: "intune-iac" \'start\' "DIRECTORY"', 'start'),
+        ("Run: 'intune-'\"iac\" catalog DIRECTORY", 'catalog'),
+        ('Run: intu\\ne-iac start DIRECTORY', 'start'),         # the shell reads \\n as n: still the program
+        ('Run: intune-"iac"x start DIRECTORY', None),           # another program: its value is not intune-iac
+    )
     NO_OPERAND = (
+        'Run: intune-"iac" start --goal discover',
+        'Run: intune\\-iac catalog --check-signin azure',
+        'Run: echo ok; intune-iac start --goal discover',
         'Run: intune-iac start "--goal" discover',
         "Run: intune-iac start '--check-signin' azure",
         "Run: intune-iac 'catalog' \"--goal\" 'discover'",
@@ -224,6 +237,41 @@ class StandInCommandSegmentTests(unittest.TestCase):
                 self.assertNotIn('DIRECTORY', said)
                 self.assertNotIn('intune-iac', said)
                 self.assertIn('the %s command with this directory (%s)' % (verb, CANNOT), said)
+
+    def test_the_program_word_is_read_as_the_shell_reads_it(self):
+        from intune_iac import readiness
+        for step, verb in self.PROGRAM_SPELLINGS:
+            with self.subTest(step=step):
+                said = readiness.without_stand_in(step)
+                if verb is None:
+                    self.assertEqual(said, step)
+                    continue
+                self.assertNotIn('DIRECTORY', said)
+                self.assertIn('the %s command with this directory (%s)' % (verb, CANNOT), said)
+
+    OPERATORS = (
+        ('Run: echo ok; intune-iac start DIRECTORY', 'Run: echo ok; the start command with this directory (%s)' % CANNOT),
+        ('true && intune-iac catalog DIRECTORY --goal discover', 'true && the catalog command with this directory (%s)' % CANNOT),
+        ('intune-iac start DIRECTORY && echo ok', 'the start command with this directory (%s) && echo ok' % CANNOT),
+        ('intune-iac start DIRECTORY || echo no', 'the start command with this directory (%s) || echo no' % CANNOT),
+        ('intune-iac start DIRECTORY | cat', 'the start command with this directory (%s) | cat' % CANNOT),
+        ('intune-iac start --goal discover && intune-iac catalog DIRECTORY',
+         'intune-iac start --goal discover && the catalog command with this directory (%s)' % CANNOT),
+        ('intune-iac start --goal discover | intune-iac catalog DIRECTORY',
+         'intune-iac start --goal discover | the catalog command with this directory (%s)' % CANNOT),
+        ('intune-iac start DIRECTORY; intune-iac start --goal discover',
+         'the start command with this directory (%s); intune-iac start --goal discover' % CANNOT),
+    )
+
+    def test_each_part_of_a_line_is_its_own_command(self):
+        from intune_iac import readiness
+        for step, expected in self.OPERATORS:
+            with self.subTest(step=step):
+                self.assertEqual(readiness.without_stand_in(step), expected)
+        for step in ('intune-iac start --goal discover && echo DIRECTORY', 'intune-iac catalog | cat',
+                     'echo ok; intune-iac start --goal discover || true'):
+            with self.subTest(step=step):
+                self.assertEqual(readiness.without_stand_in(step), step)
 
     def test_a_quoted_option_or_option_value_is_not_a_directory_operand(self):
         from intune_iac import readiness
