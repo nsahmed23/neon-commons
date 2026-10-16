@@ -407,3 +407,29 @@ class ChangedFileNamedTests(Proposed):
 def shlex_quote(path):
     import shlex
     return shlex.quote(str(path))
+
+
+class ReducedBandNamesTheOperationTests(unittest.TestCase):
+    """Item 8, L-60 (frame 35, 60x20): the strip drops OP at 60 columns and the band carried no operation id, so
+    nothing on the screen said which operation is unknown; the narrow band now names it."""
+    OPERATION = 'c0e8470422ca4504916bf759d495698d'
+    SIGNAL = {'area': 'operations', 'code': 'operation_outcome_unknown', 'observed': 'Started dispatch.',
+              'next_step': 'Reconcile.', 'evidence': {'operation_id': OPERATION}}
+
+    def band(self, width, evidence=None):
+        from intune_iac.workbench_screens import hazard_rows
+        signal = dict(self.SIGNAL, evidence=self.SIGNAL['evidence'] if evidence is None else evidence)
+        return hazard_rows({'signals': [signal]}, [signal], width)
+
+    def test_at_60_columns_the_band_names_the_operation_and_keeps_its_response(self):
+        from intune_iac.workbench_tui import cell_width
+        rows = self.band(60)
+        self.assertEqual(rows[0], '! Op c0e84704 unknown. Reconcile, never replays (a: actions)')
+        self.assertLessEqual(cell_width(rows[0]), 60)
+
+    def test_wider_bands_keep_the_id_and_the_narrowest_keeps_its_response(self):
+        self.assertIn('c0e84704', self.band(80)[0])
+        self.assertIn('Reconcile (a actions)', self.band(40)[0])
+
+    def test_without_an_operation_id_the_band_is_unchanged(self):
+        self.assertEqual(self.band(60, evidence={})[0], '! Outcome unknown. Reconcile, never replays (a: actions)')

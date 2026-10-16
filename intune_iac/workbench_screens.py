@@ -274,6 +274,8 @@ def _band_forms(primary, prefixes=None):
         return ['! Operation %s: outcome unknown. Next: Reconcile it (a: actions); it never replays the change' % operation
                 if operation else '! Operation outcome unknown. Next: Reconcile it (a: actions); it never replays the change',
                 '! Outcome unknown%s. Reconcile, never replays (a: actions)' % (' (op %s)' % operation if operation else ''),
+                # 60 columns drops OP from the strip, so this form keeps the operation's id (run 12, frame 35).
+                *(['! Op %s unknown. Reconcile, never replays (a: actions)' % operation] if operation else []),
                 '! Outcome unknown. Reconcile; it never replays (a: actions)',
                 '! Outcome unknown. Reconcile (a actions)']
     if code == 'observation_tenant_mismatch':
