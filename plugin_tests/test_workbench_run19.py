@@ -405,8 +405,8 @@ class IdentifierWrapTests(CatalogLayerCase):
                                                             'role_scope_tag_ids': ['0']}}
         rows = inspector_lines(value, 36)
         at = next(index for index, row in enumerate(rows) if row.startswith('Identity'))
-        self.assertEqual(rows[at:at + 2], ['Identity  22222222-2222-4222-8222-',
-                                           '          222222222222 | windows10 |'])
+        # PKG-PRES-RUN20 item 1: a GUID that does not fit after its label but fits the pane moves whole to its own row.
+        self.assertEqual(rows[at:at + 2], ['Identity', GUID])
 
     def test_the_catalog_layer_at_60x20_shows_the_operations_guid_whole(self):
         rows = [row for page in self.pages(self.layer((60, 20))) for row in self.body(page)]

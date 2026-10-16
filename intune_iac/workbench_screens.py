@@ -1234,8 +1234,16 @@ TARGET_WORDS = {'groupAssignmentTarget': 'include', 'exclusionGroupAssignmentTar
 
 
 def _labelled(label, text, width, size=13):
-    """A label column followed by wrapped text, continuation lines indented under the text."""
+    """A label column followed by wrapped text, continuation lines indented under the text.
+
+    An identifier (a GUID) that does not fit after the label but fits the pane moves whole to its own row at the left
+    margin, the label standing alone above it; it breaks only when it is wider than the pane (journey 33 run 2, review
+    B finding 1)."""
     lines = []
+    narrow = [found.group(0) for found in _IDENTIFIER.finditer(safe_text(text))
+              if width - size < cell_width(found.group(0)) <= width]
+    if label.strip() and narrow:
+        return [label.rstrip()] + word_wrap(text, width)
     for index, part in enumerate(word_wrap(text, max(1, width - size))):
         lines.append((pad(label, size) if index == 0 else ' ' * size) + part)
     return lines
