@@ -933,7 +933,7 @@ class EstateScreenEdgeTests(unittest.TestCase):
         self.assertIn('Owner role human review assignee: none recorded | writer unknown: ownership index missing (ownership_index_missing) | source owner claim none recorded', ' '.join(joined.split()))
         self.assertIn('  Review not recorded | review due none | exception expiry none', joined)
         self.assertIn('Compatibility synthetic windows settings catalog (synthetic_windows_settings_catalog) | native provider not qualified', joined)
-        self.assertIn('Related proposals (1)\n    b668ad2fa6c5 succeeded verified (2 journal records; latest T2)', joined)
+        self.assertIn('Related operations (1)\n    b668ad2f succeeded verified (2 journal records; latest T2)', joined)  # run 12 L-proposals
 
 
 class RepositoryLinesTests(unittest.TestCase):
@@ -1253,7 +1253,7 @@ class QueueRun7Tests(unittest.TestCase):
         from intune_iac.workbench_screens import queue_lines
         text = '\n'.join(queue_lines(self.value('reporting_incomplete', 'ownership_unknown'), 160))
         for once in ('Owner role human review assignee', 'Compatibility synthetic windows settings catalog',
-                     'Related proposals (1)', 'Evidence synthetic | observed', 'State review required'):
+                     'Related operations (1)', 'Evidence synthetic | observed', 'State review required'):
             self.assertEqual(text.count(once), 1, once)
         self.assertEqual(text.count('Why: Why '), 2)
         self.assertEqual(text.count(':queue-review-template '), 2)

@@ -490,3 +490,58 @@ class OneHiddenFindingMarkerTests(unittest.TestCase):
 
     def test_no_marker_without_other_findings(self):
         self.assertNotIn('more finding', self.rows(1))
+
+
+class GivenIntentShownTests(unittest.TestCase):
+    """Item 8, L-given (frame 67): the refusal that says the intent given is not the one the plan cites shows the given
+    intent beside the cited one, taken from the command the engineer typed."""
+    CITED, GIVEN = '7e' * 32, 'ab' * 32
+    MESSAGE = ('This operation cites repository intent %s, not the intent given; record the deployment with the intent it '
+               'cites.' % CITED)
+
+    def value(self):
+        return {'status': 'error', 'error': {'code': 'workbench_deployment_intent_not_cited', 'message': self.MESSAGE,
+                                              'effects': {'deployment_recorded': False}}}
+
+    def test_the_cause_shows_both_intents(self):
+        from intune_iac.workbench_screens import refusal_lines
+        text = ' '.join(' '.join(refusal_lines(self.value(), 140, operation='d190dfd4', verb='deployment-record',
+                                               given=self.GIVEN)).split())
+        self.assertIn('Cause: Operation d190dfd4 cites repository intent %s, not the intent given (%s)' % (self.CITED, self.GIVEN),
+                      text)
+
+    def test_without_the_command_s_intent_the_cause_is_unchanged(self):
+        from intune_iac.workbench_screens import refusal_lines
+        text = ' '.join(' '.join(refusal_lines(self.value(), 140, operation='d190dfd4', verb='deployment-record')).split())
+        self.assertIn('not the intent given;', text)
+        self.assertNotIn('not the intent given (', text)
+
+    def test_the_workspace_reads_the_intent_from_the_deployment_record_command(self):
+        from intune_iac.workbench_tui import Workspace
+        self.assertEqual(Workspace._intent_given(None, "deployment-record '/w/my op' " + self.GIVEN), self.GIVEN)
+        self.assertIsNone(Workspace._intent_given(None, "deployment-record '/w/my op'"))
+        self.assertIsNone(Workspace._intent_given(None, 'collect'))
+
+
+class RelatedOperationsTests(unittest.TestCase):
+    """Item 8, L-proposals (frame 47): the list is operations with their latest outcomes, so it says so, and it uses
+    the 8-character operation ids the rest of the workspace uses."""
+
+    def text(self):
+        from intune_iac.workbench_screens import queue_lines
+        records = [{'operation_id': 'b668ad2fa6c54d20b94bd8677ce56735', 'sequence': 1, 'status': 'prepared', 'recorded_at': 'T1'},
+                   {'operation_id': 'b668ad2fa6c54d20b94bd8677ce56735', 'sequence': 2, 'status': 'succeeded_verified', 'recorded_at': 'T2'}]
+        value = {'findings': [{'object_id': 'o' * 8, 'finding': 'ownership_unknown', 'priority': 'review', 'owner': None,
+                               'owner_role': 'human_review_assignee', 'writer_ownership': {'status': 'unknown', 'reason': 'x'},
+                               'source_owner_claim': {'assertion_class': 'source_declared', 'value': None},
+                               'review_record': {'status': 'unknown', 'reason': 'review_not_recorded'},
+                               'compatibility': {'profile': 'synthetic_windows_settings_catalog', 'native_provider_qualified': False},
+                               'evidence': {'evidence_class': 'synthetic', 'observed_at': 'T0', 'snapshot_id': 'a' * 64},
+                               'related_proposals': records}]}
+        return '\n'.join(queue_lines(value, 120))
+
+    def test_the_heading_says_operations_and_the_id_has_eight_characters(self):
+        text = self.text()
+        self.assertIn('Related operations (1)\n    b668ad2f succeeded verified (2 journal records; latest T2)', text)
+        self.assertNotIn('Related proposals', text)
+        self.assertNotIn('b668ad2fa6c5', text)

@@ -2406,7 +2406,7 @@ def _proposals(related):
     lines = []
     for operation, records in by_operation.items():
         latest = max(records, key=lambda record: record['sequence'] if type(record.get('sequence')) is int else -1)
-        lines.append('%s %s (%s; latest %s)' % (operation[:12], _as_words(latest.get('status')), _plural(len(records), 'journal record'), _when(latest.get('recorded_at'))))
+        lines.append('%s %s (%s; latest %s)' % (short_id(operation), _as_words(latest.get('status')), _plural(len(records), 'journal record'), _when(latest.get('recorded_at'))))
     return lines
 
 
@@ -2477,7 +2477,7 @@ def queue_lines(value, width):
             blocks.append(('evidence', word_wrap('  Evidence %s | observed %s | snapshot %s' % (
                 evidence.get('evidence_class', 'unknown'), _when(evidence.get('observed_at'), 'unknown'), str(evidence.get('snapshot_id', 'unknown'))[:12]), width), True))
         proposals = _proposals(item.get('related_proposals'))
-        related = word_wrap('  Related proposals ' + ('(%d)' % len(proposals) if proposals else 'none'), width)
+        related = word_wrap('  Related operations ' + ('(%d)' % len(proposals) if proposals else 'none'), width)
         for text in proposals:
             related += word_wrap('    ' + text, width)
         blocks.append(('related', related, True))
@@ -3106,7 +3106,7 @@ def execution_effect_lines(result, width):
     return []
 
 
-def refusal_lines(value, width, known=None, clock_fact=None, operation=None, verb=None, recorded=None, context_file=None):
+def refusal_lines(value, width, known=None, clock_fact=None, operation=None, verb=None, recorded=None, context_file=None, given=None):
     """A refusal in one shape: the refusal in words with its code in parentheses, then Cause, Effect (when the engine
     established what changed) and Next (when the code is known).
 
@@ -3117,6 +3117,7 @@ def refusal_lines(value, width, known=None, clock_fact=None, operation=None, ver
     recorded: the deployment record the named operation already has, for a refused deployment-record command; the
     refusal then says so and names it, and never asks for a record that exists (run 9, frame 67).
     context_file: the path of the context file the plan bound, for a changed-file refusal, so the cause names it.
+    given: the intent the command named, for a refused deployment-record, shown beside the cited one (run 12, frame 67).
     """
     error = value.get('error') if isinstance(value.get('error'), dict) else {}
     code = str(error.get('code', 'unknown'))
@@ -3134,6 +3135,8 @@ def refusal_lines(value, width, known=None, clock_fact=None, operation=None, ver
     if operation and message.startswith('This operation '):
         # The engine's message says "This operation"; with the operation known, it says which one.
         message = 'Operation %s %s' % (operation, message[len('This operation '):])
+    if given and code == 'workbench_deployment_intent_not_cited':
+        message = message.replace(', not the intent given', ', not the intent given (%s)' % given, 1)
     already = None
     if recorded and code == 'workbench_deployment_intent_not_cited':
         # The engine's message ends by asking to record with the cited intent; the record exists, so that clause goes.

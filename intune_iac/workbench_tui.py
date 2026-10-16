@@ -1087,7 +1087,9 @@ class Workspace:
                                       recorded=self._recorded_deployment(command)
                                       if code == 'workbench_deployment_intent_not_cited' else None,
                                       context_file=self._context_file_for(command)
-                                      if code == 'maintenance_source_changed' and isinstance(command, str) else None))
+                                      if code == 'maintenance_source_changed' and isinstance(command, str) else None,
+                                      given=self._intent_given(command)
+                                      if code == 'workbench_deployment_intent_not_cited' and isinstance(command, str) else None))
             rows.append('')
         elif (isinstance(value.get('artifact_id'), str) and isinstance(value.get('kind'), str)
                 and isinstance(value.get('data'), dict) and 'created' in value):
@@ -2240,6 +2242,14 @@ class Workspace:
                                      (getattr(self, 'facts', None) or {}).get('identity_prefixes'))
         self.draw()
         return command
+
+    def _intent_given(self, command):
+        """The intent a deployment-record command named (its third word), else None."""
+        try:
+            parts = shlex.split(command)
+        except (ValueError, AttributeError):
+            return None
+        return parts[2] if len(parts) >= 3 and parts[0] == 'deployment-record' else None
 
     def _context_file_for(self, command):
         """The context file the plan of the operation a command names bound (the plan's own record), else None. Read
