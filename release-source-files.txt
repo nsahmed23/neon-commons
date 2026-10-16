@@ -702,6 +702,12 @@ native/worker-relay/relay.c
 permission-matrix.csv
 plugin.json
 plugin_tests/__init__.py
+plugin_tests/fixtures/catalog_golden/adopt.json
+plugin_tests/fixtures/catalog_golden/all.json
+plugin_tests/fixtures/catalog_golden/change.json
+plugin_tests/fixtures/catalog_golden/discover.json
+plugin_tests/fixtures/catalog_golden/inspect.json
+plugin_tests/fixtures/catalog_golden/signin_azure.json
 plugin_tests/fixtures/orchestration/real-export/README.md
 plugin_tests/fixtures/orchestration/real-export/events.jsonl
 plugin_tests/fixtures/orchestration/real-export/header.json
@@ -896,7 +902,9 @@ plugin_tests/test_capture_reimport_r4.py
 plugin_tests/test_capture_retry.py
 plugin_tests/test_catalog.py
 plugin_tests/test_catalog_acquisition_security.py
+plugin_tests/test_catalog_json_golden.py
 plugin_tests/test_catalog_layer.py
+plugin_tests/test_catalog_wording.py
 plugin_tests/test_ci_contract.py
 plugin_tests/test_cli.py
 plugin_tests/test_cli_audit.py
@@ -1011,6 +1019,7 @@ plugin_tests/test_signin_tenant.py
 plugin_tests/test_security_audit_completion.py
 plugin_tests/test_security_boundaries_completion.py
 plugin_tests/test_service_expiry_latch.py
+plugin_tests/test_signin_verdict_last.py
 plugin_tests/test_sim_benchmark.py
 plugin_tests/test_sim_cases.py
 plugin_tests/test_sim_evaluator.py
