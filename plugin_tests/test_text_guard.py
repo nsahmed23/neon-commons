@@ -383,15 +383,35 @@ class PortabilityTests(unittest.TestCase):
         (tree / 'intune_iac' / 'cli.py').write_text("raise RuntimeError('this module is made unimportable')\n")
         launcher = tree / 'scripts' / 'intune-iac.py'
         launcher.write_bytes((ROOT / 'scripts' / 'intune-iac.py').read_bytes())
+        # A standard-library module beside the launcher that fails on import: any import before the reconfiguration would hit it.
+        (tree / 'scripts' / 'pathlib.py').write_text("raise RuntimeError('pathlib is made unimportable')\n")
         driver = ('import io, os, runpy, sys\n'
+                  'sys.path.insert(0, os.path.dirname(sys.argv[1]))\n'
                   'for name, fd in (("stdout", 1), ("stderr", 2)):\n'
                   '    setattr(sys, name, io.TextIOWrapper(os.fdopen(os.dup(fd), "wb"), encoding="utf-8", newline="\\r\\n", write_through=True))\n'
                   'runpy.run_path(sys.argv[1], run_name="__main__")\n')
         done = subprocess.run([sys.executable, '-B', '-c', driver, str(launcher)], capture_output=True, cwd=str(self.base))
         self.assertNotEqual(done.returncode, 0)
-        self.assertIn(b'this module is made unimportable', done.stderr)
+        self.assertIn(b'pathlib is made unimportable', done.stderr)
         self.assertNotIn(b'\r', done.stderr)
         self.assertNotIn(b'\r', done.stdout)
+        # And with pathlib sound again, a failed import of the CLI itself is still LF only.
+        (tree / 'scripts' / 'pathlib.py').unlink()
+        done = subprocess.run([sys.executable, '-B', '-c', driver, str(launcher)], capture_output=True, cwd=str(self.base))
+        self.assertIn(b'this module is made unimportable', done.stderr)
+        self.assertNotIn(b'\r', done.stderr)
+
+    def test_only_sys_is_imported_before_the_launcher_reconfigures_the_streams(self):
+        import ast
+        tree = ast.parse((ROOT / 'scripts' / 'intune-iac.py').read_text(encoding='utf-8'))
+        before, found = [], False
+        for statement in tree.body:
+            if isinstance(statement, ast.For) and 'reconfigure' in ast.dump(statement):
+                found = True
+                break
+            before.extend(n for n in ast.walk(statement) if isinstance(n, (ast.Import, ast.ImportFrom)))
+        self.assertTrue(found, 'the reconfiguration loop is missing')
+        self.assertEqual([(type(n).__name__, [a.name for a in n.names]) for n in before], [('Import', ['sys'])])
 
     def test_a_real_run_writes_no_cr_byte_to_either_stream(self):
         fixture = Fixture.__new__(Fixture)
