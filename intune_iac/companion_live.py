@@ -680,10 +680,14 @@ class LiveCompanion:
             raise interrupted
 
     def _follow(self, background):
+        # One deadline for the whole call: the passes below share it, so retries that keep starting cannot keep this
+        # caller inside stop() for longer than one bound. (time.monotonic, not the injectable clock of the idle limit.)
+        deadline = time.monotonic() + STOP_WAIT_SECONDS
+        reverted = False
         while True:
             with self._changed:
                 generation = self._generation
-                settled = self._changed.wait_for(self._settled, STOP_WAIT_SECONDS)
+                settled = self._changed.wait_for(self._settled, max(0.0, deadline - time.monotonic()))
             if not settled:
                 break
             failure, reason = self._settle(None, 'observe', background=background)
@@ -692,7 +696,10 @@ class LiveCompanion:
             if reason is not None:
                 return None
             # Neither a failure nor an end: a retry moved the state back to stopping between the wait and this look. The
-            # port is not closed yet, so follow again (each pass is bounded).
+            # port is not closed yet, so follow again, within what is left of the one deadline.
+            reverted = True
+            if time.monotonic() >= deadline:
+                break
         # The stopper outlived the bound. Close the socket here, check that it is closed, and say what is true. This
         # attempt takes over the state, so a stopper that finishes later cannot overwrite it; the next stop() retries.
         attempt = _Attempt()
@@ -700,8 +707,12 @@ class LiveCompanion:
         closed = attempt.guard('close', self._listener_closed) is True
         primary, diagnostic = attempt.resolve(closed)
         met = primary if primary is not None else diagnostic
+        # A stopper that never settled is superseded (takeover). If instead retries kept starting, the one now running is
+        # not to be superseded: the report goes through _settle with no generation, so it publishes nothing but still
+        # queues for a background caller, claims for a foreground one and keeps interrupt precedence.
+        kind, owner = ('failed', None) if reverted else ('takeover', generation)
         if primary is not None and not isinstance(primary, Exception):
-            failure, _ = self._settle(generation, 'takeover', primary, background=background)
+            failure, _ = self._settle(owner, kind, primary, background=background)
             raise failure                  # an interrupt: settled and retryable before it propagates
         if closed:
             message = 'The listener is still being stopped by another caller; its port is closed.'
@@ -710,7 +721,7 @@ class LiveCompanion:
                        % type(met).__name__)
         timeout = AppError('companion_live_stop_timeout', message)
         timeout.__cause__ = met
-        failure, _ = self._settle(generation, 'takeover', timeout, background=background)
+        failure, _ = self._settle(owner, kind, timeout, background=background)
         raise failure
 
     def __enter__(self):

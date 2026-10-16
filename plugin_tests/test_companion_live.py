@@ -1644,6 +1644,48 @@ class StopTests(Fixture):
         live._thread.join(5)
         self.assertFalse(live._thread.is_alive(), 'the serve loop did not leave')
 
+    def test_one_follower_is_bounded_in_total_when_retries_keep_moving_the_state_back_to_stopping(self):
+        from intune_iac import companion_live
+        from intune_iac.io import AppError
+        live = self.start()
+        with live._lock:
+            live._state, live._close_error, live._consumed = 'close_failed', OSError('earlier'), True
+        self.addCleanup(lambda: setattr(live, '_state', 'running'))      # the fixture's stop must really stop it
+        real_settle, squeezing, last = live._settle, threading.Event(), []
+        squeezing.set()
+
+        def settle_again():
+            with live._changed:
+                if live._state == 'stopping':
+                    live._state = 'close_failed'
+                    live._changed.notify_all()
+
+        def settle(generation, kind, *arguments, **keywords):
+            if kind == 'observe' and squeezing.is_set():
+                with live._changed:                      # one more retry begins between the follower's wait and its look
+                    live._state = 'stopping'
+                    live._generation += 1
+                    last[:] = [live._generation]
+                timer = threading.Timer(0.1, settle_again)
+                timer.daemon = True
+                timer.start()
+            return real_settle(generation, kind, *arguments, **keywords)
+        patch = mock.patch.object(live, '_settle', settle)
+        patch.start()
+        self.addCleanup(patch.stop)
+        self.addCleanup(squeezing.clear)
+        with mock.patch.object(companion_live, 'STOP_WAIT_SECONDS', 0.3):
+            follower, outcome = self.run_in_thread(lambda: live._follow(False))
+            follower.join(3)
+            alive = follower.is_alive()
+            squeezing.clear()                            # let an unbounded follower go, so the test can finish
+            follower.join(5)
+        self.assertFalse(alive, 'one stop() call stayed inside _follow() although every retry was bounded on its own')
+        self.assertEqual([kind for kind, _ in outcome], ['raised'])
+        self.assertIsInstance(outcome[0][1], AppError)
+        self.assertEqual(outcome[0][1].code, 'companion_live_stop_timeout')
+        self.assertEqual(live._generation, last[0], 'the active retry was superseded by the timed-out follower')
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500
