@@ -3034,5 +3034,31 @@ class RoundThreeFindingThreeTests(unittest.TestCase):
             self.assertFalse(line.endswith('\\'), line)
 
 
+class RoundThreeFindingFourTests(LayerFixture):
+    """Finding 4: the PgUp trail belongs to its pane and its projection."""
+    def test_a_resized_pane_does_not_reuse_the_trail(self):
+        self.prepare()
+        ws = self.layer_workspace()
+        rows = ['row %d' % index for index in range(30)]
+        ws.scroll = ws._workflow_page(rows, 5, 1)
+        self.assertEqual(ws.scroll, 5)
+        self.assertEqual(ws._workflow_page(rows, 3, -1), 2)       # the new pane's previous page, not the old pane's row 0
+
+    def test_a_refresh_that_changes_the_rows_or_the_projection_does_not_reuse_the_trail(self):
+        self.prepare()
+        ws = self.layer_workspace()
+        rows = ['row %d' % index for index in range(8)]
+        ws.scroll = 1
+        ws.scroll = ws._workflow_page(rows, 5, 1)
+        self.assertEqual(ws.scroll, 3)                  # clamped to the last page of eight rows
+        # A refresh leaves nine rows: the stale trail would return row 1; the pane as it is now has no page ending at row 3.
+        self.assertEqual(ws._workflow_page(rows + ['row 8'], 5, -1), 0)
+        ws2 = self.layer_workspace()
+        ws2.scroll = 1
+        ws2.scroll = ws2._workflow_page(rows, 5, 1)
+        ws2.value = dict(ws2.value, revision='0' * 64)          # the projection changed under the same row count
+        self.assertEqual(ws2._workflow_page(rows, 5, -1), 0)
+
+
 if __name__ == "__main__":
     unittest.main()

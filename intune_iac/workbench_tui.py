@@ -1636,6 +1636,11 @@ class Workspace:
         Nothing moves past either end, and a PageDown that moved nothing is not trailed."""
         from .workbench_screens import page_end
         room, last = max(1, room), max(0, len(data) - room)
+        # The trail's rows were counted for one pane and one projection: a resize (room), a refresh that changes the rows
+        # (their count) or the projection (its revision) makes them stale, so PageUp then pages by the pane it has now.
+        identity = (room, len(data), (self._workflow_flow() or {}).get('revision'))
+        if getattr(self, '_page_identity', None) != identity:
+            self._page_trail, self._page_identity = [], identity
         trail = list(getattr(self, '_page_trail', []))
         if move > 0:
             target = min(last, page_end(data, room, self.scroll))
