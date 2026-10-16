@@ -1,13 +1,27 @@
 """A stand-in for the collecting child (intune-iac capture --token-fd N), used by the sign-in delivery tests.
 
 It reads the token the way the real child does (provider_journey.read_token_fd, the descriptor route), checks that the token
-is nowhere else in its own process (argument list, environment), and prints only the SHA-256 and length of what it received.
-It never prints, logs or writes the token. Run it with `python -I collector.py ROOT --token-fd N [--mode MODE]`.
+is nowhere else in its own process (argument list, environment), and writes only the SHA-256 and length of what it received
+to the file named by --report (when given). On stdout it prints a result shaped like capture's, so the parent's strict
+result schema is exercised. Modes (--mode) make it misbehave: escaped, split, echo, extra, fail, sleep, flood.
+It never prints, logs or writes the token, except in the deliberate leaking modes. Run it with
+`python -I collector.py ROOT --token-fd N [--mode MODE] [--report PATH]`.
 """
 import hashlib
 import json
 import os
 import sys
+
+
+def result(**more):
+    value = {'status': 'captured', 'output': '/somewhere/out', 'export': '/somewhere/out/export.json',
+             'context': '/somewhere/out/context.json', 'receipt': '/somewhere/out/capture-receipt.json', 'page_count': 3,
+             'attempt_count': 3, 'retry_count': 0, 'cancelled': False,
+             'coverage': [{'kind': 'policies', 'coverage': 'complete', 'reason': None}],
+             'tenant_assurance': 'caller_asserted', 'source_authenticity_verified': False, 'provider_qualified': False,
+             'execution_authorized': False}
+    value.update(more)
+    return value
 
 
 def main(argv):
@@ -17,20 +31,38 @@ def main(argv):
     descriptor = int(rest[rest.index('--token-fd') + 1])
     mode = rest[rest.index('--mode') + 1] if '--mode' in rest else 'ok'
     token = read_token_fd(descriptor)
-    elsewhere = [name for name, value in os.environ.items() if token in value]
-    in_arguments = any(token in item for item in sys.argv)
-    report = {'received_sha256': hashlib.sha256(token.encode()).hexdigest(), 'length': len(token),
-              'token_in_environment': bool(elsewhere), 'token_in_arguments': in_arguments,
-              'argument_count': len(sys.argv)}
-    if mode == 'echo':
-        report['echo'] = token  # a misbehaving collector: the parent must withhold this
+    if '--report' in rest:
+        report = {'received_sha256': hashlib.sha256(token.encode()).hexdigest(), 'length': len(token),
+                  'token_in_environment': any(token in value for value in os.environ.values()),
+                  'token_in_arguments': any(token in item for item in sys.argv), 'argument_count': len(sys.argv)}
+        with open(rest[rest.index('--report') + 1], 'w') as handle:
+            json.dump(report, handle)
     if mode == 'fail':
         print(json.dumps({'status': 'error', 'error': {'code': 'collector_failed', 'message': 'x'}}), file=sys.stderr)
+        return 3
+    if mode == 'failcode':
+        print(json.dumps({'status': 'error', 'error': {'code': rest[rest.index('--code') + 1]}}), file=sys.stderr)
         return 3
     if mode == 'sleep':
         import time
         time.sleep(30)
-    print(json.dumps(report))
+    if mode == 'flood':
+        while True:
+            sys.stdout.write('x' * 65536)
+            sys.stdout.flush()
+    if mode == 'echo':
+        print(json.dumps(result(echo=token)))
+    elif mode == 'escaped':
+        print(json.dumps(result(leak=token)).replace('/', '\\/'))
+    elif mode == 'split':
+        half = len(token) // 2
+        print(json.dumps(result(alpha=token[:half], beta=token[half:])))
+    elif mode == 'rawecho':
+        print(token)
+    elif mode == 'extra':
+        print(json.dumps(result(note='a field the product does not show', nested={'deep': 'value'})))
+    else:
+        print(json.dumps(result()))
     return 0
 
 

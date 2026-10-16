@@ -10,26 +10,46 @@ Environment: the child gets only the variables in ENVIRONMENT_ALLOWED that the p
 directory the CLI keeps its own state under, locale, and the CLI's own config-directory variables). Token variables such as
 GH_TOKEN, GITHUB_TOKEN, AZURE_CLIENT_SECRET and INTUNE_GRAPH_TOKEN are never forwarded, so a detection never uses, or reports
 on, a token that sits in the environment.
+
+Every process runs through _bounded: output is read incrementally under one combined ceiling, and a process that passes the
+ceiling or its deadline is killed (with its process group) and reaped before the error is raised.
 """
 from __future__ import annotations
 
+import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
+import selectors
 import shutil
+import signal
 import subprocess
 import sys
+import time
 
 from . import signin_facts
 from .io import AppError
 
 OUTPUT_LIMIT = 256 * 1024
+COLLECT_OUTPUT_LIMIT = 256 * 1024
 DEFAULT_DEADLINE = 15.0
+MAX_TOKEN_LIFETIME = 7200  # seconds a token may still live when it is received; a longer one is not "short-lived"
 ENVIRONMENT_ALLOWED = ('PATH', 'HOME', 'USERPROFILE', 'LANG', 'LC_ALL', 'SYSTEMROOT', 'TMPDIR', 'XDG_CONFIG_HOME',
                        'AZURE_CONFIG_DIR', 'GH_CONFIG_DIR', 'AZURE_CORE_COLLECT_TELEMETRY', 'AZURE_CORE_NO_COLOR',
                        'GH_PROMPT_DISABLED', 'NO_COLOR')
 _FIXED = {'AZURE_CORE_NO_COLOR': 'true', 'AZURE_CORE_COLLECT_TELEMETRY': 'false', 'GH_PROMPT_DISABLED': '1', 'NO_COLOR': '1'}
+
+
+def _wall():
+    """Wall time, used once, at receipt, to turn the service's own expiry into a remaining lifetime."""
+    return time.time()
+
+
+def _mono():
+    """Monotonic time: every later decision about the token's life uses this clock, never the wall clock."""
+    return time.monotonic()
 
 
 class CliError(Exception):
@@ -46,23 +66,77 @@ def scrubbed_environment():
     return environment
 
 
+def _kill(process):
+    """Kill the process and its group, then reap it, so nothing is left running or defunct."""
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except (ProcessLookupError, PermissionError, OSError):
+        pass
+    try:
+        process.kill()
+    except OSError:
+        pass
+    process.wait()
+
+
+def _bounded(argv, deadline, limit, pass_fds=()):
+    """Run argv; returns (exit code, stdout bytes, stderr bytes). Raises CliError: deadline, output_too_large, cli_not_runnable.
+
+    stdout and stderr are read incrementally under one combined ceiling that is enforced while the process runs; on the
+    ceiling or the deadline the process is killed and reaped before the error is raised.
+    """
+    try:
+        process = subprocess.Popen(list(argv), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   env=scrubbed_environment(), close_fds=True, pass_fds=tuple(pass_fds), shell=False,
+                                   start_new_session=True)
+    except OSError:
+        raise CliError('cli_not_runnable') from None
+    end = time.monotonic() + deadline
+    out_fd, err_fd = process.stdout.fileno(), process.stderr.fileno()
+    chunks = {out_fd: [], err_fd: []}
+    total = 0
+    try:
+        with selectors.DefaultSelector() as selector:
+            for stream in (process.stdout, process.stderr):
+                os.set_blocking(stream.fileno(), False)
+                selector.register(stream, selectors.EVENT_READ)
+            while selector.get_map():
+                remaining = end - time.monotonic()
+                if remaining <= 0:
+                    raise CliError('deadline')
+                for key, _ in selector.select(min(remaining, 0.2)):
+                    try:
+                        data = os.read(key.fd, 65536)
+                    except BlockingIOError:
+                        continue
+                    if not data:
+                        selector.unregister(key.fileobj)
+                        continue
+                    total += len(data)
+                    if total > limit:
+                        raise CliError('output_too_large')
+                    chunks[key.fd].append(data)
+        try:
+            code = process.wait(timeout=max(end - time.monotonic(), 0.05))
+        except subprocess.TimeoutExpired:
+            raise CliError('deadline') from None
+    except BaseException:
+        _kill(process)
+        raise
+    finally:
+        process.stdout.close()
+        process.stderr.close()
+    return code, b''.join(chunks[out_fd]), b''.join(chunks[err_fd])
+
+
 def _run(argv, deadline):
     """Run one documented CLI command; returns (exit code, stdout text, stderr text). Raises CliError with a code."""
     executable = shutil.which(argv[0])
     if executable is None:
         raise CliError('cli_not_found')
+    code, out, err = _bounded([executable] + list(argv[1:]), deadline, OUTPUT_LIMIT)
     try:
-        done = subprocess.run([executable] + list(argv[1:]), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE, env=scrubbed_environment(), timeout=deadline, shell=False,
-                              close_fds=True)
-    except subprocess.TimeoutExpired:
-        raise CliError('deadline') from None
-    except OSError:
-        raise CliError('cli_not_runnable') from None
-    if len(done.stdout) > OUTPUT_LIMIT or len(done.stderr) > OUTPUT_LIMIT:
-        raise CliError('output_too_large')
-    try:
-        return done.returncode, done.stdout.decode('utf-8'), done.stderr.decode('utf-8', 'replace')
+        return code, out.decode('utf-8'), err.decode('utf-8', 'replace')
     except UnicodeDecodeError:
         raise CliError('malformed_answer') from None
 
@@ -82,6 +156,15 @@ def detect_azure(deadline=DEFAULT_DEADLINE):
     return signin_facts.parse_azure(out)
 
 
+def detect_github(deadline=DEFAULT_DEADLINE):
+    """GitHub facts from the CLI's own status: host, account, whether a session exists."""
+    try:
+        code, out, err = _run(['gh', 'auth', 'status', '--json', 'hosts'], deadline)
+    except CliError as error:
+        return _unknown('github', error.code)
+    return signin_facts.parse_github(out, code, err)
+
+
 def detect(which, deadline=DEFAULT_DEADLINE):
     """Facts for 'azure', 'github' or 'all', keyed by provider; only the listings of the chosen providers run."""
     facts = {}
@@ -92,23 +175,15 @@ def detect(which, deadline=DEFAULT_DEADLINE):
     return facts
 
 
-def detect_github(deadline=DEFAULT_DEADLINE):
-    """GitHub facts from the CLI's own status: host, account, whether a session exists."""
-    try:
-        code, out, err = _run(['gh', 'auth', 'status', '--json', 'hosts'], deadline)
-    except CliError as error:
-        return _unknown('github', error.code)
-    return signin_facts.parse_github(out, code, err)
-
-
 # Judgement and token ---------------------------------------------------------------------------------------------
 
 LISTING_COMMANDS = {'azure': 'az account list --output json', 'github': 'gh auth status --json hosts'}
-GRAPH_RESOURCE ='https://graph.microsoft.com'
+GRAPH_RESOURCE = 'https://graph.microsoft.com'
 TOKEN_LIMIT = 4096  # the descriptor route reads at most this many bytes
 _TOKEN_SHAPE = re.compile(r'[A-Za-z0-9._~+/=-]{20,%d}' % TOKEN_LIMIT)
+_EXPIRY_TEXT = re.compile(r'[0-9]{9,11}')
 _EXPIRED_MARKERS = ('aadsts70043', 'aadsts700082', 'aadsts50173', 'expired', 'interactive authentication is needed')
-_NOT_SIGNED_IN_MARKERS = ("az login", 'no subscription', 'not logged in')
+_NOT_SIGNED_IN_MARKERS = ('az login', 'no subscription', 'not logged in')
 
 
 class SigninBlocked(Exception):
@@ -119,16 +194,30 @@ class SigninBlocked(Exception):
         super().__init__(verdict['message'])
 
 
+class Token(str):
+    """A token string that also carries its monotonic deadline: delivery is allowed only before valid_until (see _mono)."""
+
+    valid_until = 0.0
+
+    def __new__(cls, value, valid_until):
+        instance = super().__new__(cls, value)
+        instance.valid_until = valid_until
+        return instance
+
+
 def status_report(tenant=None, account=None, providers='azure', deadline=DEFAULT_DEADLINE):
-    """The facts, the verdict and the commands run for `signin status`; the product runs no sign-in step."""
+    """The facts, the verdict and the commands run for `signin status`; the product runs no sign-in step.
+
+    ready only when Azure is checked and usable in the context tenant and every other requested provider is signed in;
+    reported when everything requested is signed in but no tenant comparison could make it ready; otherwise blocked.
+    """
     facts = detect(providers, deadline)
     verdicts = {name: signin_facts.evaluate(value, tenant, account if name == 'azure' else None) for name, value in facts.items()}
     azure = verdicts.get('azure')
-    if azure is not None and azure['usable']:
+    everything = bool(verdicts) and all(v['status'] == 'signed_in' for v in verdicts.values())
+    if everything and azure is not None and azure['usable']:
         status = 'ready'
-    elif azure is not None and tenant is None and azure['status'] == 'signed_in':
-        status = 'reported'
-    elif azure is None and verdicts and all(v['status'] == 'signed_in' for v in verdicts.values()):
+    elif everything:
         status = 'reported'
     else:
         status = 'blocked'
@@ -143,8 +232,10 @@ def obtain_token(tenant, account=None, deadline=DEFAULT_DEADLINE):
     """A short-lived Graph read token for the context's tenant through the Azure CLI, after the listing says it is usable.
 
     The listing runs first; an expired, wrong-tenant or ambiguous sign-in raises SigninBlocked and no token command starts.
-    The token is returned to the caller and goes nowhere else here: not printed, logged, put in an argument or the
-    environment, or written to a file. The CLI's own error text is never copied into an error or a verdict.
+    The answer must carry the requested tenant as a GUID and the machine-readable expiry (expires_on, epoch seconds); the
+    remaining lifetime must be greater than zero and at most MAX_TOKEN_LIFETIME. A monotonic deadline is armed at receipt
+    (Token.valid_until), so a later wall-clock step back never extends the lifetime. The token is returned to the caller and
+    goes nowhere else here. The CLI's own error text is never copied into an error or a verdict.
     """
     if signin_facts.shown(tenant, signin_facts.GUID) is None:
         raise AppError('signin_tenant_invalid', 'The tenant must be a GUID.')
@@ -168,6 +259,17 @@ def obtain_token(tenant, account=None, deadline=DEFAULT_DEADLINE):
     return _token_from(out, tenant)
 
 
+def _expires_on(value):
+    """Epoch seconds from the machine-readable field, or None; the local-time expiresOn string is never read."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value) if math.isfinite(value) else None
+    if isinstance(value, str) and _EXPIRY_TEXT.fullmatch(value):
+        return float(value)
+    return None
+
+
 def _token_from(text, tenant):
     try:
         value = json.loads(text)
@@ -177,15 +279,31 @@ def _token_from(text, tenant):
     if not isinstance(token, str) or not _TOKEN_SHAPE.fullmatch(token):
         raise AppError('signin_token_malformed', 'The Azure CLI answer did not hold a usable token.')
     answered = value.get('tenant')
-    if answered is not None and (not isinstance(answered, str) or answered.lower() != tenant.lower()):
-        raise SigninBlocked(signin_facts.refused('wrong_tenant', tenant, answered if isinstance(answered, str) else None))
-    return token
+    if not isinstance(answered, str) or not signin_facts.GUID.fullmatch(answered):
+        raise AppError('signin_token_malformed', 'The Azure CLI answer did not name the token\'s tenant.')
+    if answered.lower() != tenant.lower():
+        raise SigninBlocked(signin_facts.refused('wrong_tenant', tenant, answered))
+    expires_on = _expires_on(value.get('expires_on'))
+    if expires_on is None:
+        raise AppError('signin_token_malformed', 'The Azure CLI answer did not carry a usable expiry.')
+    remaining = expires_on - _wall()
+    if remaining <= 0:
+        raise SigninBlocked(signin_facts.refused('expired', tenant))
+    if remaining > MAX_TOKEN_LIFETIME:
+        raise AppError('signin_token_lifetime_invalid', 'The token lives longer than a short-lived read token may.')
+    return Token(token, _mono() + remaining)
 
 
 # Delivery --------------------------------------------------------------------------------------------------------
 
 COLLECT_DEADLINE = 120.0
 _SCRIPT = Path(__file__).resolve().parents[1] / 'scripts' / 'intune-iac.py'
+_COLLECTOR_STATUS = ('captured', 'partial')
+_PATH_FIELDS = ('output', 'export', 'context', 'receipt')
+_PLAIN_CODE = re.compile(r'[a-z][a-z0-9_]{0,39}')
+_COUNT_LIMIT = 1_000_000
+_CREDENTIAL_CODES = ('token_wrong_tenant', 'token_expired')
+FRAGMENT = 8
 
 
 def collector_command(tenant, policy, output, descriptor):
@@ -194,14 +312,77 @@ def collector_command(tenant, policy, output, descriptor):
             '--token-fd', str(descriptor)]
 
 
+class _Watch:
+    """Recognises the token in text without holding it: digests of every FRAGMENT-character window of it."""
+
+    def __init__(self, token):
+        self.digests = {hashlib.sha256(token[i:i + FRAGMENT].encode()).digest() for i in range(max(len(token) - FRAGMENT + 1, 1))}
+
+    def hit(self, text):
+        data = text.encode('utf-8', 'replace')
+        return any(hashlib.sha256(data[i:i + FRAGMENT]).digest() in self.digests for i in range(max(len(data) - FRAGMENT + 1, 0)))
+
+
+def _strings(value, found, depth=0):
+    """Every decoded string (keys included) in a parsed document; False when the document is too deep or too large."""
+    if depth > 12 or len(found) > 4000:
+        return False
+    if isinstance(value, str):
+        found.append(value)
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            if not isinstance(key, str) or not _strings(key, found, depth + 1) or not _strings(item, found, depth + 1):
+                return False
+    elif isinstance(value, list):
+        return all(_strings(item, found, depth + 1) for item in value)
+    return True
+
+
+def _count(value):
+    return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= _COUNT_LIMIT
+
+
+def collector_schema(value):
+    """The only fields of a successful capture result the product shows, or None when the result is outside the schema.
+
+    status, three counts, cancelled and the coverage list (kind, coverage, reason: plain codes only). A credential problem is
+    reduced to its code. No other field of the child's output is ever relayed.
+    """
+    if not isinstance(value, dict) or value.get('status') not in _COLLECTOR_STATUS or value.get('cancelled') not in (True, False):
+        return None
+    if not all(_count(value.get(name)) for name in ('page_count', 'attempt_count', 'retry_count')):
+        return None
+    coverage = value.get('coverage')
+    if not isinstance(coverage, list) or len(coverage) > 16:
+        return None
+    shown = []
+    for item in coverage:
+        if not isinstance(item, dict):
+            return None
+        kind, state, reason = item.get('kind'), item.get('coverage'), item.get('reason')
+        if not (isinstance(kind, str) and _PLAIN_CODE.fullmatch(kind) and isinstance(state, str) and _PLAIN_CODE.fullmatch(state)
+                and (reason is None or (isinstance(reason, str) and _PLAIN_CODE.fullmatch(reason)))):
+            return None
+        shown.append({'kind': kind, 'coverage': state, 'reason': reason})
+    result = {'status': value['status'], 'page_count': value['page_count'], 'attempt_count': value['attempt_count'],
+              'retry_count': value['retry_count'], 'cancelled': value['cancelled'], 'coverage': shown}
+    problem = value.get('credential_problem')
+    code = problem.get('code') if isinstance(problem, dict) else None
+    if code in _CREDENTIAL_CODES:
+        result['credential_problem'] = code
+    return result
+
+
 def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, collect_deadline=COLLECT_DEADLINE):
     """Collect with the reused sign-in: obtain a short-lived read token and hand it to the one collecting child.
 
     Order: the listing judges the sign-in (a block ends the call with no token command and no child); the token is obtained;
-    a pipe is created, the token is written to it and its write end is closed; the child is started with the read end as
-    its only extra descriptor (pass_fds), a scrubbed environment and no stdin; the parent closes the read end at once.
-    The token is never an argument, never in either environment, never written to a file, and never printed. A child that
-    echoes it has its whole output withheld.
+    a pipe is created and the command built; delivery is refused when the monotonic deadline armed at receipt has passed;
+    the token is written to the pipe, its write end closed and the parent's references to it dropped; the child is started
+    with the read end as its only extra descriptor (pass_fds), a scrubbed environment and no stdin; the parent closes the read
+    end at once. The token is never an argument, never in either environment, never written to a file, and never printed.
+    The child's output is read under a ceiling, parsed against a strict schema and checked for the token (decoded, split or
+    fragmented) before anything of it is shown.
     """
     if signin_facts.shown(policy, signin_facts.GUID) is None:
         raise AppError('signin_policy_invalid', 'The policy must be a GUID.')
@@ -211,48 +392,67 @@ def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, col
         token = obtain_token(tenant, account, deadline)
     except SigninBlocked as blocked:
         return {'status': 'blocked', 'signin': blocked.verdict, 'collector_started': False}
+    watch = _Watch(token)
     read_end, write_end = os.pipe()
     try:
         try:
+            argv = collector_command(tenant, policy, output, read_end)
+            if _mono() >= token.valid_until:
+                raise AppError('signin_token_expired', 'The token expired before it could be delivered; nothing was started.')
             os.write(write_end, token.encode('ascii'))  # at most TOKEN_LIMIT bytes: fits the pipe buffer, never blocks
         finally:
             os.close(write_end)
+            token = None  # the parent keeps no further reference to the token
         try:
-            done = subprocess.run(collector_command(tenant, policy, output, read_end), stdin=subprocess.DEVNULL,
-                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=scrubbed_environment(),
-                                  pass_fds=(read_end,), close_fds=True, timeout=collect_deadline, shell=False)
-        except subprocess.TimeoutExpired:
-            raise AppError('signin_collect_deadline', 'The collecting command did not finish in time and was stopped.') from None
-        except OSError:
+            code, out, err = _bounded(argv, collect_deadline, COLLECT_OUTPUT_LIMIT, pass_fds=(read_end,))
+        except CliError as error:
+            if error.code == 'output_too_large':
+                return {'status': 'failed', 'error_code': 'collector_output_too_large', 'collector_started': True, 'child_exit': None}
+            if error.code == 'deadline':
+                raise AppError('signin_collect_deadline', 'The collecting command did not finish in time and was stopped.') from None
             raise AppError('signin_collect_unavailable', 'The collecting command could not be started.') from None
     finally:
         os.close(read_end)
-    return _collector_result(done, token)
+    return _collector_result(code, out, err, watch, output)
 
 
-def _collector_result(done, token):
-    needle = token.encode('ascii')
-    if needle in done.stdout or needle in done.stderr:
-        return {'status': 'failed', 'error_code': 'collector_output_withheld', 'collector_started': True,
-                'child_exit': done.returncode}
-    if done.returncode != 0:
-        return {'status': 'failed', 'error_code': _error_code(done.stderr), 'collector_started': True,
-                'child_exit': done.returncode}
+def _withheld(code):
+    return {'status': 'failed', 'error_code': 'collector_output_withheld', 'collector_started': True, 'child_exit': code}
+
+
+def _collector_result(code, out, err, watch, output):
+    text_out, text_err = out.decode('utf-8', 'replace'), err.decode('utf-8', 'replace')
+    if watch.hit(text_out) or watch.hit(text_err):
+        return _withheld(code)
+    if code != 0:
+        return {'status': 'failed', 'error_code': _error_code(text_err), 'collector_started': True, 'child_exit': code}
     try:
-        value = json.loads(done.stdout.decode('utf-8'))
+        value = json.loads(text_out)
     except ValueError:
-        value = None
-    return {'status': 'collected', 'collector_started': True, 'child_exit': 0, 'result': value if isinstance(value, dict) else None}
+        return {'status': 'failed', 'error_code': 'collector_output_invalid', 'collector_started': True, 'child_exit': 0}
+    found = []
+    if not _strings(value, found):
+        return {'status': 'failed', 'error_code': 'collector_output_invalid', 'collector_started': True, 'child_exit': 0}
+    # Decoded strings (JSON escapes undone), one by one and joined, so a token split over fields is still recognised.
+    if watch.hit(''.join(found)) or any(watch.hit(item) for item in found):
+        return _withheld(0)
+    for key, item in (value.items() if isinstance(value, dict) else ()):
+        if key not in _PATH_FIELDS and isinstance(item, str) and _TOKEN_SHAPE.fullmatch(item):
+            return _withheld(0)
+    shown = collector_schema(value)
+    if shown is None:
+        return {'status': 'failed', 'error_code': 'collector_output_invalid', 'collector_started': True, 'child_exit': 0}
+    return {'status': 'collected', 'collector_started': True, 'child_exit': 0, 'result': dict(shown, output=output)}
 
 
-def _error_code(stderr):
+def _error_code(text):
     """The error code on the child's last JSON line of stderr when it is a plain code; never any other text."""
-    for line in reversed(stderr.decode('utf-8', 'replace').splitlines()):
+    for line in reversed(text.splitlines()):
         try:
             value = json.loads(line)
         except ValueError:
             continue
         error = value.get('error') if isinstance(value, dict) else None
         code = error.get('code') if isinstance(error, dict) else None
-        return signin_facts.shown(code, signin_facts.NAME) or 'collector_failed'
+        return signin_facts.shown_code(code) or 'collector_failed'
     return 'collector_failed'

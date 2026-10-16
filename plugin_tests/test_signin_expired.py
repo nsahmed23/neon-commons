@@ -8,6 +8,7 @@ import contextlib
 import io
 import json
 import os
+import time
 import unittest
 from unittest.mock import patch
 
@@ -22,8 +23,8 @@ LISTING = 'account list --output json'
 
 
 def token_answer(token, tenant=TENANT_A):
-    return json.dumps({'accessToken': token, 'expiresOn': '2099-01-01 00:00:00.000000', 'tenant': tenant,
-                       'tokenType': 'Bearer', 'subscription': 's1'})
+    return json.dumps({'accessToken': token, 'expires_on': int(time.time()) + 3600, 'expiresOn': '2099-01-01 00:00:00.000000',
+                       'tenant': tenant, 'tokenType': 'Bearer', 'subscription': 's1'})
 
 
 class ExpiredTests(unittest.TestCase):

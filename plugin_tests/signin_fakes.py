@@ -15,6 +15,7 @@ dir={directory}
 printf '%s\\n' "$*" >> "$dir/calls.log"
 key="$1_$2"
 [ -f "$dir/{tool}.$key.out" ] || exit 127
+[ -f "$dir/{tool}.$key.flood" ] && exec yes AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 [ -f "$dir/{tool}.$key.sleep" ] && exec sleep "$(cat "$dir/{tool}.$key.sleep")"
 cat "$dir/{tool}.$key.out"
 [ -f "$dir/{tool}.$key.err" ] && cat "$dir/{tool}.$key.err" >&2
@@ -51,6 +52,11 @@ class FakeClis:
                 target.unlink(missing_ok=True)
             else:
                 target.write_text(value)
+
+    def flood(self, tool, first, second):
+        """Make the fake print without end (to test the output ceiling)."""
+        self.answer(tool, first, second, out="x")
+        Path(str(self.directory / ("%s.%s_%s" % (tool, first, second))) + ".flood").write_text("1")
 
     def calls(self):
         log = self.directory / "calls.log"

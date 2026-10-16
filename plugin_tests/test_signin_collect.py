@@ -14,6 +14,7 @@ from pathlib import Path
 import secrets
 import sys
 import tempfile
+import time
 import unittest
 from unittest.mock import patch
 
@@ -34,7 +35,8 @@ def canary():
 
 
 def token_answer(token, tenant=TENANT_A):
-    return json.dumps({'accessToken': token, 'expiresOn': '2099-01-01 00:00:00.000000', 'tenant': tenant})
+    return json.dumps({'accessToken': token, 'expires_on': int(time.time()) + 3600, 'expiresOn': '2099-01-01 00:00:00.000000',
+                       'tenant': tenant})
 
 
 def fd_numbers():
@@ -59,19 +61,23 @@ class CollectTests(unittest.TestCase):
         command = patch('intune_iac.signin.collector_command', self.collector_command)
         command.start()
         self.addCleanup(command.stop)
-        real = signin.subprocess.run
+        real = signin.subprocess.Popen
+        launches = self.launches
 
-        def spy(argv, **kwargs):
-            if argv and argv[0] == sys.executable:
-                self.launches.append((list(argv), kwargs))
-            return real(argv, **kwargs)
+        class Spy(real):
+            def __init__(self, argv, *a, **kwargs):
+                if argv and argv[0] == sys.executable:
+                    launches.append((list(argv), kwargs))
+                super().__init__(argv, *a, **kwargs)
 
-        spying = patch('intune_iac.signin.subprocess.run', spy)
+        spying = patch('intune_iac.signin.subprocess.Popen', Spy)
         spying.start()
         self.addCleanup(spying.stop)
+        self.report = self.tmpbox / 'report.json'
 
     def collector_command(self, tenant, policy, output, descriptor):
-        return [sys.executable, '-I', COLLECTOR, str(ROOT), '--token-fd', str(descriptor), '--mode', self.mode]
+        return [sys.executable, '-I', COLLECTOR, str(ROOT), '--token-fd', str(descriptor), '--mode', self.mode,
+                '--report', str(self.report)]
 
     def collect(self, **kwargs):
         return signin.collect(TENANT_A, POLICY, self.output, deadline=5, collect_deadline=20, **kwargs)
@@ -79,7 +85,7 @@ class CollectTests(unittest.TestCase):
     def test_the_child_receives_exactly_the_token_through_the_descriptor(self):
         result = self.collect()
         self.assertEqual(result['status'], 'collected')
-        report = result['result']
+        report = json.loads(self.report.read_text())  # the stand-in child writes only a digest and a length
         self.assertEqual(report['received_sha256'], hashlib.sha256(self.token.encode()).hexdigest())
         self.assertEqual(report['length'], len(self.token))
         self.assertEqual((report['token_in_environment'], report['token_in_arguments']), (False, False))

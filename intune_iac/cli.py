@@ -77,8 +77,8 @@ def _policy(value):
 
 
 def _account(value):
-    from .signin_facts import shown
-    if not isinstance(value,str) or shown(value) is None:
+    from .signin_facts import NOT_SHOWN, shown_name
+    if not isinstance(value,str) or shown_name(value)==NOT_SHOWN:
         raise argparse.ArgumentTypeError('expects an account name (letters, digits and . _ @ + -)')
     return value
 
@@ -387,6 +387,8 @@ def _deadline(value):
 
 
 def _signin_command(args):
+    if os.name != 'posix':
+        raise AppError('identity_fd_platform_unsupported','Sign-in reuse needs a Unix host (inherited descriptors and bounded child output).')
     from . import signin
     if args.signin_command=='collect':
         if not isinstance(args.collect_deadline,float) or not 0<args.collect_deadline<=600:

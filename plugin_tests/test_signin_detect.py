@@ -81,8 +81,10 @@ class DetectionTests(unittest.TestCase):
     def test_a_poisoned_account_name_is_not_displayable(self):
         self.azure(out=azure_list(azure_account(user=POISON)))
         facts = signin.detect_azure(deadline=5)
-        self.assertEqual(facts["state"], "unknown")
+        # Shown as "<not shown>", never dropped, and a sign-in whose account cannot be shown is not usable.
+        self.assertEqual(facts["accounts"][0]["account"], signin_facts.NOT_SHOWN)
         self.assertNotIn(POISON, repr(facts))
+        self.assertFalse(signin_facts.evaluate(facts, TENANT_A)["usable"])
 
     def test_github_signed_in_reports_host_and_account(self):
         self.fakes.answer("gh", "auth", "status", out=github_hosts(("github.com", "octo-user", "success", True)))
@@ -109,16 +111,17 @@ class DetectionTests(unittest.TestCase):
 
     def test_the_child_environment_is_scrubbed_and_no_token_command_runs(self):
         seen = {}
-        real = signin.subprocess.run
+        real = signin.subprocess.Popen
 
-        def spy(argv, **kwargs):
-            seen["env"], seen["argv"], seen["shell"] = kwargs["env"], list(argv), kwargs.get("shell", False)
-            return real(argv, **kwargs)
+        class Spy(real):
+            def __init__(self, argv, *a, **kwargs):
+                seen["env"], seen["argv"], seen["shell"] = kwargs["env"], list(argv), kwargs.get("shell", False)
+                super().__init__(argv, *a, **kwargs)
 
         self.azure(out="[]")
         with patch.dict(os.environ, {"GH_TOKEN": POISON, "GITHUB_TOKEN": POISON, "AZURE_CLIENT_SECRET": POISON,
                                      "INTUNE_GRAPH_TOKEN": POISON, "ACCESS_TOKEN": POISON}):
-            with patch("intune_iac.signin.subprocess.run", spy):
+            with patch("intune_iac.signin.subprocess.Popen", Spy):
                 signin.detect_azure(deadline=5)
         self.assertNotIn(POISON, repr(seen["env"]))
         self.assertLessEqual(set(seen["env"]), set(signin.ENVIRONMENT_ALLOWED))

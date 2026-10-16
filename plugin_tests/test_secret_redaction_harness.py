@@ -12,6 +12,7 @@ IdentityAuthenticationCliTests.
 import base64
 import contextlib
 import fcntl
+import hashlib
 import io
 import json
 import os
@@ -24,6 +25,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 import traceback
 import unittest
 from unittest.mock import patch
@@ -1114,26 +1116,44 @@ class RedactionHarness(unittest.TestCase):
         self.addCleanup(fakes.cleanup)
         token = canary('signin')
         fakes.answer('az', 'account', 'list', out=sf.azure_list(sf.azure_account(state=listing_state, tenant=tenant or sf.TENANT_A)))
-        fakes.answer('az', 'account', 'get-access-token', out=json.dumps({'accessToken': token, 'tenant': sf.TENANT_A}))
+        fakes.answer('az', 'account', 'get-access-token', out=json.dumps(
+            {'accessToken': token, 'tenant': sf.TENANT_A, 'expires_on': int(time.time()) + 3600}))
         return fakes, token
 
-    def test_signin_collect_delivers_the_token_on_one_pipe_and_nowhere_else(self):
+    def run_signin_collect(self, fakes, token, mode='ok', expect=0):
         from plugin_tests import signin_fakes as sf
-        fakes, token = self.signin_route()
         collector = str(PROJECT / 'plugin_tests' / 'signin_collector.py')
+        report = self.inputs / ('report-%s.json' % mode)
 
         def command(tenant, policy, output, descriptor):
-            return [sys.executable, '-I', collector, str(PROJECT), '--token-fd', str(descriptor)]
+            return [sys.executable, '-I', collector, str(PROJECT), '--token-fd', str(descriptor), '--mode', mode,
+                    '--report', str(report)]
 
         path = fakes.path_entry() + os.pathsep + os.environ.get('PATH', '')
         with patch('intune_iac.signin.collector_command', command):
             code, out, err, children = self.run_cli(
                 ['signin', 'collect', '--tenant', sf.TENANT_A, '--policy', '22222222-2222-4222-8222-222222222222',
-                 '--output', str(self.work / 'signin-out')], (token,), {'PATH': path}, pipe_delivery=token)
-        report = json.loads(out)
+                 '--output', str(self.work / 'signin-out')], (token,), {'PATH': path}, pipe_delivery=token, expect=expect)
+        return json.loads(out), children, json.loads(report.read_text())
+
+    def test_signin_collect_withholds_an_escaped_or_split_token_from_the_collector_output(self):
+        from plugin_tests import signin_fakes as sf
+        for mode, slash in (('escaped', True), ('split', False), ('echo', False)):
+            fakes, token = self.signin_route()
+            if slash:  # a token with a slash, which a collector can emit JSON-escaped (\/) so raw bytes never match
+                token = token[:14] + '/' + token[15:]
+                fakes.answer('az', 'account', 'get-access-token', out=json.dumps(
+                    {'accessToken': token, 'tenant': sf.TENANT_A, 'expires_on': int(time.time()) + 3600}))
+            result, children, report = self.run_signin_collect(fakes, token, mode, expect=3)
+            self.assertEqual((result['status'], result['error_code']), ('failed', 'collector_output_withheld'), mode)
+            self.assertEqual(report['received_sha256'], hashlib.sha256(token.encode()).hexdigest(), mode)
+
+    def test_signin_collect_delivers_the_token_on_one_pipe_and_nowhere_else(self):
+        from plugin_tests import signin_fakes as sf
+        fakes, token = self.signin_route()
+        report, children, received = self.run_signin_collect(fakes, token)
         self.assertEqual(report['status'], 'collected')
-        import hashlib
-        self.assertEqual(report['result']['received_sha256'], hashlib.sha256(token.encode()).hexdigest(),
+        self.assertEqual(received['received_sha256'], hashlib.sha256(token.encode()).hexdigest(),
                          'the child must have received the token, or the test proves nothing')
         collectors = [c for c in children if c['argv'][0] == sys.executable]
         self.assertEqual(len(collectors), 1)
