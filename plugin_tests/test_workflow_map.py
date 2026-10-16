@@ -2409,5 +2409,31 @@ class ConfinementTests(LayerFixture):
         self.assertEqual(sorted(os.listdir(self.root)), top)
 
 
+
+class StoredRootTextTests(LayerFixture):
+    def test_a_stored_operation_root_with_control_characters_reaches_no_text_line_or_frame_as_one(self):
+        from intune_iac import workbench
+        from intune_iac.workbench_repository import propose_from_intent, refresh_intent
+        from intune_iac.workbench_screens import workflow_text_lines
+        self.import_intent()
+        self.edit_description('Edited in the repository.')
+        refresh_intent(self.store, OBJECT, 'b' * 40)
+        self.operation = self.root / 'operation\x1b[2J\x1b]0;forged\x07x\ry'
+        propose_from_intent(self.store.root, self.service.root, OBJECT, self.operation)
+        flow = workbench._workflow(self.store, OBJECT, service_root=self.service.root)
+        self.assertIn('\x1b[2J', flow['operation']['operation_root'])          # the record holds the path exactly
+        for width in (50, 80, 120):
+            for line in workflow_text_lines(flow, width, 'unicode'):
+                self.assertEqual(raw_controls(line), [], (width, line))
+        key = lambda char: ('text', char)
+        # Enter on the review stage (5 Plan) and on the approve stage (v Delivery) sends the stored root to a read view.
+        for presses, command in ((['up'] * 2, 'review '), (['down'] * 0, 'delivery ')):
+            ws, frames = self.run_keys(typed('select ' + OBJECT) + typed('workflow') + presses + ['enter', key('q')], (120, 40), 'unicode')
+            self.assertTrue(any(sent.startswith(command) for sent in ws.sent), (command, ws.sent))
+            for frame in frames:
+                for row in frame:
+                    self.assertEqual(raw_controls(row), [], (command, row))
+
+
 if __name__ == "__main__":
     unittest.main()
