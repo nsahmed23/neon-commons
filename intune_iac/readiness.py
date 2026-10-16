@@ -490,10 +490,11 @@ def without_stand_in(step):
     One definition of the classes (the test_shell_differential module uses the same names). Fail-closed classes, where the part is
     replaced whatever it holds: every ACTIVE special-parameter expansion ($0 to $9 $@ $* $# $? $- $$ $!, plain or braced, outside
     single and ANSI-C quotes and inside double quotes: a parameter can hold anything at copy time), every ACTIVE assignment
-    expansion (${NAME=w} ${NAME:=w} ${NAME?w} ${NAME:?w}) and command substitution ($( or a backtick). Conservative classes,
-    where the net may replace more than bash would read: comments (not in the producers' grammar; the net reads the text after a
-    word-start # as if it were a command, so it can only over-replace) and text bash itself fails on. Safety is exact: whenever
-    bash would read DIRECTORY in a part, the part is replaced, also when $0 and the positional parameters hold DIRECTORY.
+    expansion (${NAME=w} ${NAME:=w} ${NAME?w} ${NAME:?w}), command substitution ($( or a backtick) and every word-start comment
+    (a # at the start of a word is not in the producers' grammar, and a comment can hide an active expansion from a quote
+    reader). The one conservative class, where the net replaces whenever the token appears after flattening, is text bash itself
+    fails on (a syntax or substitution error). Safety is exact: whenever bash would read DIRECTORY in a part, the part is
+    replaced, also when $0 and the positional parameters hold DIRECTORY.
     Outside the grammar, and not read: redirections, globbing, variables that are set when the line is copied, and encodings in
     a tampered record such as hex escapes inside $'..'. The test_shell_differential module checks safety and precision against
     bash over about fifty thousand strings, in two invocations."""

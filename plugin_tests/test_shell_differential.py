@@ -6,9 +6,10 @@ Safety, exact, for every string and for both invocations below: whenever bash's 
 the part. Precision, for every string outside the declared classes: the net replaces only when bash reads DIRECTORY.
 
 The classes are the same as in the docstring of readiness.without_stand_in. Fail-closed classes, where the net replaces the part
-whatever it holds: ACTIVE special parameters, ACTIVE assignment expansions, and command substitution (not in the shell run, which
-cannot contain a parenthesis or a backtick; the unit tests in test_catalog_commands cover it). Conservative classes, where the
-net may replace more: comments (not in the producers' grammar) and text bash fails on. A class is labelled from what bash does,
+whatever it holds: ACTIVE special parameters, ACTIVE assignment expansions, word-start comments (not in the producers' grammar,
+and able to hide an active expansion from a quote reader) and command substitution (not in the shell run, which cannot contain a
+parenthesis or a backtick; the unit tests in test_catalog_commands cover it). The one conservative class, where the net replaces
+whenever the token appears after flattening, is text bash fails on. A class is labelled from what bash does,
 by a small scanner of quotes, escapes and word starts (classify): an expansion inside single or ANSI-C quotes is not active, and
 a # counts as a comment only at the start of a word.
 
