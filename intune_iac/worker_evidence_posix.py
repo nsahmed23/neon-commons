@@ -263,11 +263,16 @@ def ingest_raw(store_root,envelope_raw,request_raw,policy,verifier):
                     scope=binding['scope'];sequence=binding['sequence'];events=binding['event_sha256']
                     head=db.execute('SELECT sequence,event_sha256 FROM heads WHERE scope=?',(scope,)).fetchone()
                     contract.admit_received(binding,prior[0] if prior else None,dict(zip(('sequence','event_sha256'),head)) if head else None)
-                    if prior is None:db.execute('INSERT INTO received VALUES (?,?,?,?,?)',(digest(req),result['bundle_sha256'],result['received_byte_sha256'],result['request_byte_sha256'],attempt.name))
-                    # The boot session that admitted this receipt: a later boot cannot carry it (see _continuity).
+                    # The boot session that admitted a receipt is written once, with the receipt, and never replaced: an identical
+                    # re-ingest in a later boot cannot make an old receipt current (a new collect and ingest is the recovery).
                     boot=clock.session()
-                    db.execute('INSERT OR REPLACE INTO received_session VALUES (?,?,?,?,?)',(digest(req),None if boot is None else boot['boot_id'],
-                        None if boot is None else boot['domain'],None if boot is None else boot['boottime'],clock.process_token()))
+                    if prior is None:
+                        db.execute('INSERT INTO received VALUES (?,?,?,?,?)',(digest(req),result['bundle_sha256'],result['received_byte_sha256'],result['request_byte_sha256'],attempt.name))
+                        db.execute('INSERT INTO received_session VALUES (?,?,?,?,?)',(digest(req),None if boot is None else boot['boot_id'],
+                            None if boot is None else boot['domain'],None if boot is None else boot['boottime'],clock.process_token()))
+                    else:
+                        stored=db.execute('SELECT boot_id,domain,boottime,process FROM received_session WHERE request_sha256=?',(digest(req),)).fetchone()
+                        if _session_lost(stored,boot):contract.fail('worker_evidence_clock_continuity_lost')
                     db.execute('INSERT INTO heads VALUES (?,?,?) ON CONFLICT(scope) DO UPDATE SET sequence=excluded.sequence,event_sha256=excluded.event_sha256',(scope,sequence,events))
                     db.execute('COMMIT')
             except (sqlite3.Error,OSError):
@@ -307,19 +312,23 @@ def reopen(store_root,request_sha256,policy,verifier,*,historical=False):
     return result
 
 
+def _session_lost(row,now):
+    """Whether the session recorded with a receipt (None when never recorded) cannot be carried to the reading's session now:
+    the rule validity._view applies to an open row. A receipt from before the session was recorded is lost."""
+    if row is None:return True
+    if row[0] is None:return not (now is None and row[3]==clock.process_token())
+    return not clock.same_session({'boot_id':row[0],'domain':row[1],'boottime':row[2]},now)
+
+
 def _continuity(root,request_sha256):
     """A receipt admitted in another boot (or whose session was never recorded) cannot be carried on this boot's wall: current
-    status is held, the way validity._view treats an open row, until the window closes (the temporal decision, which ran
-    first, then refuses it as expired). Historical reads never come here."""
+    status is held until the window closes (the temporal decision, which ran first, then refuses it as expired). Historical
+    reads never come here."""
     try:
         with readonly_database(root/'evidence.sqlite3') as (db,_):
             row=db.execute('SELECT boot_id,domain,boottime,process FROM received_session WHERE request_sha256=?',(request_sha256,)).fetchone()
     except (sqlite3.OperationalError,AppError):row=None  # no readable session record (a store from before it was recorded): held
-    now=clock.session()
-    if row is None:lost=True
-    elif row[0] is None:lost=not (now is None and row[3]==clock.process_token())
-    else:lost=not clock.same_session({'boot_id':row[0],'domain':row[1],'boottime':row[2]},now)
-    if lost:contract.fail('worker_evidence_clock_continuity_lost')
+    if _session_lost(row,clock.session()):contract.fail('worker_evidence_clock_continuity_lost')
 
 
 def _stored(root,row,request_sha256,verified):

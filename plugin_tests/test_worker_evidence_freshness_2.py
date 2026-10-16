@@ -123,6 +123,41 @@ class PosixBootContinuityTests(unittest.TestCase):
             db.execute('DROP TABLE IF EXISTS received_session')
         self.assertEqual(self.later(T + 5, 'real'), {'ok': False, 'code': 'worker_evidence_clock_continuity_lost'})
 
+    OTHER_BOOT = {'boot_id': 'another-boot', 'domain': 'd', 'boottime': 5.0}
+
+    def session_rows(self):
+        with sqlite3.connect(self.root / 'evidence.sqlite3') as db:
+            return db.execute('SELECT * FROM received_session').fetchall()
+
+    def test_a_re_ingest_in_another_boot_cannot_erase_the_boot_boundary(self):
+        before = self.session_rows()
+        self.assertEqual(len(before), 1)
+        with patch.object(clock, 'session', return_value=self.OTHER_BOOT), wall(T + 5):
+            with self.assertRaises(AppError) as held:
+                host.reopen(self.root, digest(self.req), self.policy, OK)
+            self.assertEqual(held.exception.code, 'worker_evidence_clock_continuity_lost')
+            with self.assertRaises(AppError) as refused:  # the identical evidence, ingested again in the new boot
+                host.ingest(self.root, expiring(self.req), self.req, self.policy, OK)
+            self.assertEqual(refused.exception.code, 'worker_evidence_clock_continuity_lost')
+            self.assertEqual(self.session_rows(), before)  # no row changed
+            with self.assertRaises(AppError) as still:
+                host.reopen(self.root, digest(self.req), self.policy, OK)
+            self.assertEqual(still.exception.code, 'worker_evidence_clock_continuity_lost')
+
+    def test_an_identical_re_ingest_in_the_admitting_boot_stays_idempotent(self):
+        before = self.session_rows()
+        with wall(T + 5):
+            again = host.ingest(self.root, expiring(self.req), self.req, self.policy, OK)
+        self.assertTrue(again['idempotent'])
+        self.assertEqual(self.session_rows(), before)
+
+    def test_a_re_ingest_over_a_receipt_with_no_session_is_refused(self):
+        with sqlite3.connect(self.root / 'evidence.sqlite3') as db:
+            db.execute('DROP TABLE received_session')
+        with wall(T + 5), self.assertRaises(AppError) as refused:
+            host.ingest(self.root, expiring(self.req), self.req, self.policy, OK)
+        self.assertEqual(refused.exception.code, 'worker_evidence_clock_continuity_lost')
+
 
 if __name__ == '__main__':
     unittest.main()
