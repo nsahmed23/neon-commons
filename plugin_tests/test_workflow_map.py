@@ -1121,6 +1121,7 @@ class LayerFrameTests(LayerFixture):
                 self.assertLessEqual(len(row), size[0], (size, row))
         # The layer is still open and Esc still closes it: only the drawing was left out.
         self.assertEqual(ws.states[-1]['layer'], 'workflow')
+        self.assertEqual(ws.states[-1]['notice'], 'Workflow map needs a larger window. Esc closes it.')
 
     def test_the_key_line_names_the_layers_keys_and_no_key_that_changes_anything(self):
         from intune_iac.workbench_tui import help_line

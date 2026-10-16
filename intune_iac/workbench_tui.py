@@ -289,6 +289,7 @@ WORKFLOW_HELP_LINES = ('? help | : command | Up/Down stage | Enter open | Esc cl
                        'Esc close | q exit')
 WORKFLOW_READ_ONLY = 'The workflow map is read-only; Esc closes it.'
 WORKFLOW_SHOWN = 'Workflow map shown (read-only). Esc closes it.'
+WORKFLOW_NEEDS_WINDOW = 'Workflow map needs a larger window. Esc closes it.'
 # What Enter sends for a stage's surface key (workflow_projection.OPENS): a read view, never a command that changes anything.
 WORKFLOW_SURFACE_COMMANDS = {'2': 'inspect', '3': 'relationships', '5': 'review', '7': 'views', '9': 'repository-status',
                              'v': 'delivery'}
@@ -932,7 +933,8 @@ class Workspace:
                 self.follow_focus = True
                 if getattr(self, 'workflow_focus', None) not in self._workflow_ids():
                     self.workflow_focus = None
-                self.notice = WORKFLOW_SHOWN
+                from .workbench_screens import workflow_fits
+                self.notice = WORKFLOW_SHOWN if workflow_fits(self._map_size()) else WORKFLOW_NEEDS_WINDOW
             if self.tab == 2 and isinstance(value.get('relationships'), list) and isinstance(value.get('object_id'), str):
                 self.notice += self._note_topology(value)
         pending, self.pending_stage = getattr(self, 'pending_stage', None), None
