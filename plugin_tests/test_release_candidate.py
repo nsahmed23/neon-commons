@@ -145,11 +145,15 @@ class BuildIdentityTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             other.build()
 
-    def test_a_checkout_without_git_state_records_nulls_not_a_guess(self):
+    def test_a_checkout_without_git_state_is_refused_not_guessed(self):
         other = FixtureBuild(self)
-        other.build(state={'commit': None, 'tree': None, 'dirty': None})
-        record = other.identity('runtime')
-        self.assertEqual((record['commit'], record['tree'], record['dirty']), (None, None, None))
+        try:
+            other.build(state={'commit': None, 'tree': None, 'dirty': None})
+        except ValueError as refused:
+            self.assertIn('known Git state', str(refused))
+        else:
+            self.fail('archives were made without a known commit')
+        self.assertFalse(other.output.exists() and any(other.output.iterdir()), 'nothing was written')
 
 
 class GitStateAndClockTests(unittest.TestCase):

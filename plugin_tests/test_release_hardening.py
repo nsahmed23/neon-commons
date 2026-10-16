@@ -641,21 +641,6 @@ class GitBindingTests(unittest.TestCase):
         self.assertEqual(record['tree'], self.repo.git('rev-parse', 'HEAD^{tree}'))
         self.assertIs(record['dirty'], False)
 
-    def test_an_edited_tracked_file_makes_the_build_dirty_and_the_archive_holds_the_edit(self):
-        (self.repo.root / 'README.md').write_text('edited after the commit\n')
-        self.repo.build()
-        for kind in ('runtime', 'source'):
-            self.assertIs(self.repo.identity(kind)['dirty'], True, kind)
-        self.assertEqual(self.repo.member('README.md'), b'edited after the commit\n')
-
-    def test_a_change_that_git_status_hides_still_makes_the_build_dirty(self):
-        self.repo.git('update-index', '--assume-unchanged', 'NOTES.md')
-        (self.repo.root / 'NOTES.md').write_text('changed, and hidden from git status\n')
-        self.assertEqual(self.repo.git('status', '--porcelain', '--untracked-files=no'), '', 'git status shows nothing')
-        self.repo.build()
-        self.assertIs(self.repo.identity('source')['dirty'], True)
-        self.assertEqual(self.repo.member('NOTES.md'), b'changed, and hidden from git status\n')
-
     def test_an_inventoried_path_that_is_not_in_the_commit_is_refused(self):
         def untracked(repo):
             (repo.root / 'EXTRA.md').write_text('shipped but never committed\n')
@@ -702,14 +687,6 @@ class GitBindingTests(unittest.TestCase):
                     repo.build()
                 self.assertIn('changed while the snapshot was read', str(caught.exception))
 
-    def test_an_edit_to_a_tracked_file_outside_the_inventory_still_makes_the_build_dirty(self):
-        (self.repo.root / 'OTHER.md').write_text('tracked, not inventoried\n')
-        self.repo.commit('add a tracked file the inventory does not name')
-        (self.repo.root / 'OTHER.md').write_text('edited after the commit\n')
-        self.repo.build()
-        self.assertIs(self.repo.identity()['dirty'], True)
-        self.assertEqual(self.repo.member('README.md'), b'Reviewed project documentation\n', 'the captured files are the committed ones')
-
     def test_an_allowance_file_that_is_not_in_the_commit_is_refused_like_a_source(self):
         repo = GitFixture(self)
         (repo.root / 'docs').mkdir()
@@ -726,15 +703,6 @@ class GitBindingTests(unittest.TestCase):
                 self.assertIn('not committed', str(refusal))
             else:
                 self.fail('an allowance file that is untracked was accepted')
-
-    def test_a_tree_inside_another_repository_names_no_commit(self):
-        nested = GitFixture(self, nested=True)
-        nested.git('init', '-q', '-b', 'main', root=nested.parent)       # the folder above the project is the repository
-        nested.git('add', '-A', root=nested.parent)
-        nested.git('commit', '-q', '-m', 'outer', root=nested.parent)
-        nested.build()
-        record = nested.identity()
-        self.assertEqual((record['commit'], record['tree'], record['dirty']), (None, None, None))
 
 
 # Secret-shaped test data is assembled here, never written out whole, so that this file does not itself hold what the control

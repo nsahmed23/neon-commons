@@ -443,6 +443,17 @@ def main():
     state = {key: after[key] for key in ('commit', 'tree', 'dirty')}
     if differing:
         state['dirty'] = True
+    # Archives are made only from a known, clean Git state in which every captured file, the reviewed allowance file included, is
+    # the committed one: a reviewed allowance must come from the commit the receipt names. --check-only may report any state.
+    if not args.check_only:
+        if state['commit'] is None:
+            raise ValueError('Archives are made only from a known Git state: this folder is not the top level of a Git checkout, '
+                             'or git could not be run. Use --check-only to look at a tree that has no commit.')
+        if state['dirty']:
+            reasons = (['git reports tracked modifications'] if after['dirty'] else []) + (
+                ['captured files that differ from the commit: ' + ', '.join(differing[:20])] if differing else [])
+            raise ValueError('Archives are made only from a clean checkout of the commit they name (' + '; '.join(reasons)
+                             + '); commit or discard the changes. A reviewed allowance counts only as the committed one.')
     # What is about to be archived is looked at once, here, before anything is written.
     allowances = read_allowances(allowance_bytes) if allowance_bytes is not None else {}
     findings, counted, scanned_bytes = scan_content(snapshot)
@@ -465,6 +476,9 @@ def main():
             'source_inventory_sha256':hashlib.sha256(inventory_bytes).hexdigest(),
             'source_snapshot_sha256':hashlib.sha256(json.dumps(source_hashes,sort_keys=True,separators=(',',':')).encode()).hexdigest(),
             'runtime_in_reviewed_source':True,'archives_created':False,'sensitive_content':sensitive,
+            'checkout':{'commit':state['commit'],'tree':state['tree'],'dirty':state['dirty'],'differing_files':differing[:20],
+                        'differing_count':len(differing),
+                        'archives':'refused unless the commit is known and the checkout is clean'},
             'qualification':'Selection and bounded no-follow file validation only; no package, security, platform or production acceptance.',
             'required_follow_up':'Freeze exact source revision, build reproducibly, verify and independently qualify the exact final archives.'}
         print(json.dumps(report,indent=2))
