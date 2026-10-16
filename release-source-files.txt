@@ -527,6 +527,8 @@ intune_iac/repository.py
 intune_iac/repository_entry.py
 intune_iac/runner.py
 intune_iac/service_cli.py
+intune_iac/signin.py
+intune_iac/signin_facts.py
 intune_iac/sim_cli.py
 intune_iac/sim_eval.py
 intune_iac/sim_filters.py
@@ -828,6 +830,7 @@ plugin_tests/fixtures/pre_pin_migration/session/session.json
 plugin_tests/fixtures/pre_pin_migration/session/session.json.repository-context.7afc87cf3f7641e8bafde059edb3b335.json
 plugin_tests/fixtures/worker_service_tls_client.c
 plugin_tests/orchestration_fixtures.py
+plugin_tests/signin_fakes.py
 plugin_tests/signing_fixture.py
 plugin_tests/sim_cases.py
 plugin_tests/sim_support.py
@@ -944,6 +947,7 @@ plugin_tests/test_restore_evidence_layer_r4.py
 plugin_tests/test_restricted_hashes.py
 plugin_tests/test_runner.py
 plugin_tests/test_secret_redaction_harness.py
+plugin_tests/test_signin_detect.py
 plugin_tests/test_security_audit_completion.py
 plugin_tests/test_security_boundaries_completion.py
 plugin_tests/test_service_expiry_latch.py
