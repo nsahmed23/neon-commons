@@ -4,7 +4,6 @@ Item 1 (DEF-INSPECTOR-AFTER-VIEWS) drives the real workspace over the real engin
 workflow map's tests do (LayerFixture): after `:views` (Coverage) every move to the Inspector reached the Inspector.
 Items 2 to 5 are the catalog layer at the smaller windows of journey 33 run 1 (frame review B, findings 1 to 4).
 """
-import copy
 import re
 import tempfile
 import unittest
@@ -18,7 +17,6 @@ from plugin_tests.test_workflow_map import LayerFixture, OBJECT, typed
 NAME = 'Windows Privacy Pilot'
 INVALID = ('invalid_workbench_request', 'Invalid workbench request')
 GUID = '22222222-2222-4222-8222-222222222222'
-STATE = 'discovered | usable here | this product has no live connection (not authenticated) | synthetic only'
 
 
 def key(char):
@@ -199,26 +197,25 @@ class DisplayFaultTests(LayerFixture):
         self.assertNotIn('DISPLAY FAULT', text)
 
 
-def estate_catalog(directory='/work/estate dir'):
-    """The catalog record of an estate like journey 33 run 1's, built by the product from a survey of `directory`: the
-    real goals and kinds (whose sign-in commands name the directory), and saved projects with the state words and the
-    one resume command each (a wizard session, a generated project, an operation and a store)."""
+def estate_catalog(directory='/work/estate dir', relative_to=None, extra=0):
+    """The catalog of an estate like journey 33 run 1's, built by the product from a survey of `directory`: the real
+    goals and kinds, and saved projects with their state words and one resume command each (`extra` repositories, a
+    wizard session, a generated project, an operation and a store). The catalog the layer prints from is the build's
+    text build, whose directory operand the product's own path writer wrote (entry.text_paths), as in the workspace."""
     from intune_iac import catalog as catalog_module
-    survey = tr.survey_of(tr.repository_item(), tr.context_item())
+    items = [tr.repository_item(path='repository-%d' % number) for number in range(extra)] + [
+        tr.repository_item(), tr.context_item(),
+        {'kind': 'wizard_session', 'path': 'estate dir/session.json', 'valid': True, 'step': 'confirm', 'output': 'generated',
+         'states': tr.states()},
+        {'kind': 'generated_project', 'path': 'generated', 'classification': 'unchanged', 'session': 'session.json',
+         'states': tr.states()},
+        {'kind': 'operation', 'path': 'operation-1', 'object_id': GUID, 'status': 'prepared',
+         'changes': [GUID + ':description_changed'], 'states': dict(tr.states(), qualified='synthetic_only')},
+        {'kind': 'store', 'path': 'store', 'tenant_id': tr.TENANT, 'objects': 1, 'freshness': 'fresh', 'intents': [],
+         'operations': 1, 'states': tr.states()}]
+    survey = tr.survey_of(*items)
     survey['directory'] = directory
-    data = catalog_module.build(survey, doctor=tc.doctor())
-    data['projects'] = [
-        {'kind': 'wizard_session', 'label': 'Wizard session', 'path': 'estate dir/session.json', 'summary': 'step complete',
-         'state': STATE, 'command': "intune-iac wizard --session 'estate dir/session.json'", 'note': None},
-        {'kind': 'generated_project', 'label': 'Generated project', 'path': 'generated',
-         'summary': 'unchanged | session session.json', 'state': STATE, 'command': None, 'note': 'nothing to resume from here'},
-        {'kind': 'operation', 'label': 'Operation', 'path': 'operation-1',
-         'summary': 'prepared | %s:description_changed' % GUID, 'state': STATE,
-         'command': 'intune-iac workbench delivery --operation operation-1', 'note': None},
-        {'kind': 'store', 'label': 'Store', 'path': 'store', 'summary': 'tenant 11111111-1111-4111-8111-111111111111',
-         'state': STATE, 'command': "intune-iac workbench workspace --root store --service-root 'estate dir/service'",
-         'note': None}]
-    return data
+    return catalog_module.build(survey, doctor=tc.doctor(), relative_to=relative_to)
 
 
 class CatalogLayerCase(unittest.TestCase):
@@ -256,15 +253,22 @@ class CatalogLayerCase(unittest.TestCase):
 
 class CatalogPlainTextRouteTests(CatalogLayerCase):
     """Item 2 (journey 33 run 1, review B finding 1): below 60x20 the layer says the catalog needs a larger window and
-    now also says how to get the same text without one."""
+    now also says how to get the same text without one. The directory in that command is the operand the catalog's own
+    path writer wrote (round 2, Sol review: the row once quoted the recorded directory itself)."""
 
     ROUTE = 'Plain text: intune-iac catalog'
+
+    def route_row(self, size, data=None):
+        rows = catalog_layer.rows_of(self.layer(size, data))
+        routes = [row for row in self.body(rows) if row.startswith(('Plain text: intune-iac catalog', 'Text: intune-iac catalog'))]
+        self.assertEqual(len(routes), 1, (size, rows))
+        return routes[0]
 
     def test_at_40x12_the_layer_names_the_plain_text_route_in_the_rows_it_has(self):
         rows = catalog_layer.rows_of(self.layer((40, 12)))
         body = self.body(rows)
         self.assertEqual(len(body), 3, rows)                       # three rows are all a 40x12 frame has for the body
-        self.assertIn('Plain text: intune-iac catalog DIR', body)
+        self.assertEqual(body[2], 'Text: intune-iac catalog DIRECTORY')
         text = ' '.join(body)
         self.assertIn('The catalog needs a larger window: at least 60x20.', text)
         self.assertIn('Esc closes it.', text)
@@ -277,20 +281,73 @@ class CatalogPlainTextRouteTests(CatalogLayerCase):
         self.assertNotIn(self.ROUTE, ' '.join(rows))
         self.assertIn('INTEGRATION CATALOG', ' '.join(rows))
 
-    def test_where_the_row_holds_the_directory_the_route_names_it_as_the_catalog_prints_it(self):
-        for size in ((59, 24), (80, 19)):
-            body = self.body(catalog_layer.rows_of(self.layer(size)))
-            self.assertIn("Plain text: intune-iac catalog '/work/estate dir'", body, size)
-        # A directory the row cannot hold, or none, leaves the placeholder the product uses for an argument.
-        for directory in ('/a/directory/with/a/long/name/that/cannot/fit', None):
-            body = self.body(catalog_layer.rows_of(self.layer((40, 12), estate_catalog(directory))))
-            self.assertIn('Plain text: intune-iac catalog DIR', body, directory)
+    def test_an_ordinary_directory_prints_as_the_catalog_writes_it_where_the_row_holds_it(self):
+        cases = (((40, 12), '/work', 'Plain text: intune-iac catalog /work'),
+                 ((40, 12), '/work/a', 'Text: intune-iac catalog /work/a'),          # the label gives way before the name does
+                 ((40, 12), '/work/estate dir', 'Text: intune-iac catalog DIRECTORY'),   # a name the row cannot hold
+                 ((59, 24), '/work/estate dir', "Plain text: intune-iac catalog '/work/estate dir'"),
+                 ((80, 19), '/work/estate dir', "Plain text: intune-iac catalog '/work/estate dir'"))
+        for size, directory, expected in cases:
+            self.assertEqual(self.route_row(size, estate_catalog(directory)), expected, (size, directory))
 
-    def test_a_directory_with_a_control_character_reaches_the_row_escaped(self):
-        body = self.body(catalog_layer.rows_of(self.layer((80, 19), estate_catalog('/work/a\nb'))))
-        self.assertTrue(any(row.startswith('Plain text: intune-iac catalog') for row in body), body)
-        for row in body:
+    def test_the_row_uses_the_operand_the_path_writer_wrote_and_does_not_quote_it_again(self):
+        # Run from /work, the writer names the directory relative to it, quoted once.
+        self.assertEqual(self.route_row((80, 19), estate_catalog('/work/estate dir', relative_to='/work')),
+                         "Plain text: intune-iac catalog 'estate dir'")
+        # Run from the directory itself, it names it `.`, which a 40x12 row holds.
+        self.assertEqual(self.route_row((40, 12), estate_catalog('/work/estate dir', relative_to='/work/estate dir')),
+                         'Plain text: intune-iac catalog .')
+
+    def test_a_result_with_no_operand_shows_the_shared_placeholder(self):
+        import json
+        plain = json.loads(json.dumps(estate_catalog('/work/estate dir')))      # crossed a JSON boundary: no text build
+        self.assertEqual(self.route_row((80, 19), plain), 'Plain text: intune-iac catalog DIRECTORY')
+        self.assertEqual(self.route_row((40, 12), plain), 'Text: intune-iac catalog DIRECTORY')
+
+
+class RouteDirectoryTests(CatalogLayerCase):
+    """Round 2 (Sol review of 97b4757, High): the narrow route named the directory by quoting the recorded one, so a name
+    the shared display rule refuses (a credential shape, a control character, over-long, or one that terminal escaping
+    changes) reached the screen, or an escaped copy that addresses another path. The catalog's path writer says such a
+    directory is DIRECTORY on every screen; the route row now takes it from there. Through the real layer, built by the
+    real catalog builder: no raw control byte, and no refused name or piece of it, on screen."""
+
+    TOKEN = 'ghp_AbCdEfGhIjKlMnOpQrStUvWxYz0123456789'
+    REFUSED = (
+        # what it is, the directory, strings that must not be on the screen besides the name and its escaped form
+        ('credential-shaped', 'ghp_x', ('ghp_',)),
+        ('credential-shaped, long', TOKEN, ('ghp_', 'AbCdEf', 'Wx')),
+        ('a control character', '/work/a\nb', ('/work/a', 'a\\nb')),
+        ('a control character, short', 'a\n', ('a\\n',)),
+        ('over-long', '/work/' + 'd' * 220, ('dddddddddd',)),
+        ('changed by terminal escaping', '/work/é', ('/work/e', 'u0301', '́')))
+
+    def screen_of(self, directory, size):
+        rows = catalog_layer.rows_of(self.layer(size, estate_catalog(directory)))
+        self.assertEqual(len(rows), size[1], rows)                 # a raw line feed would have forged a row
+        for row in rows:
             self.assertTrue(all(32 <= ord(char) < 127 for char in row), repr(row))
+        return rows
+
+    def test_a_refused_directory_is_the_placeholder_on_the_route_row_and_nowhere_else(self):
+        from intune_iac.workbench_tui import safe_text
+        for what, directory, pieces in self.REFUSED:
+            for size in ((40, 12), (59, 24), (80, 19)):
+                with self.subTest(what=what, size=size):
+                    rows = self.screen_of(directory, size)
+                    expected = ('Text: intune-iac catalog DIRECTORY' if size == (40, 12)
+                                else 'Plain text: intune-iac catalog DIRECTORY')
+                    self.assertIn(expected, self.body(rows))
+                    for text in ('\n'.join(rows), ''.join(row.strip() for row in rows), ' '.join(row.strip() for row in rows)):
+                        for refused in (directory, safe_text(directory)) + pieces:
+                            self.assertNotIn(refused, text)
+
+    def test_an_ordinary_directory_is_shown_as_before_with_no_raw_control_byte(self):
+        for size in ((40, 12), (59, 24), (80, 19)):
+            for directory in ('/work', '/work/estate dir'):
+                rows = self.screen_of(directory, size)
+                self.assertTrue(any(row.startswith(('Plain text: intune-iac catalog', 'Text: intune-iac catalog'))
+                                    for row in self.body(rows)), (directory, size))
 
 
 class IdentifierWrapTests(CatalogLayerCase):
@@ -365,15 +422,11 @@ class CommandPagingTests(CatalogLayerCase):
     complete only across both (frames 29 and 30, 31 and 32, 37 and 38). Paging now breaks before such a command when
     the page would end inside it; every row is still shown, in order, and the last page is still the end of the text."""
 
-    FILLER = {'kind': 'repository', 'label': 'Repository', 'path': 'repo', 'summary': 'atmos.yaml', 'state': STATE,
-              'command': 'intune-iac workbench repository-entry --root store --repo repo', 'note': None}
-
-    def catalog_with(self, extra):
-        """The estate catalog with `extra` more saved projects before the others, in a directory whose name is `extra`
+    @staticmethod
+    def catalog_with(extra):
+        """The estate catalog with `extra` more saved repositories before the others, in a directory whose name is `extra`
         letters longer: each shifts the rows that follow, and the sign-in commands wrap in different places."""
-        data = estate_catalog('/work/journey 33/estate directory/' + 'd' * extra)
-        data['projects'] = [copy.deepcopy(self.FILLER) for _ in range(extra)] + data['projects']
-        return data
+        return estate_catalog('/work/journey 33/estate directory/' + 'd' * extra, extra=extra)
 
     @staticmethod
     def commands_of(data, width):

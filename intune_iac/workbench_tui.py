@@ -282,16 +282,26 @@ LAYERS = {'details': 'typed details', 'raw': 'raw record', 'actions': 'actions',
           'workflow': 'read-only'}
 # The catalog layer needs this many columns and rows to show its lines whole; below it says so instead of cutting them.
 CATALOG_MIN = (60, 20)
-# Two rows at 40 columns, so the plain-text route (CATALOG_ROUTE) has the third row of a 40x12 frame's body.
+# Two rows at 40 columns, so the plain-text route (CATALOG_ROUTE_FORMS) has the third row of a 40x12 frame's body.
 CATALOG_NEEDS = 'The catalog needs a larger window: at least %dx%d. Esc closes it.' % CATALOG_MIN
-CATALOG_ROUTE = 'Plain text: intune-iac catalog %s'
+# The route's forms, longest first. The shortest holds the shared placeholder DIRECTORY in the 36 cells of a 40x12 body.
+CATALOG_ROUTE_FORMS = ('Plain text: intune-iac catalog %s', 'Text: intune-iac catalog %s')
 
 
-def catalog_route(directory, width):
-    """The plain-text route below the catalog's minimum window: the command that prints the same text. It names the
-    surveyed directory as the catalog's own commands quote it when the row holds that, else the placeholder DIR."""
-    named = CATALOG_ROUTE % shlex.quote(directory) if isinstance(directory, str) and directory else None
-    return named if named is not None and cell_width(safe_text(named)) <= width else CATALOG_ROUTE % 'DIR'
+def catalog_route(value, width):
+    """The plain-text route below the catalog's minimum window: the command that prints the same text.
+
+    Its directory is the operand the catalog's own path writer wrote for a screen (entry.text_paths, kept in the result's text
+    build as directory_operand: DIRECTORY for a name the display rule refuses, otherwise relative to where the command runs,
+    quoted once), exactly as given. This function does not read the recorded directory, quote anything or decide what may
+    be shown: a command on one screen names a directory in one way. The shared placeholder DIRECTORY stands where the result
+    has no operand, or the row does not hold it. The longest form that fits is drawn, the operand before the placeholder."""
+    from .entry import DIRECTORY_PLACEHOLDER
+    built = getattr(value, 'text_build', None)
+    operand = built.get('directory_operand') if isinstance(built, dict) else None
+    forms = [form % operand for form in CATALOG_ROUTE_FORMS] if isinstance(operand, str) and operand else []
+    forms += [form % DIRECTORY_PLACEHOLDER for form in CATALOG_ROUTE_FORMS]
+    return next((form for form in forms if cell_width(form) <= width), forms[-1])
 
 
 CATALOG_HELP_LINES = ('? help | : command | Esc close catalog | b back | q exit', '? help | Esc close | b back | q exit',
@@ -1560,8 +1570,7 @@ class Workspace:
         from .workbench_screens import word_wrap
         columns, rows = getattr(self, 'size', None) or (width + 2, CATALOG_MIN[1])
         if columns < CATALOG_MIN[0] or rows < CATALOG_MIN[1]:
-            held = self.value.get('directory') if self.value.get('schema_version') == 'integration-catalog/1' else None
-            return word_wrap(CATALOG_NEEDS, width) + word_wrap(catalog_route(held, width), width)
+            return word_wrap(CATALOG_NEEDS, width) + word_wrap(catalog_route(self.value, width), width)
         if self.value.get('schema_version') != 'integration-catalog/1':
             return word_wrap('No catalog is loaded. Esc closes this layer.', width)
         from .catalog import catalog_lines
