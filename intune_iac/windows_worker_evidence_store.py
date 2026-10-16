@@ -62,23 +62,33 @@ def _peek(store):
         _validate_schema(db);return _effective(store,_mark(db))
 
 
-def _judge(store,db,run):
-    """Inside the open BEGIN IMMEDIATE transaction: resample the wall, raise the mark, then decide admission on the
-    effective time with run(now). A refusal still commits the raised mark (a closed window stays closed); admission
-    depends on the mark having been recorded. Returns the pending refusal or None."""
-    pending=None
+def _judge(store,db,decide,apply):
+    """Inside the open BEGIN IMMEDIATE transaction: resample the wall, raise the mark, decide admission on the effective
+    time with decide(now), and (only if admitted and the mark was written) apply(verified); then commit. A refusal still
+    commits the raised mark (a closed window stays closed). A temporal refusal keeps its code even when the mark could not be
+    written or committed (it then says closure_recorded=false); an admission whose time was not recorded is refused with
+    worker_evidence_clock_unrecorded. Returns the pending refusal or None."""
+    recorded=True
     try:
         now=_effective(store,_mark(db))
         db.execute('INSERT INTO metadata VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',(CLOCK,canonical({'high_water':now}).decode()))
     except BaseException as error:
         if isinstance(error,(KeyboardInterrupt,SystemExit)):raise
-        raise AppError('worker_evidence_clock_unrecorded','The authenticated read time could not be recorded; the evidence was not admitted.') from error
-    try:run(now)
+        recorded=False;now=_effective(store,0)
+    pending=verified=None
+    try:verified=decide(now)
     except AppError as error:pending=error
-    try:db.execute('COMMIT')
-    except BaseException as error:
-        if isinstance(error,(KeyboardInterrupt,SystemExit)):raise
-        raise AppError('worker_evidence_clock_unrecorded','The authenticated read time could not be recorded; the evidence was not admitted.') from error
+    if recorded and pending is None:
+        try:apply(verified)
+        except AppError as error:pending=error
+    if recorded:
+        try:db.execute('COMMIT')
+        except BaseException as error:
+            if isinstance(error,(KeyboardInterrupt,SystemExit)):raise
+            recorded=False
+    if not recorded:
+        if pending is None:contract.unrecorded()
+        contract.mark_unrecorded(pending)
     return pending
 
 
@@ -100,8 +110,8 @@ def _ingest(store,envelope_path,request_path,trust_path,pin_path,scratch,api):
             auth=contract.verify_envelope(envelope,request,policy,verify,now=_peek(store),historical=True).result()
             if auth['tenant_id']!=store.tenant_id:contract.fail('workbench_evidence_identity')
             holder={}
-            def admit(db,now):
-                verified=contract.verify_envelope(envelope,request,policy,verify,now=now)
+            def decide(now):return contract.verify_envelope(envelope,request,policy,verify,now=now)
+            def apply(verified):
                 result=verified.result();binding=contract.received_binding(verified,digest(request))
                 result['native_verifier']=verify.metadata
                 record={'schema_version':'worker-evidence-received/1','request_sha256':binding['request_sha256'],
@@ -120,7 +130,7 @@ def _ingest(store,envelope_path,request_path,trust_path,pin_path,scratch,api):
             # Both indexes and the mark commit together under the existing native storage barriers.
             with store._connection(True) as db,db:
                 _validate_schema(db);db.execute('BEGIN IMMEDIATE')
-                pending=_judge(store,db,lambda now:admit(db,now))
+                pending=_judge(store,db,decide,apply)
             if pending is not None:raise pending
         result,record,repeated=holder['result'],holder['record'],holder['repeated']
         result.update(received_byte_sha256=record['envelope_byte_sha256'],request_byte_sha256=record['request_byte_sha256'],
@@ -167,7 +177,7 @@ def _reopen(store,request_sha256,trust_path,pin_path,scratch,api,*,historical=Fa
             if auth['tenant_id']!=store.tenant_id:contract.fail('workbench_evidence_identity')
             with store._connection(True) as db,db:
                 _validate_schema(db);db.execute('BEGIN IMMEDIATE')
-                pending=_judge(store,db,lambda now:finish(db,contract.verify_envelope(envelope,request,policy,verify,now=now)))
+                pending=_judge(store,db,lambda now:contract.verify_envelope(envelope,request,policy,verify,now=now),lambda verified:finish(db,verified))
             if pending is not None:raise pending
         result=holder['result']
     return result

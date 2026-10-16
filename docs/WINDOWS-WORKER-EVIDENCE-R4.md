@@ -44,6 +44,13 @@ python -B scripts/intune-windows-evidence.py --qualification-only inspect --enve
 historical-only evidence with unknown current status and no admissible baseline.
 No flag changes laboratory capture into authenticated live evidence.
 
+`inspect` of a loose file is historical-only: without `--historical` it is refused with
+`worker_evidence_inspect_requires_store`, because a loose file has no store to hold the
+durable clock mark that keeps an expired or stale envelope from becoming admissible again
+after a wall step back or a restart. For current admissibility use `ingest --root` into a
+native Workbench store, then `reopen`; both record that mark in the store's own write
+transaction (a failed record refuses with `worker_evidence_clock_unrecorded`).
+
 The executable native procedure is
 `scripts/qualify-windows-worker-evidence.py --help`. Prepare an approved disposable
 Windows x64 CPython 3.12 host, pinned native DLL/ABI/dependency descriptor, fresh
@@ -92,8 +99,9 @@ Win32 storage effects. DLL tests record loader/export calls separately. Neither
 scope establishes a native Windows signature or storage qualification.
 
 The native harness now requires `--evidence-store NEW_PRIVATE_STORE`, creates it
-without replacing any destination, then verifies signed inspect, ingest, reopen,
-shared review/baseline views and persistent history. It checks complete runtime
+without replacing any destination, then verifies signed ingest, reopen,
+shared review/baseline views and persistent history (current admissibility is judged on the
+reopened store result, since loose-file inspect is historical-only). It checks complete runtime
 source hashes before and after. Native vectors, DLL supply-chain/ABI review,
 organizational publisher trust and private artifact transport remain required.
 Explicit raw `source_is_synthetic=true` cannot establish an authenticated live

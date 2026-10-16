@@ -223,6 +223,20 @@ class PosixStoreReaderTests(Shape, unittest.TestCase):
             self.read()
         self.assertEqual(stored.exception.code, 'worker_evidence_not_stored')
 
+    def test_a_temporal_refusal_keeps_its_code_when_its_closure_cannot_be_recorded(self):
+        self.publish(expiring(self.req))
+        with patch.object(clock, 'write_json', side_effect=OSError('disk full')), wall(T + 20), self.assertRaises(AppError) as raised:
+            self.read()
+        self.assertEqual(raised.exception.code, 'worker_evidence_expired')
+        self.assertIs(raised.exception.closure_recorded, False)
+        self.assertIn('worker_evidence_clock_unrecorded', ''.join(raised.exception.__notes__))
+
+    def test_an_admission_is_refused_when_the_time_cannot_be_recorded(self):
+        with patch.object(clock, 'write_json', side_effect=OSError('disk full')), wall(T + 1), self.assertRaises(AppError) as raised:
+            host.ingest(self.root, expiring(self.req), self.req, self.policy, OK)
+        self.assertEqual(raised.exception.code, 'worker_evidence_clock_unrecorded')
+        self.assertFalse((self.root / 'evidence.sqlite3').exists())  # nothing was admitted
+
 
 if __name__ == '__main__':
     unittest.main()

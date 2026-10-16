@@ -243,8 +243,8 @@ def ingest_raw(store_root,envelope_raw,request_raw,policy,verifier):
         # Authenticate first (structure, trust, binding, signature) on a read-only time reading: a rejected input leaves no clock effect.
         contract.verify_envelope(frozen_envelope,req,policy,verifier,now=contract.fresh_now(floor=root/'clock.json'),historical=True)
         # Then judge time under the floor lock and keep it through the acceptance commit.
-        with _locked_now(root) as now:
-            verified=contract.verify_envelope(frozen_envelope,req,policy,verifier,now=now)
+        with _locked_now(root) as (now,recorded):
+            verified=_decide(frozen_envelope,req,policy,verifier,now,recorded)
             # Only process-owned parsed persisted bytes and verified content feed the ledger.
             result=verified.result();binding=contract.received_binding(verified,digest(req))
             result.update(received_byte_sha256=hashlib.sha256(envelope_raw).hexdigest(),request_byte_sha256=hashlib.sha256(request_raw).hexdigest())
@@ -289,8 +289,8 @@ def reopen(store_root,request_sha256,policy,verifier,*,historical=False):
     # Authenticate on a read-only reading, then record what an authenticated read saw (a closed window stays closed across a
     # restart) and decide under the floor lock.
     contract.verify_envelope(envelope,req,policy,verifier,now=contract.fresh_now(floor=root/'clock.json'),historical=True)
-    with _locked_now(root) as now:
-        verified=contract.verify_envelope(envelope,req,policy,verifier,now=now)
+    with _locked_now(root) as (now,recorded):
+        verified=_decide(envelope,req,policy,verifier,now,recorded)
         return _stored(root,row,request_sha256,verified)
 
 
@@ -303,12 +303,24 @@ def _stored(root,row,request_sha256,verified):
     return contract.stored_result(verified,dict(zip(('sequence','event_sha256'),head)) if head else None)
 
 
+def _decide(envelope,req,policy,verifier,now,recorded):
+    """Admission on the effective time. A temporal refusal keeps its code (and says so when its closure was not recorded);
+    an admission is refused when the time could not be recorded."""
+    try:verified=contract.verify_envelope(envelope,req,policy,verifier,now=now)
+    except AppError as error:
+        if not recorded:contract.mark_unrecorded(error)
+        raise
+    if not recorded:contract.unrecorded()
+    return verified
+
+
 @contextmanager
 def _locked_now(root):
-    """The store's floor lock, outermost (directory flock, then the floor lock, then SQLite: the order validity.py uses).
+    """The store floor lock, outermost (directory flock, then the floor lock, then SQLite: the order validity.py uses).
 
-    Resamples the wall under the lock, persists the observation and yields the effective time, so no other writer can move
-    the floor between this sample and the caller's acceptance. Call only after the input authenticated."""
+    Resamples the wall under the lock, persists the observation and yields (effective time, recorded), so no other writer
+    can move the floor between this sample and the caller's acceptance. recorded is False when the write failed; the caller
+    then refuses an admission and flags a temporal refusal. Call only after the input authenticated."""
     import fcntl
     from . import clock
     directory=os.open(root,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
@@ -318,5 +330,10 @@ def _locked_now(root):
         fcntl.flock(directory,fcntl.LOCK_EX)
         floor=clock.Floor(root/'clock.json')
         with floor.locked():
-            yield int(floor.observe_locked(time.time())['effective'])
+            wall=time.time();recorded=True
+            try:reading=floor.observe_locked(wall)
+            except (OSError,AppError) as error:
+                if isinstance(error,AppError) and error.code in ('clock_floor_invalid','clock_reading_invalid'):raise
+                recorded=False;reading=floor.observe_locked(wall,persist=False)
+            yield int(reading['effective']),recorded
     finally:os.close(directory)

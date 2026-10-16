@@ -40,16 +40,18 @@ def main():
                 try:verifier(row['public_key_hex'],base64.b64decode(row['message_base64'],validate=True),base64.b64decode(row['signature_base64'],validate=True));accepted=True
                 except AppError:accepted=False
                 result['checks'].append({'id':'independent-vector-'+str(index),'pass':accepted is row['accepted']})
-        observed=native._inspect(args.envelope,args.request,args.trust,args.verifier_pin,args.scratch,api)
-        for key in ('tenant_id','object_id','operation_id','manifest_sha256','evidence_class','baseline_admissible'):
-            result['checks'].append({'id':'independent-'+key,'pass':key in expected and observed[key]==expected[key] and type(observed[key]) is type(expected[key])})
-        result['observed_result_sha256']=hashlib.sha256(canonical(observed)).hexdigest()
         from intune_iac.windows_workbench import WindowsWorkbenchStore
         from intune_iac.windows_worker_evidence_store import ingest_windows_evidence,reopen_windows_evidence
         from intune_iac import workbench_evidence_views as views
         from intune_iac.workbench_views import views as four_views
+        # Current admissibility needs a store (a loose file has no durable clock mark): ingest into the retained scratch store,
+        # then judge the reopened result. Loose-file inspection is historical-only.
         store=WindowsWorkbenchStore.create(args.evidence_store,expected['tenant_id'])
         received=ingest_windows_evidence(args.evidence_store,args.envelope,args.request,args.trust,args.verifier_pin,args.scratch)
+        observed=reopen_windows_evidence(args.evidence_store,native.contract.digest(parse_json(read(args.request))),args.trust,args.verifier_pin,args.scratch)
+        for key in ('tenant_id','object_id','operation_id','manifest_sha256','evidence_class','baseline_admissible'):
+            result['checks'].append({'id':'independent-'+key,'pass':key in expected and observed[key]==expected[key] and type(observed[key]) is type(expected[key])})
+        result['observed_result_sha256']=hashlib.sha256(canonical(observed)).hexdigest()
         reopened=reopen_windows_evidence(args.evidence_store,observed['request_sha256'],args.trust,args.verifier_pin,args.scratch)
         link=views.link(store,expected['object_id'],args.evidence_store,observed['request_sha256'],args.trust,args.verifier_pin,args.scratch)
         display=four_views(store,expected['object_id']);history=views.history(store,expected['object_id'])

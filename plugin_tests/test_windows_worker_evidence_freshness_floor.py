@@ -93,6 +93,42 @@ class WindowsStoreReaderTests(Shape, unittest.TestCase):
         self.assertEqual(raised.exception.code, 'worker_evidence_clock_unrecorded')
         self.assertEqual(self.rows(), [])
 
+    def failing_clock_write(self):
+        real = receiver.canonical
+
+        def canonical_or_fail(value):
+            if isinstance(value, dict) and 'high_water' in value:
+                raise OSError('disk full')
+            return real(value)
+        return patch.object(receiver, 'canonical', side_effect=canonical_or_fail)
+
+    def test_a_temporal_refusal_keeps_its_code_when_its_closure_cannot_be_recorded(self):
+        self.publish(expiring(self.req))
+        with self.failing_clock_write(), wall(T + 20), self.assertRaises(AppError) as raised:
+            self.read()
+        self.assertEqual(raised.exception.code, 'worker_evidence_expired')
+        self.assertIs(raised.exception.closure_recorded, False)
+        self.assertIn('worker_evidence_clock_unrecorded', ''.join(raised.exception.__notes__))
+
+    def test_an_admission_is_refused_when_the_time_cannot_be_recorded_by_the_write(self):
+        storage._create_file(self.input, 'envelope.json', canonical(expiring(self.req)), self.api)
+        with self.failing_clock_write(), wall(T + 1), self.assertRaises(AppError) as raised:
+            self.ingest()
+        self.assertEqual(raised.exception.code, 'worker_evidence_clock_unrecorded')
+        self.assertEqual(self.rows(), [])
+
+
+class QualificationScriptTests(unittest.TestCase):
+    """The native harness judges current admissibility, so it must do so through a store, never a loose-file inspect."""
+
+    def test_script_does_not_inspect_a_loose_file_non_historically(self):
+        import ast
+        path = Path(__file__).resolve().parents[1] / 'scripts' / 'qualify-windows-worker-evidence.py'
+        calls = [n for n in ast.walk(ast.parse(path.read_text())) if isinstance(n, ast.Call)
+                 and getattr(n.func, 'attr', None) == '_inspect']
+        self.assertEqual(calls, [])
+        self.assertIn('reopen_windows_evidence(args.evidence_store,native.contract.digest', path.read_text())
+
 
 class WindowsInspectReaderTests(unittest.TestCase):
     """Loose files have no store to hold a durable mark: only the historical inspection is offered."""

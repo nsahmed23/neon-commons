@@ -393,6 +393,18 @@ def fresh_now(*,floor):
     return int(clock.Floor(floor).peek(time.time())['effective'])
 
 
+def unrecorded():
+    """An admission whose observed time could not be recorded is refused: admission depends on the write."""
+    raise AppError('worker_evidence_clock_unrecorded','The authenticated read time could not be recorded; the evidence was not admitted.')
+
+
+def mark_unrecorded(error):
+    """A temporal refusal keeps its own code; this only says its closure could not be recorded."""
+    error.closure_recorded=False
+    if hasattr(error,'add_note'):error.add_note('closure_recorded=false: worker_evidence_clock_unrecorded')
+    return error
+
+
 def verify_envelope(envelope,req,policy,verify,*,now,historical=False):
     if type(historical) is not bool:fail('worker_evidence_history_mode')
     envelope=bounded(envelope);req=request(bounded(req));policy=trust(policy)
