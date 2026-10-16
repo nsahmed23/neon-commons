@@ -78,7 +78,8 @@ def _authenticated(signin, goal_flag):
     status = verdict.get('status')
     if verdict.get('usable') is True:
         state = 'authenticated'
-    elif status == 'unknown':
+    elif status in ('unknown', 'credential_shaped_name'):
+        # A name shaped like a credential is neither used nor shown: the sign-in is not established either way (it was unknown).
         state = 'unknown'
     else:
         state = 'not_authenticated'

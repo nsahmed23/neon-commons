@@ -154,7 +154,7 @@ class DuplicateDefaultTests(Base):  # item 3
         for account in (None, 'alex@example.test'):
             (self.fakes.directory / 'calls.log').unlink(missing_ok=True)
             result = self.collect(account=account)
-            self.assertEqual((result['status'], result['signin']['status']), ('blocked', 'several_accounts'))
+            self.assertEqual((result['status'], result['signin']['status']), ('blocked', 'two_defaults'))  # PKG-SETUP-5C finding 4
             self.assertEqual(self.fakes.calls(), [LISTING])
         self.assertEqual(self.collectors(), [])
 

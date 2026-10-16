@@ -14,7 +14,9 @@ of gh's own check of the stored login.
 States: signed_in, not_signed_in, subscription_expired (az lists every subscription as Expired: the subscription's state, not
 sign-in expiry, which only a token request shows), unknown, and invalid (gh reported error for a login it checked, which is
 any error after same-host ambiguity is resolved). Verdict statuses add expired (found at token time), wrong_tenant,
-several_accounts and account_mismatch. The reason is a short code, set when the state is unknown or invalid.
+several_accounts, two_defaults (more than one entry marked as the default), credential_shaped_name (the default account's name
+matches a credential signature: it is neither used nor shown), account_mismatch and account_binding_unavailable. The reason is
+a short code, set when the state is unknown or invalid.
 """
 from __future__ import annotations
 
@@ -123,6 +125,15 @@ def credential_signature(raw):
     separator. A name that is merely long, or split by separators, is hidden from display (opaque) but is not blocked.
     """
     return isinstance(raw, str) and (raw.startswith('eyJ') or raw.startswith(_TOKEN_PREFIXES) or bool(_UNBROKEN_RUN.search(raw)))
+
+
+SIGNATURE_FALLBACK = 'its form matches a credential signature'
+
+
+def signature_phrase(entry):
+    """The rule(s) that made this name a credential signature, in words; a fallback when the facts recorded none."""
+    codes = [r for r in (entry.get('hidden_reasons') or ()) if r in ('token_prefix', 'unbroken_run')]
+    return ' and '.join(REASON_TEXT[c] for c in codes) or SIGNATURE_FALLBACK
 
 
 def hidden_reasons(raw):
@@ -429,7 +440,7 @@ def evaluate(facts, tenant=None, account=None):
         # Contradictory: more than one row is marked as the one the CLI uses (counted before identical rows are merged).
         # Never resolved by --account or by order.
         listing = '; '.join(_who(a) for a in defaults)
-        return _verdict('azure', 'several_accounts',
+        return _verdict('azure', 'two_defaults',
                         'The Azure CLI marks more than one entry as its default: %s. The product does not pick one.' % listing,
                         'Make exactly one the default with: %s, or sign out the others with: %s; then run this command '
                         'again.' % (SUBSCRIPTION_STEP, LOGOUT_STEP), tenant, signed_in=active)
@@ -445,9 +456,9 @@ def evaluate(facts, tenant=None, account=None):
                         'Sign in to the tenant the context names: %s; then run this command again.' % login, tenant, signed_in=active)
     if _signature(default):
         # The usability rule: only an unbroken credential signature blocks (a merely hidden name does not).
-        return _verdict('azure', 'unknown', 'The account name the Azure CLI uses is shaped like a credential (a token prefix or '
-                        'an unbroken run of 24 or more letters and digits), so it is not used and not shown. Signed in to tenant '
-                        '%s (%s).' % (default['tenant'], default['cloud']),
+        return _verdict('azure', 'credential_shaped_name', 'The account name the Azure CLI uses is shaped like a credential (%s), '
+                        'so it is not used and not shown. Signed in to tenant %s (%s).'
+                        % (signature_phrase(default), default['tenant'], default['cloud']),
                         'Run az account list --output json yourself to see the sign-in, or sign in with an ordinary account: '
                         '%s; then run this command again.' % login, tenant, signed_in=active)
     if default['cloud'] == NOT_SHOWN:
@@ -490,8 +501,14 @@ def evaluate(facts, tenant=None, account=None):
     return _verdict('azure', 'signed_in', message, next_step, tenant, usable=bool(tenant), signed_in=[default])
 
 
+BINDING_REASON_TEXT = {'opaque': 'it is opaque: it is not a token whose claims can be read',
+                       'no_claims': 'it carries none of the upn, unique_name or appid claims'}
+
+
 def refused(status, tenant, answered=None):
-    """A block found at token time rather than in the listing: expired, not_signed_in or wrong_tenant (answered = the tenant)."""
+    """A block found at token time rather than in the listing: expired, not_signed_in or wrong_tenant (answered = the tenant).
+
+    For account_binding_unavailable, answered is the reason the token names no account: opaque or no_claims (BINDING_REASON_TEXT)."""
     tenant = shown(tenant, GUID)
     wanted = tenant.lower() if tenant else TENANT_PLACEHOLDER
     login = 'az login --tenant %s' % wanted
@@ -502,8 +519,8 @@ def refused(status, tenant, answered=None):
                         'command again.' % login, tenant)
     if status == 'account_binding_unavailable':
         return _verdict('azure', 'account_binding_unavailable',
-                        'The token does not say which account it was issued for (it is opaque, or carries none of the upn, '
-                        'unique_name or appid claims), so it cannot be tied to the account that was judged. Nothing proceeds.',
+                        'The token does not say which account it was issued for (%s), so it cannot be tied to the account that was '
+                        'judged. Nothing proceeds.' % BINDING_REASON_TEXT.get(answered, BINDING_REASON_TEXT['no_claims']),
                         'Sign in again so that the Azure CLI issues a token that names its account: az login --tenant %s; then run '
                         'this command again. If it happens again, report it: a token that names no account cannot be used here.'
                         % wanted, tenant)
@@ -580,10 +597,11 @@ def _evaluate_github(facts):
                             % listing, 'Sign in again: %s; then run: %s.' % (login, GITHUB_RECHECK), None)
         return _verdict('github', 'unknown', 'The GitHub sign-in could not be determined (reason: gh_state_timeout): gh did '
                         'not finish checking %s.' % listing, 'Run gh auth status yourself to see it.', None)
-    if any(_signature(a) for a in active):
-        return _verdict('github', 'unknown', 'A GitHub login name is shaped like a credential (a token prefix or an unbroken run '
-                        'of 24 or more letters and digits), so it is not used and not shown.',
-                        'Run gh auth status yourself to see it.', None, signed_in=active)
+    shaped = next((a for a in active if _signature(a)), None)
+    if shaped is not None:
+        return _verdict('github', 'credential_shaped_name', 'A GitHub login name is shaped like a credential (%s), so it is not '
+                        'used and not shown.' % signature_phrase(shaped), 'Run gh auth status yourself to see it.', None,
+                        signed_in=active)
     hidden = any(a['account'] == NOT_SHOWN for a in active)
     return _verdict('github', 'signed_in', 'Signed in to %s.' % '; '.join(
         '%s as %s' % (a['host'], hidden_name_text(a) if a['account'] == NOT_SHOWN else a['account']) for a in active),

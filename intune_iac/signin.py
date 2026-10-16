@@ -318,25 +318,28 @@ def obtain_token(tenant, account=None, deadline=DEFAULT_DEADLINE):
     token = _token_from(out, tenant)
     # Bind the token to the account that was judged (or confirmed with --account): the default may have changed between the
     # listing and the token request. The claims are unverified, so they may only refuse, and their absence refuses too.
-    binding = signin_facts.claim_binding(facts, _unverified_claims(token))
+    claims = _unverified_claims(token)
+    binding = signin_facts.claim_binding(facts, claims)
     if binding is False:
         raise SigninBlocked(signin_facts.refused('account_mismatch', tenant))
     if binding is not True:
-        # No evidence is not a successful binding: a token that names no account is refused, with its own code.
-        raise SigninBlocked(signin_facts.refused('account_binding_unavailable', tenant))
+        # No evidence is not a successful binding: a token that names no account is refused, with its own code and the one reason
+        # that applies: its claims cannot be read at all (opaque), or they were read and none of them names an account.
+        raise SigninBlocked(signin_facts.refused('account_binding_unavailable', tenant, 'opaque' if claims is None else 'no_claims'))
     return token
 
 
 def _unverified_claims(token):
-    """The payload claims of a JWT-shaped token, read without verification; {} for anything else. Never raises."""
+    """The payload claims of a JWT-shaped token, read without verification; None when they cannot be read (an opaque token), {} when
+    the payload is not an object. Never raises."""
     try:
         parts = token.split('.')
         if len(parts) != 3 or len(token) > 16384:
-            return {}
+            return None
         payload = json.loads(base64.urlsafe_b64decode(parts[1] + '=' * (-len(parts[1]) % 4)))
         return payload if isinstance(payload, dict) else {}
     except (ValueError, TypeError, UnicodeError, RecursionError):
-        return {}
+        return None
 
 
 def _expires_on(value):

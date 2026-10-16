@@ -82,7 +82,7 @@ class HiddenNameTests(Base):
     def test_sol_split_input_is_hidden_and_blocked_by_the_unbroken_run_rule(self):
         # Its last label is 24 letters with no separator, so the run rule matches: not shown, and blocked.
         verdict = verdict_for(self.fakes, SOL_SPLIT)
-        self.assertEqual((verdict['status'], verdict['usable']), ('unknown', False))
+        self.assertEqual((verdict['status'], verdict['usable']), ('credential_shaped_name', False))  # PKG-SETUP-5C finding 4
         self.assertNotIn('abcdefghij', json.dumps(verdict))
 
     def test_the_same_split_with_every_run_under_24_is_hidden_and_usable(self):
@@ -99,7 +99,7 @@ class HiddenNameTests(Base):
         for name in names:
             for account in (None, name):
                 verdict = verdict_for(self.fakes, name, account=account)
-                self.assertEqual((verdict['status'], verdict['usable']), ('unknown', False), name)
+                self.assertEqual((verdict['status'], verdict['usable']), ('credential_shaped_name', False), name)
                 self.assertIn('credential', verdict['message'])
                 self.assertNotIn(name, json.dumps(verdict))
                 self.assertEqual(signin.detect_azure(deadline=5)['accounts'][0]['account'], signin_facts.NOT_SHOWN, name)
@@ -107,7 +107,7 @@ class HiddenNameTests(Base):
     def test_a_blocked_signature_runs_no_token_command(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user='ghp_abc1234')))
         result = self.collect()
-        self.assertEqual((result['status'], result['signin']['status']), ('blocked', 'unknown'))
+        self.assertEqual((result['status'], result['signin']['status']), ('blocked', 'credential_shaped_name'))
         self.assertEqual(self.fakes.calls(), [LISTING])
 
     def test_two_hidden_accounts_are_still_ambiguous_unless_the_default_is_confirmed(self):
@@ -193,10 +193,10 @@ class GithubHiddenLoginTests(Base):
         self.assertIn('gh auth status', verdict['next_step'])
         self.assertNotIn('alexander', json.dumps(verdict))
 
-    def test_a_credential_shaped_login_is_unknown_and_not_shown(self):
+    def test_a_credential_shaped_login_is_blocked_and_not_shown(self):
         self.fakes.answer('gh', 'auth', 'status', out=github_hosts(('github.com', 'ghp_abc1234', 'success', True)))
         verdict = signin_facts.evaluate(signin.detect_github(deadline=5))
-        self.assertEqual(verdict['status'], 'unknown')
+        self.assertEqual(verdict['status'], 'credential_shaped_name')
         self.assertNotIn('ghp_', json.dumps(verdict))
 
 
