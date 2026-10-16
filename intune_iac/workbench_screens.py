@@ -1694,8 +1694,8 @@ HELP_WORDS = (
                      'observed after and maintain. A lane shows the state its records give: x done, + current, : waiting, '
                      '! blocked, # refused, ? unknown, _ not recorded, - not applicable. @ marks where the records say the '
                      "policy has got to and > the focus. Up and Down move the focus; Enter opens that stage's surface for "
-                     'the same policy; b and Esc return. It reads and records nothing. intune-iac workbench workflow --root '
-                     'ROOT --policy ID prints the same lines.'),
+                     'the same policy; b and Esc return. It reads and records nothing in the store. intune-iac workbench '
+                     'workflow --root ROOT --policy ID prints the same lines.'),
     ('Changes', 'propose DESIRED_JSON NEW_OPERATION_DIR or propose-from-intent NEW_OPERATION_DIR prepares a proposal; '
                 'execute OPERATION_DIR EXACT_REVIEW_DIGEST runs it only with the digest from its review; reconcile '
                 'OPERATION_DIR reads the service when an outcome is unknown and never replays. Moving around never '

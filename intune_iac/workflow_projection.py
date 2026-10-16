@@ -396,7 +396,10 @@ def project(read):
     stages = [{'id': stage, 'state': rows[stage]['state'], 'basis': rows[stage]['basis'], 'reason': rows[stage]['reason'],
                'facts': rows[stage]['facts'], 'opens': opens[stage], 'continuation': steps.get(stage),
                'branch_of': BRANCH_OF.get(stage)} for stage in STAGE_IDS]
-    reached = [item['id'] for item in stages if item['state'] not in NOT_REACHED]
+    # A stage read from an operation whose evidence could not be read (its basis ends in plain `delivery`) says unknown and
+    # why, but it is not a place the records put the policy at, so the position stops at the last stage that was read.
+    unread = {stage for stage, row in rows.items() if row['basis'].endswith(' delivery')}
+    reached = [item['id'] for item in stages if item['state'] not in NOT_REACHED and item['id'] not in unread]
     observation = _dict(states.get('observation'))
     body = {'schema_version': SCHEMA, 'object_id': object_id, 'tenant_id': read.get('tenant_id'),
             'name': read.get('name') if isinstance(read.get('name'), str) else None,

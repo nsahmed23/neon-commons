@@ -1559,7 +1559,7 @@ class Workspace:
         only: nothing is selected, prepared, refreshed, approved, executed or recorded. A stage with nothing to open
         says so."""
         flow = self._workflow_flow()
-        stage = next((item for item in flow['stages'] if isinstance(item, dict) and item.get('id') == self._workflow_focus()), {})
+        stage = next((item for item in flow.get('stages') or [] if isinstance(item, dict) and item.get('id') == self._workflow_focus()), {})
         command = WORKFLOW_SURFACE_COMMANDS.get(stage.get('opens'))
         root = (flow.get('operation') or {}).get('operation_root')
         if command is None or (command in WORKFLOW_OPERATION_COMMANDS and not (isinstance(root, str) and root)):

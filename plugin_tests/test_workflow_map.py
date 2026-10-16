@@ -532,6 +532,8 @@ class DeliveredChangeTests(unittest.TestCase):
         for name in ('review', 'approve_execute', 'readback', 'reconcile', 'record', 'observed_after'):
             self.assertEqual((stages[name]['state'], stages[name]['reason']), ('unknown', 'maintenance_evidence_changed'), name)
             self.assertIsNone(stages[name]['continuation'], name)
+        # The position stops at the last stage that was read: unreadable evidence is not a place the records put it at.
+        self.assertEqual(flow['position'], 'propose')
 
 
 class RealStoreTests(unittest.TestCase):
@@ -1421,6 +1423,49 @@ class HiddenStripRowTests(unittest.TestCase):
         rows = self.block(60, self.FULL_THREE, self.SHOWN_THREE)
         joined = ' '.join(rows)
         self.assertIn('REPO current | OP outcome unknown', joined)                   # the fields that share a row stay separated
+
+
+
+# ---- follow-up: unreadable evidence, the way back from a surface, and a refusal -----------------------------------------
+
+class FollowUpTests(LayerFixture):
+    def test_an_operation_directory_that_was_removed_reads_unknown_with_its_code_and_the_map_still_draws(self):
+        import shutil
+        from intune_iac import workbench
+        from intune_iac.workbench_screens import workflow_map_lines
+        self.prepare()
+        shutil.rmtree(self.operation)
+        flow = workbench._workflow(self.store, OBJECT, service_root=self.service.root)
+        stages = by_id(flow)
+        self.assertEqual(stages['propose']['state'], 'done')                  # the store registered the proposal
+        for name in ('review', 'approve_execute', 'readback', 'reconcile', 'record', 'observed_after'):
+            self.assertEqual((stages[name]['state'], stages[name]['reason']), ('unknown', 'unreadable_file'), name)
+            self.assertIsNone(stages[name]['continuation'], name)
+        self.assertEqual(flow['position'], 'propose')
+        self.assertEqual(len(lanes_of(workflow_map_lines(flow, 76, 'ascii'))), 11)
+
+    def test_enter_on_a_stage_then_b_returns_to_the_map_with_the_same_focus_and_b_again_to_the_view_before(self):
+        self.prepare()
+        key = lambda char: ('text', char)
+        # Select, open the layer, move to `intent` (two up from the position), Enter (Repository), b, b.
+        sequence = typed('select ' + OBJECT) + typed('workflow') + ['up', 'up', 'up', 'enter', key('b'), key('b'), key('q')]
+        ws, _ = self.run_keys(sequence)
+        states = ws.states
+        at_layer = len(typed('select ' + OBJECT)) + len(typed('workflow'))
+        self.assertEqual(states[at_layer]['layer'], 'workflow')
+        self.assertEqual(states[at_layer + 3]['focus'], 'intent')            # after three Up from approve_execute
+        self.assertEqual((states[at_layer + 4]['tab'], states[at_layer + 4]['layer']), (8, 'summary'))     # Repository
+        self.assertEqual((states[at_layer + 5]['layer'], states[at_layer + 5]['focus']), ('workflow', 'intent'))   # back: the map
+        self.assertEqual((states[at_layer + 6]['layer'], states[at_layer + 6]['tab']), ('summary', 1))     # back: the Inspector
+        self.assertEqual(states[-1]['selected'], OBJECT)
+
+    def test_the_command_without_a_selection_is_refused_and_opens_no_layer(self):
+        self.prepare()
+        ws, frames = self.run_keys(typed('workflow') + [('text', 'q')], (80, 24), 'ascii')
+        self.assertEqual(ws.states[-1]['layer'], 'summary')
+        text = ' '.join(' '.join(self.plain(frames[-1])).split())
+        self.assertIn('No policy is selected (selection_required)', text)       # the product's own refusal, as for every read view
+        self.assertNotIn('[WORKFLOW]', text)
 
 
 if __name__ == "__main__":
