@@ -87,6 +87,15 @@ def hostile():
     return snap(read)
 
 
+def safely(case, call, *args, **kwargs):
+    """The call's result; an exception it raises fails the test (an assertion), so a renderer that blows up on a snapshot it
+    should have refused is caught as a behaviour, not skipped as an error."""
+    try:
+        return call(*args, **kwargs)
+    except Exception as error:
+        case.fail('%s raised %s: %s' % (getattr(call, '__name__', call), type(error).__name__, error))
+
+
 def plain(rows):
     return [SGR.sub('', row) for row in rows]
 
@@ -127,7 +136,7 @@ class UnavailableTests(unittest.TestCase):
         'not a mapping': lambda: ['nodes'],
         'another schema': unsupported_schema,
         'no schema': lambda: {key: value for key, value in recorded().items() if key != 'schema_version'},
-        'no nodes': lambda: dict(recorded(), nodes=[]),
+        'no nodes': lambda: dict(recorded(), nodes=[], edges=[]),
         'a node state the map does not define': lambda: _set_node(recorded(), 'service', state='current'),
         'a node with no state': lambda: _set_node(recorded(), 'service', state=None),
         'a node in no boundary': lambda: _set_node(recorded(), 'service', boundary='elsewhere'),
@@ -135,12 +144,18 @@ class UnavailableTests(unittest.TestCase):
         'an edge state the map does not define': lambda: _set_edge(recorded(), 0, state='fresh'),
         'an edge type the map does not define': lambda: _set_edge(recorded(), 0, type='infers'),
         'an edge to a node the map lacks': lambda: _set_edge(recorded(), 0, to='nowhere'),
+        'an edge from a node the map lacks': lambda: _set_edge(recorded(), 0, **{'from': 'nowhere'}),
+        'a layer that is a boolean': lambda: _set_node(recorded(), 'service', layer=True),
+        'a node id that repeats': lambda: dict(recorded(), nodes=recorded()['nodes'] + [recorded()['nodes'][0]]),
+        'edges that are not a list': lambda: dict(recorded(), edges='none'),
+        'boundaries that are not a list': lambda: dict(recorded(), boundaries=None),
+        'nodes that are not mappings': lambda: dict(recorded(), nodes=['repo.source']),
     }
 
     def test_each_invalid_snapshot_is_an_explicit_unavailable_result_with_its_reason_and_draws_no_node(self):
         for name, build in self.BAD.items():
             for size in ALL_SIZES:
-                rows = screen().render(build(), size[0], size[1], colour=False, unicode=False)
+                rows = safely(self, screen().render, build(), size[0], size[1], colour=False, unicode=False)
                 joined = ' '.join(rows)
                 self.assertTrue(rows and rows[0].startswith('System map unavailable: '), (name, size, rows))
                 self.assertGreater(len(joined), len('System map unavailable: ') + 8, (name, size))
@@ -150,9 +165,9 @@ class UnavailableTests(unittest.TestCase):
 
     def test_the_text_and_json_forms_say_the_same_instead_of_a_partial_map(self):
         for name, build in self.BAD.items():
-            rows = screen().text(build(), 80)
+            rows = safely(self, screen().text, build(), 80)
             self.assertTrue(rows and rows[0].startswith('System map unavailable: '), (name, rows))
-            payload = json.loads(screen().to_json(build()))
+            payload = json.loads(safely(self, screen().to_json, build()))
             self.assertIs(payload['available'], False, name)
             self.assertEqual(payload['schema_version'], 'system-map-unavailable/1')
             self.assertTrue(payload['reason'], name)
@@ -564,6 +579,260 @@ class FalsifierTests(unittest.TestCase):
             rows = screen().render(snapshot, size[0], size[1], colour=False, unicode=True)
             self.assertTrue(all(width_of(row) <= size[0] for row in rows), size)
         self.assertTrue(all(width_of(row) <= 60 for row in screen().text(snapshot, 60)))
+
+
+def renamed(snapshot, old, new):
+    snapshot = copy.deepcopy(snapshot)
+    for node in snapshot['nodes']:
+        node['id'] = new if node['id'] == old else node['id']
+    for edge in snapshot['edges']:
+        edge['from'] = new if edge['from'] == old else edge['from']
+        edge['to'] = new if edge['to'] == old else edge['to']
+    return snapshot
+
+
+class EscapeBeforeMeasureTests(unittest.TestCase):
+    """A control inside a value that fits whole is escaped too: escaping is not something only a cut value gets."""
+
+    def short_hostile(self):
+        snapshot = copy.deepcopy(recorded())
+        snapshot.update(name='n\x1bn', object_id='o\rd', evidence_class='e\x07c', revision='r\x85v')
+        snapshot['boundaries'][0]['label'] = 'b\x1bl'
+        for node in snapshot['nodes']:
+            node.update(reason='x\x1by', opens='o\x1bp', identity={'k\x1bk': 'v\rv'}, facts={'f\x1bf': 'g\x9bg'},
+                        basis={'record': 'r\x1br', 'field': 'f\x07f', 'record_id': 'i\x85i'})
+        for edge in snapshot['edges']:
+            edge['basis'] = {'record': 'r\x1br', 'field': 'f\x07f', 'record_id': 'i\x85i'}
+        return snapshot
+
+    def test_a_short_value_with_a_control_never_reaches_a_row_unescaped(self):
+        snapshot = self.short_hostile()
+        for focus in [node['id'] for node in snapshot['nodes']]:
+            for size in SIZES:
+                for colour, unicode in MODES:
+                    rows = plain(screen().render(snapshot, size[0], size[1], colour=colour, unicode=unicode, focus=focus))
+                    where = (focus, size, colour, unicode)
+                    self.assertEqual(controls_in(rows), [], where)
+                    self.assertTrue(all(width_of(row) <= size[0] for row in rows), where)
+        for width in (60, 120, 200):
+            self.assertEqual(controls_in(screen().text(snapshot, width)), [], width)
+
+    def test_each_escaped_value_is_shown_in_the_plain_text_form(self):
+        joined = ' '.join(screen().text(self.short_hostile(), 200))
+        for shown in ('n\\u001bn', 'o\\rd', 'e\\u0007c', 'r\\u0085v', 'b\\u001bl', 'x\\u001by', 'o\\u001bp', 'k\\u001bk',
+                      'v\\rv', 'f\\u001bf', 'g\\u009bg', 'r\\u001br', 'f\\u0007f', 'i\\u0085i'):
+            self.assertIn(shown, joined)
+
+    def test_the_label_of_a_node_the_map_does_not_name_is_escaped_and_shortened(self):
+        snapshot = renamed(recorded(), 'service', 'sv\x1b' + 'sv' * 20)
+        for size in SIZES:
+            rows = plain(screen().render(snapshot, size[0], size[1], colour=False, unicode=False))
+            self.assertEqual(controls_in(rows), [], size)
+            self.assertTrue(all(width_of(row) <= size[0] for row in rows), size)
+            self.assertIn('sv\\u001b...', ' '.join(rows), size)
+
+
+    def test_a_label_is_cut_by_what_it_shows_not_by_what_was_recorded(self):
+        # Eleven cells recorded, sixteen once the control is written out: the label is cut as written, with its ellipsis.
+        snapshot = renamed(recorded(), 'service', 'a\x1b' + 'b' * 9)
+        rows = screen().render(snapshot, 80, 24, colour=False, unicode=False)
+        self.assertTrue(any('|- a\\u001bb... ' in row for row in rows), rows)
+
+
+class HeaderTests(unittest.TestCase):
+    def titled(self, **changes):
+        return dict(copy.deepcopy(recorded()), **changes)
+
+    def test_the_identity_shortens_before_the_name_and_the_evidence_class_do(self):
+        snapshot = self.titled(name='Pilot', object_id='abcdefghijklmnopqrstuvwxyz0123', evidence_class='synthetic')
+        rows = screen().render(snapshot, 60, 20, colour=False, unicode=False)
+        self.assertEqual(rows[0], '[SYSTEM MAP] Pilot (abcdefghijk~) | synthetic')
+
+    def test_the_name_shortens_when_the_identity_cannot_shorten_further_and_the_evidence_class_stays_whole(self):
+        snapshot = self.titled(name='Windows Privacy Pilot Extended Name', object_id='abcdefghijklmnopqrstuvwxyz0123',
+                               evidence_class='graph_capture_unverified')
+        rows = screen().render(snapshot, 60, 20, colour=False, unicode=False)
+        self.assertEqual(rows[0], '[SYSTEM MAP] Wi... (abcdefghijk~) | graph_capture_unverified')
+
+    def test_an_evidence_class_longer_than_the_producers_longest_is_cut_with_one_mark(self):
+        rows = screen().render(self.titled(evidence_class='x' * 40), 120, 40, colour=False, unicode=False)
+        self.assertTrue(rows[0].endswith('| ' + 'x' * 23 + '~'), rows[0])
+
+    def test_a_name_that_cannot_share_the_row_takes_a_row_of_its_own(self):
+        snapshot = self.titled(name='N' * 30, object_id='abcdefghijklmnopqrstuvwxyz0123', evidence_class='graph_capture_unverified')
+        rows = screen().text(snapshot, 54)
+        self.assertEqual(rows[0], '[SYSTEM MAP] ' + 'N' * 30)
+        self.assertEqual(rows[1], '(abcdefghijk~) | graph_capture_unverified')
+
+    def test_wide_characters_are_measured_in_cells_in_the_title(self):
+        snapshot = self.titled(name='Pilot', object_id='日本語' * 3, evidence_class='graph_capture_unverified')
+        rows = screen().render(snapshot, 60, 20, colour=False, unicode=False)
+        self.assertEqual(rows[0], '[SYSTEM MAP] Pilot (日本語日本~) | graph_capture_unverified')
+        wide = self.titled(evidence_class='日本' * 7)
+        rows = screen().render(wide, 120, 40, colour=False, unicode=False)
+        self.assertTrue(rows[0].endswith('| ' + '日本' * 5 + '日' + '~'), rows[0])
+        self.assertLessEqual(width_of(rows[0]), 120)
+
+    def test_a_wide_identity_in_a_node_row_is_cut_by_cells_not_characters(self):
+        snapshot = _set_node(recorded(), 'atmos.component', identity={'stack': '日本語日本語日本', 'component': 'c'})
+        for size in SIZES:
+            rows = screen().render(snapshot, size[0], size[1], colour=False, unicode=False)
+            self.assertTrue(all(width_of(row) <= size[0] for row in rows), size)
+
+
+class ColumnTests(unittest.TestCase):
+    def test_the_layer_sets_every_nodes_column_and_the_ends_are_held(self):
+        snapshot = recorded()
+        rows = screen().render(snapshot, 120, 40, colour=False, unicode=False)
+        for node, (_, column) in zip(snapshot['nodes'], [positions(rows, snapshot)[n['id']] for n in snapshot['nodes']]):
+            self.assertEqual(column, 4 + 2 * node['layer'] + 3, node['id'])
+        far = _set_node(_set_node(snapshot, 'provider', layer=9), 'service', layer=-3)
+        found = positions(screen().render(far, 120, 40, colour=False, unicode=False), far)
+        self.assertEqual(found['provider'][1], 4 + 2 * 5 + 3)
+        self.assertEqual(found['service'][1], 4 + 3)
+
+    def test_the_identity_column_lines_up_whatever_the_state_word(self):
+        for name in ('recorded', 'absent_edges', 'half_engine_pin', 'unknown_observation', 'stale_link'):
+            snapshot = SCENARIOS[name]()
+            for unicode in (False, True):
+                rows = screen().render(snapshot, 120, 40, colour=False, unicode=unicode)
+                for node in snapshot['nodes']:
+                    row = node_row(rows, snapshot, node['id'])
+                    self.assertEqual((row[43], row[44] != ' '), (' ', True), (name, node['id'], row))
+
+    def test_a_node_with_nothing_recorded_says_so_and_a_null_is_not_shown(self):
+        snapshot = unknown_observation()
+        rows = screen().render(snapshot, 120, 40, colour=False, unicode=False)
+        self.assertTrue(node_row(rows, snapshot, 'observation').endswith(' none recorded'))
+        self.assertNotIn('None', ' '.join(rows))
+        snapshot = _set_node(recorded(), 'tofu.engine', facts={'gone': None, 'flag': True, 'off': False})
+        joined = ' '.join(screen().render(snapshot, 200, 40, colour=False, unicode=False, focus='tofu.engine'))
+        self.assertIn('flag yes; off no', joined)
+        self.assertNotIn('gone', joined)
+
+    def test_a_recorded_identity_is_drawn_in_its_row(self):
+        snapshot = recorded()
+        rows = screen().render(snapshot, 120, 40, colour=False, unicode=False)
+        self.assertTrue(node_row(rows, snapshot, 'tofu.engine').endswith(' tofu 9.9.9'))
+
+
+class WordTests(unittest.TestCase):
+    def test_the_hazard_and_read_only_sentences_are_whole_in_every_form(self):
+        rows = screen().render(recorded(), 80, 24, colour=False, unicode=False)
+        self.assertIn('recorded means on record, not current or successful.', rows)
+        joined = ' '.join(row.strip() for row in screen().text(recorded(), 80))
+        self.assertIn('recorded means on record, not current or successful.', joined)
+        self.assertTrue(joined.endswith('This view is read-only: it reads the recorded state of the policy and writes nothing.'))
+
+    def test_the_boundary_letters_are_named_in_both_forms(self):
+        legend = 'H this host  R the repository  C the cloud'
+        self.assertIn(legend, screen().render(recorded(), 80, 24, colour=False, unicode=False))
+        self.assertIn(legend, screen().text(recorded(), 120))
+
+    def test_the_detail_is_drawn_when_a_few_rows_are_left_and_never_past_the_window(self):
+        rows = screen().render(recorded(), 60, 20, colour=False, unicode=False)
+        self.assertTrue(any(row.startswith('FOCUS ') for row in rows))
+        self.assertLessEqual(len(rows), 20)
+
+    def test_enter_names_the_surface_that_owns_the_record(self):
+        for focus, surface in (('observation', '2 Coverage'), ('readback', 'v Delivery'), ('repo.source', '9 Repository')):
+            rows = screen().render(recorded(), 200, 40, colour=False, unicode=False, focus=focus)
+            self.assertIn('Enter opens ' + surface, ' '.join(rows), focus)
+
+    def test_a_link_row_in_the_detail_carries_its_basis_and_a_basis_carries_its_record_id(self):
+        snapshot = recorded()
+        rows = screen().render(snapshot, 200, 40, colour=False, unicode=False, focus='atmos.component')
+        link = next((row for row in rows if row.startswith('link') and 'generates' in row), '')
+        self.assertIn('adoption', link)
+        record_id = snapshot['nodes'][0]['basis']['record_id']
+        self.assertIn('[%s]' % record_id, ' '.join(screen().text(snapshot, 200)))
+
+    def test_colour_follows_each_rows_own_state(self):
+        snapshot = stale_link()
+        rows = screen().render(snapshot, 80, 24, colour=True, unicode=False)
+        repository = next(row for row in rows if '|- repository' in row)
+        backend = next(row for row in rows if '|- backend' in row)
+        link = next(row for row in rows if re.match(r'  atmos .*backend', row))
+        observes = next(row for row in rows if re.match(r'  service .*observation', row))
+        self.assertIn('\x1b[33mstale\x1b[0m', repository)
+        self.assertIn('\x1b[32mrecorded\x1b[0m', backend)
+        self.assertIn('\x1b[33mstale\x1b[0m', link)
+        self.assertIn('\x1b[32mrecorded\x1b[0m', observes)
+
+
+class TextContentTests(unittest.TestCase):
+    def test_the_text_form_holds_one_block_per_node_and_per_link(self):
+        snapshot = recorded()
+        rows = screen().text(snapshot, 120)
+        count = lambda prefix: len([row for row in rows if row.startswith(prefix)])
+        nodes, edges = len(snapshot['nodes']), len(snapshot['edges'])
+        self.assertEqual((count('  identity'), count('  opens')), (nodes, nodes))
+        self.assertEqual(count('  basis'), nodes + edges)
+        self.assertEqual(count('  recorded'), len([n for n in snapshot['nodes'] if n['facts']]))
+        for label in ('name', 'policy', 'evidence', 'revision'):
+            self.assertEqual(count(label), 1, label)
+        self.assertIn(snapshot['revision'], ' '.join(rows))
+        self.assertIn('1 repository: recorded', ' '.join(rows))
+        self.assertIn('1 cites repository -> atmos: recorded', ' '.join(rows))
+        self.assertFalse([row for row in rows if row.startswith('0 ')])
+        self.assertFalse([row for row in rows if row.startswith('>')])
+
+    def test_the_reason_of_each_node_is_in_its_block(self):
+        rows = ' '.join(screen().text(half_engine_pin(), 120))
+        self.assertIn('opentofu: unknown | reason engine_pin_incomplete', rows)
+        self.assertIn('repository: recorded | no reason recorded', rows)
+
+    def test_the_node_table_comes_with_the_map_width_and_not_before(self):
+        snapshot = recorded()
+        self.assertTrue(any('|- repository' in row for row in screen().text(snapshot, 60)))
+        self.assertFalse(any('|- repository' in row for row in screen().text(snapshot, 59)))
+        self.assertFalse(any('|- repository' in row for row in screen().text(snapshot, 40)))
+
+    def test_a_map_with_no_link_says_so_in_the_table_and_at_the_end(self):
+        snapshot = absent_edges()
+        self.assertEqual(len([r for r in screen().text(snapshot, 120) if 'no link is recorded' in r]), 2)
+        self.assertEqual(len([r for r in screen().text(snapshot, 40) if 'no link is recorded' in r]), 1)
+        self.assertEqual(len([r for r in screen().render(snapshot, 80, 24, colour=False, unicode=False)
+                              if 'no link is recorded' in r]), 1)
+
+    def test_a_small_helper_cut_gives_nothing_where_even_an_ellipsis_will_not_fit(self):
+        glyphs = screen().GLYPHS['ascii']
+        self.assertEqual(screen()._fit('abcdefgh', 3, glyphs), '')
+        self.assertEqual(screen()._fit('abcdefgh', 5, glyphs), 'ab...')
+        self.assertEqual(screen()._fit('abc', 3, glyphs), 'abc')
+
+
+class JsonEdgeTests(unittest.TestCase):
+    def test_a_value_json_cannot_write_is_the_unavailable_value(self):
+        snapshot = copy.deepcopy(recorded())
+        snapshot['nodes'][0]['facts']['x'] = float('nan')
+        body = safely(self, screen().to_json, snapshot)
+        self.assertNotIn('NaN', body)
+        payload = json.loads(body)
+        self.assertEqual((payload['available'], payload['reason']), (False, 'its values cannot be written as JSON'))
+        self.assertNotIn('nodes', payload)
+
+    def test_the_unavailable_value_is_ascii_and_keeps_the_received_schema_exactly(self):
+        body = screen().to_json(dict(recorded(), schema_version='日本'))
+        self.assertTrue(all(ord(char) < 128 for char in body))
+        self.assertEqual(json.loads(body)['received_schema_version'], '日本')
+        self.assertIsNone(json.loads(screen().to_json(dict(recorded(), schema_version=5)))['received_schema_version'])
+        self.assertIsNone(json.loads(screen().to_json(['x']))['received_schema_version'])
+
+    def test_json_is_indented_in_the_snapshots_own_order_with_a_newline_at_the_end(self):
+        body = screen().to_json(recorded())
+        self.assertTrue(body.startswith('{\n  "schema_version": "system-map/1",\n  "object_id"'))
+        self.assertTrue(body.endswith('}\n'))
+        unavailable = screen().to_json(unsupported_schema())
+        self.assertTrue(unavailable.startswith('{\n  "schema_version": "system-map-unavailable/1",\n  "available": false,\n  "reason": "'))
+        self.assertEqual(list(json.loads(unavailable)), ['schema_version', 'available', 'reason', 'received_schema_version'])
+
+    def test_a_null_in_the_snapshot_stays_a_null(self):
+        body = screen().to_json(unknown_observation())
+        self.assertIn('"run_id": null', body)
+        loaded = json.loads(body)
+        self.assertIn('run_id', next(n for n in loaded['nodes'] if n['id'] == 'observation')['identity'])
+        self.assertIn('opens', next(n for n in loaded['nodes'] if n['id'] == 'tofu.engine'))
 
 
 if __name__ == '__main__':
