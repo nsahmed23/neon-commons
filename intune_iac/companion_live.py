@@ -355,9 +355,9 @@ class LiveCompanion:
             if cleanup_failure is not None:
                 note_cleanup_failure(failure, cleanup_failure)
         if primary is None:
-            self._settle(mine, 'closed', note=diagnostic)
+            self._settle(mine, 'closed', note=diagnostic, claim=False)
         else:
-            self._settle(mine, 'failed', primary)
+            self._settle(mine, 'failed', primary, claim=False)
 
     def touch(self):
         with self._lock:
@@ -579,7 +579,7 @@ class LiveCompanion:
                     report.add_note(note)
         return report
 
-    def _settle(self, generation, kind, error=None, note=None, background=False, role=None):
+    def _settle(self, generation, kind, error=None, note=None, background=False, role=None, claim=True):
         """The one place that publishes state, queues a background failure, claims undelivered failures and marks them
         consumed. Everything happens in one critical section, from the current state. Returns (failure, reason): the
         exception this caller must raise (or None), and the end reason once the state is closed.
@@ -588,7 +588,9 @@ class LiveCompanion:
              'failed'   an attempt ended with `error`; the next stop() retries
              'takeover' a follower gave up on the stopper (`error` is what it met); it supersedes that attempt
              'observe'  a waiter or follower looks; it publishes nothing
-        The state is published only if `generation` is still the current one. A background failure is queued always."""
+        The state is published only if `generation` is still the current one. A background failure is queued always.
+        A foreground caller claims the queued failures and gets them with its own named (claim=False leaves them queued,
+        for the failed-start path, which has no caller to give them to)."""
         with self._changed:
             if kind == 'takeover':
                 current = self._state == 'stopping' and self._generation == generation
@@ -615,14 +617,14 @@ class LiveCompanion:
                                         'The listener has not been closed; stop() retries the close.'), reason
                     return self._close_failure(self._close_error), reason
                 return None, reason
-            if background or kind == 'takeover':
-                return error, reason       # a background thread re-raises its own; a follower raises what it met
+            if background:
+                return error, reason       # a background thread re-raises its own
             if kind == 'closed':
-                claimed = self._claim_locked()
+                claimed = self._claim_locked() if claim else []
                 return (self._delivery(claimed) if claimed else None), reason
             if not isinstance(error, Exception):
                 return error, reason       # an interrupt is raised as it is
-            claimed = self._claim_locked()
+            claimed = self._claim_locked() if claim else []
             if claimed:
                 return self._delivery(claimed, own=error), reason
             return (self._close_failure(error) if role == 'retry' else error), reason

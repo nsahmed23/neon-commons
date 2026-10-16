@@ -1545,6 +1545,59 @@ class StopTests(Fixture):
                 live.stop()                   # the retry closes, claims the queued failure, then the join is interrupted
         self.assertIn('OSError', ' '.join(getattr(caught.exception, '__notes__', [])))
 
+    def test_a_foreground_takeover_delivers_the_queued_background_failure_with_its_own_timeout_named(self):
+        from intune_iac import companion_live
+        from intune_iac.io import AppError
+        live = self.start()
+        background_failure = OSError('queued by a background stop')
+        inside, gate = threading.Event(), threading.Event()
+        calls = []
+
+        def drain():
+            calls.append(1)
+            if len(calls) == 1:
+                raise background_failure
+            if len(calls) == 2:
+                inside.set()
+                gate.wait(10)
+        patch = mock.patch.object(live, '_drain_writers', drain)
+        patch.start()
+        self.addCleanup(patch.stop)
+        self.addCleanup(gate.set)
+        live.end('idle', wait=False)
+        self.settle(live)                     # the background stop failed and queued its failure
+        retry, _ = self.run_in_thread(live.stop)
+        self.assertTrue(inside.wait(5), 'a foreground retry is in progress')
+        with mock.patch.object(companion_live, 'STOP_WAIT_SECONDS', 0.2):
+            with self.assertRaises(AppError) as caught:
+                live.stop()                   # a foreground follower: it times out and takes the state over
+        self.assertEqual(caught.exception.code, 'companion_live_close_failed')
+        self.assertIs(caught.exception.__cause__, background_failure)
+        self.assertIn('AppError', ' '.join(getattr(caught.exception, '__notes__', [])), 'its own timeout is named')
+        gate.set()
+        retry.join(5)
+
+    def test_a_failed_start_does_not_claim_the_failures_queued_for_the_next_caller(self):
+        from intune_iac import companion_live
+        from intune_iac.io import AppError
+        live = companion_live.LiveCompanion(lambda settings: '', lambda: {})
+        queued = OSError('queued before the start failed')
+        live._undelivered.append(queued)
+        real_start, calls = threading.Thread.start, []
+
+        def start(thread):
+            calls.append(thread)
+            if len(calls) == 1:
+                raise RuntimeError("can't start new thread")
+            return real_start(thread)
+        with mock.patch.object(threading.Thread, 'start', start):
+            with self.assertRaises(RuntimeError):
+                live.start()
+        self.addCleanup(live.stop)
+        with self.assertRaises(AppError) as caught:
+            live.wait_step()
+        self.assertIs(caught.exception.__cause__, queued)
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500
