@@ -201,6 +201,15 @@ time that never goes backward, never on a bare wall-clock reading
   established; it stays held until the host clock reads at or after its expiry (then it is closed and recorded) or until it
   is prepared anew. Every deadline armed from an expiry takes the recorded floor's effective time, not the bare wall clock.
   The broker keeps its own recorded time and open judgment in its journal directory.
+- **Approvals judged before the open judgments existed.** Code that predates them left a recorded time and no open row, so a
+  restart with the wall clock set back could not tell such an approval from a fresh one. Each store therefore records a
+  migration cutoff in its own database (table `<store>_cutoff`, one row, refused by triggers if updated or deleted),
+  committed once at the store's first judgment under the boot session and before the recorded time is touched. A store with
+  a history (a recorded time of any schema, or any expiry or open record) gets that judgment's effective time; a store with
+  none gets 0. An artifact that names an issue time before the cutoff and has no open row is held exactly like one from a
+  lost session: until the host clock reads at or after its expiry, or until it is prepared anew (issued after the cutoff).
+  Removing `clock.json` does not remove the cutoff. Artifacts that name no issue time (the broker's policy window) are not
+  judged against it.
 - **A recorded forward blip.** The floor carries the largest time any check recorded plus the boot time since. A wall
   clock that jumped forward and was recorded therefore holds for the rest of the boot, and restarting does not clear it:
   correct the host clock, prepare the approval anew, or start a new boot of the host (for example `wsl --shutdown`).
@@ -210,7 +219,7 @@ time that never goes backward, never on a bare wall-clock reading
   not count the paused time in `CLOCK_BOOTTIME` (to be measured on the host, not assumed), and then protection across the pause
   falls back to the mark. A snapshot restore that brings back both clocks and the records is outside the model, and a
   host with no boot source degrades to holding any approval judged open by another process. Artifacts first judged by code
-  that predates the boot session have no recorded session; the guarantee starts with their first judgment under it. A source
+  that predates the boot session have no recorded session; the migration cutoff above holds them until expiry. A source
   edit's acknowledgment window ends with its call, and a successor's service preimage is bound to the process that read it, so
   a restart needs a new acknowledgment or a new read.
 

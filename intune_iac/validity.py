@@ -86,6 +86,24 @@ def table_open_sql(table):
             'process TEXT NOT NULL, PRIMARY KEY(domain,issuer,nonce,operation_id,request_sha256))')
 
 
+def cutoff_table(table):
+    return table + '_cutoff'
+
+
+def table_cutoff_sql(table):
+    """The migration cutoff table: at most one row, written once, never updated or deleted (triggers refuse both). It lives in
+    the store's own database, so removing the recorded-time file cannot erase it."""
+    table_sql(table)
+    return ('CREATE TABLE IF NOT EXISTS ' + cutoff_table(table) + ' (id INTEGER PRIMARY KEY CHECK (id = 1), cutoff REAL NOT NULL, '
+            'written_wall REAL NOT NULL, boot_id TEXT)')
+
+
+def _freeze_cutoff(db, table):
+    for action in ('UPDATE', 'DELETE'):
+        db.execute('CREATE TRIGGER IF NOT EXISTS ' + cutoff_table(table) + '_no_' + action.lower() + ' BEFORE ' + action + ' ON ' +
+                   cutoff_table(table) + " BEGIN SELECT RAISE(ABORT, 'the migration cutoff is never changed'); END")
+
+
 def _has(db, table):
     return bool(db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone())
 
@@ -207,14 +225,21 @@ def hold(reading):
     return AppError('clock_moved_backward', message)
 
 
-def hold_lost(expires_at):
+def hold_lost(expires_at, legacy=False):
     """The refusal for lost continuity: the artifact was judged open in a session that cannot be verified now, so how much
-    of its time has passed since cannot be established. Distinct from the backward-clock message; it names both exits."""
+    of its time has passed since cannot be established. Distinct from the backward-clock message; it names both exits. A
+    legacy artifact (issued before this store recorded the boot session, with no record of being judged since) is held for the
+    same reason."""
+    if legacy:
+        reason = ('it was issued before this store began recording the time that passes across restarts and nothing shows '
+                  'whether it was judged open since')
+    else:
+        reason = ('it was judged open in an earlier session of this host (another boot or clock domain, or one that cannot be '
+                  'verified now)')
     return AppError('clock_moved_backward',
-                    'Approval held: it was judged open in an earlier session of this host (another boot or clock domain, or one '
-                    'that cannot be verified now), so how much of its time has passed since cannot be established. It stays '
-                    'held until the host clock reads at or after its expiry at %d, when it is closed, or until it is prepared '
-                    'anew; verifying again does not clear this.' % expires_at)
+                    'Approval held: %s, so how much of its time has passed since cannot be established. It stays held until '
+                    'the host clock reads at or after its expiry at %d, when it is closed, or until it is prepared anew; '
+                    'verifying again does not clear this.' % (reason, expires_at))
 
 
 def hold_if_clock_behind(root):
@@ -305,10 +330,43 @@ def _view(reading, row):
     return view, False
 
 
+def _ensure_cutoff(store, floor, wall):
+    """Write the store's migration cutoff if it has none: once, at its first judgment under the boot session, in a transaction
+    of its own that commits before the recorded time is touched. A refusal that follows cannot roll it back, and a failed first
+    attempt cannot make the store look as if it had a history, because the clock record is still as the old code left it. A
+    store that has a history (a recorded time, however old its schema, or any expiry or open record) gets its effective time
+    now: an artifact issued before it that has no open row was judged, if at all, by code that kept no record, and is held. A
+    store with no history gets 0: nothing in it can predate the records."""
+    with store.connect() as db:
+        if _has(db, cutoff_table(store.table)) and db.execute('SELECT 1 FROM ' + cutoff_table(store.table)).fetchone():
+            return
+        db.execute('BEGIN IMMEDIATE')
+        db.execute(table_cutoff_sql(store.table))
+        _freeze_cutoff(db, store.table)
+        if db.execute('SELECT 1 FROM ' + cutoff_table(store.table)).fetchone():
+            db.execute('COMMIT')
+            return
+        recorded = floor.record()
+        history = recorded is not None or any(
+            _has(db, name) and db.execute('SELECT 1 FROM ' + name).fetchone()
+            for name in (store.table, v2_table(store.table), open_table(store.table)))
+        value = 0.0
+        if history:
+            carried = floor.carried(recorded)
+            value = float(max(v for v in (wall, None if recorded is None else recorded['high_water'], carried) if v is not None))
+        session = clock.session()
+        db.execute('INSERT INTO ' + cutoff_table(store.table) + ' VALUES (1, ?, ?, ?)',
+                   (value, wall, None if session is None else session['boot_id']))
+        db.execute('COMMIT')
+        _sync(store.root)
+
+
 def _judged(store, floor, payload, request_sha256, deadline):
     closed = False
     with floor.locked():
-        reading = floor.observe_locked(time.time())
+        wall = time.time()
+        _ensure_cutoff(store, floor, wall)
+        reading = floor.observe_locked(wall)
         with store.connect() as db:
             db.execute('BEGIN IMMEDIATE')
             if store.create:
@@ -317,8 +375,14 @@ def _judged(store, floor, payload, request_sha256, deadline):
                 db.execute('SELECT 1 FROM ' + store.table + ' LIMIT 0')  # the store made its table; a missing one is an error
             db.execute(table_v2_sql(store.table))
             db.execute(table_open_sql(store.table))
+            db.execute(table_cutoff_sql(store.table))
+            _freeze_cutoff(db, store.table)
+            cutoff = db.execute('SELECT cutoff FROM ' + cutoff_table(store.table) + ' WHERE id = 1').fetchone()[0]
             row = _open_row(db, store, payload, request_sha256)
             view, lost = _view(reading, row)
+            issued = payload.get('issued_at')
+            legacy = (row is None and cutoff > 0 and type(issued) in (int, float) and issued < cutoff)
+            lost = lost or legacy
             state = judge(view, payload['expires_at'], deadline,
                           latched(db, store.table, store.domain, payload, request_sha256))
             if state == OPEN and lost:
@@ -335,7 +399,7 @@ def _judged(store, floor, payload, request_sha256, deadline):
             elif state == HELD:
                 raise hold(view)
             elif state == LOST:
-                raise hold_lost(payload['expires_at'])
+                raise hold_lost(payload['expires_at'], legacy=legacy)
             else:
                 # The open judgment is durable before the caller is handed its transaction: committed on its own, under the
                 # locks, so the caller's later failure or rollback, or the process dying, cannot erase it.

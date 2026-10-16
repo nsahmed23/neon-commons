@@ -98,6 +98,26 @@ class ReceiptExpiryLatchTests(unittest.TestCase):
         self.assertEqual(self.refused(lambda: self.authorize(self.signed)).code, 'approval_receipt_time')
         self.assertEqual(self.consumed(), [])
 
+    def test_a_receipt_judged_before_the_boot_session_record_cannot_reopen_after_a_restart_with_the_wall_set_back(self):
+        # Code that predates the boot session judged the receipt open at T50 and left only a schema 1 recorded time: no open row.
+        record = self.root / 'authority' / 'clock.json'
+        write_json(record, {'schema_version': 'intune-clock-floor/1', 'high_water': self.start + 50})
+        self.restart()
+        self.clocks.wall = self.start + 55  # true time is past the expiry at T60; the wall was set back above the old mark
+        error = self.refused(lambda: self.authorize(self.signed))
+        self.assertEqual(error.code, 'clock_moved_backward')
+        self.assertEqual(self.consumed(), [])
+        self.assertEqual(rows(self.authority, 'SELECT * FROM executions'), [])
+        self.restart()
+        self.assertEqual(self.refused(lambda: self.authorize(self.signed)).code, 'clock_moved_backward')
+        record.unlink()  # the cutoff is in the store, not in the recorded time
+        self.restart()
+        self.assertEqual(self.refused(lambda: self.authorize(self.signed)).code, 'clock_moved_backward')
+        self.clocks.wall = self.expires + 1  # expiry closes it; preparing it anew (a later issue time) is the other exit
+        self.assertEqual(self.refused(lambda: self.authorize(self.signed)).code, 'approval_receipt_time')
+        self.assertEqual(len(rows(self.authority, 'SELECT * FROM expired_v2')), 1)
+        self.assertEqual(self.consumed(), [])
+
     def test_the_expiry_is_recorded_in_the_authority_store_and_latches_without_the_clock_record(self):
         self.clocks.elapse(LIFETIME + 1)
         self.refused(lambda: self.authorize(self.signed))

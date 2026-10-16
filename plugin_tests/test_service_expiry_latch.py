@@ -26,7 +26,7 @@ from unittest.mock import patch
 
 from intune_iac import clock, validity
 from intune_iac import worker_service as service
-from intune_iac.io import AppError, digest
+from intune_iac.io import AppError, digest, write_json
 from plugin_tests import test_worker_adoption_reconcile_r4 as old_contracts
 from plugin_tests.test_adoption_expiry_latch import BOUND, FORK, LIFETIME, RECOVERY_WORDS, inject, race_with_a_latch, watchdog_refusals
 from plugin_tests.test_clock_authority import Clocks
@@ -154,6 +154,18 @@ class ServiceFixture(unittest.TestCase):
 
 
 class DispatchLatchTests(ServiceFixture):
+    def test_a_receipt_judged_by_code_that_kept_no_record_cannot_reopen_after_a_restart_with_the_wall_set_back(self):
+        signed = self.receipt()  # issued at T0, expires at T60
+        # Old code judged it open at T30 and left only a schema 1 recorded time and no open row.
+        write_json(self.policy.root / 'clock.json', {'schema_version': 'intune-clock-floor/1', 'high_water': self.start + 30})
+        self.restart()
+        self.clocks.wall = self.start + 40  # true time is T70, past the expiry; the wall was set back to T40, above the old mark
+        self.assertEqual(self.refused(lambda: self.run_job(signed)).code, 'clock_moved_backward')
+        self.assert_nothing_happened()
+        self.clocks.wall = self.start + 61  # the wall clock reaches the expiry: the held receipt is closed and recorded
+        self.assertEqual(self.refused(lambda: self.run_job(signed)).code, EXPIRED)
+        self.assertEqual(len(self.latched()), 1)
+
     def test_a_restart_with_the_wall_set_back_above_the_mark_cannot_reopen_a_receipt_that_has_expired(self):
         signed = self.receipt()
         self.clocks.wall = self.start + 30

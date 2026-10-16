@@ -29,7 +29,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from intune_iac import clock, validity
-from intune_iac.io import AppError
+from intune_iac.io import AppError, write_json
 from plugin_tests.test_clock_authority import START
 from plugin_tests.test_restart_clock import BOOT_X, BOOT_Y, Session
 
@@ -58,8 +58,8 @@ class PreAuthenticationHoldTests(Session):
 
 
 
-class StoreTests(Session):
-    """validity.critical on a toy store: the open judgment is a durable row, and a lost session holds."""
+class StoreFixture(Session):
+    """A toy store on the shared critical section."""
 
     def setUp(self):
         super().setUp()
@@ -93,6 +93,10 @@ class StoreTests(Session):
     def rows(self, sql):
         with self.connect() as db:
             return db.execute(sql).fetchall()
+
+
+class StoreTests(StoreFixture):
+    """validity.critical on a toy store: the open judgment is a durable row, and a lost session holds."""
 
     def test_a_deadline_is_armed_from_the_effective_time_not_the_bare_wall_clock(self):
         self.clocks.wall = START + 50
@@ -211,6 +215,113 @@ class StoreTests(Session):
         self.enter()
         self.assertEqual(len(self.rows('SELECT * FROM latched_open')), 1)
         self.assertEqual(self.rows('SELECT wall FROM latched_open'), [(START + 55,)])
+
+
+class MigrationTests(StoreFixture):
+    """Approvals judged by code that predates the boot session left a schema 1 floor and no open row. The store records an
+    immutable cutoff, in its own database, at its first judgment under the boot session; an artifact issued before it with no
+    open row is held until its expiry (then closed) or until it is prepared anew. One issued after it, or any artifact of a
+    store that had no history, is judged normally."""
+
+    def legacy_store(self, high_water=START + 50):
+        write_json(self.base / 'clock.json', {'schema_version': 'intune-clock-floor/1', 'high_water': high_water})
+
+    def issued(self, at, **changes):
+        return dict(self.payload, issued_at=at, **changes)
+
+    def cutoff(self):
+        return self.rows('SELECT cutoff FROM latched_cutoff')
+
+    def test_a_pre_migration_approval_cannot_reopen_after_a_restart_with_the_wall_set_back(self):
+        self.legacy_store()  # old code judged it open at T50 and left only the mark
+        self.clocks.wall = START + 60  # true time is past T100 (the boot clock is not relevant to a schema 1 floor)
+        self.clocks.boot += 1000
+        error = self.refused(lambda: self.enter(self.issued(START + 40)))
+        self.assertEqual(error.code, 'clock_moved_backward')
+        self.assertIn(LOST_WORDS, error.message)
+        self.assertEqual(self.rows("SELECT name FROM sqlite_master WHERE name = 'latched_open'"), [])  # held: nothing recorded
+        self.assertEqual(self.cutoff(), [(START + 60,)])  # but the cutoff is committed, and stays
+        self.restart()
+        self.assertEqual(self.refused(lambda: self.enter(self.issued(START + 40))).code, 'clock_moved_backward')
+        self.clocks.step(40)  # the wall clock reaches the expiry: closed and latched
+        self.assertEqual(self.refused(lambda: self.enter(self.issued(START + 40))).code, 'toy_expired')
+        self.assertEqual(len(self.rows('SELECT * FROM latched_v2')), 1)
+
+    def test_an_artifact_prepared_anew_after_the_cutoff_is_judged_normally(self):
+        self.legacy_store()
+        self.clocks.wall = START + 60
+        self.refused(lambda: self.enter(self.issued(START + 40)))
+        fresh = self.issued(START + 61, nonce='b' * 32, operation_id='operation-2')
+        self.clocks.elapse(2)
+        self.enter(fresh)  # open: issued after the cutoff
+        self.assertEqual(len(self.rows('SELECT * FROM latched_open')), 1)
+
+    def test_a_store_with_no_history_holds_nothing(self):
+        self.clocks.wall = START + 60
+        self.enter(self.issued(START + 40))  # the first judgment of a new store: nothing before it can be legacy
+        self.assertEqual(self.cutoff(), [(0.0,)])
+
+    def test_the_cutoff_is_written_once_at_the_first_judgment_and_never_changes(self):
+        self.legacy_store()
+        self.clocks.wall = START + 60
+        self.refused(lambda: self.enter(self.issued(START + 40)))
+        first = self.cutoff()
+        self.assertEqual(first, [(START + 60,)])
+        self.clocks.elapse(30)
+        self.enter(self.issued(START + 70, nonce='b' * 32))
+        self.assertEqual(self.cutoff(), first)
+        with self.connect() as db:
+            for statement in ('UPDATE latched_cutoff SET cutoff = 0', 'DELETE FROM latched_cutoff'):
+                with self.assertRaises(sqlite3.DatabaseError):
+                    db.execute(statement)
+        self.assertEqual(self.cutoff(), first)
+
+    def test_deleting_the_recorded_time_cannot_erase_the_cutoff_or_the_hold(self):
+        self.legacy_store()
+        self.clocks.wall = START + 60
+        self.refused(lambda: self.enter(self.issued(START + 40)))
+        (self.base / 'clock.json').unlink()
+        self.restart()
+        self.assertEqual(self.refused(lambda: self.enter(self.issued(START + 40))).code, 'clock_moved_backward')
+
+    def test_a_first_attempt_that_cannot_commit_does_not_make_a_new_store_look_old(self):
+        with self.connect() as db:
+            db.execute('CREATE TABLE seed (x)')
+        reader = sqlite3.connect(self.database, timeout=0, isolation_level=None)
+        cursor = reader.execute('SELECT m.name, c.x FROM sqlite_master m, (WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL '
+                                'SELECT x + 1 FROM c WHERE x < 5) SELECT x FROM c) c')
+        cursor.fetchone()  # a statement left open: its shared lock makes the first commit fail busy
+        self.clocks.wall = START + 60
+        try:
+            with self.assertRaises(sqlite3.OperationalError):
+                self.enter(self.issued(START + 40))
+        finally:
+            cursor.close()
+            reader.close()
+        self.assertFalse((self.base / 'clock.json').exists())  # the recorded time was not touched
+        self.enter(self.issued(START + 40))  # the retry: still a store with no history, so the approval is judged normally
+        self.assertEqual(self.cutoff(), [(0.0,)])
+
+    def test_a_first_attempt_that_is_refused_does_not_make_an_old_store_look_new(self):
+        self.legacy_store()
+        self.clocks.wall = START + 60
+        self.refused(lambda: self.enter(self.issued(START + 40)))
+        # whatever the first attempt left behind (the recorded time is now schema 2), the cutoff was committed first
+        self.assertEqual(self.file()['schema_version'], 'intune-clock-floor/2')
+        self.restart()
+        self.assertEqual(self.refused(lambda: self.enter(self.issued(START + 40))).code, 'clock_moved_backward')
+
+    def test_an_artifact_that_has_an_open_row_is_not_held_by_the_cutoff(self):
+        self.clocks.wall = START + 30
+        self.enter(self.issued(START + 20))  # judged under the boot session: it has its row
+        self.restart()
+        self.clocks.elapse(10)
+        self.enter(self.issued(START + 20))
+
+    def test_an_artifact_without_an_issue_time_is_judged_normally(self):
+        self.legacy_store()
+        self.clocks.wall = START + 60
+        self.enter(dict(self.payload, expires_at=START + 1000))  # a policy or synthetic payload names no issue time
 
 
 CHILD = textwrap.dedent('''
