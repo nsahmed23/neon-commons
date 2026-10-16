@@ -190,8 +190,10 @@ class LiveCompanion:
         self.last_page = None
         self.ended = None
         self._stop = threading.Event()
-        # Set once the listening socket is closed (or there was none): the only thing that means "ended".
+        # Set once the first stopper has finished. With _close_error None that means the listening socket is closed (or
+        # there was none): the only thing that means "ended". With it set, the close failed and no end is ever reported.
         self._done = threading.Event()
+        self._close_error = None
         self._lock = threading.Lock()
         self._thread = None
         self._watchdog = None
@@ -243,7 +245,15 @@ class LiveCompanion:
         stopped. It ends only once the port is closed, never while a stopper is still inside shutdown()."""
         if not self._stop.is_set() and self.expired():
             self.end('idle')
-        return (self.ended or 'stopped') if self._done.is_set() else None
+        if not self._done.is_set():
+            return None
+        self._raise_if_close_failed()
+        return self.ended or 'stopped'
+
+    def _raise_if_close_failed(self):
+        """A stop that finished without closing the port is an error to everyone who asks, never a reported end."""
+        if self._close_error is not None:
+            raise AppError('companion_live_close_failed', 'The listener could not be closed: %s' % type(self._close_error).__name__)
 
     def wait(self, poll=0.2):
         """Block until the listener ends, and say why: 'idle' or 'stopped'."""
@@ -264,16 +274,23 @@ class LiveCompanion:
         if not first:
             if not self._done.wait(STOP_WAIT_SECONDS):
                 raise AppError('companion_live_stop_timeout', 'The listener is still being stopped by another caller.')
+            self._raise_if_close_failed()
             return
         self._stop.set()
-        if self.server is not None:
-            if self._thread is not None:
-                self.server.shutdown()
-                self._thread.join(STOP_WAIT_SECONDS)
-            self.server.server_close()
-        # Closed: only now may anything report that the listener ended. Set before the watchdog join below, because the
-        # watchdog may itself be waiting above as a second caller.
-        self._done.set()
+        try:
+            if self.server is not None:
+                if self._thread is not None:
+                    self.server.shutdown()
+                    self._thread.join(STOP_WAIT_SECONDS)
+                self.server.server_close()
+        except BaseException as error:
+            # The port may still be open: say so to every waiter instead of leaving them to wait for an end that cannot come.
+            self._close_error = error
+            raise
+        finally:
+            # Done means the stopper has finished, closed or failed: only then may anything stop waiting. Set before the
+            # watchdog join below, because the watchdog may itself be waiting above as a second caller.
+            self._done.set()
         if self._watchdog is not None and self._watchdog is not threading.current_thread():
             self._watchdog.join(STOP_WAIT_SECONDS)
 

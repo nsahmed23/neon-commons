@@ -760,6 +760,40 @@ class StopTests(Fixture):
         with self.assertRaises(OSError):
             socket.create_connection(('127.0.0.1', live.port), timeout=2)
 
+    def test_a_close_that_fails_is_reported_loudly_never_as_an_end_and_never_as_a_hang(self):
+        from intune_iac.io import AppError
+        live = self.start()
+        real_close = live.server.server_close
+
+        def failing_close():
+            raise OSError('close failed')
+        patch = mock.patch.object(live.server, 'server_close', failing_close)
+        patch.start()
+
+        def restore():
+            # Close the socket for real and clear the recorded failure, so the fixture's own stop() has nothing to raise.
+            patch.stop()
+            real_close()
+            live._close_error = None
+        self.addCleanup(restore)
+        first, first_outcome = self.run_in_thread(live.stop)
+        first.join(5)
+        self.assertEqual([kind for kind, _ in first_outcome], ['raised'])
+        self.assertIsInstance(first_outcome[0][1], OSError, 'the first stopper sees the failure itself')
+        waiter, waiter_outcome = self.run_in_thread(lambda: live.wait(poll=0.01))
+        waiter.join(1)
+        self.assertFalse(waiter.is_alive(), 'wait() hung after the close failed')
+        self.assertEqual([kind for kind, _ in waiter_outcome], ['raised'], 'wait() must not return a reason')
+        self.assertIsInstance(waiter_outcome[0][1], AppError)
+        self.assertEqual(waiter_outcome[0][1].code, 'companion_live_close_failed')
+        self.assertIn('OSError', waiter_outcome[0][1].message)
+        with self.assertRaises(AppError) as step:
+            live.wait_step()
+        self.assertEqual(step.exception.code, 'companion_live_close_failed')
+        with self.assertRaises(AppError) as second:
+            live.stop()
+        self.assertEqual(second.exception.code, 'companion_live_close_failed', 'not the timeout')
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500
