@@ -5,8 +5,10 @@ protects an approval, observes the state blob, or authorizes an external action.
 """
 from __future__ import annotations
 
+import base64
 import datetime as dt
 import http.client
+import json
 import re
 import ssl
 import socket
@@ -131,6 +133,95 @@ def _now():
 
 def _issue(code, path=''):
     return {'code': code, 'path': path}
+
+
+# EXPIRED ACCESS AND WRONG TENANT (offline). Claims in a token are read WITHOUT verification: nothing here checks the
+# signature, so a claim is never trusted for access, only used to explain a refusal the product is already making.
+# Of everything in a token, only the tenant identifier and the expiry time are kept or shown.
+TOKEN_CODES = ('token_expired', 'token_wrong_tenant')
+_TENANT_CLAIM = re.compile(GUID_PATTERN)
+_MAX_EXPIRY = 4102444800  # 2100-01-01; a larger number is not a plausible expiry
+
+
+def _expiry_text(moment):
+    return moment.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
+def token_claims(token):
+    """Unverified tenant id and expiry from a JWT-shaped token; both None for anything else. Never raises."""
+    claims = {'tenant_id': None, 'expires_at': None}
+    try:
+        parts = token.split('.') if isinstance(token, str) and len(token) <= 16384 else []
+        if len(parts) != 3:
+            return claims
+        payload = json.loads(base64.urlsafe_b64decode(parts[1] + '=' * (-len(parts[1]) % 4)))
+        if type(payload) is not dict:
+            return claims
+        tenant = payload.get('tid')
+        if type(tenant) is str and _TENANT_CLAIM.fullmatch(tenant.lower()):
+            claims['tenant_id'] = tenant.lower()
+        expiry = payload.get('exp')
+        if type(expiry) in (int, float) and 0 < expiry < _MAX_EXPIRY:
+            claims['expires_at'] = _expiry_text(dt.datetime.fromtimestamp(expiry, dt.timezone.utc))
+    except (ValueError, TypeError, OverflowError, OSError, UnicodeError):
+        pass
+    return claims
+
+
+def _label(claim):
+    return f' (unverified {claim} claim read from the token, used only to explain this refusal)'
+
+
+def token_problem(token, tenant, now):
+    """Explain a token that names another tenant, or has expired, before any call is made; else None.
+
+    Returns code, message and next_step. The wrong tenant is named before expiry: a new token for the same wrong
+    tenant would fail the same way.
+    """
+    claims = token_claims(token)
+    if claims['tenant_id'] is not None and claims['tenant_id'] != tenant.lower():
+        return {'code': 'token_wrong_tenant',
+                'message': f"The token is for tenant {claims['tenant_id']} while this context names tenant {tenant}"
+                           + _label('tenant') + '.',
+                'next_step': f'Obtain a token for tenant {tenant}, then run this command again.'}
+    if claims['expires_at'] is not None and _time(claims['expires_at']) <= now:
+        return {'code': 'token_expired',
+                'message': f"The token expired at {claims['expires_at']}" + _label('expiry') + '.',
+                'next_step': f'Obtain a new token for tenant {tenant}, then run this command again.'}
+    return None
+
+
+def classify_denial(body):
+    """token_expired / token_wrong_tenant when a 401/403 body says so in the service's own error code, else None."""
+    try:
+        value = json.loads(body[:8192]) if isinstance(body, (bytes, bytearray)) else None
+    except (ValueError, UnicodeError):
+        return None
+    error = value.get('error') if type(value) is dict else None
+    if type(error) is not dict:
+        return None
+    code, message = error.get('code'), error.get('message')
+    code = code if type(code) is str else ''
+    message = message.lower() if type(message) is str else ''
+    if code == 'InvalidAuthenticationTokenTenant' or (code == 'InvalidAuthenticationToken'
+                                                      and ('wrong issuer' in message or 'tenant' in message)):
+        return 'token_wrong_tenant'
+    if code == 'ExpiredAuthenticationToken' or (code == 'InvalidAuthenticationToken' and 'expired' in message):
+        return 'token_expired'
+    return None
+
+
+def service_denial(code, token, tenant):
+    """The explanation for a service answer. Nothing from the service's body is carried; only the code decided it."""
+    claims = token_claims(token)
+    if code == 'token_wrong_tenant':
+        seen = f" (the token's own unverified tenant claim is {claims['tenant_id']})" if claims['tenant_id'] else ''
+        return {'code': code, 'message': f'The service answered that the token belongs to a different tenant than '
+                                         f'this context names ({tenant}){seen}.',
+                'next_step': f'Obtain a token for tenant {tenant}, then run this command again.'}
+    seen = f" (the token's own unverified expiry claim is {claims['expires_at']})" if claims['expires_at'] else ''
+    return {'code': code, 'message': f'The service answered that the token has expired{seen}.',
+            'next_step': f'Obtain a new token for tenant {tenant}, then run this command again.'}
 
 
 def _bounded(document):
@@ -304,6 +395,12 @@ def _get_json(host, path, token, timeout):
                            'Accept': 'application/json', 'Accept-Encoding': 'identity'})
         response = connection.getresponse()
         if response.status != 200:
+            if response.status in (401, 403):
+                # STOP POINT: the service says the token expired or belongs to another tenant; the caller returns
+                # at once and makes no further call.
+                denial = classify_denial(response.read(8192))
+                if denial is not None:
+                    raise AppError(denial, 'The service rejected the token.')
             raise AppError('service_response_unavailable', 'Required read was not successful.')
         content_type = response.getheader('Content-Type', '').split(';', 1)[0].lower()
         encoding = response.getheader('Content-Encoding', 'identity').lower()
@@ -379,13 +476,33 @@ def collect_azure_observations(document: dict, *, graph_token: str,
     if not inspection['valid'] or not tokens_valid or type(timeout) is not int or not 1 <= timeout <= 30:
         result['issues'] = [_issue('invalid_collection_request')]
         return result
+    binding = snapshot['binding']
+    # STOP POINT (before any connection): a token whose own claims name another tenant, or that has expired.
+    for where, token, tenant in (('/graph_token', graph_token, binding['tenant_id']),
+                                 ('/management_token', management_token, binding['backend']['tenant_id'])):
+        problem = token_problem(token, tenant, _now())
+        if problem is not None:
+            result.update(status='unavailable', issues=[{'code': problem['code'], 'path': where,
+                                                         'message': problem['message'], 'next_step': problem['next_step']}])
+            return result
     for kind, host, path, expected in _service_reads(snapshot):
+        token = graph_token if kind == 'organization' else management_token
         try:
-            value = _get_json(host, path, graph_token if kind == 'organization' else management_token, timeout)
+            value = _get_json(host, path, token, timeout)
             facts = _extract_facts(kind, value)
             if facts != expected:
                 raise AppError('service_target_mismatch', 'Required service facts did not match.')
-        except (AppError, OSError, ValueError, http.client.HTTPException):
+        except AppError as error:
+            if error.code in TOKEN_CODES:
+                tenant = binding['tenant_id'] if kind == 'organization' else binding['backend']['tenant_id']
+                explained = service_denial(error.code, token, tenant)
+                result.update(status='unavailable', issues=[{'code': explained['code'], 'path': '/' + kind,
+                                                             'message': explained['message'],
+                                                             'next_step': explained['next_step']}])
+                return result
+            result.update(status='unavailable', issues=[_issue('service_observation_unavailable', '/' + kind)])
+            return result
+        except (OSError, ValueError, http.client.HTTPException):
             result.update(status='unavailable', issues=[_issue('service_observation_unavailable', '/' + kind)])
             return result
         result['observations'].append({'kind': kind, 'method': 'GET', 'service': host,

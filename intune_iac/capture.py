@@ -118,9 +118,11 @@ class _Reads:
         self.pages, self.attempts = [], []
         self.total_bytes = 0
         self.cancelled = False
+        self.auth_stop = None  # token_expired / token_wrong_tenant once the service has said so
 
     def limit(self):
         if self.cancelled: return 'cancelled'
+        if self.auth_stop: return self.auth_stop
         if len(self.attempts) >= self.max_pages: return 'page_limit'
         if self.total_bytes >= MAX_TOTAL_BYTES: return 'byte_limit'
         if time.monotonic() >= self.deadline: return 'time_limit'
@@ -170,6 +172,11 @@ class _Reads:
                           'source_byte_sha256':hashlib.sha256(stored).hexdigest(),
                           'raw_capture_complete':complete,'attempt_number':event['number'],'export_page':True}
                 self.pages.append(record)
+                if status in (401, 403) and complete:
+                    # STOP POINT: the service says the token expired or belongs to another tenant. limit() now
+                    # returns that reason, so no further request is made in any collection.
+                    from .target import classify_denial
+                    self.auth_stop = classify_denial(stored)
                 event.update(http_status=status,raw_path=record['raw_path'])
                 response = (record, stored)
                 transient = status in RETRY_STATUSES and complete
@@ -313,6 +320,12 @@ def _capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
             raise AppError('capture_token_missing', 'Set the explicitly selected token environment variable before capture.')
         if any(ord(c) < 33 or ord(c) >= 127 for c in token):
             raise AppError('capture_token_invalid', 'The selected token has an invalid encoding.')
+        # STOP POINT (before any call, before the output directory exists): a token whose own claims name another
+        # tenant, or that has expired. The claims are unverified and only explain this refusal.
+        from .target import token_problem
+        problem = token_problem(token, tenant_id, datetime.fromisoformat(_stamp().replace('Z', '+00:00')))
+        if problem is not None:
+            raise AppError('capture_' + problem['code'], problem['message'] + ' ' + problem['next_step'])
         transport = _http_transport(token)
     if not callable(transport):
         raise AppError('capture_transport_invalid', 'Capture transport must be callable.')
@@ -356,7 +369,7 @@ def _capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
                     if not complete_bytes:
                         reason = 'byte_limit'; break
                     if status != 200:
-                        reason = 'access_denied' if status in {401,403} else 'http_error'
+                        reason = reads.auth_stop or ('access_denied' if status in {401,403} else 'http_error')
                         coverage = 'access_denied' if status in {401,403} else 'partial'; break
                     if not parsed:
                         reason = 'malformed_json'; break
@@ -436,6 +449,10 @@ def _capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
             files.write('capture-receipt.json', canonical(receipt)+b'\n')
             files.finish()
             complete = all(c['coverage']=='complete' for c in collections)
+            problem = None
+            if reads.auth_stop:
+                from .target import service_denial
+                problem = service_denial(reads.auth_stop, token, tenant_id)
             return {'status':'captured' if complete else 'partial','output':str(output),
                     'export':str(output/'export.json'),'context':str(output/'context.json'),
                     'receipt':str(output/'capture-receipt.json'),'page_count':len(reads.pages),
@@ -443,6 +460,7 @@ def _capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
                     'cancelled':reads.cancelled,
                     'coverage':[{'kind':c['kind'],'coverage':c['coverage'],'reason':c['reason']} for c in collections],
                     'tenant_assurance':'caller_asserted','source_authenticity_verified':False,
-                    'provider_qualified':False,'execution_authorized':False}
+                    'provider_qualified':False,'execution_authorized':False,
+                    **({'credential_problem':problem} if problem else {})}
     except OSError:
         raise AppError('capture_write_failed', 'Capture persistence failed; inspect the restricted output before retrying.') from None
