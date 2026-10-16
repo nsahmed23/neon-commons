@@ -137,15 +137,43 @@ class RedactionHarness(unittest.TestCase):
                 pass  # closed since it was listed, or not readable
         return hits
 
-    def run_cli(self, argv, canaries, env=None, expect=0, outputs=(), bearer_ok=(), entry=None):
+    @staticmethod
+    def descriptor_open_and_inheritable(fd):
+        try:
+            return os.get_inheritable(fd)
+        except OSError:
+            return False  # closed (the command consumed and closed it)
+
+    @staticmethod
+    def without_authorization_headers(entry, allowed):
+        """One socket write with the Authorization header removed when, and only when, it is an HTTP request head whose
+        parsed Authorization header is exactly `Bearer <canary>` for a canary the route declares. A body, any other
+        header, a URL or a write that is not a request head keeps every byte, so a canary there is a leak."""
+        head, separator, rest = entry.partition(b"\r\n\r\n")
+        lines = head.split(b"\r\n")
+        first = lines[0].split(b" ")
+        if not separator or len(first) != 3 or not first[2].startswith(b"HTTP/") or not first[0].isalpha():
+            return entry
+        kept = []
+        for line in lines[1:]:
+            name, colon, value = line.partition(b":")
+            if colon and name.strip().lower() == b"authorization" and any(
+                    value.strip() == b"Bearer " + c.encode() for c in allowed):
+                continue
+            kept.append(line)
+        return b"\r\n".join([lines[0], *kept]) + separator + rest
+
+    def run_cli(self, argv, canaries, env=None, expect=0, outputs=(), bearer_ok=(), entry=None, fds=()):
         """Run cli.main (or entry) in process with the work root as the working directory.
 
         Returns (exit code, stdout, stderr, children). The call must exit with `expect`. Channels observed, each shown
-        non-vacuous by a planted-leak test below: stdout, stderr, the text of an uncaught exception, every file under
+        non-vacuous by a planted-leak test below (fds: the credential descriptors the test supplied, of any type; none may
+        be passed to a child or be inheritable at a child start or at the end of the call): stdout, stderr, the text of an uncaught exception, every file under
         the work root and under each declared output root (recursively), every new or changed file anywhere under the
         system temporary directory (recursively), each child's argv, environment, pass_fds and close_fds, every
         inheritable descriptor holding a canary (when a child starts and when the call ends), opens of a terminal
-        device, bytes sent on a socket (a canary may appear only as `Bearer <canary>` for canaries in bearer_ok), and
+        device, bytes sent on a socket (a canary may appear only as the exact parsed Authorization header value
+        `Bearer <canary>` of an HTTP request head, for canaries in bearer_ok), and
         the parent environment, which must be exactly the baseline plus the declared route variables.
         """
         env = env or {}
@@ -176,6 +204,7 @@ class RedactionHarness(unittest.TestCase):
                     except OSError:
                         pass
                 inherited.extend(RedactionHarness.inheritable_leaks(leaks))
+                inherited.extend(fd for fd in fds if fd in passed or RedactionHarness.descriptor_open_and_inheritable(fd))
                 super().__init__(args, *a, **k)
 
         # The system temporary directory for this call is a sandbox (TMPDIR and tempfile.tempdir point at it), so
@@ -199,6 +228,7 @@ class RedactionHarness(unittest.TestCase):
                         code = None
                 after = dict(os.environ)
                 inherited.extend(self.inheritable_leaks(leaks))
+                inherited.extend(fd for fd in fds if self.descriptor_open_and_inheritable(fd))
         finally:
             _WATCH['terminal'] = None
             os.chdir(previous)
@@ -213,11 +243,9 @@ class RedactionHarness(unittest.TestCase):
         for root in outputs:
             self.assertEqual(leaks.in_tree(root), [], 'canary under a declared output root')
         self.assertEqual(terminal, [], 'the command opened a terminal device')
-        self.assertEqual(inherited, [], 'a canary-bearing descriptor was passed to a child or left inheritable')
-        sent = b'\n'.join(wire)
-        for value in canaries:
-            if value in bearer_ok:
-                sent = sent.replace(b'Bearer ' + value.encode(), b'')
+        self.assertEqual(inherited, [], 'a canary-bearing or supplied credential descriptor was passed to a child or '
+                                        'left inheritable')
+        sent = b'\n'.join(self.without_authorization_headers(entry_bytes, bearer_ok) for entry_bytes in wire)
         self.assertEqual(leaks.in_bytes(sent), [], 'canary written to a socket')
         after_tmp = self.snapshot(system_tmp, skip=None)
         for path, stamp in after_tmp.items():
@@ -309,6 +337,24 @@ class RedactionHarness(unittest.TestCase):
             self.addCleanup(handle.close)
             return 0
 
+        read_end, write_end = os.pipe()
+        self.addCleanup(close_if_open, read_end)
+        self.addCleanup(close_if_open, write_end)
+        fifo = self.tmpbox / 'credential.fifo'
+        os.mkfifo(fifo)
+        fifo_fd = os.open(fifo, os.O_RDONLY | os.O_NONBLOCK)
+        self.addCleanup(close_if_open, fifo_fd)
+
+        def pipe_passed(v):
+            os.set_inheritable(read_end, True)
+            subprocess.run(['true'], pass_fds=(read_end,))
+            os.set_inheritable(read_end, False)
+            return 0
+
+        def fifo_left_inheritable(v):
+            os.set_inheritable(fifo_fd, True)
+            return 0
+
         def to_environment(v):
             os.environ['PERSISTED'] = v
             return 0
@@ -323,26 +369,50 @@ class RedactionHarness(unittest.TestCase):
                 ('socket', to_socket, 'written to a socket', {}),
                 ('child argument', to_child_argument, 'child process argv', {}),
                 ('child environment', to_child_environment, 'child process argv or environment', {}),
-                ('passed descriptor', to_passed_descriptor, 'canary-bearing descriptor', {}),
-                ('left inheritable', left_inheritable, 'canary-bearing descriptor', {}),
+                ('passed descriptor', to_passed_descriptor, 'credential descriptor', {}),
+                ('left inheritable', left_inheritable, 'credential descriptor', {}),
+                ('supplied pipe passed to a child', pipe_passed, 'credential descriptor', {'fds': (read_end,)}),
+                ('supplied FIFO left inheritable', fifo_left_inheritable, 'credential descriptor', {'fds': (fifo_fd,)}),
                 ('parent environment', to_environment, 'parent environment', {})):
             with self.subTest(channel=name):
                 os.environ.pop('PERSISTED', None)
                 self.planted(entry, pattern, **kwargs)
                 os.environ.pop('PERSISTED', None)
 
-    def test_an_authorization_header_is_the_only_allowed_wire_use_of_a_key(self):
+    def test_only_a_parsed_authorization_header_may_carry_a_declared_bearer_canary(self):
         key = canary('wire')
 
-        def header_and_body(argv):
-            left, right = socket.socketpair()
-            with left, right:
-                left.sendall(('Authorization: Bearer ' + key).encode())
-            return 0
+        def request(headers=(), body=b''):
+            head = b'POST /v1/systemone HTTP/1.1\r\nHost: localhost\r\n' + b''.join(h + b'\r\n' for h in headers) + b'\r\n'
+            return head, body
 
-        self.run_cli([], (key,), entry=header_and_body, bearer_ok=(key,))
-        with self.assertRaisesRegex(AssertionError, 'written to a socket'):
-            self.run_cli([], (key,), entry=header_and_body)
+        def sender(*writes):
+            def entry(argv):
+                left, right = socket.socketpair()
+                with left, right:
+                    for data in writes:
+                        left.sendall(data)
+                return 0
+            return entry
+
+        bearer = ('Bearer ' + key).encode()
+        good_head, good_body = request([b'Authorization: ' + bearer], b'{"state":"fine"}')
+        self.run_cli([], (key,), entry=sender(good_head, good_body), bearer_ok=(key,))
+        for name, writes in (
+                ('undeclared canary', (good_head, good_body)),
+                ('payload in a body', (request([b'Authorization: ' + bearer])[0], b'payload=' + bearer)),
+                ('another header', (request([b'Authorization: ' + bearer, b'X-Forwarded: ' + bearer])[0], good_body)),
+                ('a different scheme in the header', (request([b'Authorization: Basic ' + key.encode()])[0], good_body)),
+                ('a suffix after the value', (request([b'Authorization: ' + bearer + b'x'])[0], good_body)),
+                ('not a request head', (b'Authorization: ' + bearer,)),
+                ('in the url', (b'GET /?t=' + bearer.replace(b' ', b'%20') + b' HTTP/1.1\r\n\r\n',))):
+            with self.subTest(name):
+                allowed = () if name == 'undeclared canary' else (key,)
+                if name == 'in the url':
+                    # the percent-encoded form is a different byte string; the plain one is the leak
+                    writes = (b'GET /?t=' + key.encode() + b' HTTP/1.1\r\n\r\n',)
+                with self.assertRaisesRegex(AssertionError, 'written to a socket'):
+                    self.run_cli([], (key,), entry=sender(*writes), bearer_ok=allowed)
 
     # start and doctor ------------------------------------------------------------------------------------
 
@@ -395,7 +465,7 @@ class RedactionHarness(unittest.TestCase):
                     recording_handle(ib.ClientSecretHandle, consumed):
                 code, out, _, _ = self.run_cli(['target', 'authenticate', '--input', str(path),
                     '--provider-secret-fd', str(descriptors[0]), '--backend-secret-fd', str(descriptors[1])],
-                    (provider, backend))
+                    (provider, backend), fds=descriptors)
         finally:
             for fd in descriptors:
                 close_if_open(fd)
@@ -450,17 +520,19 @@ class RedactionHarness(unittest.TestCase):
                 {'value': [] if url.endswith(('/settings', '/assignments')) else [{'id': policy}]}).encode(), ())
 
         with patch('intune_iac.capture._http_transport', factory):
+            capture_fd = self.secret_fd(capture_token, 'capture.token')
             self.run_cli(['capture', '--tenant', tenant, '--policy', policy, '--output', str(self.work / 'fdcap'),
-                          '--token-fd', str(self.secret_fd(capture_token, 'capture.token'))], (capture_token,))
+                          '--token-fd', str(capture_fd)], (capture_token,), fds=(capture_fd,))
         self.assertEqual(delivered, [capture_token])
         document = self.inputs / 'target-fd.json'
         write_json(document, tt.fixture())
         tt.Connection.responses, tt.Connection.requests = tt.CollectionTests.responses(None), []
         with patch('intune_iac.target._now', return_value=tt.NOW), \
                 patch('intune_iac.target.http.client.HTTPSConnection', tt.Connection):
+            graph_fd, management_fd = self.secret_fd(graph, 'graph.token'), self.secret_fd(management, 'arm.token')
             code, out, _, _ = self.run_cli(['target', 'collect', '--input', str(document),
-                '--graph-token-fd', str(self.secret_fd(graph, 'graph.token')),
-                '--management-token-fd', str(self.secret_fd(management, 'arm.token'))], (graph, management))
+                '--graph-token-fd', str(graph_fd), '--management-token-fd', str(management_fd)],
+                (graph, management), fds=(graph_fd, management_fd))
         self.assertEqual(json.loads(out)['status'], 'observed')
 
     # target collect (token by environment-variable name, local fake service) -----------------------------
