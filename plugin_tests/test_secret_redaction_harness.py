@@ -145,25 +145,65 @@ class RedactionHarness(unittest.TestCase):
             return False  # closed (the command consumed and closed it)
 
     @staticmethod
-    def without_authorization_headers(entry, allowed):
-        """One socket write with the Authorization header removed when, and only when, it is an HTTP request head whose
-        parsed Authorization header is exactly `Bearer <canary>` for a canary the route declares. A body, any other
-        header, a URL or a write that is not a request head keeps every byte, so a canary there is a leak."""
-        head, separator, rest = entry.partition(b"\r\n\r\n")
-        lines = head.split(b"\r\n")
-        first = lines[0].split(b" ")
-        if not separator or len(first) != 3 or not first[2].startswith(b"HTTP/") or not first[0].isalpha():
-            return entry
-        kept = []
-        for line in lines[1:]:
-            name, colon, value = line.partition(b":")
-            if colon and name.strip().lower() == b"authorization" and any(
-                    value.strip() == b"Bearer " + c.encode() for c in allowed):
-                continue
-            kept.append(line)
-        return b"\r\n".join([lines[0], *kept]) + separator + rest
+    def parse_requests(stream):
+        """Split one connection's client-to-server bytes into complete parsed requests, in order.
 
-    def run_cli(self, argv, canaries, env=None, expect=0, outputs=(), bearer_ok=(), entry=None, fds=()):
+        Each request is (method, target, headers, body): every header occurrence in order, and the body read to its
+        declared Content-Length. Bytes that are not part of a parsed request (a partial request, a response, a raw write)
+        are returned as leftover and are scanned whole. A request-shaped body is inside its outer request's body.
+        """
+        requests, leftover, position = [], b"", 0
+        while position < len(stream):
+            end = stream.find(b"\r\n\r\n", position)
+            head = stream[position:end] if end >= 0 else b""
+            lines = head.split(b"\r\n")
+            first = lines[0].split(b" ")
+            if end < 0 or len(first) != 3 or not first[2].startswith(b"HTTP/") or not first[0].isalpha():
+                leftover += stream[position:]
+                break
+            headers = []
+            for line in lines[1:]:
+                name, colon, value = line.partition(b":")
+                headers.append((name.strip(), value.strip()) if colon else (line, None))
+            length = 0
+            for name, value in headers:
+                if name.lower() == b"content-length" and value is not None and value.isdigit():
+                    length = int(value)
+            body_start = end + 4
+            requests.append((first[0].decode(), first[1].decode("latin-1"), headers, stream[body_start:body_start + length]))
+            position = body_start + length
+        return requests, leftover
+
+    @classmethod
+    def socket_scan_text(cls, wire, allowed):
+        """The bytes to scan for canaries: everything sent on every socket except exactly one permitted header value.
+
+        allowed maps a canary to the (method, path) route that declares it. A canary is permitted only as exactly one
+        Authorization header whose value is exactly `Bearer <canary>` on that route. Every other header occurrence
+        (a second Authorization header included), the target, the body and any unparsed write are kept whole.
+        """
+        streams = {}
+        for owner, data in wire:
+            streams[owner] = streams.get(owner, b"") + data
+        kept = []
+        for stream in streams.values():
+            requests, leftover = cls.parse_requests(stream)
+            kept.append(leftover)
+            for method, target, headers, body in requests:
+                authorizations = [i for i, (name, _) in enumerate(headers) if name.lower() == b"authorization"]
+                permitted = None
+                if len(authorizations) == 1:
+                    value = headers[authorizations[0]][1]
+                    for canary_value, route in allowed.items():
+                        if value == b"Bearer " + canary_value.encode() and (method, target) == tuple(route):
+                            permitted = authorizations[0]
+                kept.append(method.encode() + b" " + target.encode("latin-1"))
+                kept.extend(b": ".join([name, value if value is not None else b""])
+                            for i, (name, value) in enumerate(headers) if i != permitted)
+                kept.append(body)
+        return b"\n".join(kept)
+
+    def run_cli(self, argv, canaries, env=None, expect=0, outputs=(), bearer_ok=None, entry=None, fds=()):
         """Run cli.main (or entry) in process with the work root as the working directory.
 
         Returns (exit code, stdout, stderr, children). The call must exit with `expect`. Channels observed, each shown
@@ -173,22 +213,25 @@ class RedactionHarness(unittest.TestCase):
         system temporary directory (recursively), each child's argv, environment, pass_fds and close_fds, every
         inheritable descriptor holding a canary (when a child starts and when the call ends), opens of a terminal
         device, bytes sent on a socket (a canary may appear only as the exact parsed Authorization header value
-        `Bearer <canary>` of an HTTP request head, for canaries in bearer_ok), and
+        `Bearer <canary>`, exactly one such header, on the (method, path) route bearer_ok declares for that canary; every
+        other header occurrence, the target, the body and any unparsed write are scanned whole), and
         the parent environment, which must be exactly the baseline plus the declared route variables.
         """
         env = env or {}
+        bearer_ok = bearer_ok or {}
         leaks = Leaks(*canaries)
         baseline = dict(os.environ)
         children, terminal, wire, inherited = [], [], [], []
+        allowed_routes = dict(bearer_ok)
         real_popen = subprocess.Popen
         real_send, real_sendall = socket.socket.send, socket.socket.sendall
 
         def watching_send(self_, data, *a):
-            wire.append(bytes(data))
+            wire.append((id(self_), bytes(data)))
             return real_send(self_, data, *a)
 
         def watching_sendall(self_, data, *a):
-            wire.append(bytes(data))
+            wire.append((id(self_), bytes(data)))
             return real_sendall(self_, data, *a)
 
         class Recording(real_popen):
@@ -245,7 +288,7 @@ class RedactionHarness(unittest.TestCase):
         self.assertEqual(terminal, [], 'the command opened a terminal device')
         self.assertEqual(inherited, [], 'a canary-bearing or supplied credential descriptor was passed to a child or '
                                         'left inheritable')
-        sent = b'\n'.join(self.without_authorization_headers(entry_bytes, bearer_ok) for entry_bytes in wire)
+        sent = self.socket_scan_text(wire, allowed_routes)
         self.assertEqual(leaks.in_bytes(sent), [], 'canary written to a socket')
         after_tmp = self.snapshot(system_tmp, skip=None)
         for path, stamp in after_tmp.items():
@@ -379,12 +422,16 @@ class RedactionHarness(unittest.TestCase):
                 self.planted(entry, pattern, **kwargs)
                 os.environ.pop('PERSISTED', None)
 
-    def test_only_a_parsed_authorization_header_may_carry_a_declared_bearer_canary(self):
+    def test_only_one_parsed_authorization_header_on_the_declared_route_may_carry_a_bearer_canary(self):
         key = canary('wire')
+        route = ('POST', '/v1/systemone')
+        bearer = ('Bearer ' + key).encode()
 
-        def request(headers=(), body=b''):
-            head = b'POST /v1/systemone HTTP/1.1\r\nHost: localhost\r\n' + b''.join(h + b'\r\n' for h in headers) + b'\r\n'
-            return head, body
+        def request(headers=(), body=b'', path=b'/v1/systemone', declare_length=True):
+            lines = [b'POST ' + path + b' HTTP/1.1', b'Host: localhost', *headers]
+            if declare_length:
+                lines.append(b'Content-Length: ' + str(len(body)).encode())
+            return b'\r\n'.join(lines) + b'\r\n\r\n' + body
 
         def sender(*writes):
             def entry(argv):
@@ -395,22 +442,31 @@ class RedactionHarness(unittest.TestCase):
                 return 0
             return entry
 
-        bearer = ('Bearer ' + key).encode()
-        good_head, good_body = request([b'Authorization: ' + bearer], b'{"state":"fine"}')
-        self.run_cli([], (key,), entry=sender(good_head, good_body), bearer_ok=(key,))
-        for name, writes in (
-                ('undeclared canary', (good_head, good_body)),
-                ('payload in a body', (request([b'Authorization: ' + bearer])[0], b'payload=' + bearer)),
-                ('another header', (request([b'Authorization: ' + bearer, b'X-Forwarded: ' + bearer])[0], good_body)),
-                ('a different scheme in the header', (request([b'Authorization: Basic ' + key.encode()])[0], good_body)),
-                ('a suffix after the value', (request([b'Authorization: ' + bearer + b'x'])[0], good_body)),
-                ('not a request head', (b'Authorization: ' + bearer,)),
-                ('in the url', (b'GET /?t=' + bearer.replace(b' ', b'%20') + b' HTTP/1.1\r\n\r\n',))):
+        good = request([b'Authorization: ' + bearer], b'{"state":"fine"}')
+        self.run_cli([], (key,), entry=sender(good), bearer_ok={key: route})
+        self.run_cli([], (key,), entry=sender(good[:20], good[20:]), bearer_ok={key: route})  # split across writes
+        nested_head = request([b'Authorization: ' + bearer], b'')
+        nested_body = b'POST /unrelated HTTP/1.1\r\nAuthorization: ' + bearer + b'\r\n\r\n'
+        for name, writes, allowed in (
+                ('undeclared canary', (good,), {}),
+                ('duplicate Authorization header on the declared route',
+                 (request([b'Authorization: ' + bearer, b'Authorization: ' + bearer]),), {key: route}),
+                ('request-shaped body inside an outer request body',
+                 (request([b'Authorization: ' + bearer], nested_body),), {key: route}),
+                ('request-shaped second request on an undeclared route',
+                 (request([]), nested_body), {key: route}),
+                ('Authorization header on an undeclared route',
+                 (request([b'Authorization: ' + bearer], path=b'/other'),), {key: route}),
+                ('declared path but another method',
+                 (good.replace(b'POST', b'PUT', 1),), {key: route}),
+                ('payload in a body', (request([b'Authorization: ' + bearer], b'payload=' + bearer),), {key: route}),
+                ('another header', (request([b'Authorization: ' + bearer, b'X-Forwarded: ' + bearer]),), {key: route}),
+                ('a different scheme in the header', (request([b'Authorization: Basic ' + key.encode()]),), {key: route}),
+                ('a suffix after the value', (request([b'Authorization: ' + bearer + b'x']),), {key: route}),
+                ('not a request head', (b'Authorization: ' + bearer,), {key: route}),
+                ('in the target', (request([], path=b'/v1/systemone?t=' + key.encode()),), {key: route}),
+                ('a raw write beside a good request', (good, b'leak=' + key.encode()), {key: route})):
             with self.subTest(name):
-                allowed = () if name == 'undeclared canary' else (key,)
-                if name == 'in the url':
-                    # the percent-encoded form is a different byte string; the plain one is the leak
-                    writes = (b'GET /?t=' + key.encode() + b' HTTP/1.1\r\n\r\n',)
                 with self.assertRaisesRegex(AssertionError, 'written to a socket'):
                     self.run_cli([], (key,), entry=sender(*writes), bearer_ok=allowed)
 
@@ -627,7 +683,7 @@ class RedactionHarness(unittest.TestCase):
         write_json(evidence, [{'id': 'record-1', 'text': 'enabled'}])
         code, out, _, _ = self.run_cli(['judge', '--config', str(config), '--claim', 'The setting is enabled.',
                                         '--evidence', str(evidence)], (key,), {'CLM_HARNESS_KEY': key},
-                                        bearer_ok=(key,))
+                                        bearer_ok={key: ('POST', '/v1/systemone')})
         self.assertEqual(len(fake.requests), 1, 'exactly one request must reach the fake endpoint')
         request = fake.requests[0]
         self.assertEqual(request['authorization'], 'Bearer ' + key, 'the key must have been consumed where it belongs')
