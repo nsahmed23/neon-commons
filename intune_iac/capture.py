@@ -259,9 +259,11 @@ def classify_output_failure(error, stage):
         if number in (errno.EACCES, errno.EPERM, errno.EROFS):
             return 'parent_not_writable'
         return 'unchecked'
-    if number in (errno.EACCES, errno.EPERM):
-        return 'permission_denied'
+    if stage == 'final_stat':
+        return 'final_inspect_failed'  # the look at the last name failed; no ancestor open did
     if stage == 'ancestor':
+        if number in (errno.EACCES, errno.EPERM):
+            return 'permission_denied'
         if number == errno.ENOENT:
             return 'ancestor_missing'
         if number == errno.ELOOP:

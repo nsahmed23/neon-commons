@@ -781,6 +781,10 @@ def _refusal_why(result):
     cause = result.get('cause')
     if cause in _REFUSAL_CAUSE:
         return _REFUSAL_CAUSE[cause]
+    if cause == 'final_inspect_failed':
+        number = result.get('cause_errno')
+        return ('The last name in the output path could not be inspected%s; no folder was made.'
+                % (' (%s)' % number if isinstance(number, str) and re.fullmatch(r'E[A-Z0-9]+', number) else ''))
     if cause == 'unchecked':
         number = result.get('cause_errno')
         return ('The file system refused the check of the output folder%s; no more specific cause was found.'

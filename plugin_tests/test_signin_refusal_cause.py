@@ -124,6 +124,41 @@ class OperationCauseTests(unittest.TestCase):
                              (OSError(errno.ENOENT, 'x'), 'unchecked')):
             self.assertEqual(getattr(self.run_with('mkdir', error), 'cause', None), cause, error)
 
+    def test_a_denied_look_at_the_last_name_is_not_an_ancestor_failure(self):
+        from intune_iac.signin_facts import _refusal_why
+        for number in (errno.EACCES, errno.EPERM):
+            with tempfile.TemporaryDirectory() as scratch:
+                with mock.patch.object(signin, '_output_check_supported', return_value=True), \
+                        mock.patch.object(os, 'stat', side_effect=OSError(number, 'denied')):
+                    with self.assertRaises(AppError) as caught:
+                        signin.check_new_output(str(Path(scratch) / 'new'))
+            error = caught.exception
+            self.assertEqual(getattr(error, 'cause', None), 'final_inspect_failed', number)
+            why = flat(_refusal_why({'cause': error.cause, 'cause_errno': error.cause_errno}))
+            self.assertIn('could not be inspected', why)
+            self.assertIn(errno.errorcode[number], why)
+            self.assertIn('no folder was made', why)
+            self.assertNotIn('on the way', why)
+
+    def test_a_denied_ancestor_open_keeps_its_sentence(self):
+        from intune_iac.signin_facts import _refusal_why
+        real = os.open
+        calls = []
+
+        def deny(name, *args, **kw):
+            calls.append(name)
+            if len(calls) > 1:  # the root opens; the first ancestor is denied
+                raise PermissionError(errno.EACCES, 'denied')
+            return real(name, *args, **kw)
+        with tempfile.TemporaryDirectory() as scratch:
+            with mock.patch.object(signin, '_output_check_supported', return_value=True), \
+                    mock.patch.object(os, 'open', deny):
+                with self.assertRaises(AppError) as caught:
+                    signin.check_new_output(str(Path(scratch) / 'new'))
+        self.assertEqual(caught.exception.cause, 'permission_denied')
+        self.assertEqual(_refusal_why({'cause': 'permission_denied'}),
+                         'This user is not allowed to open a folder on the way to the output folder.')
+
     def test_an_ancestor_open_still_reports_a_missing_ancestor(self):
         with tempfile.TemporaryDirectory() as scratch:
             with self.assertRaises(AppError) as caught:
