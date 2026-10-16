@@ -54,9 +54,10 @@ class ExpiredTests(unittest.TestCase):
         with self.assertRaises(signin.SigninBlocked) as caught:
             signin.obtain_token(TENANT_A, deadline=5)
         verdict = caught.exception.verdict
-        self.assertEqual((verdict['status'], verdict['usable']), ('expired', False))
-        self.assertEqual(verdict['next_step'], 'Sign in again to the tenant the context names: az login --tenant %s; then run '
-                                               'this command again.' % TENANT_A)
+        # Changed in PKG-SETUP-5A round 1: the listing's Expired is the subscription's state, not sign-in expiry.
+        self.assertEqual((verdict['status'], verdict['usable']), ('subscription_expired', False))
+        self.assertIn('az login --tenant %s' % TENANT_A, verdict['next_step'])
+        self.assertIn('az account set --subscription', verdict['next_step'])
         self.assertEqual(self.fakes.calls(), [LISTING])
 
     def test_status_reports_expired_as_blocked_and_runs_only_the_listing(self):
@@ -64,7 +65,7 @@ class ExpiredTests(unittest.TestCase):
         code, out, _ = self.cli('signin', 'status', '--tenant', TENANT_A)
         value = json.loads(out)
         self.assertEqual(code, 2)
-        self.assertEqual((value['status'], value['azure']['status']), ('blocked', 'expired'))
+        self.assertEqual((value['status'], value['azure']['status']), ('blocked', 'subscription_expired'))
         self.assertIn('az login --tenant %s' % TENANT_A, value['azure']['next_step'])
         self.assertEqual(self.fakes.calls(), [LISTING])
 
@@ -130,14 +131,15 @@ class ExpiredTests(unittest.TestCase):
 
     def test_the_readiness_row_for_an_expired_sign_in_is_missing_with_the_exact_step(self):
         from intune_iac.readiness import readiness
-        facts = {'azure': {'provider': 'azure', 'state': 'expired', 'reason': None, 'accounts': [
+        facts = {'azure': {'provider': 'azure', 'state': 'subscription_expired', 'reason': None, 'accounts': [
             {'tenant': TENANT_A, 'account': 'alex@example.test', 'cloud': 'AzureCloud', 'default': True, 'listing_state': 'Expired'}]}}
         value = readiness(tr.survey_of(tr.repository_item(), tr.context_item(tenant=TENANT_A)), tr.host_report(),
                           tr.doctor_report(), signin=facts)
         row = tr.rows_of(value, 'discover')['integration_service']
-        self.assertEqual(row['state'], 'missing')
-        self.assertIn('expired', ' '.join(row['missing']))
-        self.assertIn('az login --tenant %s' % TENANT_A, row['next_action'])
+        # readiness.py is not part of this round: it still blocks only on wrong_tenant, not_signed_in and expired, so a
+        # subscription_expired verdict leaves the row unknown (never ready) until it learns the new status (follow-up).
+        self.assertEqual(row['state'], 'unknown')
+        self.assertIn('subscription', ' '.join(row['missing']))
 
 
 if __name__ == '__main__':

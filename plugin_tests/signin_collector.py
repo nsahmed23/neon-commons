@@ -76,6 +76,8 @@ def main(argv):
         print(json.dumps(result(alpha=token[:half], beta=token[half:])))
     elif mode == 'rawecho':
         print(token)
+    elif mode == 'shapednote':
+        print(json.dumps(result(note='abcdefghijklmnopqrst')))  # credential-shaped text that is NOT the delivered token
     elif mode == 'extra':
         print(json.dumps(result(note='a field the product does not show', nested={'deep': 'value'})))
     else:

@@ -73,7 +73,8 @@ class ListingStateTests(Base):  # item 1a, finding 5
     def test_an_expired_listing_entry_keeps_the_word_the_cli_printed(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(state='Expired')))
         facts = signin.detect_azure(deadline=5)
-        self.assertEqual((facts['state'], [entry.get('listing_state') for entry in facts['accounts']]), ('expired', ['Expired']))
+        self.assertEqual((facts['state'], [entry.get('listing_state') for entry in facts['accounts']]),
+                         ('subscription_expired', ['Expired']))  # changed in 5A round 1: subscription state, not sign-in expiry
         self.assertNotIn('session', keys(facts))
 
     def test_a_github_entry_carries_the_gh_state_word_and_no_session(self):
@@ -162,35 +163,33 @@ class WithheldTests(Base):  # item 2a, finding 8
         result = self.collect()
         self.assertEqual((result['status'], result['error_code']), ('failed', 'collector_output_withheld'))
         self.assertNotIn(self.token, json.dumps(result))
-        self.assertEqual(result['output_removed'], False)
+        self.assertIs(result['product_removed_anything'], False)
         self.assertEqual(unmarked(result['next_step']), [])
+        self.assertNotIn('rm -r', json.dumps(result))  # changed in 5A round 1: no deletion command is ever printed
         return result
 
-    def test_a_folder_the_collector_wrote_is_reported_written_and_left_with_the_exact_step(self):
+    def test_a_folder_that_appears_is_reported_as_observed_and_left_with_the_exact_step(self):
         self.mode = 'mkdir-echo'
         result = self.withheld()
-        self.assertEqual(result['output_folder'], 'written')
-        self.assertTrue(Path(self.output).is_dir())  # today's behaviour: collect never removes the folder
-        self.assertIn('rm -r -- %s' % shlex.quote(self.output), result['next_step'])
+        self.assertEqual((result['output_present_before'], result['output_present_after']), (False, True))
+        self.assertTrue(Path(self.output).is_dir())  # collect never removes the folder
         self.assertIn('intune-iac signin collect --tenant %s --policy %s --output NEW_DIR (' % (TENANT_A, POLICY),
                       result['next_step'])
-        self.assertIn('left in place', result['message'])
+        self.assertIn('did not remove anything', result['message'])
 
-    def test_a_folder_the_collector_did_not_write_is_reported_not_written(self):
+    def test_a_folder_that_does_not_appear_is_reported_absent(self):
         self.mode = 'echo'
         result = self.withheld()
-        self.assertEqual(result['output_folder'], 'not_written')
+        self.assertEqual((result['output_present_before'], result['output_present_after']), (False, False))
         self.assertFalse(Path(self.output).exists())
-        self.assertNotIn('rm -r', result['next_step'])
         self.assertIn('intune-iac signin collect --tenant %s --policy %s --output NEW_DIR (' % (TENANT_A, POLICY),
                       result['next_step'])
 
-    def test_a_folder_that_existed_before_the_run_is_reported_as_such_and_never_offered_for_deletion(self):
+    def test_a_folder_that_was_there_before_is_reported_as_observed_and_never_offered_for_deletion(self):
         self.mode = 'echo'
         Path(self.output).mkdir()
         result = self.withheld()
-        self.assertEqual(result['output_folder'], 'existed_before')
-        self.assertNotIn('rm -r', result['next_step'])
+        self.assertEqual((result['output_present_before'], result['output_present_after']), (True, True))
 
 
 class AccountMismatchTests(Base):  # item 2b, finding 9

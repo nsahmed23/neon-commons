@@ -74,7 +74,10 @@ class NotPermissionTests(unittest.TestCase):
             code = main(['signin', 'status', '--tenant', TENANT_A, '--provider', 'all'])
         value = json.loads(out.getvalue())
         self.assertEqual((code, value['status']), (0, 'ready'))
-        self.assertEqual(value['access'], {'graph': 'unknown', 'intune': 'unknown', 'state_storage': 'unknown'})
+        # Changed in PKG-SETUP-5A round 1: a ready report says it once, in ready_for; it carries no access block or note.
+        self.assertNotIn('access', value)
+        self.assertNotIn('note', value)
+        self.assertIn('state-storage access are not known until a read is attempted', value['ready_for'])
         self.assertEqual(fakes.calls(), ['account list --output json', 'auth status --json hosts'])
 
 

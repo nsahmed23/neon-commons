@@ -125,7 +125,7 @@ class CollectTests(unittest.TestCase):
         self.assertEqual(dict(os.environ), before)
 
     def test_blocked_sign_ins_start_no_child_and_no_token_command(self):
-        cases = {'expired': azure_list(azure_account(state='Expired')),
+        cases = {'subscription_expired': azure_list(azure_account(state='Expired')),
                  'wrong_tenant': azure_list(azure_account(tenant=TENANT_B)),
                  'several_accounts': azure_list(azure_account(), azure_account(user='sam@example.test', default=False)),
                  'not_signed_in': '[]'}

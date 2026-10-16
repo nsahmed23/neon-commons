@@ -182,7 +182,7 @@ def parse_azure(text):
         return _facts('azure', 'unknown', reason='malformed_answer')
     if not value:
         return _facts('azure', 'not_signed_in')
-    accounts, seen, unrecognized, default_rows = [], {}, False, 0
+    accounts, seen, unrecognized, default_rows, mixed = [], {}, False, 0, False
     for entry in value:
         user = entry.get('user') if isinstance(entry, dict) else None
         tenant = shown(entry.get('tenantId'), GUID) if isinstance(entry, dict) else None
@@ -203,6 +203,8 @@ def parse_azure(text):
             default_rows += 1  # counted per source row, before rows for one account are merged
         if key in seen:
             seen[key]['default'] = seen[key]['default'] or default
+            if seen[key]['listing_state'] != state:
+                mixed = True  # rows of one account with different states: never resolved by whichever row came first
             continue
         seen[key] = {'tenant': tenant.lower(), 'account': name, 'cloud': cloud, 'default': default, 'listing_state': state}
         if NOT_SHOWN in (name, cloud):
@@ -212,9 +214,13 @@ def parse_azure(text):
         accounts.append(seen[key])
     if not accounts:
         return _facts('azure', 'unknown', reason='account_state_unrecognized' if unrecognized else 'malformed_answer')
+    if mixed:
+        return _facts('azure', 'unknown', reason='account_state_ambiguous')
     if any(a['listing_state'] in AZURE_ACTIVE_STATES for a in accounts):
         return _facts('azure', 'signed_in', accounts, default_rows=default_rows)
-    return _facts('azure', 'expired', accounts, default_rows=default_rows)
+    # Every listed row says Expired. That word describes the subscription; it says nothing about whether the sign-in has expired
+    # (only a token request learns that), so the facts carry a subscription state, never an expired sign-in.
+    return _facts('azure', 'subscription_expired', accounts, default_rows=default_rows)
 
 
 def parse_github(text, code, error_text):
@@ -252,12 +258,13 @@ def parse_github(text, code, error_text):
     if not accounts:
         return _facts('github', 'not_signed_in')
     states = {a['listing_state'] for a in accounts}
-    if GITHUB_USABLE in states:
-        return _facts('github', 'signed_in', accounts)
-    # gh's states are success, error and timeout; none of them says expired, so no GitHub login is ever reported expired.
+    # Every host and login is aggregated fail-closed: one error is invalid, else one timeout is unknown, and only all-success is
+    # signed in. gh's states are success, error and timeout; none says expired, so no GitHub login is ever reported expired.
     if GITHUB_ERROR in states:
         return _facts('github', 'invalid', accounts, reason='gh_state_error')
-    return _facts('github', 'unknown', accounts, reason='gh_state_timeout')
+    if GITHUB_TIMEOUT in states:
+        return _facts('github', 'unknown', accounts, reason='gh_state_timeout')
+    return _facts('github', 'signed_in', accounts)
 
 
 # Judgement -------------------------------------------------------------------------------------------------------
@@ -347,7 +354,7 @@ def evaluate(facts, tenant=None, account=None):
     if state == 'not_signed_in':
         return _verdict('azure', 'not_signed_in', 'Not signed in to Azure.',
                         'Sign in to the tenant the context names: %s; then run this command again.' % login, tenant)
-    if state not in ('signed_in', 'expired') or not accounts:
+    if state not in ('signed_in', 'subscription_expired') or not accounts:
         reason = shown(facts.get('reason') if isinstance(facts, dict) else None, NAME) or 'not_established'
         return _verdict('azure', 'unknown', 'The Azure sign-in could not be determined (reason: %s).' % reason,
                         'Run az account list --output json yourself to see the sign-in, or sign in with: %s; then run this '
@@ -355,8 +362,12 @@ def evaluate(facts, tenant=None, account=None):
     in_tenant = [a for a in expired if a['tenant'] == tenant]
     if not active or (tenant and not any(a['tenant'] == tenant for a in active) and in_tenant):
         listing = '; '.join(_who(a) for a in (expired if not active else in_tenant))
-        return _verdict('azure', 'expired', 'The Azure sign-in reports itself expired: %s. Nothing that needs a token runs.' % listing,
-                        'Sign in again to the tenant the context names: %s; then run this command again.' % login, tenant)
+        return _verdict('azure', 'subscription_expired',
+                        'The Azure CLI lists the subscription as Expired for %s. That is the state of the subscription; it does '
+                        'not show whether the sign-in itself has expired (a token request shows that). Nothing that needs a token '
+                        'runs.' % listing,
+                        'Choose another subscription with: %s, or sign in again: %s; then run this command again.'
+                        % (SUBSCRIPTION_STEP, login), tenant)
     defaults = [a for a in active if a['default']]
     names = {_identity(a) for a in active}
     rows = facts.get('default_rows') if isinstance(facts, dict) else None
@@ -461,8 +472,9 @@ def _evaluate_github(facts):
                         'Make one active with: gh auth switch --user NAME (the login name to use), and remove the others you do '
                         'not use with: gh auth logout --user NAME (a login name you do not use); then run: %s.' % GITHUB_RECHECK,
                         None, signed_in=active)
-    if not active:
-        # gh never reports a login as expired: error means its check of the stored login failed, timeout that it did not finish.
+    if len(active) != len(accounts):
+        # Every host is judged, whatever another host says. gh never reports a login as expired: error means its check of the
+        # stored login failed, timeout that it did not finish.
         listing = '; '.join('%s as %s (gh state: %s)' % (a['host'], a['account'], a['listing_state']) for a in accounts)
         if any(a['listing_state'] == GITHUB_ERROR for a in accounts):
             return _verdict('github', 'invalid', 'gh reports the GitHub sign-in as invalid (reason: gh_state_error): %s.'

@@ -37,10 +37,11 @@ class DetectionTests(unittest.TestCase):
         self.azure(out="[]")
         self.assertEqual(signin.detect_azure(deadline=5)["state"], "not_signed_in")
 
-    def test_azure_session_that_reports_itself_expired_is_expired(self):
+    def test_azure_listing_state_expired_is_subscription_state_not_session_expiry(self):
+        # Changed in PKG-SETUP-5A round 1: "Expired" in the listing describes the subscription; sign-in expiry is a token-time fact.
         self.azure(out=azure_list(azure_account(state="Expired")))
         facts = signin.detect_azure(deadline=5)
-        self.assertEqual(facts["state"], "expired")
+        self.assertEqual(facts["state"], "subscription_expired")
         self.assertEqual(facts["accounts"][0]["listing_state"], "Expired")
 
     def test_azure_repeated_subscriptions_of_one_account_are_one_sign_in(self):

@@ -31,7 +31,6 @@ import os
 from pathlib import Path
 import re
 import selectors
-import shlex
 import shutil
 import signal
 import subprocess
@@ -263,12 +262,14 @@ def status_report(tenant=None, account=None, providers='azure', deadline=DEFAULT
         status = 'blocked'
     # The account argument is compared, never echoed: only whether one was given is reported.
     report = {'status': status, 'tenant': tenant, 'account_given': account is not None, **verdicts,
-              'access': {'graph': 'unknown', 'intune': 'unknown', 'state_storage': 'unknown'},
-              'note': 'A signed-in account does not establish Graph, Intune or state-storage access; those stay unknown until a '
-                      'read actually succeeds.',
               'commands_run': {name: LISTING_COMMANDS[name] for name in verdicts}}
     if status == 'ready':
+        # ready_for is the one place that says Graph, Intune and state-storage access are not known.
         report['ready_for'] = _ready_for(azure['tenant_wanted'], 'github' in verdicts)
+    else:
+        report['access'] = {'graph': 'unknown', 'intune': 'unknown', 'state_storage': 'unknown'}
+        report['note'] = ('A signed-in account does not establish Graph, Intune or state-storage access; those stay unknown until '
+                          'a read actually succeeds.')
     return report
 
 
@@ -388,6 +389,13 @@ class _Watch:
         forms = (lowered, token.encode('utf-8').hex())
         self.digests = {hashlib.sha256(form[i:i + FRAGMENT].encode()).digest()
                         for form in forms for i in range(max(len(form) - FRAGMENT + 1, 1))}
+        self.full_digest, self.full_length = hashlib.sha256(token.encode('utf-8')).digest(), len(token.encode('utf-8'))
+
+    def full_match(self, text):
+        """True only when the whole delivered token appears, exactly (same case, same characters), in the text."""
+        data = text.encode('utf-8', 'replace')
+        return any(hashlib.sha256(data[i:i + self.full_length]).digest() == self.full_digest
+                   for i in range(max(len(data) - self.full_length + 1, 0)))
 
     def hit(self, text):
         data = text.lower().encode('utf-8', 'replace')
@@ -470,8 +478,8 @@ def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, col
     except SigninBlocked as blocked:
         return {'status': 'blocked', 'signin': blocked.verdict, 'collector_started': False}
     watch = _Watch(token)
-    # Looked at once before the child starts, only to report truthfully what became of the folder if the output is withheld
-    # (collect never removes it); nothing here creates, changes or removes it.
+    # Looked at once before the child starts, only so a withheld result can report what was observed (present before and after);
+    # nothing here creates, changes or removes the path, and nothing is inferred from the two observations.
     existed = os.path.lexists(output)
     read_end, write_end = os.pipe()
     try:
@@ -498,37 +506,48 @@ def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, col
         os.close(read_end)
     rerun = 'intune-iac signin collect --tenant %s --policy %s --output NEW_DIR (a folder that does not exist yet)%s' % (
         tenant, policy, ' --account NAME (the account you named)' if account is not None else '')
-    return _collector_result(code, out, err, watch, output, lambda child_exit: _withheld(child_exit, output, existed, rerun))
+    return _collector_result(code, out, err, watch, output,
+                             lambda child_exit, exact: _withheld(child_exit, output, existed, rerun, exact))
 
 
-def _withheld(code, output, existed, rerun):
-    """The child printed the token, so nothing of its output is shown: say what became of the output folder and the next step.
+def _observe(output):
+    """What is at the output path now, observed once and not interpreted: absent, symlink, directory or other."""
+    if not os.path.lexists(output):
+        return 'absent'
+    if os.path.islink(output):
+        return 'symlink'
+    return 'directory' if os.path.isdir(output) else 'other'
 
-    collect never removes the folder. It existed before the run (left as found), was written by the collecting command (left
-    in place, and it may hold the token, so the step deletes it without opening it), or was not written.
+
+def _withheld(code, output, before, rerun, exact):
+    """The output contained the token or credential-shaped text: nothing of it is shown. Report only what was observed.
+
+    The output path is looked at before the child starts and again now; those two observations do not show who created or
+    removed anything, so no creation, removal or ownership is claimed and no deletion command is printed. This command removes
+    nothing. The access token is named only when the whole delivered token matched exactly.
     """
-    if existed:
-        folder, where = 'existed_before', ('existed before this run and is left as it was found (this command neither removed it '
-                                           'nor looked inside it)')
-    elif os.path.lexists(output):
-        folder, where = 'written', ('was written by the collecting command and is left in place (this command does not remove '
-                                    'it); it may hold the token')
-    else:
-        folder, where = 'not_written', 'was not written'
-    first = ('Delete the folder without opening it: rm -r -- %s; then run: ' % shlex.quote(output) if folder == 'written'
-             else 'Run: ')
+    kind = _observe(output)
+    after = kind != 'absent'
+    detail = {'absent': '', 'symlink': ' (it is a symbolic link)', 'directory': ' (it is a directory)',
+              'other': ' (it is not a directory)'}[kind]
+    subject = ('contained the access token itself' if exact else 'contained the token or credential-shaped text')
     return {'status': 'failed', 'error_code': 'collector_output_withheld', 'collector_started': True, 'child_exit': code,
-            'output_folder': folder, 'output_removed': False,
-            'message': 'The collecting command printed the access token, so nothing of its output is shown. The output folder '
-                       '%s.' % where,
-            'next_step': first + rerun + '. If the output is withheld again, the collecting command itself prints the token: '
-                                         'stop and report it.'}
+            'token_match': 'full_token' if exact else 'fragment_or_shape',
+            'output_present_before': before, 'output_present_after': after, 'output_kind_after': kind,
+            'product_removed_anything': False,
+            'message': 'The output of the collecting command %s and was withheld, so nothing of it is shown. The output path '
+                       '%s before this run and %s after it%s. This command did not remove anything and does not know what the '
+                       'collecting command did at that path.' % (subject, 'was present' if before else 'was not present',
+                                                                 'is present' if after else 'is not present', detail),
+            'next_step': 'If you need to know what is at the output path, look at it yourself (this command did not open it); '
+                         'then run: ' + rerun + '.' + (' The collecting command printed the access token: stop and report it.'
+                                                       if exact else '')}
 
 
 def _collector_result(code, out, err, watch, output, withheld):
     text_out, text_err = out.decode('utf-8', 'replace'), err.decode('utf-8', 'replace')
     if watch.hit(text_out) or watch.hit(text_err):
-        return withheld(code)
+        return withheld(code, watch.full_match(text_out) or watch.full_match(text_err))
     if code != 0:
         return {'status': 'failed', 'error_code': _error_code(text_err), 'collector_started': True, 'child_exit': code}
     try:
@@ -540,10 +559,10 @@ def _collector_result(code, out, err, watch, output, withheld):
         return {'status': 'failed', 'error_code': 'collector_output_invalid', 'collector_started': True, 'child_exit': 0}
     # Decoded strings (JSON escapes undone), one by one and joined, so a token split over fields is still recognised.
     if watch.hit(''.join(found)) or any(watch.hit(item) for item in found):
-        return withheld(0)
+        return withheld(0, watch.full_match(''.join(found)) or any(watch.full_match(item) for item in found))
     for key, item in (value.items() if isinstance(value, dict) else ()):
         if key not in _PATH_FIELDS and isinstance(item, str) and _TOKEN_SHAPE.fullmatch(item):
-            return withheld(0)
+            return withheld(0, False)  # shaped like a credential; not shown to be the delivered token
     shown = collector_schema(value)
     if shown is None:
         return {'status': 'failed', 'error_code': 'collector_output_invalid', 'collector_started': True, 'child_exit': 0}
