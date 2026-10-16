@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 import shlex
 import shutil
 import signal
@@ -1090,42 +1091,46 @@ def _interrupted_during(current):
     return {'command': name}
 
 
-def _is_control(char):
-    return ord(char) < 32 or ord(char) == 127
-
-
-def _display_safe(text):
-    """Text for a sentence: a backslash and every C0 control character (and DEL) written as a visible escape, so a path
-    never puts a raw tab, newline or other control character on the screen or starts a forged row."""
-    if not any(_is_control(char) for char in text):
-        return text  # nothing to disambiguate: an ordinary path (a Windows one with backslashes too) prints as it is
-    named = {'\\': '\\\\', '\t': '\\t', '\n': '\\n', '\r': '\\r'}
-    return ''.join(named.get(char) or ('\\x%02x' % ord(char) if _is_control(char) else char) for char in text)
-
-
 def _shell_arg(value):
-    """A path as a shell argument on one line. Quoted with shlex.quote, exactly as before, unless it holds a control
-    character; then in bash ANSI-C quoting ($'...'), with the backslash, the single quote and every control character
-    escaped, so the printed command is one row and still pastes back to the same path."""
+    """A path as a shell argument on one line, built from its filesystem bytes. Where every byte is printable ASCII
+    it is shlex.quote, exactly as before. Otherwise it is bash ANSI-C quoting ($'...'): a backslash and a single
+    quote are each escaped with a backslash, other printable ASCII stays as it is, and every other byte (a control
+    character, a C1 control, any byte of a non-ASCII character, an invalid UTF-8 byte) is written as exactly
+    backslash-x and two hex digits. The result is one printable row that pastes back to the same bytes.
+    shlex.quote never starts with $', so the two forms cannot be confused: the same function serves the sentence,
+    which is therefore unambiguous too."""
+    import os
     import shlex
-    text = str(value)
-    if not any(_is_control(char) for char in text):
-        return shlex.quote(text)
-    body = ''.join('\\\\' if char == '\\' else "\\'" if char == "'" else '\\x%02x' % ord(char) if _is_control(char) else char
-                   for char in text)
+    raw = os.fsencode(str(value))
+    if all(0x20 <= byte <= 0x7e for byte in raw):
+        return shlex.quote(str(value))
+    body = ''.join('\\\\' if byte == 0x5c else "\\'" if byte == 0x27 else chr(byte) if 0x20 <= byte <= 0x7e
+                   else '\\x%02x' % byte for byte in raw)
     return "$'" + body + "'"
+
+
+# An operation id is uuid4().hex (maintenance.propose); anything else in a plan is not printed.
+OPERATION_ID = re.compile(r'[0-9a-f]{32}')
 
 
 def _operation_words(operation_root):
     """The operation as the after-exit sentence names it: its short id (the one every screen uses) beside the quoted
-    directory; the directory alone when the plan cannot be read."""
-    import shlex
-    quoted = _display_safe(shlex.quote(str(operation_root)))
+    directory; the directory alone when the plan cannot be read or its id is not a well-formed one."""
+    quoted = _shell_arg(operation_root)
     try:
         identity = json.loads((Path(str(operation_root)) / 'plan.json').read_text(encoding='utf-8')).get('operation_id')
     except (OSError, ValueError, AttributeError):
         identity = None
-    return '%s (directory %s)' % (identity[:8], quoted) if isinstance(identity, str) and len(identity) >= 8 else quoted
+    if isinstance(identity, str) and OPERATION_ID.fullmatch(identity):
+        return '%s (directory %s)' % (identity[:8], quoted)
+    return quoted
+
+
+def _known_command(name):
+    """The command word as the sentence may print it: one of the workbench's own command names, else None. The word
+    is what the engineer typed, so nothing else reaches the screen."""
+    names = {entry.split()[0] for entries in HELP.values() if isinstance(entries, list) for entry in entries if entry.split()}
+    return name if isinstance(name, str) and name in names | {'collect', 'quit'} else None
 
 
 # reconcile's parser has no --root (run 16, N3): the operation directory names its store, so the command is complete.
@@ -1165,7 +1170,7 @@ def interrupted_lines(result):
                     store, _shell_arg(during['service_root']) if during.get('service_root') else 'SERVICE'),
                 'or reopen the workspace and choose Collect again with a.', others]
     if during:
-        return ['Interrupted while running %s.' % during.get('command'),
+        return ['Interrupted while running %s.' % (_known_command(during.get('command')) or 'a command'),
                 'Next: diagnostics name anything it left unfinished. Run:',
                 '  intune-iac workbench diagnostics --root %s --object ID' % store, others]
     return ['Interrupted while waiting for a command. Nothing was running.', others]
@@ -1178,11 +1183,9 @@ def interrupted_text(result, width):
     for line in interrupted_lines(result):
         # A command is one physical line: no inserted newline and no POSIX backslash continuation; the terminal wraps it.
         # The sentence that quotes the operation directory is one row too: an inserted newline would break the quoted
-        # path for anyone copying it (run 16, N4).
-        # Only where it holds no control whitespace: the wrapper normalizes \t \n \v \f \r, so a directory name that
-        # carries one cannot start a forged row.
-        whole = line.startswith('  ') or (line.startswith('Interrupted while') and "(directory '" in line
-                                          and not any(char in line for char in '\t\n\v\f\r'))
+        # path for anyone copying it (run 16, N4). The path is printable ASCII in either form (_shell_arg), so it holds
+        # no control character that could start a forged row.
+        whole = line.startswith('  ') or (line.startswith('Interrupted while') and '(directory ' in line)
         lines += [line] if whole else textwrap.wrap(
             line, max(20, width), break_long_words=False, break_on_hyphens=False) or ['']
     return lines

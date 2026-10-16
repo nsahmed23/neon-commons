@@ -201,7 +201,7 @@ class InterruptedPathsAreDisplaySafeTests(unittest.TestCase):
                 self.assertFalse(set(''.join(rows)) & set(self.CONTROLS), rows)
                 self.assertFalse(any(row.startswith('[REFUSED]') for row in rows), (width, rows))
                 self.assertEqual(sum(row.startswith('Interrupted while') for row in rows), 1, rows)
-                self.assertIn('\\n[REFUSED] forged\\tx', rows[0])
+                self.assertIn('\\x0a[REFUSED] forged\\x09x', rows[0])
                 self.assertEqual(sum(row.startswith('  intune-iac workbench reconcile --operation') for row in rows), 1)
 
     def test_the_printed_command_argument_gives_back_the_exact_path_in_bash(self):
@@ -253,11 +253,55 @@ class InterruptedPathsAreDisplaySafeTests(unittest.TestCase):
         self.assertEqual(rows[0], 'Interrupted while executing operation 678e749f (directory %s).' % shlex.quote(path))
         self.assertNotIn('\\\\', rows[0])
 
+    def test_a_literal_backslash_n_and_a_newline_display_differently(self):
+        literal = self.rows('execute', 200, self.operation('a\\nb'))[0]
+        newline = self.rows('execute', 200, self.operation('a\nb'))[0]
+        self.assertNotEqual(literal.split('(directory ', 1)[1].rsplit('/', 1)[1], newline.split('(directory ', 1)[1].rsplit('/', 1)[1])
+        self.assertTrue(literal.endswith("a\\nb')."), literal)
+        self.assertTrue(newline.endswith("a\\x0ab')."), newline)
+        self.assertTrue(newline.split('(directory ', 1)[1].startswith("$'"), newline)
+        self.assertFalse(literal.split('(directory ', 1)[1].startswith("$'"), literal)
+
     def test_a_backslash_and_a_newline_both_escape_unambiguously(self):
-        path = self.operation('a\\b\nc')
-        first = self.rows('execute', 200, path)[0]
-        self.assertTrue(first.endswith("a\\\\b\\nc')."), first)
+        first = self.rows('execute', 200, self.operation('a\\b\nc'))[0]
+        self.assertTrue(first.endswith("a\\\\b\\x0ac')."), first)
         self.assertFalse(set(first) & set(self.CONTROLS), first)
+
+    def test_every_byte_round_trips_through_bash_as_bytes(self):
+        import os
+        import subprocess
+        from intune_iac.workbench import _shell_arg
+        raw = b'/w/' + bytes(range(1, 256)) + b'/z'
+        for path in (os.fsdecode(raw), '/w/\u009b/z', os.fsdecode(b'/w/\x9b/z')):
+            argument = _shell_arg(path)
+            self.assertTrue(all(0x20 <= byte <= 0x7e for byte in argument.encode('utf-8')), argument)
+            done = subprocess.run(['bash', '-c', 'printf %s ' + argument], capture_output=True, timeout=20)
+            self.assertEqual(done.stdout, os.fsencode(path))
+
+    def test_a_printable_ascii_path_keeps_shlex_quote(self):
+        import shlex
+        from intune_iac.workbench import _shell_arg
+        for path in ('/w/a b', "/w/it's", 'C:\\work\\op', '/w/$HOME'):
+            self.assertEqual(_shell_arg(path), shlex.quote(path))
+
+    def test_an_operation_id_outside_its_grammar_is_left_out(self):
+        import json
+        from pathlib import Path
+        path = self.operation('op')
+        (Path(path) / 'plan.json').write_text(json.dumps({'operation_id': '\x1b[31mRED'}))
+        for command in ('execute', 'reconcile'):
+            rows = self.rows(command, 200, path)
+            self.assertFalse(set(''.join(rows)) & set(self.CONTROLS), rows)
+            self.assertNotIn('RED', ' '.join(rows))
+
+    def test_a_command_name_outside_the_known_ones_is_left_out(self):
+        from intune_iac.workbench import interrupted_text
+        hostile = interrupted_text({'store_root': '/s', 'interrupted_during': {'command': '\x1b[31mevil'}}, 200)
+        self.assertFalse(set(''.join(hostile)) & set(self.CONTROLS), hostile)
+        self.assertNotIn('evil', ' '.join(hostile))
+        self.assertEqual(hostile[0], 'Interrupted while running a command.')
+        known = interrupted_text({'store_root': '/s', 'interrupted_during': {'command': 'history'}}, 200)
+        self.assertEqual(known[0], 'Interrupted while running history.')
 
 
 class GitPinWordsAndStagedFrameTests(unittest.TestCase):
