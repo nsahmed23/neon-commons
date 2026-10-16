@@ -1124,6 +1124,25 @@ class StopTests(Fixture):
         self.assertIs(caught.exception.__cause__, stale)
         self.assertTrue(live.is_closed)
 
+    def test_after_one_delivery_a_still_unsettled_close_is_reported_as_unsettled_not_as_the_same_failure_again(self):
+        from intune_iac.io import AppError
+        live = self.start()
+        failure = OSError('background')
+        self.scripted_drain(live, failure)
+        live.end('idle', wait=False)
+        self.settle(live)
+        with self.assertRaises(AppError) as first:
+            live.wait_step()
+        self.assertIs(first.exception.__cause__, failure)
+        for call in (live.wait_step, lambda: live.wait(poll=0.01)):
+            with self.assertRaises(AppError) as again:
+                call()
+            self.assertEqual(again.exception.code, 'companion_live_close_unsettled')
+            self.assertEqual(again.exception.message, 'The listener has not been closed; stop() retries the close.')
+            self.assertIsNone(again.exception.__cause__)
+        live.stop()
+        self.assertEqual(live.wait_step(), 'idle')
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500

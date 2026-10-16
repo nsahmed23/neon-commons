@@ -328,6 +328,11 @@ class LiveCompanion:
         if claimed:
             raise self._delivery(claimed)
         if state == 'close_failed':
+            with self._lock:
+                consumed = self._consumed
+            if consumed:
+                # The failure behind this state has been given to a caller: say only that the close is unsettled.
+                raise AppError('companion_live_close_unsettled', 'The listener has not been closed; stop() retries the close.')
             raise self._close_failure(error)
         return reason if state == 'closed' else None
 
