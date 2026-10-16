@@ -501,6 +501,171 @@ class CleanInstallScriptTests(unittest.TestCase):
         self.assertIn('scripts/demo-clean-install.sh', guide_text())
 
 
+# A stand-in for the product inside a stand-in runtime archive: it prints, for any command, the text each step of the
+# script looks for, so the install plumbing runs end to end without installing anything.
+STUB_PRODUCT = '''import json, sys
+args = sys.argv[1:]
+if args == ['--version']:
+    print('0.9.0')
+elif args[:1] == ['doctor']:
+    print(json.dumps({'status': 'ready', 'build': {'status': 'identified', 'product_version': '0.9.0',
+                                                    'commit': None, 'content_sha256': '0' * 64}}))
+else:
+    print('Export Context "status": "complete_simulation" "execution_authorized": false "synthetic": true '
+          '"status": "created" "evidence_class": "synthetic" "coverage": "complete" "relation": "setting" '
+          '"status": "closed" "available": true')
+'''
+STUB_VERIFY = 'print(\'{"status": "verified"}\')\n'
+# A stand-in for the pip wheel: a zip whose pip/__main__.py records how it was called, as the real wheel is run
+# (python PATH/pip ...).
+FAKE_PIP_MAIN = '''import os, sys
+with open(os.environ['FAKE_PIP_LOG'], 'a') as log:
+    log.write('wheel-pip ' + ' '.join(sys.argv) + '\\n')
+'''
+# A stand-in for the interpreter the script is told to use (PYTHON): it reports whether ensurepip exists as the test
+# says, creates the environment without pip (and puts a recording pip module in it when it was asked for one), and
+# hands everything else to the real interpreter.
+FAKE_INTERPRETER = '''#!/bin/sh
+case "$1" in
+    -c)
+        case "$2" in
+            *ensurepip*) [ "$FAKE_ENSUREPIP" = present ]; exit $? ;;
+        esac ;;
+    -m)
+        if [ "$2" = venv ]; then
+            echo "venv $*" >> "$FAKE_LOG"
+            shift 2
+            if [ "$1" = --without-pip ]; then exec "$REAL_PYTHON" -m venv "$@"; fi
+            "$REAL_PYTHON" -m venv --without-pip "$@" || exit 1
+            site=$("$1/bin/python" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])') || exit 1
+            mkdir -p "$site/pip"
+            : > "$site/pip/__init__.py"
+            printf '%s\\n' 'import os, sys' \\
+                "open(os.environ['FAKE_PIP_LOG'], 'a').write('module-pip ' + ' '.join(sys.argv[1:]) + chr(10))" \\
+                > "$site/pip/__main__.py"
+            exit 0
+        fi ;;
+esac
+exec "$REAL_PYTHON" "$@"
+'''
+LOCK = 'requirements-runtime-linux-x86_64-cp312.lock'
+
+
+class PipWheelInstallTests(unittest.TestCase):
+    """A host whose Python has no ensurepip: `--pip-wheel PATH` makes the environment without pip and runs every pip
+    command from the wheel file. Without the option the script installs as it always did."""
+
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.base = Path(temp.name)
+        self.outside = self.base / 'outside'
+        self.outside.mkdir()
+        self.wheels = self.base / 'wheels'
+        self.wheels.mkdir()
+        members = {'scripts/intune-iac.py': STUB_PRODUCT, 'scripts/verify-dependencies.py': STUB_VERIFY,
+                   LOCK: '# a stand-in lock: this test runs the plumbing, not an install\n'}
+        members['SHA256SUMS'] = ''.join(f'{sha256(text.encode())}  {name}\n' for name, text in sorted(members.items()))
+        self.archive = self.base / 'stand-in-runtime.zip'
+        with zipfile.ZipFile(self.archive, 'w') as archive:
+            for name, text in members.items():
+                archive.writestr('intune-iac/' + name, text)
+        self.pip_wheel = self.base / 'pip-0.0-py3-none-any.whl'
+        with zipfile.ZipFile(self.pip_wheel, 'w') as archive:
+            archive.writestr('pip/__init__.py', '')
+            archive.writestr('pip/__main__.py', FAKE_PIP_MAIN)
+        self.interpreter = self.base / 'interpreter'
+        self.interpreter.write_text(FAKE_INTERPRETER)
+        self.interpreter.chmod(0o755)
+        self.log = self.base / 'calls.log'
+        self.pip_log = self.base / 'pip-calls.log'
+
+    def run_script(self, *args, ensurepip='missing'):
+        environment = {'PATH': os.environ['PATH'], 'LANG': 'C.UTF-8', 'PYTHON': str(self.interpreter),
+                       'REAL_PYTHON': sys.executable, 'FAKE_ENSUREPIP': ensurepip, 'FAKE_LOG': str(self.log),
+                       'FAKE_PIP_LOG': str(self.pip_log)}
+        return subprocess.run(['bash', str(DEMO), *map(str, args)], cwd=self.outside, capture_output=True, text=True,
+                              env=environment, timeout=180)
+
+    def pip_calls(self):
+        return self.pip_log.read_text().splitlines() if self.pip_log.exists() else []
+
+    def venv_calls(self):
+        return self.log.read_text().splitlines() if self.log.exists() else []
+
+    def install_arguments(self):
+        return (f'--isolated install --no-index --no-cache-dir --find-links {self.wheels} --require-hashes '
+                f'--only-binary :all: -r {LOCK}')
+
+    def test_with_the_option_the_environment_has_no_pip_and_every_install_runs_from_the_wheel(self):
+        result = self.run_script('--pip-wheel', self.pip_wheel, self.archive, self.wheels, self.base / 'work')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.venv_calls(), ['venv -m venv --without-pip .venv'])
+        wheel = f'{self.pip_wheel}/pip'
+        self.assertEqual(self.pip_calls(), [f'wheel-pip {wheel} {self.install_arguments()}',
+                                            f'wheel-pip {wheel} --isolated check'])
+        self.assertIn('RESULT: every step passed.', result.stdout)
+
+    def test_the_wheels_sha256_is_printed_next_to_the_archives(self):
+        result = self.run_script('--pip-wheel', self.pip_wheel, self.archive, self.wheels, self.base / 'work')
+        self.assertIn('pip wheel sha256: ' + sha256(self.pip_wheel.read_bytes()), result.stdout)
+        self.assertIn('archive sha256: ' + sha256(self.archive.read_bytes()), result.stdout)
+
+    def test_the_option_may_follow_the_arguments_and_take_an_equals_sign(self):
+        result = self.run_script(self.archive, self.wheels, self.base / 'work', f'--pip-wheel={self.pip_wheel}')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.venv_calls(), ['venv -m venv --without-pip .venv'])
+
+    def test_the_wheel_is_read_in_place_and_not_copied_into_the_work_folder(self):
+        before = self.pip_wheel.read_bytes()
+        result = self.run_script('--pip-wheel', self.pip_wheel, self.archive, self.wheels, self.base / 'work')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(list((self.base / 'work').rglob('*.whl')), [])
+        self.assertEqual(self.pip_wheel.read_bytes(), before)
+
+    def test_a_host_without_ensurepip_is_accepted_only_with_the_option(self):
+        with_option = self.run_script('--pip-wheel', self.pip_wheel, self.archive, self.wheels, self.base / 'a')
+        self.assertEqual(with_option.returncode, 0, with_option.stdout + with_option.stderr)
+        calls_before = (self.venv_calls(), self.pip_calls())
+        without = self.run_script(self.archive, self.wheels, self.base / 'b')
+        self.assertEqual(without.returncode, 1, without.stdout + without.stderr)
+        self.assertIn('environment', without.stdout)
+        self.assertIn('--pip-wheel', without.stdout + without.stderr, 'the failure should name the way out')
+        self.assertIn('python3.12-venv', without.stdout + without.stderr, 'and the other way out')
+        self.assertEqual((self.venv_calls(), self.pip_calls()), calls_before, 'nothing is made or installed on a refusal')
+
+    def test_without_the_option_the_script_installs_through_the_environments_own_pip_as_before(self):
+        result = self.run_script(self.archive, self.wheels, self.base / 'work', ensurepip='present')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.venv_calls(), ['venv -m venv .venv'])
+        self.assertEqual(self.pip_calls(), [f'module-pip {self.install_arguments()}', 'module-pip --isolated check'])
+        self.assertNotIn('pip wheel sha256', result.stdout)
+
+    def test_a_missing_wheel_a_missing_value_and_a_non_pip_zip_are_refused_before_anything_is_made(self):
+        not_pip = self.base / 'other.whl'
+        with zipfile.ZipFile(not_pip, 'w') as archive:
+            archive.writestr('something/__init__.py', '')
+        work = self.base / 'work'
+        cases = {'missing file': ('--pip-wheel', self.base / 'absent.whl', self.archive, self.wheels, work),
+                 'folder': ('--pip-wheel', self.wheels, self.archive, self.wheels, work),
+                 'not a pip wheel': ('--pip-wheel', not_pip, self.archive, self.wheels, work),
+                 'no value': (self.archive, self.wheels, work, '--pip-wheel'),
+                 'unknown option': ('--no-such-option', self.archive, self.wheels, work)}
+        for name, arguments in cases.items():
+            with self.subTest(name):
+                result = self.run_script(*arguments)
+                self.assertEqual(result.returncode, 64, result.stdout + result.stderr)
+                self.assertTrue(('Usage:' in result.stderr) or ('REFUSED:' in result.stderr), result.stderr)
+                self.assertFalse(work.exists(), 'a refused run makes nothing')
+                self.assertEqual((self.venv_calls(), self.pip_calls()), ([], []))
+
+    def test_usage_names_the_option_and_the_comment_says_when_to_use_it(self):
+        self.assertIn('[--pip-wheel PATH]', self.run_script().stderr)
+        header = '\n'.join(DEMO.read_text().splitlines()[:30])
+        self.assertIn('--pip-wheel', header)
+        self.assertIn('ensurepip', header)
+
+
 class CheckoutBuildCheckTests(unittest.TestCase):
     # Found 2026-10-15 at base 7f9d86f: `scripts/build-release.py --check-only` refuses the reviewed inventory because
     # it lists the frozen synthetic executor state (a .tfstate file name) added with the pre-pin-migration fixtures.

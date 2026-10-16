@@ -2,12 +2,17 @@
 # Clean-install demonstration: unpack a runtime archive, install only from a folder of locked wheels, run the
 # candidate guide's quickstart without a terminal, and print what each step did.
 #
-# Usage: demo-clean-install.sh ARCHIVE WHEEL_FOLDER WORK_FOLDER [EXPECTED_ARCHIVE_SHA256]
+# Usage: demo-clean-install.sh [--pip-wheel PATH] ARCHIVE WHEEL_FOLDER WORK_FOLDER [EXPECTED_ARCHIVE_SHA256]
 #
 # It refuses to run inside a git checkout (the current folder or WORK_FOLDER), refuses an archive whose digest or
 # file list does not match its own SHA256SUMS (or EXPECTED_ARCHIVE_SHA256, when given), and installs with
 # --no-index, so it needs no network and reads nothing from the development workspace. The interpreter is
 # `python3` unless PYTHON names another CPython 3.12 that has the venv module.
+#
+# Many Debian and Ubuntu hosts ship CPython without ensurepip, so `python3 -m venv` fails there. Either install the
+# python3.12-venv package, or give --pip-wheel PATH (any pip wheel file, read in place): the virtual environment is
+# then made with --without-pip and every pip command runs from the wheel itself (python PATH/pip ...), still from
+# WHEEL_FOLDER only. The wheel's sha256 is printed so it can be compared with the digest published for that pip.
 #
 # Exit status: 0 every step passed; 1 a step failed; 2 refused to run here; 3 the archive failed verification;
 # 64 wrong usage.
@@ -18,15 +23,25 @@ PYTHON=${PYTHON:-python3}
 
 say() { printf '%s\n' "$*"; }
 refuse() { code=$1; shift; say "REFUSED: $*" >&2; exit "$code"; }
+usage() { say "Usage: $0 [--pip-wheel PATH] ARCHIVE WHEEL_FOLDER WORK_FOLDER [EXPECTED_ARCHIVE_SHA256]" >&2; exit 64; }
 
-if [ "$#" -lt 3 ] || [ "$#" -gt 4 ]; then
-    say "Usage: $0 ARCHIVE WHEEL_FOLDER WORK_FOLDER [EXPECTED_ARCHIVE_SHA256]" >&2
-    exit 64
-fi
-ARCHIVE=$1
-WHEELS=$2
-WORK=$3
-EXPECTED=${4:-}
+PIP_WHEEL=
+PIP_WHEEL_GIVEN=no
+POSITIONAL=()
+while [ "$#" -gt 0 ]; do
+    case $1 in
+        --pip-wheel) [ "$#" -ge 2 ] || usage; PIP_WHEEL=$2; PIP_WHEEL_GIVEN=yes; shift 2 ;;
+        --pip-wheel=*) PIP_WHEEL=${1#--pip-wheel=}; PIP_WHEEL_GIVEN=yes; shift ;;
+        --) shift; POSITIONAL+=("$@"); break ;;
+        -*) usage ;;
+        *) POSITIONAL+=("$1"); shift ;;
+    esac
+done
+if [ "${#POSITIONAL[@]}" -lt 3 ] || [ "${#POSITIONAL[@]}" -gt 4 ]; then usage; fi
+ARCHIVE=${POSITIONAL[0]}
+WHEELS=${POSITIONAL[1]}
+WORK=${POSITIONAL[2]}
+EXPECTED=${POSITIONAL[3]:-}
 
 # A folder is inside a checkout when it, or any folder above it, holds a .git entry (a directory, or a file for a worktree).
 inside_checkout() {
@@ -56,9 +71,20 @@ fi
 if [ -e "$WORK" ] && [ -n "$(ls -A "$WORK" 2>/dev/null)" ]; then
     refuse 64 "WORK_FOLDER exists and is not empty; use a new folder."
 fi
+if [ "$PIP_WHEEL_GIVEN" = yes ]; then
+    [ -f "$PIP_WHEEL" ] || refuse 64 "the --pip-wheel path is not a file: $PIP_WHEEL"
+    PIP_WHEEL=$(cd "$(dirname "$PIP_WHEEL")" && pwd -P)/$(basename "$PIP_WHEEL")
+    # A pip wheel is a zip that holds the package's __main__.py, which is what `python PATH/pip` runs.
+    "$PYTHON" -c 'import sys, zipfile; sys.exit(0 if "pip/__main__.py" in zipfile.ZipFile(sys.argv[1]).namelist() else 1)' \
+        "$PIP_WHEEL" 2>/dev/null || refuse 64 "the --pip-wheel file is not a pip wheel (no pip/__main__.py inside): $PIP_WHEEL"
+fi
 
 archive_sha256=$(sha256sum "$ARCHIVE" | cut -d' ' -f1)
 say "archive sha256: $archive_sha256"
+if [ "$PIP_WHEEL_GIVEN" = yes ]; then
+    pip_sha256=$(sha256sum "$PIP_WHEEL" | cut -d' ' -f1)
+    say "pip wheel sha256: $pip_sha256"
+fi
 if [ -n "$EXPECTED" ] && [ "$archive_sha256" != "$EXPECTED" ]; then
     refuse 3 "the archive digest does not match EXPECTED_ARCHIVE_SHA256 ($EXPECTED)."
 fi
@@ -121,16 +147,29 @@ summary() {
     exit 1
 }
 
-"$PYTHON" -c 'import venv, ensurepip' >/dev/null 2>&1 && ok=1 || ok=0
+if [ "$PIP_WHEEL_GIVEN" = yes ]; then
+    record pip-wheel PASS "sha256 $pip_sha256"
+    # The environment is made without pip, so only the venv module is needed, not ensurepip.
+    "$PYTHON" -c 'import venv' >/dev/null 2>&1 && ok=1 || ok=0
+    missing="the venv module"
+    venv_command='"$PYTHON" -m venv --without-pip .venv'
+    pip_command='.venv/bin/python "$PIP_WHEEL/pip"'
+else
+    "$PYTHON" -c 'import venv, ensurepip' >/dev/null 2>&1 && ok=1 || ok=0
+    missing="the venv or ensurepip module"
+    venv_command='"$PYTHON" -m venv .venv'
+    pip_command='.venv/bin/python -m pip'
+fi
 if [ "$ok" -eq 0 ]; then
-    record environment FAIL "$PYTHON lacks the venv or ensurepip module (on Debian or Ubuntu install python3.12-venv)"
+    record environment FAIL "$PYTHON lacks $missing (on Debian or Ubuntu install python3.12-venv, or run this script again with --pip-wheel PATH to a pip wheel file)"
     summary
 fi
 
-step venv "\"$PYTHON\" -m venv .venv" || summary
-step wheelhouse "\"$PYTHON\" scripts/verify-dependencies.py --wheelhouse \"$WHEELS\"" '"status": "verified"' || summary
-step install ".venv/bin/python -m pip --isolated install --no-index --no-cache-dir --find-links \"$WHEELS\" --require-hashes --only-binary :all: -r requirements-runtime-linux-x86_64-cp312.lock" || summary
-step pip-check ".venv/bin/python -m pip --isolated check" || summary
+# The commands are single-quoted text that `step` evaluates, so a path is expanded where it is used and is never read as shell syntax.
+step venv "$venv_command" || summary
+step wheelhouse '"$PYTHON" scripts/verify-dependencies.py --wheelhouse "$WHEELS"' '"status": "verified"' || summary
+step install "$pip_command"' --isolated install --no-index --no-cache-dir --find-links "$WHEELS" --require-hashes --only-binary :all: -r requirements-runtime-linux-x86_64-cp312.lock' || summary
+step pip-check "$pip_command"' --isolated check' || summary
 
 # The guide's quickstart, command for command. The guide defines this function in the reader's shell.
 intune-iac() { .venv/bin/python -B scripts/intune-iac.py "$@"; }
