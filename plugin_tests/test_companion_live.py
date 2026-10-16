@@ -72,6 +72,21 @@ class InterruptibleSocket:
         return getattr(self._real, name)
 
 
+class FlakySocket:
+    """A listening socket whose first close() fails and whose later close() works (the rest is the real socket's)."""
+    def __init__(self, real, error=PermissionError):
+        self._real, self._error, self._failed = real, error, False
+
+    def close(self):
+        if not self._failed:
+            self._failed = True
+            raise self._error('first close failed')
+        return self._real.close()
+
+    def __getattr__(self, name):
+        return getattr(self._real, name)
+
+
 class Fixture(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -1258,6 +1273,21 @@ class StopTests(Fixture):
         deliveries = [cause for code, cause in outcomes if code == 'companion_live_close_failed']
         self.assertEqual(deliveries, [failure], outcomes)
         self.assertEqual(outcomes[-1][0], 'companion_live_close_unsettled')
+
+    def test_a_forced_close_failure_that_was_recovered_from_is_kept_as_the_close_note(self):
+        from intune_iac import companion_live
+        with mock.patch.object(companion_live, 'STOP_WAIT_SECONDS', 0.2):
+            live = self.start()
+            self.hold_first_stopper(live)
+            real_socket = live.server.socket
+            live.server.socket = FlakySocket(real_socket)
+            self.addCleanup(lambda: setattr(live.server, 'socket', real_socket))
+            stopper, outcome = self.run_in_thread(live.stop)
+            stopper.join(3)
+            self.assertEqual(outcome, [('returned', None)])
+            self.assertFalse(self.port_accepts(live))
+            self.assertIsInstance(live.close_note, PermissionError, 'the failure of the forced close is not discarded')
+            self.assertEqual(live.wait_step(), 'stopped')
 
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)

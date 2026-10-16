@@ -437,8 +437,16 @@ class LiveCompanion:
                     raise forced
                 self._serving_stopped = self._listener_closed()
         problem = self._close_listener()
+        if forced is not None:
+            # The failure of the forced close is kept even if the close then worked: it is the diagnostic. A later
+            # problem is named on it by class.
+            if problem is not None:
+                note = 'A later close attempt also failed: %s' % type(problem).__name__
+                if note not in getattr(forced, '__notes__', ()):
+                    forced.add_note(note)
+            problem = forced
         if not self._listener_closed():
-            raise problem or forced or AppError('companion_live_close_failed', 'The listening socket is still open.')
+            raise problem or AppError('companion_live_close_failed', 'The listening socket is still open.')
         self._drain_writers()
         return problem
 
