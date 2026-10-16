@@ -965,6 +965,7 @@ plugin_tests/test_synthetic_completion.py
 plugin_tests/test_target.py
 plugin_tests/test_terminal_interrupt_r4.py
 plugin_tests/test_terminal_security_epoch.py
+plugin_tests/test_token_fd_delivery.py
 plugin_tests/test_validity_shared.py
 plugin_tests/test_verifier_contract.py
 plugin_tests/test_visibility_recovery.py

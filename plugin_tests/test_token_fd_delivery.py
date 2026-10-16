@@ -1,0 +1,188 @@
+"""capture and target collect take a read token from an inherited file descriptor, with target authenticate's rules.
+
+No flag takes the token value. The environment-variable-name route stays; the file-descriptor route keeps the token
+out of the parent session (its environment, its history and its process listing).
+"""
+import contextlib
+import io
+import json
+import os
+from pathlib import Path
+import secrets
+import tempfile
+import unittest
+from unittest.mock import patch
+
+from intune_iac import cli, provider_journey as pj
+from intune_iac.io import AppError
+
+TENANT = '11111111-1111-4111-8111-111111111111'
+POLICY = '22222222-2222-4222-8222-222222222222'
+
+
+def canary(label):
+    return label + '-' + secrets.token_urlsafe(30) + 'A1'
+
+
+class Descriptors(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.opened = []
+        self.addCleanup(lambda: [os.close(fd) for fd in self.opened])
+
+    def secret_fd(self, content, name='token', mode=0o600):
+        path = self.root / name
+        path.write_bytes(content if isinstance(content, bytes) else content.encode())
+        path.chmod(mode)
+        fd = os.open(path, os.O_RDONLY)
+        self.opened.append(fd)
+        return fd
+
+    def main(self, argv):
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = cli.main(argv)
+        return code, out.getvalue(), err.getvalue()
+
+
+class FlagsTests(Descriptors):
+    def test_no_flag_takes_a_token_value_and_the_help_names_the_private_route(self):
+        for argv in (['capture', '--tenant', TENANT, '--policy', POLICY, '--output', 'x', '--token', 'v'],
+                     ['capture', '--tenant', TENANT, '--policy', POLICY, '--output', 'x', '--token-value', 'v'],
+                     ['target', 'collect', '--input', 'x', '--graph-token', 'v'],
+                     ['target', 'collect', '--input', 'x', '--management-token', 'v']):
+            with self.subTest(argv=argv[-2]), patch('sys.stderr', io.StringIO()), self.assertRaises(SystemExit):
+                cli.parser().parse_args(argv)
+        parser = cli.parser()
+        for argv in (['capture', '--help'], ['target', 'collect', '--help']):
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out), self.assertRaises(SystemExit):
+                parser.parse_args(argv)
+            text = ' '.join(out.getvalue().split())
+            with self.subTest(argv=argv[0] + ' ' + argv[1]):
+                self.assertIn('-fd', text)
+                self.assertIn('keeps the token out of the parent session', text)
+                self.assertIn('environment', text)
+
+    def test_the_new_flags_parse_as_integers(self):
+        args = cli.parser().parse_args(['capture', '--tenant', TENANT, '--policy', POLICY, '--output', 'x',
+                                        '--token-fd', '7'])
+        self.assertEqual(args.token_fd, 7)
+        args = cli.parser().parse_args(['target', 'collect', '--input', 'x', '--graph-token-fd', '8',
+                                        '--management-token-fd', '9'])
+        self.assertEqual((args.graph_token_fd, args.management_token_fd), (8, 9))
+
+
+class CaptureFdTests(Descriptors):
+    def fake(self, delivered):
+        def factory(value):
+            delivered.append(value)
+
+            def get(url, *, timeout):
+                body = {'value': [] if url.endswith(('/settings', '/assignments')) else [{'id': POLICY}]}
+                return 200, json.dumps(body).encode(), ()
+            return get
+        return factory
+
+    def run_capture(self, fd, extra_env=None, name='out'):
+        delivered = []
+        output = self.root / name
+        with patch('intune_iac.capture._http_transport', self.fake(delivered)), \
+                patch.dict(os.environ, extra_env or {}), patch.object(pj, 'read_credential_fd', wraps=pj.read_credential_fd) as spy:
+            result = self.main(['capture', '--tenant', TENANT, '--policy', POLICY, '--output', str(output),
+                                '--token-fd', str(fd)])
+        return result, delivered, output, spy
+
+    def test_token_arrives_from_the_descriptor_through_the_shared_reader_and_env_is_not_read(self):
+        token, ambient = canary('fd'), canary('ambient')
+        fd = self.secret_fd(token + '\n')
+        (code, out, err), delivered, output, spy = self.run_capture(fd, {'INTUNE_GRAPH_TOKEN': ambient})
+        self.assertEqual(code, 0, out + err)
+        self.assertEqual(delivered, [token], 'the descriptor token, newline removed, is what the service receives')
+        spy.assert_called_once_with(fd)
+        for text in (out, err):
+            self.assertNotIn(token, text)
+        for path in output.rglob('*'):
+            if path.is_file():
+                self.assertNotIn(token.encode(), path.read_bytes())
+
+    def test_same_rules_as_target_authenticate(self):
+        cases = {
+            'identity_credential_fd_private': dict(content='tok', mode=0o644),
+            'identity_credential_fd_limit': dict(content=b'x' * 4097),
+            'identity_credential_invalid': dict(content=b'caf\xc3\xa9'),
+        }
+        for code, spec in cases.items():
+            with self.subTest(code):
+                fd = self.secret_fd(spec['content'], name=code, mode=spec.get('mode', 0o600))
+                (exit_code, out, err), delivered, _, _ = self.run_capture(fd, name='out-' + code)
+                self.assertEqual(delivered, [])
+                self.assertEqual(json.loads(err)['error']['code'], code)
+                self.assertNotEqual(exit_code, 0)
+        (exit_code, out, err), delivered, _, _ = self.run_capture(2, name='out-low')
+        self.assertEqual(json.loads(err)['error']['code'], 'identity_explicit_credential_fd_required')
+
+    def test_a_pipe_works_and_an_empty_descriptor_is_a_missing_token(self):
+        token = canary('pipe')
+        read_end, write_end = os.pipe()
+        self.opened.append(read_end)
+        os.write(write_end, token.encode())
+        os.close(write_end)
+        (code, out, err), delivered, _, _ = self.run_capture(read_end, name='out-pipe')
+        self.assertEqual((code, delivered), (0, [token]), out + err)
+        (code, out, err), delivered, _, _ = self.run_capture(self.secret_fd('\n', name='empty'), name='out-empty')
+        self.assertEqual(delivered, [])
+        self.assertEqual(json.loads(err)['error']['code'], 'identity_credential_fd_empty')
+
+    def test_a_token_with_control_characters_is_still_invalid(self):
+        (code, out, err), delivered, _, _ = self.run_capture(self.secret_fd('abc def'), name='out-space')
+        self.assertEqual(json.loads(err)['error']['code'], 'capture_token_invalid')
+        self.assertEqual(delivered, [])
+
+
+class CollectFdTests(Descriptors):
+    def run_collect(self, argv_tail, env=None):
+        from plugin_tests import test_target as tt
+        document = self.root / 'target.json'
+        document.write_text(json.dumps(tt.fixture()))
+        tt.Connection.responses = tt.CollectionTests.responses(None)
+        tt.Connection.requests = []
+        with patch('intune_iac.target._now', return_value=tt.NOW), \
+                patch('intune_iac.target.http.client.HTTPSConnection', tt.Connection), patch.dict(os.environ, env or {}):
+            result = self.main(['target', 'collect', '--input', str(document), *argv_tail])
+        return result, [headers['Authorization'] for _, _, _, headers in tt.Connection.requests]
+
+    def test_both_tokens_from_descriptors(self):
+        graph, management = canary('graph'), canary('arm')
+        a, b = self.secret_fd(graph, 'g'), self.secret_fd(management + '\n', 'm')
+        (code, out, err), sent = self.run_collect(['--graph-token-fd', str(a), '--management-token-fd', str(b)],
+                                                  {'INTUNE_GRAPH_TOKEN': 'ambient-graph', 'INTUNE_MANAGEMENT_TOKEN': 'ambient-arm'})
+        self.assertEqual(code, 0, out + err)
+        self.assertEqual(sent, ['Bearer ' + graph, 'Bearer ' + management, 'Bearer ' + management])
+        self.assertNotIn(graph, out + err)
+        self.assertNotIn(management, out + err)
+
+    def test_routes_can_be_mixed_per_token(self):
+        graph, management = canary('graph'), canary('arm')
+        a = self.secret_fd(graph, 'g')
+        (code, out, err), sent = self.run_collect(['--graph-token-fd', str(a), '--management-token-env', 'ARM_VIA_ENV'],
+                                                  {'ARM_VIA_ENV': management})
+        self.assertEqual(code, 0, out + err)
+        self.assertEqual(sent[0], 'Bearer ' + graph)
+        self.assertEqual(sent[1], 'Bearer ' + management)
+
+    def test_two_tokens_need_two_descriptors_and_a_bad_descriptor_sends_nothing(self):
+        a = self.secret_fd(canary('one'), 'one')
+        (code, out, err), sent = self.run_collect(['--graph-token-fd', str(a), '--management-token-fd', str(a)])
+        self.assertEqual(json.loads(err)['error']['code'], 'identity_separate_credential_fds_required')
+        self.assertEqual(sent, [])
+        loose = self.secret_fd('tok', 'loose', 0o644)
+        (code, out, err), sent = self.run_collect(['--graph-token-fd', str(loose), '--management-token-fd', str(a)])
+        self.assertEqual(json.loads(err)['error']['code'], 'identity_credential_fd_private')
+        self.assertEqual(sent, [])
+
+
+if __name__ == '__main__':
+    unittest.main()

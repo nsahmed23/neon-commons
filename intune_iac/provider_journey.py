@@ -426,6 +426,17 @@ def read_credential_fd(descriptor):
         finally: os.close(fd)
 
 
+def read_token_fd(descriptor):
+    """A read token from an inherited descriptor: read_credential_fd's rules, minus one trailing line end.
+
+    A token written with `echo` or a here-string ends in a newline that is not part of the token. An empty result is
+    refused here so no route sends an empty bearer value.
+    """
+    token = read_credential_fd(descriptor).rstrip('\r\n')
+    if not token: _fail('identity_credential_fd_empty')
+    return token
+
+
 def authenticate_target(args):
     """Read-only explicit identity collection; only its redacted report leaves."""
     from . import identity_binding as ib

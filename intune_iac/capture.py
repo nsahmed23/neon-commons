@@ -263,7 +263,7 @@ def _posix_output(destination):
 
 
 def capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
-            max_pages=100, transport=None, *, max_attempts_per_page=3,
+            max_pages=100, transport=None, *, token=None, max_attempts_per_page=3,
             max_elapsed_seconds=MAX_ELAPSED_SECONDS,
             max_retry_delay_seconds=MAX_RETRY_DELAY_SECONDS, progress=None,
             source_is_synthetic=False):
@@ -281,14 +281,14 @@ def capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
     if (os.name != 'posix' or not hasattr(os, 'O_DIRECTORY') or not hasattr(os, 'O_NOFOLLOW')
             or not {os.open, os.mkdir} <= os.supports_dir_fd):
         raise AppError('capture_platform_unavailable', 'Secure capture persistence is unavailable on this platform; use a supported POSIX host.')
-    return _capture(tenant_id,policy_id,output_path,token_env,max_pages,transport,
+    return _capture(tenant_id,policy_id,output_path,token_env,max_pages,transport,token=token,
         max_attempts_per_page=max_attempts_per_page,max_elapsed_seconds=max_elapsed_seconds,
         max_retry_delay_seconds=max_retry_delay_seconds,progress=progress,
         source_is_synthetic=source_is_synthetic,output_factory=_posix_output)
 
 
 def _capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
-            max_pages=100, transport=None, *, max_attempts_per_page=3,
+            max_pages=100, transport=None, *, token=None, max_attempts_per_page=3,
             max_elapsed_seconds=MAX_ELAPSED_SECONDS,
             max_retry_delay_seconds=MAX_RETRY_DELAY_SECONDS, progress=None,
             source_is_synthetic=False, output_factory):
@@ -304,10 +304,12 @@ def _capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
     if type(source_is_synthetic) is not bool:
         raise AppError('capture_provenance_invalid', 'Capture provenance must be a literal boolean; it grants no authentication or execution authority.')
     if transport is None:
-        if not isinstance(token_env, str) or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', token_env):
-            raise AppError('capture_token_env_invalid', 'Token environment variable name is invalid.')
-        token = os.environ.get(token_env)
-        if not token:
+        if token is None:
+            # The environment-variable route; a token handed in (the descriptor route) skips it entirely.
+            if not isinstance(token_env, str) or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', token_env):
+                raise AppError('capture_token_env_invalid', 'Token environment variable name is invalid.')
+            token = os.environ.get(token_env)
+        if not token or not isinstance(token, str):
             raise AppError('capture_token_missing', 'Set the explicitly selected token environment variable before capture.')
         if any(ord(c) < 33 or ord(c) >= 127 for c in token):
             raise AppError('capture_token_invalid', 'The selected token has an invalid encoding.')

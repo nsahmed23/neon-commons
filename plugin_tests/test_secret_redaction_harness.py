@@ -178,6 +178,41 @@ class RedactionHarness(unittest.TestCase):
         self.assertEqual(delivered, [token], 'the fake service must have been handed the token, or the test proves nothing')
         self.assertTrue((output / 'export.json').is_file())
 
+    # capture and target collect (token from an inherited descriptor; nothing in the parent environment) --------
+
+    def secret_fd(self, value, name):
+        path = self.inputs / name
+        path.write_bytes(value.encode())
+        path.chmod(0o600)
+        fd = os.open(path, os.O_RDONLY)
+        self.addCleanup(os.close, fd)
+        return fd
+
+    def test_capture_and_collect_with_descriptor_tokens(self):
+        from plugin_tests import test_target as tt
+        capture_token, graph, management = canary('fdcapture'), canary('fdgraph'), canary('fdarm')
+        tenant, policy = '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222'
+        delivered = []
+
+        def factory(value):
+            delivered.append(value)
+            return lambda url, *, timeout: (200, json.dumps(
+                {'value': [] if url.endswith(('/settings', '/assignments')) else [{'id': policy}]}).encode(), ())
+
+        with patch('intune_iac.capture._http_transport', factory):
+            self.run_cli(['capture', '--tenant', tenant, '--policy', policy, '--output', str(self.work / 'fdcap'),
+                          '--token-fd', str(self.secret_fd(capture_token, 'capture.token'))], (capture_token,))
+        self.assertEqual(delivered, [capture_token])
+        document = self.inputs / 'target-fd.json'
+        write_json(document, tt.fixture())
+        tt.Connection.responses, tt.Connection.requests = tt.CollectionTests.responses(None), []
+        with patch('intune_iac.target._now', return_value=tt.NOW), \
+                patch('intune_iac.target.http.client.HTTPSConnection', tt.Connection):
+            code, out, _, _ = self.run_cli(['target', 'collect', '--input', str(document),
+                '--graph-token-fd', str(self.secret_fd(graph, 'graph.token')),
+                '--management-token-fd', str(self.secret_fd(management, 'arm.token'))], (graph, management))
+        self.assertEqual(json.loads(out)['status'], 'observed')
+
     # target collect (token by environment-variable name, local fake service) -----------------------------
 
     def test_target_collect_with_token_environment_names(self):
