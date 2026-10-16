@@ -329,7 +329,7 @@ def _capture(tenant_id, policy_id, output_path, token_env='INTUNE_GRAPH_TOKEN',
         if any(ord(c) < 33 or ord(c) >= 127 for c in token):
             raise AppError('capture_token_invalid', 'The selected token has an invalid encoding.')
         # STOP POINT (before any call, before the output directory exists): a token whose own claims name another
-        # tenant, or that has expired. The claims are unverified and only explain this refusal.
+        # tenant, or that has expired. The claims are unverified: they may cause this early refusal and never permit a call.
         from .target import token_problem
         problem = token_problem(token, tenant_id, datetime.fromisoformat(_stamp().replace('Z', '+00:00')))
         if problem is not None:

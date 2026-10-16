@@ -128,6 +128,34 @@ class CaptureTests(Base):
                 self.assertEqual(code, 0, out + err)
                 self.assertEqual(len(calls), 3)
 
+    def test_unverified_claims_never_permit_a_call_the_service_answer_decides(self):
+        # An expired token whose unsigned payload was edited to the right tenant and a future expiry is sent: the claims
+        # may cause an early local refusal, they never permit anything. The service's 401 is reported as the service's.
+        original = fake_jwt(tid=OTHER, exp=PAST)
+        header, _, signature = original.split('.')
+        edited = header + '.' + b64({'tid': TENANT, 'exp': FUTURE}) + '.' + signature
+        body = {'error': {'code': 'InvalidAuthenticationToken', 'message': 'Access token has expired or is not yet valid.'}}
+        code, out, err, calls, output = self.run_capture(original, [(401, body)])
+        self.assertEqual(calls, [], 'the original claims still cause the early refusal')
+        self.setUp()
+        code, out, err, calls, output = self.run_capture(edited, [(401, body)])
+        self.assertEqual(len(calls), 1, 'the edited token is sent')
+        problem = json.loads(out)['credential_problem']
+        self.assertEqual(problem['code'], 'token_expired')
+        self.assertTrue(problem['message'].startswith('The service answered'), problem['message'])
+
+    def test_every_statement_of_the_rule_says_early_refusal_and_explanation_never_permission(self):
+        for code, token in (('token_wrong_tenant', fake_jwt(tid=OTHER)), ('token_expired', fake_jwt(exp=PAST))):
+            problem = target.token_problem(token, TENANT, NOW)
+            self.assertEqual(problem['code'], code)
+            self.assertIn('never permits', problem['message'])
+        self.assertIn('never permit a call or an action', target.__doc__ + target.token_problem.__doc__)
+        for flag in ('--token-env', '--token-fd'):
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out), self.assertRaises(SystemExit):
+                cli.parser().parse_args(['capture', '--help'])
+            self.assertIn('never permit a call or an action', ' '.join(out.getvalue().split()))
+
     def test_service_answering_expired_stops_after_that_one_call(self):
         body = {'error': {'code': 'InvalidAuthenticationToken', 'message': 'Access token has expired or is not yet valid.',
                           'innerError': {'client-request-id': 'req-' + secrets.token_hex(4)}}}

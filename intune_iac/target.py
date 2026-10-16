@@ -2,6 +2,9 @@
 
 Neither a JSON document nor this collector authenticates the caller's principal,
 protects an approval, observes the state blob, or authorizes an external action.
+
+Claims read from a token are unverified: they may cause an early local refusal and explain a service refusal; they
+never permit a call or an action.
 """
 from __future__ import annotations
 
@@ -136,7 +139,8 @@ def _issue(code, path=''):
 
 
 # EXPIRED ACCESS AND WRONG TENANT (offline). Claims in a token are read WITHOUT verification: nothing here checks the
-# signature, so a claim is never trusted for access, only used to explain a refusal the product is already making.
+# signature. An unverified claim may cause an early local refusal (it can only refuse, never allow) and may explain a
+# service refusal; it never permits a call or an action, and a token with edited claims is sent and left to the service.
 # Of everything in a token, only the tenant identifier and the expiry time are kept or shown.
 TOKEN_CODES = ('token_expired', 'token_wrong_tenant')
 _TENANT_CLAIM = re.compile(GUID_PATTERN)
@@ -169,11 +173,13 @@ def token_claims(token):
 
 
 def _label(claim):
-    return f' (unverified {claim} claim read from the token, used only to explain this refusal)'
+    return f' (unverified {claim} claim read from the token; it may cause an early local refusal like this one and never permits a call)'
 
 
 def token_problem(token, tenant, now):
-    """Explain a token that names another tenant, or has expired, before any call is made; else None.
+    """Refuse early, locally, a token whose unverified claims name another tenant or an expiry in the past; else None.
+
+    Unverified claims may cause this early refusal and explain a service refusal; they never permit a call or an action.
 
     Returns code, message and next_step. The wrong tenant is named before expiry: a new token for the same wrong
     tenant would fail the same way.
