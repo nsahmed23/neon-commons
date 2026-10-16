@@ -116,7 +116,7 @@ jobs:
           python research/enterprise-ci/check-archives.py --directory "$CI_ROOT/release" --output "$CI_ROOT/extracted" > "$CI_ROOT/archive-verification.json"
 
       - id: extracted
-        name: Verify the extracted source and runtime
+        name: Verify the extracted source and runtime, and that the source reproduces both archives' content digests
         run: |
           python "$CI_ROOT/extracted/intune-iac-source/scripts/verify-plugin.py" --include-core --output "$CI_ROOT/extracted-verification"
           python "$CI_ROOT/extracted/intune-iac/scripts/intune-iac.py" doctor
@@ -131,14 +131,28 @@ jobs:
                   or any(report.get(key) != 0 for key in ('failures', 'errors', 'skipped'))):
               raise SystemExit('Extracted-source verification is incomplete or unsuccessful.')
           PY
-          python "$CI_ROOT/extracted/intune-iac-source/scripts/build-release.py" --output-dir "$CI_ROOT/rebuilt"
+          python "$CI_ROOT/extracted/intune-iac-source/scripts/build-release.py" --check-only > "$CI_ROOT/extracted-content-digests.json"
           python - <<'PY'
-          import os
+          import json, os, zipfile
           from pathlib import Path
           root = Path(os.environ['CI_ROOT'])
+          computed = json.loads((root / 'extracted-content-digests.json').read_text())
           originals = sorted((root / 'release').glob('*.zip'))
-          if len(originals) != 2 or any(path.read_bytes() != (root / 'rebuilt' / path.name).read_bytes() for path in originals):
-              raise SystemExit('Clean-source archive rebuild is not byte-identical.')
+          if len(originals) != 2:
+              raise SystemExit('Expected two release archives, found ' + str(len(originals)) + '.')
+          wanted = {'runtime': ('intune-iac', 'runtime_content_sha256'), 'source': ('intune-iac-source', 'source_content_sha256')}
+          problems = []
+          for path in originals:
+              kind = 'source' if path.name.endswith('_Source.zip') else 'runtime'
+              folder, key = wanted[kind]
+              with zipfile.ZipFile(path) as archive:
+                  recorded = json.loads(archive.read(folder + '/BUILD-IDENTITY.json'))['content_sha256']
+              reproduced = computed.get(key)
+              print(kind, 'content_sha256 recorded in', path.name + ':', recorded, '| computed from the extracted source:', reproduced)
+              if reproduced != recorded:
+                  problems.append(kind + ' content_sha256: the archive records ' + str(recorded) + ' but the extracted source computes ' + str(reproduced))
+          if problems:
+              raise SystemExit('The extracted source does not reproduce the archives\' content: ' + '; '.join(problems))
           PY
 
       - id: evidence

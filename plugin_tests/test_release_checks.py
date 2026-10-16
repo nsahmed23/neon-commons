@@ -4,7 +4,14 @@ test_release_hardening so that neither module passes 1,000 lines; the stand-ins 
 import json
 import re
 import shlex
+import subprocess
+import sys
+import tempfile
 import unittest
+import zipfile
+from pathlib import Path
+
+import yaml
 
 from plugin_tests import test_release_candidate as base
 
@@ -13,6 +20,7 @@ sha256 = base.sha256
 squashed = base.squashed
 guide_section = base.guide_section
 code_blocks = base.code_blocks
+WORKFLOW = base.ROOT / '.github/workflows/validate.yml'
 
 
 class IdentityGapTests(unittest.TestCase):
@@ -105,6 +113,79 @@ class BytecodeCommandTests(unittest.TestCase):
         for phrase in ('counts as an unlisted file', 'starts Python with `-B`', 'the `.venv` and `demo` folders'):
             self.assertIn(phrase, text)
         self.assertNotIn('and `__pycache__` folders', text)
+
+
+class CiStepTests(unittest.TestCase):
+    """Round 5: the CI step that rebuilt the archives from the extracted source and compared the zips byte for byte could not pass
+    (built_at, commit and tree are in the identity) and the builder now refuses to make archives from a tree without a known commit.
+    It checks the property it wanted instead: the extracted source reproduces the content digests the original archives record."""
+
+    def steps(self):
+        return yaml.safe_load(WORKFLOW.read_text())['jobs']['validate']['steps']
+
+    def step(self):
+        return next(step for step in self.steps() if step['id'] == 'extracted')
+
+    def comparison(self):
+        """(the file --check-only writes, the python the step runs on it) from the step's script."""
+        found = re.search(r"--check-only[^\n]*> \"\$CI_ROOT/([^\"]+)\"\n\s*python - <<'PY'\n(.*?)\nPY\b", self.step()['run'], re.S)
+        if not found:
+            self.fail('the step does not run --check-only into a file and then compare what it reports')
+        return found.group(1), found.group(2)
+
+    def test_the_step_checks_content_digests_and_never_rebuilds_archives_from_the_extracted_tree(self):
+        step = self.step()
+        invocations = [(match.group(1), match.group(2)) for item in self.steps()
+                       for match in re.finditer(r'(\S*extracted\S*/build-release\.py)"?\s+([^\n]*)', item.get('run', ''))]
+        self.assertTrue(invocations, 'no step runs the extracted tree\'s builder')
+        for path, arguments in invocations:
+            self.assertTrue(arguments.startswith('--check-only'), arguments)
+            self.assertNotIn('--output-dir', arguments)
+        for needed in ('runtime_content_sha256', 'source_content_sha256', 'BUILD-IDENTITY.json', 'content_sha256'):
+            self.assertIn(needed, step['run'])
+        for gone in ('rebuilt', 'byte-identical', 'read_bytes() !='):
+            self.assertNotIn(gone, step['run'])
+        self.assertIn('content digests', step['name'], 'the name says what the step proves')
+        self.assertEqual(step['id'], 'extracted')
+
+    def ci_root(self, recorded_runtime='a' * 64, recorded_source='b' * 64, reported=None):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        root = Path(temp.name)
+        (root / 'release').mkdir()
+        for name, prefix, digest in (('Intune_IaC_Plugin_0.9.0.zip', 'intune-iac', recorded_runtime),
+                                     ('Intune_IaC_Plugin_0.9.0_Source.zip', 'intune-iac-source', recorded_source)):
+            with zipfile.ZipFile(root / 'release' / name, 'w') as archive:
+                archive.writestr(prefix + '/BUILD-IDENTITY.json', json.dumps({'content_sha256': digest}))
+        report = {'runtime_content_sha256': 'a' * 64, 'source_content_sha256': 'b' * 64} if reported is None else reported
+        (root / self.comparison()[0]).write_text(json.dumps(report))
+        return root
+
+    def compare(self, root):
+        return subprocess.run([sys.executable, '-I', '-'], input=self.comparison()[1], capture_output=True, text=True, timeout=60,
+                              env={'CI_ROOT': str(root), 'PATH': '/usr/bin:/bin'})
+
+    def test_matching_digests_pass_and_the_run_says_what_it_compared(self):
+        result = self.compare(self.ci_root())
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('a' * 64, result.stdout)
+        self.assertIn('b' * 64, result.stdout)
+
+    def test_a_different_digest_fails_the_step_naming_both_digests(self):
+        cases = {'runtime': ({'runtime_content_sha256': 'c' * 64, 'source_content_sha256': 'b' * 64}, 'a' * 64, 'c' * 64),
+                 'source': ({'runtime_content_sha256': 'a' * 64, 'source_content_sha256': 'd' * 64}, 'b' * 64, 'd' * 64)}
+        for kind, (reported, recorded, computed) in cases.items():
+            with self.subTest(kind):
+                result = self.compare(self.ci_root(reported=reported))
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                for text in (kind, recorded, computed):
+                    self.assertIn(text, result.stderr + result.stdout)
+
+    def test_a_check_that_reports_no_digest_or_a_missing_archive_fails_instead_of_passing(self):
+        self.assertNotEqual(self.compare(self.ci_root(reported={'status': 'PASS'})).returncode, 0)
+        root = self.ci_root()
+        (root / 'release/Intune_IaC_Plugin_0.9.0_Source.zip').unlink()
+        self.assertNotEqual(self.compare(root).returncode, 0)
 
 
 class GuideDigestTests(unittest.TestCase):
