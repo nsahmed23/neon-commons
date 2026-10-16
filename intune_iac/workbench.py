@@ -1339,6 +1339,10 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                 elif name == 'estate-overview' and not values:
                     from .workbench_overview import estate_overview
                     result = estate_overview(store)
+                elif name == 'companion' and values == ['stop']:
+                    # Stopping acts on the listener this session holds, not on the selection: back or cancel must not strand it.
+                    stop_companions()
+                    result = {'mode': 'live', 'stopped': 'stopped'}
                 elif name == 'companion' and len(values) == 1:
                     if selected is None:
                         raise AppError('selection_required', 'Select an exact immutable object ID first.')
@@ -1354,9 +1358,6 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                         listener = start_live(read)
                         held.append(listener)
                         result = {'mode': 'live', 'address': listener.address, 'notice': listener.notice}
-                    elif values[0] == 'stop':
-                        stop_companions()
-                        result = {'mode': 'live', 'stopped': 'stopped'}
                     else: result = write_static(read, values[0])
                 elif name == 'repository-entry' and len(values) == 1:
                     from .repository_entry import entry

@@ -448,6 +448,19 @@ class FailingStopTests(Fixture):
         codes = [item['error']['code'] for item in results if isinstance(item, dict) and item.get('status') == 'error']
         self.assertEqual(codes, ['companion_running'])
 
+    def test_stop_works_after_the_selection_is_cleared(self):
+        results = self.run_terminal('select ' + self.object_id, 'companion serve', 'back', 'companion stop', 'quit')
+        errors = [item['error']['code'] for item in results if isinstance(item, dict) and item.get('status') == 'error']
+        self.assertEqual(errors, [])
+        self.assertEqual([item['stopped'] for item in results if isinstance(item, dict) and item.get('stopped')], ['stopped'])
+        self.assertTrue(self.listeners[0].is_closed)
+
+    def test_stop_with_nothing_held_and_no_selection_is_a_plain_stop_but_serve_still_needs_one(self):
+        results = self.run_terminal('companion stop', 'companion serve', 'quit')
+        outcomes = [item['error']['code'] if item.get('status') == 'error' else item.get('stopped')
+                    for item in results if isinstance(item, dict) and (item.get('status') == 'error' or item.get('stopped'))]
+        self.assertEqual(outcomes, ['stopped', 'selection_required'])
+
 
 class ActionsMenuTests(Fixture):
     def actions(self):
