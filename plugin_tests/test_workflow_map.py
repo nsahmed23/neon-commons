@@ -2226,5 +2226,91 @@ class ClassificationTests(unittest.TestCase):
         self.assertEqual((stages['reconcile']['state'], stages['reconcile']['reason']), ('waiting', 'visibility_pending'))
 
 
+
+# ---- round 2, item 4: done needs the durable identifier or field its basis names -------------------------------------------
+
+ARTIFACT = 'c8c5a140' + '0123456789abcdef' * 3 + '01234567'        # a content digest, as the store names an artifact
+
+
+class EvidenceBasisTests(unittest.TestCase):
+    def adopt(self, adoptions):
+        read = baseline()
+        read['adoptions'] = adoptions
+        return by_id(project(read))['adopt']
+
+    def test_adopt_is_done_only_on_a_record_that_names_its_durable_identifier(self):
+        stage = self.adopt([{'artifact_id': ARTIFACT, 'sequence': 3, 'recorded_at': '2026-10-14T19:40:00.000001Z'}])
+        self.assertEqual((stage['state'], stage['basis']), ('done', 'adoption record c8c5a140'))
+        self.assertEqual(stage['facts'], {'recorded_at': '2026-10-14T19:40:00.000001Z'})
+        for absent in ([], None):
+            self.assertEqual(self.adopt(absent)['state'], 'not_recorded', absent)
+        for malformed in ([{}], [{'sequence': 1}], [{'artifact_id': ''}], [{'artifact_id': 7}], [None], ['text'], 'junk', {'a': 1}):
+            stage = self.adopt(malformed)
+            self.assertEqual((stage['state'], stage['basis']), ('unknown', 'adoption records for this policy'), malformed)
+
+    def test_a_malformed_adoption_record_beside_a_usable_one_does_not_hide_it_and_the_newest_usable_one_is_the_basis(self):
+        older = {'artifact_id': 'a1b2c3d4' + '0' * 56, 'sequence': 1}
+        newer = {'artifact_id': ARTIFACT, 'sequence': 2}
+        for rows in ([{}, older, newer], [newer, older, {'sequence': 9}]):
+            stage = self.adopt(rows)
+            self.assertEqual((stage['state'], stage['basis']), ('done', 'adoption record c8c5a140'), rows)
+
+    def test_malformed_adoption_evidence_is_no_place_the_policy_has_got_to(self):
+        read = baseline()
+        read['states']['intent'] = None
+        read['adoptions'] = [{}]
+        flow = project(read)
+        self.assertEqual(by_id(flow)['adopt']['state'], 'unknown')
+        self.assertEqual(flow['position'], 'observe')
+
+    def proposal(self, mutate=None, delivery='keep'):
+        read = with_operation(baseline())
+        if delivery != 'keep':
+            read['delivery'] = delivery
+        if mutate:
+            mutate(read)
+        return by_id(project(read))['propose']
+
+    def test_propose_is_done_on_the_delivery_proposal_stage_with_its_recorded_facts(self):
+        stage = self.proposal()
+        self.assertEqual((stage['state'], stage['basis']), ('done', 'operation %s delivery stage proposal' % OPERATION[:8]))
+        self.assertEqual(stage['facts']['repository_intent_id'], 'e9274102')
+
+    def test_without_the_proposal_stage_the_operation_record_is_the_basis_and_it_needs_the_fields_it_names(self):
+        unreadable = {'error_code': 'maintenance_evidence_changed'}
+        stage = self.proposal(delivery=unreadable)
+        self.assertEqual((stage['state'], stage['basis']), ('done', 'operation %s status' % OPERATION[:8]))
+        self.assertEqual(stage['facts'], {'recorded_at': '2026-10-14T19:55:00.5Z'})
+        for field in ('status', 'operation_id'):
+            stage = self.proposal(lambda read: read['states']['operation'].pop(field), delivery=unreadable)
+            self.assertEqual((stage['state'], stage['basis']), ('unknown', 'states.operation'), field)
+        for empty in ('', None, 7):
+            stage = self.proposal(lambda read: read['states']['operation'].update(status=empty), delivery=unreadable)
+            self.assertEqual(stage['state'], 'unknown', empty)
+
+    def test_a_delivery_with_no_proposal_stage_falls_back_to_the_operation_record_and_never_claims_the_stage(self):
+        def without_proposal(read):
+            read['delivery']['stages'] = [row for row in read['delivery']['stages'] if row['stage'] != 'proposal']
+        stage = self.proposal(without_proposal)
+        self.assertEqual((stage['state'], stage['basis']), ('done', 'operation %s status' % OPERATION[:8]))
+        stage = self.proposal(lambda read: (without_proposal(read), read['states']['operation'].pop('status')))
+        self.assertEqual(stage['state'], 'unknown')
+
+    def test_a_proposal_stage_that_is_not_done_is_unknown_and_says_what_it_recorded(self):
+        def not_done(read):
+            read['delivery']['stages'][0]['status'] = 'surprise'
+        stage = self.proposal(not_done)
+        self.assertEqual((stage['state'], stage['reason'], stage['basis']),
+                         ('unknown', 'surprise', 'operation %s delivery stage proposal' % OPERATION[:8]))
+
+    def test_an_operation_record_with_no_evidence_behind_propose_is_no_place_the_policy_has_got_to(self):
+        read = with_operation(baseline(), delivery={'error_code': 'maintenance_evidence_changed'},
+                              review={'error_code': 'maintenance_evidence_changed'})
+        read['states']['operation'].pop('status')
+        flow = project(read)
+        self.assertEqual(by_id(flow)['propose']['state'], 'unknown')
+        self.assertEqual(flow['position'], 'intent')
+
+
 if __name__ == "__main__":
     unittest.main()

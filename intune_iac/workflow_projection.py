@@ -121,12 +121,16 @@ def _observe(states, service_checked=None, check=None):
 
 
 def _adopt(adoptions):
-    rows = [row for row in adoptions or [] if isinstance(row, dict)]
-    if not rows:
+    """Done on an adoption record that names its durable identifier (the artifact id the basis shows). Records that are
+    there but name none are malformed evidence, which reads unknown and is no place the policy has got to."""
+    if not adoptions:
         return _row('not_recorded', 'adoption records for this policy')
-    newest = max(rows, key=lambda row: row.get('sequence') if isinstance(row.get('sequence'), int) else 0)
-    return _row('done', 'adoption record %s' % str(newest.get('artifact_id') or '')[:8], None,
-                _facts(newest, ('recorded_at',)))
+    rows = [row for row in adoptions if isinstance(row, dict)] if isinstance(adoptions, (list, tuple)) else []
+    usable = [row for row in rows if _text(row.get('artifact_id'))]
+    if not usable:
+        return _row('unknown', 'adoption records for this policy', recorded=False)
+    newest = max(usable, key=lambda row: row.get('sequence') if isinstance(row.get('sequence'), int) else 0)
+    return _row('done', 'adoption record %s' % newest['artifact_id'][:8], None, _facts(newest, ('recorded_at',)))
 
 
 def _intent(states):
@@ -162,13 +166,23 @@ def _refusals(delivery):
 
 
 def _proposal(operation, by, tag):
-    stage = by.get('proposal') or {}
-    facts = _facts(stage, ('recorded_at', 'repository_intent_id', 'intent_freshness'))
-    if stage.get('context_changed'):
-        facts['context_changed'] = True
-    if not facts and operation.get('recorded_at'):
-        facts['recorded_at'] = operation['recorded_at']
-    return _row('done', '%s delivery stage proposal' % tag if stage else '%s status' % tag, None, facts)
+    """Done on a record the basis names: Delivery's proposal stage when it holds one, else the operation's own record,
+    which must carry the identifier and the status the basis says it reads. Anything less is malformed evidence."""
+    stage = by.get('proposal') if isinstance(by.get('proposal'), dict) else {}
+    if stage:
+        basis = '%s delivery stage proposal' % tag
+        if stage.get('status') != 'done':
+            return _row('unknown', basis, _text(stage.get('status')))
+        facts = _facts(stage, ('recorded_at', 'repository_intent_id', 'intent_freshness'))
+        if stage.get('context_changed'):
+            facts['context_changed'] = True
+        if not facts and operation.get('recorded_at'):
+            facts['recorded_at'] = operation['recorded_at']
+        return _row('done', basis, None, facts)
+    if _text(operation.get('operation_id')) and _text(operation.get('status')):
+        return _row('done', '%s status' % tag, None,
+                    {'recorded_at': operation['recorded_at']} if operation.get('recorded_at') else {})
+    return _row('unknown', 'states.operation', None, recorded=False)
 
 
 def _review(by, tag, error):
