@@ -2170,5 +2170,61 @@ class PositionEvidenceTests(unittest.TestCase):
         self.assertEqual(set(flow['stages'][0]), {'id', 'state', 'basis', 'reason', 'facts', 'opens', 'continuation', 'branch_of'})
 
 
+
+# ---- round 2, item 3: a classification outside the producer's closed sets is unknown, never done ----------------------
+
+class ClassificationTests(unittest.TestCase):
+    def reconciled(self, **reconciliation):
+        delivery = executed_delivery('reconciled')
+        delivery['stages'][5] = stage_row('reconciliation', 'done', previous_status='outcome_unknown', count=1, **reconciliation)
+        return by_id(project(with_operation(baseline(), delivery=delivery, journal='reconciled',
+                                            review=prepared_review('open', status='reconciled'))))
+
+    def verified(self, **readback):
+        delivery = delivery_of('succeeded_verified', **verified_stages(readback=stage_row('readback', 'done', **readback)))
+        return by_id(project(with_operation(baseline(), delivery=delivery, journal='succeeded_verified',
+                                            review=prepared_review('open', status='succeeded_verified'))))
+
+    def test_the_producers_closed_set_is_the_one_the_projection_checks_against(self):
+        import inspect
+        from intune_iac import maintenance, workflow_projection
+        line = next(row for row in inspect.getsource(maintenance._readback).splitlines()
+                    if row.strip().startswith('classification ='))
+        self.assertEqual(set(re.findall(r"'([a-z_]+)'", line)), set(workflow_projection.READBACK_CLASSES))
+        # Execute records `verified` for the first of them only.
+        self.assertIn("readback['classification'] != 'desired_state_observed'", inspect.getsource(maintenance._execute))
+        self.assertEqual(workflow_projection.VERIFIED_CLASSES, ('desired_state_observed',))
+
+    def test_a_reconcile_done_under_a_recognized_classification_reads_as_the_producer_classified_it(self):
+        for classification, state in (('desired_state_observed', 'done'), ('matches_precondition', 'done'), ('diverged', 'blocked')):
+            stage = self.reconciled(classification=classification)['reconcile']
+            self.assertEqual((stage['state'], stage['reason']), (state, classification), classification)
+
+    def test_a_reconcile_done_under_a_missing_or_unrecognized_classification_is_unknown(self):
+        for classification in ('outcome_unknown', 'succeeded_verified', 'surprise', '', None):
+            stage = self.reconciled(classification=classification)['reconcile']
+            self.assertEqual(stage['state'], 'unknown', classification)
+            self.assertEqual(stage['reason'], classification or None, classification)
+            self.assertEqual(stage['basis'], 'operation %s delivery stage reconciliation' % OPERATION[:8], classification)
+
+    def test_a_readback_done_is_done_only_under_the_classification_execute_verifies_with(self):
+        stage = self.verified(classification='desired_state_observed')['readback']
+        self.assertEqual((stage['state'], stage['reason']), ('done', 'desired_state_observed'))
+        for classification in ('matches_precondition', 'diverged', 'outcome_unknown', 'surprise', '', None):
+            stages = self.verified(classification=classification)
+            self.assertEqual(stages['readback']['state'], 'unknown', classification)
+            self.assertEqual(stages['readback']['reason'], classification or None, classification)
+            # No later stage reads as complete on a readback that is not a recorded success.
+            self.assertEqual(stages['maintain']['state'], 'not_recorded', classification)
+
+    def test_the_other_readback_statuses_and_the_reconcile_in_progress_are_unchanged(self):
+        delivery = executed_delivery('reconciled')
+        delivery['stages'][5] = stage_row('reconciliation', 'pending', classification='matches_precondition',
+                                          previous_status='outcome_unknown', count=1)
+        stages = by_id(project(with_operation(baseline(), delivery=delivery, journal='outcome_unknown',
+                                              review=prepared_review('open', status='outcome_unknown'))))
+        self.assertEqual((stages['reconcile']['state'], stages['reconcile']['reason']), ('waiting', 'visibility_pending'))
+
+
 if __name__ == "__main__":
     unittest.main()

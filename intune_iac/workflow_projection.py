@@ -42,6 +42,12 @@ OPERATION_STAGES = ('approve_execute', 'readback', 'reconcile', 'record', 'obser
 # The recorded diagnostics code behind each repository intent status that is not current.
 INTENT_REASONS = {'changed': 'repository_stale', 'consumer_changed': 'repository_consumer_mismatch',
                   'unreadable': 'repository_unavailable'}
+# What a readback, execute's own or a reconcile's, can classify the service as: the producer's closed set,
+# maintenance._readback (intune_iac/maintenance.py:494). Execute records its `verified` event only for the first of them
+# (maintenance.py:600-603), so a readback done under any other is no recorded success; a reconcile records the
+# classification as found (maintenance.py:636) and `diverged` is the one that says the service shows neither state.
+READBACK_CLASSES = ('desired_state_observed', 'matches_precondition', 'diverged')
+VERIFIED_CLASSES = ('desired_state_observed',)
 OBSERVATION_SIGNALS = ('collection_failed', 'collection_not_finished', 'observation_stale')
 REPOSITORY_SIGNALS = ('repository_stale', 'repository_consumer_mismatch', 'repository_unavailable',
                       'workbench_repository_scope_ambiguous')
@@ -224,7 +230,11 @@ def _readback(by, journal_status, tag, error):
         # reconcile found.
         return _row('unknown', '%s journal_status' % tag, _text(execution.get('error_code')) or journal_status)
     if status == 'done':
-        return _row('done', '%s delivery stage readback' % tag, _text(readback.get('classification')), facts)
+        classification = _text(readback.get('classification'))
+        if classification not in VERIFIED_CLASSES:
+            # Done needs the classification execute verifies with; a missing or other one is evidence that disagrees.
+            return _row('unknown', '%s delivery stage readback' % tag, classification, facts)
+        return _row('done', '%s delivery stage readback' % tag, classification, facts)
     return _row('unknown', '%s delivery stage readback' % tag, _text(status), facts)
 
 
@@ -241,6 +251,9 @@ def _reconcile(by, journal_status, tag, error):
         return _row('waiting', basis, 'visibility_pending', facts)
     if status == 'done':
         classification = _text(stage.get('classification'))
+        if classification not in READBACK_CLASSES:
+            # A reconcile that finished under a classification the producer does not define is not a finished reconcile.
+            return _row('unknown', basis, classification, facts)
         return _row('blocked' if classification == 'diverged' else 'done', basis, classification, facts)
     if status == 'not_needed':
         return _row('not_applicable', '%s journal_status' % tag, None, {'journal_status': journal_status})
