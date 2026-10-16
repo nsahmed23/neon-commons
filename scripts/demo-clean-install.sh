@@ -2,7 +2,8 @@
 # Clean-install demonstration: unpack a runtime archive, install only from a folder of locked wheels, run the
 # candidate guide's quickstart without a terminal, and print what each step did.
 #
-# Usage: demo-clean-install.sh [--pip-wheel PATH] ARCHIVE WHEEL_FOLDER WORK_FOLDER [EXPECTED_ARCHIVE_SHA256]
+# Usage: demo-clean-install.sh [--pip-wheel PATH] [--pip-wheel-sha256 HEX] ARCHIVE WHEEL_FOLDER WORK_FOLDER
+#                              [EXPECTED_ARCHIVE_SHA256]
 #
 # It refuses to run inside a git checkout (the current folder or WORK_FOLDER), refuses an archive whose digest or
 # file list does not match its own SHA256SUMS (or EXPECTED_ARCHIVE_SHA256, when given), and installs with
@@ -12,7 +13,10 @@
 # Many Debian and Ubuntu hosts ship CPython without ensurepip, so `python3 -m venv` fails there. Either install the
 # python3.12-venv package, or give --pip-wheel PATH (any pip wheel file, read in place): the virtual environment is
 # then made with --without-pip and every pip command runs from the wheel itself (python PATH/pip ...), still from
-# WHEEL_FOLDER only. The wheel's sha256 is printed so it can be compared with the digest published for that pip.
+# WHEEL_FOLDER only. The wheel's sha256 is printed. The wheel runs as code, so --pip-wheel-sha256 HEX (64 lowercase hex
+# digits, only with --pip-wheel) names the digest it must have: a wheel with any other digest is refused, with exit status
+# 64 and both digests printed, before the script creates anything. Take HEX from a source you trust, not from this
+# script's own printed line, which only echoes the file it was given.
 #
 # The quickstart's sign-in step runs with no search path, so its answer (a blocked report, exit status 2) is the
 # same on every host whether or not an Azure CLI is installed; no other step looks for one.
@@ -26,20 +30,34 @@ PYTHON=${PYTHON:-python3}
 
 say() { printf '%s\n' "$*"; }
 refuse() { code=$1; shift; say "REFUSED: $*" >&2; exit "$code"; }
-usage() { say "Usage: $0 [--pip-wheel PATH] ARCHIVE WHEEL_FOLDER WORK_FOLDER [EXPECTED_ARCHIVE_SHA256]" >&2; exit 64; }
+usage() { say "Usage: $0 [--pip-wheel PATH] [--pip-wheel-sha256 HEX] ARCHIVE WHEEL_FOLDER WORK_FOLDER [EXPECTED_ARCHIVE_SHA256]" >&2; exit 64; }
+usage_error() { say "REFUSED: $*" >&2; usage; }
 
 PIP_WHEEL=
 PIP_WHEEL_GIVEN=no
+PIP_WHEEL_SHA256=
+PIP_WHEEL_SHA256_GIVEN=no
 POSITIONAL=()
 while [ "$#" -gt 0 ]; do
     case $1 in
-        --pip-wheel) [ "$#" -ge 2 ] || usage; PIP_WHEEL=$2; PIP_WHEEL_GIVEN=yes; shift 2 ;;
+        --pip-wheel) [ "$#" -ge 2 ] || usage_error "--pip-wheel needs a value."; PIP_WHEEL=$2; PIP_WHEEL_GIVEN=yes; shift 2 ;;
         --pip-wheel=*) PIP_WHEEL=${1#--pip-wheel=}; PIP_WHEEL_GIVEN=yes; shift ;;
+        --pip-wheel-sha256) [ "$#" -ge 2 ] || usage_error "--pip-wheel-sha256 needs a value."
+            PIP_WHEEL_SHA256=$2; PIP_WHEEL_SHA256_GIVEN=yes; shift 2 ;;
+        --pip-wheel-sha256=*) PIP_WHEEL_SHA256=${1#--pip-wheel-sha256=}; PIP_WHEEL_SHA256_GIVEN=yes; shift ;;
         --) shift; POSITIONAL+=("$@"); break ;;
         -*) usage ;;
         *) POSITIONAL+=("$1"); shift ;;
     esac
 done
+if [ "$PIP_WHEEL_SHA256_GIVEN" = yes ]; then
+    [ "$PIP_WHEEL_GIVEN" = yes ] || usage_error "--pip-wheel-sha256 needs --pip-wheel: it is the digest that file must have."
+    # Spelled out, with no range, so that no locale can read a-f as including capitals.
+    case $PIP_WHEEL_SHA256 in
+        ''|*[!0123456789abcdef]*) usage_error "--pip-wheel-sha256 must be 64 lowercase hex digits." ;;
+    esac
+    [ "${#PIP_WHEEL_SHA256}" -eq 64 ] || usage_error "--pip-wheel-sha256 must be 64 lowercase hex digits."
+fi
 if [ "${#POSITIONAL[@]}" -lt 3 ] || [ "${#POSITIONAL[@]}" -gt 4 ]; then usage; fi
 ARCHIVE=${POSITIONAL[0]}
 WHEELS=${POSITIONAL[1]}
@@ -77,6 +95,12 @@ fi
 if [ "$PIP_WHEEL_GIVEN" = yes ]; then
     [ -f "$PIP_WHEEL" ] || refuse 64 "the --pip-wheel path is not a file: $PIP_WHEEL"
     PIP_WHEEL=$(cd "$(dirname "$PIP_WHEEL")" && pwd -P)/$(basename "$PIP_WHEEL")
+    # The digest is taken and compared first, so that nothing opens a wheel that is not the one that was named, and a
+    # refusal here has created nothing.
+    pip_sha256=$(sha256sum "$PIP_WHEEL" | cut -d' ' -f1)
+    if [ "$PIP_WHEEL_SHA256_GIVEN" = yes ] && [ "$pip_sha256" != "$PIP_WHEEL_SHA256" ]; then
+        refuse 64 "the pip wheel's sha256 does not match --pip-wheel-sha256 (expected $PIP_WHEEL_SHA256, actual $pip_sha256); nothing was created."
+    fi
     # A pip wheel is a zip that holds the package's __main__.py, which is what `python PATH/pip` runs.
     "$PYTHON" -c 'import sys, zipfile; sys.exit(0 if "pip/__main__.py" in zipfile.ZipFile(sys.argv[1]).namelist() else 1)' \
         "$PIP_WHEEL" 2>/dev/null || refuse 64 "the --pip-wheel file is not a pip wheel (no pip/__main__.py inside): $PIP_WHEEL"
@@ -85,8 +109,7 @@ fi
 archive_sha256=$(sha256sum "$ARCHIVE" | cut -d' ' -f1)
 say "archive sha256: $archive_sha256"
 if [ "$PIP_WHEEL_GIVEN" = yes ]; then
-    pip_sha256=$(sha256sum "$PIP_WHEEL" | cut -d' ' -f1)
-    say "pip wheel sha256: $pip_sha256"
+    if [ "$PIP_WHEEL_SHA256_GIVEN" = yes ]; then say "pip wheel sha256: $pip_sha256 (matches --pip-wheel-sha256)"; else say "pip wheel sha256: $pip_sha256"; fi
 fi
 if [ -n "$EXPECTED" ] && [ "$archive_sha256" != "$EXPECTED" ]; then
     refuse 3 "the archive digest does not match EXPECTED_ARCHIVE_SHA256 ($EXPECTED)."
@@ -155,7 +178,7 @@ summary() {
 }
 
 if [ "$PIP_WHEEL_GIVEN" = yes ]; then
-    record pip-wheel PASS "sha256 $pip_sha256"
+    if [ "$PIP_WHEEL_SHA256_GIVEN" = yes ]; then record pip-wheel PASS "sha256 $pip_sha256 (matches --pip-wheel-sha256)"; else record pip-wheel PASS "sha256 $pip_sha256"; fi
     # The environment is made without pip, so only the venv module is needed, not ensurepip.
     "$PYTHON" -c 'import venv' >/dev/null 2>&1 && ok=1 || ok=0
     missing="the venv module"

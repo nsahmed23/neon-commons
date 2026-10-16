@@ -350,11 +350,18 @@ bash scripts/demo-clean-install.sh /path/to/Intune_IaC_Plugin_0.9.0.zip /path/to
 
 On a host whose Python has no `ensurepip`, add `--pip-wheel PATH`, the path of a pip wheel file (see
 Troubleshooting). The script then makes the environment without pip, runs every pip command from that wheel, still
-offline from the wheel folder, and prints the wheel's sha256 before it starts:
+offline from the wheel folder, and prints the wheel's sha256 before it starts. The wheel runs as code, so also say
+which file you expect: `--pip-wheel-sha256` takes the wheel's sha256 (64 lowercase hex digits; it needs
+`--pip-wheel`), and the script refuses any other file, with exit status 64 and both digests printed, before it creates
+anything. The digest below is that of the `pip-24.0-py3-none-any.whl` that CPython 3.11.9 bundles in its
+`ensurepip/_bundled` folder:
 
 ```sh
-bash scripts/demo-clean-install.sh --pip-wheel /path/to/pip-24.0-py3-none-any.whl /path/to/Intune_IaC_Plugin_0.9.0.zip /path/to/wheelhouse /path/to/new-work-folder
+bash scripts/demo-clean-install.sh --pip-wheel /path/to/pip-24.0-py3-none-any.whl --pip-wheel-sha256 ba0d021a166865d2265246961bec0152ff124de910c5cc39f1156ce3fa7c69dc /path/to/Intune_IaC_Plugin_0.9.0.zip /path/to/wheelhouse /path/to/new-work-folder
 ```
+
+Get the digest from a source you trust, not from the line the script prints: that line only echoes the file the
+script was given. Without `--pip-wheel-sha256` the script prints the digest and runs the wheel anyway.
 
 The script exits 0 when every step passed, 1 when a step failed, 2 when it refused to run in a checkout, 3 when
 the archive failed verification and 64 when it was called wrongly. It uses `python3` unless the `PYTHON` variable
@@ -441,8 +448,9 @@ The first is to install the package that holds `ensurepip`, `python3.12-venv`, w
 The second needs no administrator rights and no network: make the environment without pip, and run pip from a pip
 wheel file. A pip wheel is a zip file that Python can run in place. Use any pip wheel you already hold: the one in the
 `_bundled` folder inside `ensurepip` of another CPython installation that has it, or one fetched on a machine with
-network access and carried across. It is read where it lies and nothing is copied. With the wheel folder of the
-offline variant next to you:
+network access and carried across. It is read where it lies and nothing is copied. The wheel runs as code, so check
+its digest with `sha256sum` against one you trust before you use it. With the wheel folder of the offline variant next
+to you:
 
 ```sh
 python3 -m venv --without-pip .venv
@@ -451,8 +459,8 @@ python3 -m venv --without-pip .venv
 
 The hash flags work exactly as in the install section; only the program that reads them is different. The
 environment has no pip of its own afterwards, and nothing in this guide needs one. The demonstration script,
-`scripts/demo-clean-install.sh`, does the same with `--pip-wheel PATH` (see "Check a clean install end to end") and
-prints the wheel's sha256, which you can compare with the digest published for that pip release.
+`scripts/demo-clean-install.sh`, does the same with `--pip-wheel PATH`, and with `--pip-wheel-sha256` it refuses a
+wheel whose digest is any other (see "Check a clean install end to end").
 
 **A usage error (exit status 2).** The parser printed a usage line and something like `argument --tenant: invalid value
 (the value is not shown)`. It never repeats what you typed, because a person can paste a secret where a name belongs.

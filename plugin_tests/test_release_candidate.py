@@ -432,6 +432,28 @@ class GuideStructureTests(unittest.TestCase):
             if command not in interactive:
                 self.assertIn(squashed(command), script, 'the script does not run: ' + command)
 
+    def test_the_guide_shows_the_enforced_wheel_digest_and_says_why_it_matters(self):
+        section = squashed(guide_section('Check a clean install end to end'))
+        for phrase in ('--pip-wheel-sha256', 'ba0d021a166865d2265246961bec0152ff124de910c5cc39f1156ce3fa7c69dc',
+                       'runs as code', 'before it creates anything', 'CPython 3.11.9'):
+            self.assertIn(phrase, section)
+
+    def test_the_script_commands_in_the_guide_are_accepted_by_the_scripts_own_argument_parser(self):
+        import shlex
+        commands = [line for block in code_blocks(guide_text()) for line in block
+                    if line.startswith('bash scripts/demo-clean-install.sh')]
+        self.assertGreaterEqual(len(commands), 2)
+        self.assertTrue(any('--pip-wheel-sha256' in command for command in commands))
+        with tempfile.TemporaryDirectory() as directory:
+            for command in commands:
+                with self.subTest(command=command):
+                    result = subprocess.run(['bash', str(DEMO), *shlex.split(command)[2:]], cwd=directory, capture_output=True,
+                                            text=True, env={'PATH': os.environ['PATH']}, timeout=60)
+                    # The placeholder paths do not exist, so the first refusal is the archive: every option was accepted.
+                    self.assertEqual(result.returncode, 64, result.stdout + result.stderr)
+                    self.assertIn('ARCHIVE is not a file', result.stderr)
+                    self.assertNotIn('Usage:', result.stderr)
+
     def test_the_sample_data_section_names_what_the_estate_is_made_of(self):
         section = guide_section('The sample data')
         for phrase in ('examples/supported/input/export.json', 'examples/context.json', SAMPLE_TENANT, SAMPLE_POLICY,
@@ -856,6 +878,99 @@ class PipWheelInstallTests(unittest.TestCase):
         self.assertEqual(list((self.base / 'work').rglob('*.whl')), [])
         self.assertEqual(self.pip_wheel.read_bytes(), before)
 
+    # --pip-wheel-sha256: the wheel runs as code, so the caller can say which file it must be.
+    def wheel_digest(self):
+        return sha256(self.pip_wheel.read_bytes())
+
+    def quick_archive(self):
+        """A verified archive that is not a runtime archive: once every argument is accepted the script reads on to exit 3."""
+        members = {'README.md': 'a verified archive without the product\n'}
+        members['SHA256SUMS'] = ''.join(f'{sha256(text.encode())}  {name}\n' for name, text in sorted(members.items()))
+        path = self.base / 'plain.zip'
+        with zipfile.ZipFile(path, 'w') as archive:
+            for name, text in members.items():
+                archive.writestr('intune-iac/' + name, text)
+        return path
+
+    def listing(self):
+        return sorted(p.name for p in self.base.iterdir()), sorted(p.name for p in self.outside.iterdir())
+
+    def test_a_matching_digest_is_accepted_and_the_whole_run_passes(self):
+        digest = self.wheel_digest()
+        result = self.run_script('--pip-wheel', self.pip_wheel, '--pip-wheel-sha256', digest, self.archive, self.wheels,
+                                 self.base / 'work')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('pip wheel sha256: ' + digest, result.stdout)
+        self.assertIn('RESULT: every step passed.', result.stdout)
+        self.assertEqual(self.venv_calls(), ['venv -m venv --without-pip .venv'])
+        self.assertEqual(len(self.pip_calls()), 2)
+
+    def test_the_digest_option_takes_either_spelling_and_either_order(self):
+        digest = self.wheel_digest()
+        quick = self.quick_archive()
+        spellings = (('--pip-wheel', self.pip_wheel, '--pip-wheel-sha256', digest),
+                     ('--pip-wheel-sha256', digest, '--pip-wheel', self.pip_wheel),
+                     (f'--pip-wheel={self.pip_wheel}', f'--pip-wheel-sha256={digest}'))
+        for index, options in enumerate(spellings):
+            with self.subTest(index):
+                result = self.run_script(*options, quick, self.wheels, self.base / f'quick{index}')
+                # Every argument was accepted and the digest matched, so the run read on to the archive check.
+                self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+                self.assertIn('not a runtime archive', result.stderr)
+                self.assertIn('pip wheel sha256: ' + digest, result.stdout)
+
+    def test_a_different_digest_is_refused_before_anything_is_created(self):
+        digest = self.wheel_digest()
+        flipped = digest[:-1] + ('0' if digest[-1] != '0' else '1')
+        for name, expected in (('all zero', '0' * 64), ('one digit off', flipped)):
+            with self.subTest(name):
+                work = self.base / 'work'
+                before = self.listing()
+                result = self.run_script('--pip-wheel', self.pip_wheel, '--pip-wheel-sha256', expected, self.archive,
+                                         self.wheels, work)
+                self.assertEqual(result.returncode, 64, result.stdout + result.stderr)
+                self.assertIn('expected ' + expected, result.stderr)
+                self.assertIn('actual ' + digest, result.stderr)
+                self.assertFalse(work.exists(), 'the work folder must not exist after a refusal')
+                self.assertEqual(self.listing(), before, 'a refusal creates nothing')
+                self.assertEqual((self.venv_calls(), self.pip_calls()), ([], []))
+                self.assertNotIn('RESULT:', result.stdout)
+
+    def test_a_malformed_digest_is_a_usage_error_and_nothing_is_created(self):
+        digest = self.wheel_digest()
+        cases = {'uppercase': digest.upper(), 'one short': digest[:-1], 'one long': digest + '0', 'not hex': 'g' * 64,
+                 'empty': '', 'prefixed': 'sha256:' + digest, 'a space': digest[:32] + ' ' + digest[33:]}
+        for name, value in cases.items():
+            with self.subTest(name):
+                work = self.base / 'work'
+                before = self.listing()
+                result = self.run_script('--pip-wheel', self.pip_wheel, '--pip-wheel-sha256', value, self.archive,
+                                         self.wheels, work)
+                self.assertEqual(result.returncode, 64, result.stdout + result.stderr)
+                self.assertIn('--pip-wheel-sha256 must be 64 lowercase hex digits', result.stderr)
+                self.assertIn('Usage:', result.stderr)
+                self.assertEqual(self.listing(), before)
+                self.assertEqual((self.venv_calls(), self.pip_calls()), ([], []))
+        with self.subTest('no value'):
+            result = self.run_script('--pip-wheel', self.pip_wheel, self.archive, self.wheels, self.base / 'work',
+                                     '--pip-wheel-sha256')
+            self.assertEqual(result.returncode, 64, result.stdout + result.stderr)
+            self.assertIn('--pip-wheel-sha256 needs a value', result.stderr)
+            self.assertFalse((self.base / 'work').exists())
+
+    def test_the_digest_without_a_wheel_is_a_usage_error_and_nothing_is_created(self):
+        work = self.base / 'work'
+        before = self.listing()
+        for name, options in (('separate', ('--pip-wheel-sha256', self.wheel_digest())),
+                              ('equals sign', (f'--pip-wheel-sha256={self.wheel_digest()}',))):
+            with self.subTest(name):
+                result = self.run_script(*options, self.archive, self.wheels, work, ensurepip='present')
+                self.assertEqual(result.returncode, 64, result.stdout + result.stderr)
+                self.assertIn('--pip-wheel-sha256 needs --pip-wheel', result.stderr)
+                self.assertIn('Usage:', result.stderr)
+                self.assertEqual(self.listing(), before)
+                self.assertEqual((self.venv_calls(), self.pip_calls()), ([], []))
+
     def test_a_host_without_ensurepip_is_accepted_only_with_the_option(self):
         with_option = self.run_script('--pip-wheel', self.pip_wheel, self.archive, self.wheels, self.base / 'a')
         self.assertEqual(with_option.returncode, 0, with_option.stdout + with_option.stderr)
@@ -892,11 +1007,15 @@ class PipWheelInstallTests(unittest.TestCase):
                 self.assertFalse(work.exists(), 'a refused run makes nothing')
                 self.assertEqual((self.venv_calls(), self.pip_calls()), ([], []))
 
-    def test_usage_names_the_option_and_the_comment_says_when_to_use_it(self):
-        self.assertIn('[--pip-wheel PATH]', self.run_script().stderr)
-        header = '\n'.join(DEMO.read_text().splitlines()[:30])
+    def test_usage_names_the_options_and_the_comment_says_when_to_use_them(self):
+        usage = self.run_script().stderr
+        self.assertIn('[--pip-wheel PATH]', usage)
+        self.assertIn('[--pip-wheel-sha256 HEX]', usage)
+        header = '\n'.join(DEMO.read_text().splitlines()[:40])
         self.assertIn('--pip-wheel', header)
         self.assertIn('ensurepip', header)
+        self.assertIn('--pip-wheel-sha256', header)
+        self.assertIn('runs as code', header)
 
 
 class CheckoutBuildCheckTests(unittest.TestCase):
