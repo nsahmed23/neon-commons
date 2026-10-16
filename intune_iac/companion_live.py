@@ -387,10 +387,12 @@ class LiveCompanion:
             return
         try:
             threading.Thread(target=self._stop_in_background, daemon=True).start()
-        except BaseException:
+        except BaseException as handover:
             # No thread could be started to do it. The stop is bounded, so this thread does it: a recorded reason is never
             # left with a listener still running. A failure is queued by the stop itself, for the next caller.
             self._stop_in_background()
+            if not isinstance(handover, Exception):
+                raise          # an interrupt is not recovered by the fallback: it still reaches the caller
 
     def begin_write(self):
         """Admit a handler to write protected content: refused once stopping has begun; otherwise it is counted, in the same

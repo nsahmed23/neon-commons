@@ -1519,6 +1519,21 @@ class StopTests(Fixture):
         self.assertEqual(caught.exception.code, 'companion_live_close_unsettled')
         self.assertIsNone(caught.exception.__cause__)
 
+    def test_an_interrupt_from_the_hand_over_thread_start_is_not_swallowed_by_the_fallback(self):
+        live = self.start()
+        real_start, calls = threading.Thread.start, []
+
+        def start(thread):
+            calls.append(thread)
+            if len(calls) == 1:
+                raise KeyboardInterrupt('interrupted while starting the hand-over')
+            return real_start(thread)
+        with mock.patch.object(threading.Thread, 'start', start):
+            with self.assertRaises(KeyboardInterrupt):
+                live.end('idle', wait=False)
+        with self.assertRaises(OSError):                 # the fallback still stopped it
+            socket.create_connection(('127.0.0.1', live.port), timeout=2)
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500
