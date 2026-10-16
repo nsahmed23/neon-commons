@@ -884,6 +884,49 @@ def _companion_read(store, object_id):
     return read
 
 
+# What the workflow map reads of the newest operation's review: the review's bodies (before, desired) are not among it.
+WORKFLOW_REVIEW_KEYS = ('operation_id', 'operation_root', 'status', 'approval_window', 'expires_at', 'repository',
+                        'no_configuration_change', 'changes')
+
+
+def _workflow_read(store, object_id, *, service_root=None):
+    """The values the workflow map reads for one policy: the Inspector's read model (states, diagnostics, the proposal's
+    own observation check), the policy's adoption records and, for its newest operation, that operation's review and
+    delivery. Read-only, as each of them is. An operation whose evidence cannot be read is carried as its error code,
+    never left out, so the map says unknown and why. Raises AppError for a policy the store does not hold."""
+    import time
+    found = _inspection(store, object_id, attention=True, service_available=service_root is not None,
+                        service_root=service_root)
+    states = found['states']
+    operation = states.get('operation') if isinstance(states.get('operation'), dict) else {}
+    root = operation.get('operation_root')
+    review = delivered = None
+    if isinstance(root, str) and root:
+        from . import maintenance
+        from .workbench_delivery import delivery
+        try:
+            full = maintenance.review(root)
+            review = {key: full[key] for key in WORKFLOW_REVIEW_KEYS if key in full}
+        except (AppError, OSError, KeyError, TypeError, ValueError) as error:
+            review = {'error_code': getattr(error, 'code', 'operation_unreadable')}
+        try:
+            delivered = delivery(root)
+        except (AppError, OSError, KeyError, TypeError, ValueError) as error:
+            delivered = {'error_code': getattr(error, 'code', 'operation_unreadable')}
+    from .workbench_adoption import lineage
+    return {'object_id': object_id, 'tenant_id': store.tenant_id, 'name': found.get('name'),
+            'evidence_class': found.get('evidence_class'), 'states': states, 'attention': found['attention'],
+            'eligibility': found.get('observation_eligibility'), 'adoptions': lineage(store, object_id)['adoptions'],
+            'review': review, 'delivery': delivered, 'identity_prefixes': found.get('identity_prefixes'),
+            'now': time.time()}
+
+
+def _workflow(store, object_id, *, service_root=None):
+    """The workflow map's projection (schema workflow-map/1) of one policy; read-only."""
+    from .workflow_projection import project
+    return project(_workflow_read(store, object_id, service_root=service_root))
+
+
 def command(args):
     name = args.workbench_command
     from .host_capabilities import require_profile
