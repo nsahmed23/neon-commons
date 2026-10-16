@@ -417,8 +417,9 @@ class EvidencePathTests(unittest.TestCase):
     def test_a_path_inside_a_configured_root_is_kept_relative_to_it(self):
         result = self.read_with(['C:/Dev/Projects/intune-rescue/lanes/a/r.md', 'C:\\Dev\\Projects\\intune-rescue\\lanes\\b.md'],
                                 ['C:/Dev/Projects/intune-rescue'])
-        kept = [ref['path'] for ref in result['events'][0]['evidence']]
-        self.assertEqual(kept, ['intune-rescue/lanes/a/r.md', 'intune-rescue/lanes/b.md'])
+        self.assertEqual(len(result['events'][0]['evidence']), 2)
+        self.assertEqual(sorted(result['events'][0]['evidence'][0]), ['bytes', 'sha256'])  # no path text is carried
+        self.assertNotIn('r.md', json.dumps(result))
         self.assertEqual(result['rejected_evidence'], 0)
         self.assertEqual(result['events'][0]['evidence'][0]['sha256'], 'ab' * 32)
         self.assertEqual(result['events'][0]['evidence'][0]['bytes'], 5)
@@ -443,15 +444,14 @@ class EvidencePathTests(unittest.TestCase):
     def test_drive_letters_compare_without_case_and_other_paths_with_case(self):
         result = self.read_with(['c:/dev/projects/intune-rescue/r.md', '/home/u/Work/r.md', '/home/u/work/r.md'],
                                 ['C:/Dev/Projects/intune-rescue', '/home/u/work'])
-        self.assertEqual([ref['path'] for ref in result['events'][0]['evidence']],
-                         ['intune-rescue/r.md', 'work/r.md'])
+        self.assertEqual(len(result['events'][0]['evidence']), 2)
         self.assertEqual(result['rejected_evidence'], 1)
 
     def test_a_windows_root_also_accepts_the_same_directory_spelled_for_wsl(self):
         result = self.read_with(['/mnt/c/Dev/Projects/intune-rescue/r.md'], ['C:/Dev/Projects/intune-rescue'])
-        self.assertEqual([ref['path'] for ref in result['events'][0]['evidence']], ['intune-rescue/r.md'])
+        self.assertEqual(len(result['events'][0]['evidence']), 1)
         result = self.read_with(['D:/data/r.md'], ['/mnt/d/data'])
-        self.assertEqual([ref['path'] for ref in result['events'][0]['evidence']], ['data/r.md'])
+        self.assertEqual(len(result['events'][0]['evidence']), 1)
 
     def test_malformed_evidence_entries_are_dropped_with_a_fault_not_shown(self):
         write_export(self.dir, [event(1, 'dispatch.queued', 'T-1', kind='advisor',

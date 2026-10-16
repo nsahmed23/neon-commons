@@ -7,8 +7,8 @@ type makes the whole line a contract fault, and no free-text field is carried: a
 source did not record stays None; nothing here infers one.
 
 Prompts, results, summaries, producer identities beyond the role, session ids and agent configuration are not in the
-contract, so no code path can show them. Evidence paths are shown only inside configured roots, as a path relative to
-the root; the view never opens them.
+contract, so no code path can show them. Evidence path text is never carried: a reference is kept (as a digest and a
+size) only when its path is inside a configured root, and is otherwise only counted. The view never opens a path.
 """
 from __future__ import annotations
 
@@ -155,21 +155,21 @@ def normalize_roots(roots):
     return out
 
 
-def evidence_display(path, roots):
-    """The path relative to the root that holds it, written 'rootname/relative/path', or None when the path is not
-    strictly inside any configured root. `roots` is the result of normalize_roots."""
+def evidence_inside_root(path, roots):
+    """True when the path is a plain absolute path strictly inside a configured root. `roots` is the result of
+    normalize_roots. Only the yes or no leaves this function: the segments below the root can hold a name, a
+    configuration word or a secret, so no part of the path is ever returned or shown."""
     parsed = _segments(path)
     if parsed is None:
-        return None
+        return False
     drive, segments = parsed
-    for root_drive, root_segments, name in roots:
+    for root_drive, root_segments, _name in roots:
         if root_drive != drive or len(segments) <= len(root_segments):
             continue
         head = segments[:len(root_segments)]
-        same = [a.lower() for a in head] == [b.lower() for b in root_segments] if drive else head == root_segments
-        if same:
-            return name + '/' + '/'.join(segments[len(root_segments):])
-    return None
+        if [a.lower() for a in head] == [b.lower() for b in root_segments] if drive else head == root_segments:
+            return True
+    return False
 
 
 # -- header and events ---------------------------------------------------------------------------------------------
@@ -252,11 +252,10 @@ def _evidence(raw, roots):
             raise _bad('evidence.sha256')
         if size is not None and not _count(size):
             raise _bad('evidence.bytes')
-        shown = evidence_display(ref.get('path'), roots)
-        if shown is None:
-            rejected += 1
+        if evidence_inside_root(ref.get('path'), roots):
+            kept.append({'sha256': digest, 'bytes': size})  # no path text is carried
         else:
-            kept.append({'path': shown, 'sha256': digest, 'bytes': size})
+            rejected += 1
     return kept, rejected
 
 

@@ -201,7 +201,7 @@ def parser():
     engineering=commands.add_parser('engineering',help='Show engineering orchestration records from a loopctl export (read-only, offline)')
     engineering.add_argument('--records',help='Directory written by loopctl export (header.json and events.jsonl); without it the command says nothing is configured')
     engineering.add_argument('--controller-log',help='Controller log (JSON lines); its dispatch lines are counted, never modelled')
-    engineering.add_argument('--evidence-root',action='append',default=[],help='Absolute directory under which evidence paths are shown; repeat as needed (none: no path is shown)')
+    engineering.add_argument('--evidence-root',action='append',default=[],help='Absolute directory that evidence references must lie inside to be reported as recorded; repeat as needed. No path text is ever shown')
     engineering.add_argument('--json',action='store_true',help='Print the view as JSON instead of text')
     _paths(commands.add_parser('inspect',help='Inspect one policy without writing output'))
     _paths(commands.add_parser('verify',help='Recheck an existing project against source-derived expectations'),True)

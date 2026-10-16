@@ -104,19 +104,20 @@ class ReducerTests(unittest.TestCase):
         tasks = self.tasks(events)
         self.assertEqual(list(tasks), ['T-a', 'T-b'])
 
-    def test_the_evidence_path_shown_is_the_latest_one_recorded_for_the_task(self):
+    def test_a_task_row_says_whether_evidence_was_recorded_and_carries_no_path(self):
         from intune_iac.orchestration_export import read_export
         from intune_iac.orchestration_reducer import reduce_events
-        ref = lambda name: [{'path': 'C:/p/evidence/' + name, 'sha256': 'ab' * 32, 'bytes': 1}]
-        events = [event(1, 'dispatch.queued', 'T-1', kind='advisor', evidence=ref('a.md')),
+        ref = lambda name, digest: [{'path': 'C:/p/evidence/' + name, 'sha256': digest * 32, 'bytes': 7}]
+        events = [event(1, 'dispatch.queued', 'T-1', kind='advisor', evidence=ref('a.md', 'ab')),
                   event(2, 'dispatch.started', 'T-1', adopted=False),
-                  event(3, 'dispatch.completed', 'T-1', evidence=ref('b.md'))]
+                  event(3, 'dispatch.completed', 'T-1', evidence=ref('b.md', 'cd'))]
         write_export(self.dir, events)
-        rows = reduce_events(read_export(self.dir, roots=['C:/p'])['events'])['tasks']
-        self.assertEqual(rows[0]['evidence'], 'p/evidence/b.md')
-        write_export(self.dir, events)
-        rows = reduce_events(read_export(self.dir)['events'])['tasks']
-        self.assertIsNone(rows[0]['evidence'])
+        row = reduce_events(read_export(self.dir, roots=['C:/p'])['events'])['tasks'][0]
+        self.assertEqual((row['evidence_recorded'], row['evidence_sha256'], row['evidence_bytes']), (True, 'cd' * 32, 7))
+        self.assertNotIn('evidence', row)
+        self.assertNotIn('b.md', json.dumps(row))
+        row = reduce_events(read_export(self.dir)['events'])['tasks'][0]
+        self.assertEqual((row['evidence_recorded'], row['evidence_sha256'], row['evidence_bytes']), (False, None, None))
 
 
 class ViewTests(unittest.TestCase):
@@ -255,7 +256,8 @@ class CommandTests(unittest.TestCase):
         log.write_text(json.dumps({'kind': 'dispatch'}) + '\n' + json.dumps({'kind': 'dispatch'}) + '\n', encoding='utf-8')
         result = self.cli('--records', self.root / 'records', '--evidence-root', 'C:/p', '--controller-log', log)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn('p/evidence/a.md', result.stdout)
+        self.assertIn('evidence recorded inside a configured root', result.stdout)
+        self.assertNotIn('a.md', result.stdout)
         self.assertIn('1 dispatches recorded only in the controller log; not modelled', result.stdout)
         result = self.cli('--records', self.root / 'records')
         self.assertNotIn('a.md', result.stdout)

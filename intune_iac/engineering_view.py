@@ -83,7 +83,7 @@ def _task_line(row):
     parts = ['%s  %s  %s  %s' % (row['task'], row['kind'] or 'kind not recorded', row['role'], row['words']),
              'last %s seq %d' % (row['last_event_type'], row['last_seq']),
              'adoptions %d%s' % (row['adoptions'], incarnation),
-             '%sevidence %s' % (reason, row['evidence'] or 'none')]
+             '%s%s' % (reason, 'evidence recorded inside a configured root' if row['evidence_recorded'] else 'evidence none')]
     return escape_text(' | '.join(parts), 600)
 
 

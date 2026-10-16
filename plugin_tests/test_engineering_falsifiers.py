@@ -465,6 +465,25 @@ class RedactionTests(Base):
             self.assertEqual([f['code'] for f in model['faults']], ['invalid_field'])
             self.assertNotIn('nsahm', text + json.dumps(model))
 
+    def test_evidence_inside_a_root_shows_a_fixed_phrase_and_never_a_path_segment(self):
+        from intune_iac import orchestration_contract as contract
+        self.assertFalse(hasattr(contract, 'evidence_display'))
+        path = 'C:\\exports\\Alice\\LOOP_CODEX=codex.CMD\\sk_live_abc'
+        events = [event(1, 'dispatch.queued', 'T-1', kind='advisor',
+                        evidence=[{'path': path, 'sha256': 'ab' * 32, 'bytes': 9}])]
+        model, text = self.view(events, evidence_roots=['C:/exports'])
+        shown = text + json.dumps(model)
+        for forbidden in ('Alice', 'LOOP_CODEX', 'codex', 'sk_live', 'exports'):
+            self.assertNotIn(forbidden, shown)
+        self.assertIn('evidence recorded inside a configured root', text)
+        row = model['tasks'][0]
+        self.assertEqual((row['evidence_recorded'], row['evidence_sha256'], row['evidence_bytes']), (True, 'ab' * 32, 9))
+        self.assertNotIn('evidence', row)
+        model, text = self.view(events)  # no configured root: the reference is outside every root
+        self.assertFalse(model['tasks'][0]['evidence_recorded'])
+        self.assertIn('evidence none', text)
+        self.assertNotIn('Alice', text + json.dumps(model))
+
     def test_an_event_type_that_is_an_array_or_an_object_is_a_fault_shown_in_the_view(self):
         from intune_iac.engineering_view import build_view, render_lines
         for bad in (['dispatch.queued'], {'a': 'b'}, 7, None):

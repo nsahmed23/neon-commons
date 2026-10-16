@@ -1,6 +1,9 @@
 """The loop-export adapter: reads DIR/header.json and DIR/events.jsonl (orchestration-export/1) into orchestration-record/1.
 
-Reading never writes, never follows a symbolic link, opens the records directory once and bounds every file and line. The result is a plain dict:
+Reading never writes and bounds every file and line. On POSIX it opens the records directory once and its files
+through that handle, without following a symbolic link. On Windows the protection is narrower: links and reparse
+points are refused and the directory is re-checked after each open, but a parent swapped and restored between the
+checks is not detected. The result is a plain dict:
 
     header           the six header fields, or None
     check            {state: ok | mismatch | no_header, header_count, header_last_seq, read_count, read_last_seq,
@@ -216,7 +219,7 @@ def _check(header, reason, read_count, read_last):
 
 
 def read_export(directory, roots=()):
-    """Read one export directory. `roots` are the configured evidence roots (none means no evidence path is shown)."""
+    """Read one export directory. `roots` are the configured evidence roots (none means every evidence reference is counted as outside; no path text is ever shown)."""
     roots = normalize_roots(roots)
     with RecordsDirectory(directory) as records_dir:
         return _read_records(records_dir, roots)

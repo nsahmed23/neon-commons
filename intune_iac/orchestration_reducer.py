@@ -100,7 +100,7 @@ def _apply(task, event):
     kind, data = event['event_type'], event['data']
     task['last'] = event
     if event['evidence']:
-        task['evidence'] = event['evidence'][-1]['path']
+        task['evidence'] = event['evidence'][-1]  # digest and size only; no path text is ever carried
     attempt, current = _choose(task, event)
     if attempt is None:
         return
@@ -196,7 +196,9 @@ def _row(task, verifications, corrected):
             'reason_recorded': bool(attempt['terminal'] and attempt['terminal']['reason_recorded']),
             'last_event_type': last['event_type'], 'last_seq': last['seq'], 'last_wall_utc': last['wall_utc'],
             'no_news_since': None if state in FINAL else clock, 'adoptions': task['adoptions'],
-            'incarnation': task['incarnation'], 'late_result': task['late'], 'evidence': task['evidence']}
+            'incarnation': task['incarnation'], 'late_result': task['late'], 'evidence_recorded': task['evidence'] is not None,
+            'evidence_sha256': task['evidence']['sha256'] if task['evidence'] else None,
+            'evidence_bytes': task['evidence']['bytes'] if task['evidence'] else None}
 
 
 def reduce_events(events):
