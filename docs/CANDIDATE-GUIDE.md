@@ -278,11 +278,14 @@ mkdir -m 700 demo
    recorded, not applicable) with a mark, and the record it was read from (its `basis`). `@` marks the position, the
    last stage whose state is recorded. A stage with no record says `not recorded`; it never says that work has not
    started, and an unknown outcome is never drawn as done. On the sample the position is observe (`Position: observe`),
-   because nothing else has been recorded for the policy yet. `--json` prints the same facts as data, and the text
-   ends with `This view is read-only` and what it reads.
+   because nothing else has been recorded for the policy yet. The later stages fill in when the policy is taken through
+   the change route against the modeled service (`propose`, `review`, `execute` and `reconcile`), which
+   `docs/WORKBENCH.md` describes and this quickstart does not walk. `--json` prints the same facts as data, and the
+   text ends with `This view is read-only` and what it reads.
 
-   In the workspace, press `:`, type `workflow` and press Enter. Up and Down move between stages, and the detail
-   below the map follows the focused stage (its basis, the reason and the next step, where the product has one).
+   In the workspace, with the policy selected as in step 7, press `:`, type `workflow` and press Enter. Up and Down move
+   between stages, and the detail below the map follows the focused stage (its basis, the reason and the next step,
+   where the product has one).
    Enter opens that stage's own view, Esc closes the layer and `b` goes back. The map needs a window of at least 60
    columns by 20 rows; below that the layer says so in one sentence, and the command above prints the same map.
 
