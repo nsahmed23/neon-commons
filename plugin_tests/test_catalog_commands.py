@@ -233,8 +233,24 @@ class LayerRouteTests(unittest.TestCase):
                     self.assertNotIn('catalog PATH', text)
                     for row in rows:
                         self.assertLessEqual(len(row), size[0], row)
-                    if size[0] >= 59:
+                    if size[0] >= 80:     # the full notice only where it and the sentence above fit three rows
                         self.assertIn("Plain text: intune-iac catalog, with this workspace's directory (%s)" % CANNOT, text)
+
+    def test_no_route_notice_is_cut_in_a_frame_with_only_three_body_rows(self):
+        """Round 2 (Sol, Low): at 12 rows the body holds three rows, two of them the larger-window sentence at 40 to 59 columns."""
+        for label, name in NAMES.items():
+            temp, parent, directory = make_directory(name)
+            self.addCleanup(temp.cleanup)
+            value = built(parent, directory)
+            for size in ((40, 12), (50, 12), (59, 12)):
+                with self.subTest(name=label, size=size):
+                    rows = layer_text(value, size)
+                    self.assertNotIn('more below', ' '.join(rows))          # nothing is scrolled out of view
+                    text = joined(rows)
+                    self.assertIn(CANNOT, text.lower())
+                    body = [row.strip(' |') for row in rows if row.startswith('|') and row.strip(' |')]
+                    self.assertTrue(body[-1].lower().endswith('here'), body)    # the notice's last words are on screen
+                    self.assertLessEqual(len(body), 3, rows)
 
     def test_an_absent_directory_says_it_is_not_known(self):
         value = tc.catalog(tr.repository_item())

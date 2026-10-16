@@ -342,7 +342,7 @@ class RouteDirectoryTests(CatalogLayerCase):
                 with self.subTest(what=what, size=size):
                     rows = self.screen_of(directory, size)
                     # PKG-CATALOG-6: no command at all for a directory the screen may not show, not even with the stand-in
-                    expected = ('The directory cannot be shown here' if size == (40, 12)
+                    expected = ('The directory cannot be shown here' if size[0] < 80   # round 2: one row where three rows are all
                                 else "Plain text: intune-iac catalog, with this workspace's directory (the directory cannot be shown here).")
                     self.assertIn(expected, ' '.join(' '.join(self.body(rows)).split()))
                     self.assertNotIn('catalog DIRECTORY', ' '.join(rows))

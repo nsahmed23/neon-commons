@@ -297,9 +297,11 @@ def catalog_route(value, width):
     be shown: a command on one screen names a directory in one way. Where the operand cannot be shown (the display rule refused
     the name, the result has none, or no form holds it in the row) there is no command at all: a stand-in such as DIRECTORY is
     a valid relative path and a copied command would address that folder. A notice says what is missing instead, in the words
-    the workflow layer uses; below 40 cells (a 40x12 frame's body holds 34 cells and three rows, two of them the sentence above)
-    the notice is the one-row form, 34 cells at most."""
+    the workflow layer uses. This function cannot read the frame's height, and the shortest frame (12 rows) has three body rows,
+    the larger-window sentence above taking some of them: the full notice is drawn only where it and that sentence together fit
+    those three rows, otherwise the one-row form (34 cells at most), so that no frame cuts the notice."""
     from .catalog import DIRECTORY_CANNOT_BE_SHOWN, DIRECTORY_NOT_KNOWN
+    from .workbench_screens import word_wrap
     built = getattr(value, 'text_build', None)
     built = built if isinstance(built, dict) else {}
     operand = built.get('directory_operand')
@@ -310,9 +312,10 @@ def catalog_route(value, width):
             return fits[0]
     named = shown or built.get('directory_hidden') or (isinstance(value, dict) and value.get('directory'))
     why = DIRECTORY_CANNOT_BE_SHOWN if named else DIRECTORY_NOT_KNOWN
-    if width < 40:
+    full = "Plain text: intune-iac catalog, with this workspace's directory (%s)." % why
+    if len(word_wrap(CATALOG_NEEDS, width)) + len(word_wrap(full, width)) > 3:
         return why[:1].upper() + why[1:]
-    return "Plain text: intune-iac catalog, with this workspace's directory (%s)." % why
+    return full
 
 
 CATALOG_HELP_LINES = ('? help | : command | Esc close catalog | b back | q exit', '? help | Esc close | b back | q exit',
