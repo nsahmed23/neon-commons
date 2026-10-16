@@ -195,3 +195,23 @@ class RepositoryNodeLabelTests(MapTruth):
         graph = self.graph(value)
         repository = next(node for node in graph['nodes'] if node['kind'] == 'repository')
         return map_lines(graph, 200, focus=repository['ref'])
+
+
+class StatusNamesTheLineTerminalCommandTests(unittest.TestCase):
+    """Item 6, low 33: the repository status reaches the line terminal and the CLI as JSON, where keys 9 and a do not
+    exist, so its next step also names the pinned command (M-74 still bans the unpinned form)."""
+
+    def test_the_stale_step_keeps_the_key_route_and_names_the_pinned_command(self):
+        from intune_iac.workbench_repository import NEXT_ACTIONS
+        step = ' '.join(NEXT_ACTIONS['stale'].split())
+        self.assertIn('Refresh the repository intent (a: actions)', step)
+        self.assertIn('In the line terminal, where 9 and a are not keys, type repository-refresh REVISION '
+                      'RESOLUTION_SHA256', step)
+        self.assertIn('resolution_sha256 shown above', step)
+
+    def test_no_unpinned_form_is_printed_by_any_screen_module(self):
+        import re
+        from pathlib import Path
+        for module in ('workbench_diagnostics', 'workbench_screens', 'workbench_repository', 'workbench_tui'):
+            source = (Path(__file__).resolve().parents[1] / 'intune_iac' / (module + '.py')).read_text(encoding='utf-8')
+            self.assertEqual(re.findall(r'repository-refresh REVISION(?! RESOLUTION_SHA256)', source), [], module)

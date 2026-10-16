@@ -330,7 +330,8 @@ class RefreshRouteTests(Proposed):
 
     def test_no_screen_text_prints_the_unpinned_form(self):
         for module in ('workbench_diagnostics', 'workbench_screens', 'workbench_repository', 'workbench_tui'):
-            self.assertNotIn('repository-refresh REVISION', self.source(module), module)
+            # The unpinned form is banned; the pinned one (REVISION RESOLUTION_SHA256) is how the line terminal pins.
+            self.assertNotRegex(self.source(module), r'repository-refresh REVISION(?! RESOLUTION_SHA256)', module)
 
     def test_the_repository_band_next_names_the_staged_route(self):
         self.import_intent()
