@@ -996,7 +996,9 @@ plugin_tests/test_restricted_hashes.py
 plugin_tests/test_runner.py
 plugin_tests/test_secret_redaction_harness.py
 plugin_tests/test_signin_collect.py
+plugin_tests/test_signin_collect_path_print.py
 plugin_tests/test_signin_collect_readable.py
+plugin_tests/test_signin_collect_refusal.py
 plugin_tests/test_signin_detect.py
 plugin_tests/test_signin_expired.py
 plugin_tests/test_signin_fix1.py
@@ -1013,6 +1015,7 @@ plugin_tests/test_signin_not_permission.py
 plugin_tests/test_signin_output.py
 plugin_tests/test_signin_plain_verdict.py
 plugin_tests/test_signin_readable.py
+plugin_tests/test_signin_refusal_cause.py
 plugin_tests/test_signin_rules.py
 plugin_tests/test_signin_single_rule.py
 plugin_tests/test_signin_tenant.py
