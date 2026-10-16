@@ -358,8 +358,8 @@ class LiveCompanion:
                 pass
         try:
             sock.close()
-        except Exception as error:
-            return error
+        except BaseException as error:
+            return error      # an interrupt too: the caller decides, so that no earlier error is lost with it
         return None
 
     def _listener_closed(self):
@@ -382,10 +382,14 @@ class LiveCompanion:
         if raw_problem is not None:
             if problem is None:
                 problem = raw_problem
-            else:
+            elif isinstance(raw_problem, Exception):
                 note = 'The raw close also failed: %s' % type(raw_problem).__name__
                 if note not in getattr(problem, '__notes__', ()):
                     problem.add_note(note)
+            else:
+                # An interrupt during the raw close propagates; it carries the class of the first error so that is kept.
+                raw_problem.add_note('The first close error was: %s' % type(problem).__name__)
+                problem = raw_problem
         if problem is not None and not isinstance(problem, Exception):
             raise problem
         return problem
@@ -423,6 +427,8 @@ class LiveCompanion:
                 self._serving_stopped = True
             else:
                 forced = self._raw_close(wake=True)
+                if forced is not None and not isinstance(forced, Exception):
+                    raise forced
                 self._serving_stopped = self._listener_closed()
         problem = self._close_listener()
         if not self._listener_closed():
@@ -521,6 +527,8 @@ class LiveCompanion:
         # The stopper outlived the bound. Close the socket here, check that it is closed, and say what is true. This
         # attempt takes over the state, so a stopper that finishes later cannot overwrite it; the next stop() retries.
         forced = self._raw_close(wake=True)
+        if forced is not None and not isinstance(forced, Exception):
+            raise forced
         if self._listener_closed():
             message = 'The listener is still being stopped by another caller; its port is closed.'
         else:

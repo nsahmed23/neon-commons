@@ -36,11 +36,12 @@ class Clock:
 class UnclosableSocket:
     """Stands in for a listening socket whose close fails: everything is the real socket's, but close() raises and the
     descriptor stays open (fileno() is never -1)."""
-    def __init__(self, real):
+    def __init__(self, real, error=PermissionError):
         self._real = real
+        self._error = error
 
     def close(self):
-        raise PermissionError('raw close failed')
+        raise self._error('raw close failed')
 
     def shutdown(self, how):
         raise OSError('raw shutdown failed')
@@ -826,14 +827,14 @@ class StopTests(Fixture):
         with self.assertRaises(OSError):
             socket.create_connection(('127.0.0.1', live.port), timeout=2)
 
-    def break_close(self, live, raw=True, error=OSError):
+    def break_close(self, live, raw=True, error=OSError, raw_error=PermissionError):
         """Make server.server_close() raise `error` and, with raw=True, make closing the raw listening socket fail too.
         Returns repair(), which undoes both (it also runs as a cleanup, so the fixture's own stop() can then close the port)."""
         real_socket = live.server.socket
         patch = mock.patch.object(live.server, 'server_close', side_effect=error('close failed'))
         patch.start()
         if raw:
-            live.server.socket = UnclosableSocket(real_socket)
+            live.server.socket = UnclosableSocket(real_socket, raw_error)
 
         def repair():
             patch.stop()
@@ -1142,6 +1143,13 @@ class StopTests(Fixture):
             self.assertIsNone(again.exception.__cause__)
         live.stop()
         self.assertEqual(live.wait_step(), 'idle')
+
+    def test_an_interrupt_in_the_raw_close_keeps_the_class_of_the_first_close_error(self):
+        live = self.start()
+        self.break_close(live, raw_error=KeyboardInterrupt)
+        with self.assertRaises(KeyboardInterrupt) as caught:
+            live.stop()
+        self.assertIn('OSError', ' '.join(getattr(caught.exception, '__notes__', [])))
 
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
