@@ -217,19 +217,34 @@ def _reopen(store,request_sha256,trust_path,pin_path,scratch,api,*,historical=Fa
             auth_time=_peek(store);auth=contract.verify_envelope(envelope,request,policy,verify,now=auth_time,historical=True).result()
             if auth['tenant_id']!=store.tenant_id:contract.fail('workbench_evidence_identity')
             decide=lambda now:contract.verify_envelope(envelope,request,policy,verify,now=now)
-            with store._connection() as db:
-                _validate_schema(db);mark=_mark(db)
-            now=_effective(store,mark)
-            try:verified=decide(now)
-            except AppError as refusal:
-                if refusal.code not in ('worker_evidence_expired','worker_evidence_stale_snapshot') or mark>=now:raise
-                verified=None  # a closure the mark does not yet cover: record it
-            if verified is None or now-mark>MARK_STEP:
+            # The mark, the effective time, the decision and the receipt check are ONE read transaction: a SHARED lock is held
+            # from the first read, so a closure writer cannot commit between the decision and the receipt check (the read is
+            # serialized before it). The transaction ends before any write connection is opened.
+            for attempt_number in (1,2):
+                write=False
+                try:
+                    with store._connection() as db:
+                        _validate_schema(db);db.execute('BEGIN')
+                        try:
+                            mark=_mark(db);now=_effective(store,mark)
+                            try:verified=decide(now)
+                            except AppError as refusal:
+                                if refusal.code not in ('worker_evidence_expired','worker_evidence_stale_snapshot') or mark>=now:raise
+                                write=True  # a closure the mark does not yet cover: record it
+                            if not write and now-mark>MARK_STEP:write=True
+                            if not write:finish(db,verified)
+                        finally:
+                            if db.in_transaction:db.execute('ROLLBACK')  # nothing was written here
+                except AppError as changed:
+                    # The native store saw its database change under the read (a writer committed, for example a closure):
+                    # the read's judgment is void. Judge once more on the new state, never return the stale one.
+                    if changed.code!='windows_workbench_bytes_changed' or attempt_number==2:raise
+                    continue
+                break
+            if write:
+                # The judgment is made again inside the write transaction, against the mark read there.
                 pending=_transaction(store,auth_time,decide,finish)
                 if pending is not None:raise pending
-            else:
-                with store._connection() as db:
-                    _validate_schema(db);finish(db,verified)
         result=holder['result']
     return result
 

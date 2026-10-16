@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 from intune_iac import clock, windows_storage as storage, windows_workbench as win
 from intune_iac import windows_worker_evidence as native, windows_worker_evidence_store as receiver
+from intune_iac import worker_evidence as contract
 from intune_iac.io import AppError, canonical, digest
 from plugin_tests.test_windows_storage_r4 import CANONICAL, ROOT
 from plugin_tests.test_windows_workbench_r4 import FilesystemAPI
@@ -180,6 +181,52 @@ class WindowsStoreReaderTests(Shape, unittest.TestCase):
                 self.read()
             self.assertEqual(raised.exception.code, 'worker_evidence_expired')
         self.assertEqual(self.root_names(), settled)
+
+
+    def raw_mark(self):
+        db = sqlite3.connect(self.api.real(CANONICAL + '\\received\\observations.sqlite3'), timeout=0)
+        try:
+            row = db.execute("SELECT value FROM metadata WHERE key='worker_evidence_clock'").fetchone()
+        finally:
+            db.close()
+        return 0 if row is None else json.loads(row[0])['high_water']
+
+    def test_a_closure_committed_between_decision_and_receipt_check_is_not_read_past(self):
+        """A decides at T+5 (admissible); before A checks the stored receipt, B reads at T+20 and tries to record the closure.
+        A's mark, decision and receipt check are one read transaction, so B cannot commit in between: A is serialized before
+        B's closure. (Without it A would admit on a mark older than a closure already committed.)"""
+        self.publish(expiring(self.req))
+        real_verify, real_metadata = contract.verify_envelope, receiver._metadata
+        seen = {}
+
+        def hooked(*args, **kwargs):
+            outcome = real_verify(*args, **kwargs)
+            if not kwargs.get('historical') and 'closer' not in seen:
+                seen['closer'] = None
+                with wall(T + 20):
+                    try:
+                        self.read()
+                    except AppError as error:
+                        seen['closer'] = error
+                seen['closer_done'] = True
+            return outcome
+
+        def watching(db, key):
+            if key.startswith(receiver.RECEIVED) and seen.get('closer_done') and 'mark_at_check' not in seen:
+                seen['mark_at_check'] = self.raw_mark()
+            return real_metadata(db, key)
+
+        with patch.object(contract, 'verify_envelope', side_effect=hooked), \
+                patch.object(receiver, '_metadata', side_effect=watching), wall(T + 5):
+            try:
+                admitted = self.read()['baseline_admissible']
+            except AppError as error:
+                admitted = error.code
+        self.assertEqual(seen['closer'].code, 'worker_evidence_expired')
+        # The reader returns the closure, or an admission serialized before the closure's commit; never a bare refusal that is
+        # neither, and never an admission past a committed closure.
+        self.assertIn(admitted, ('worker_evidence_expired', True))
+        self.assertFalse(admitted is True and seen['mark_at_check'] >= T + 20, (admitted, seen))
 
 
 class QualificationScriptTests(unittest.TestCase):
