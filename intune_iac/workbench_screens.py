@@ -2269,6 +2269,148 @@ def map_lines(graph, width, rules='ascii', focus=None, selected=None, prefixes=N
     return lines + identity + detail
 
 
+# The workflow map (requirement 17 UX-VIS, PKG-UXVIS-5): one policy's change path, one lane per stage in the projection's
+# order. Every lane is the same fixed-width cell (the focus and position marks, the spine, the state mark, the stage's
+# label and the state word padded to one width), so a state change changes the mark and the word and never a coordinate;
+# the reconcile branch hangs inside readback as a side lane. Only the lanes and the legend are geometry: the focused
+# stage's detail below them is prose, and its length follows the records.
+WORKFLOW_MIN_SIZE = (60, 20)
+WORKFLOW_COMMAND = 'intune-iac workbench workflow --root ROOT --policy ID'
+WORKFLOW_NEEDS = 'The workflow map needs a larger window (at least %dx%d); %s prints it as plain text.' % (
+    WORKFLOW_MIN_SIZE + (WORKFLOW_COMMAND,))
+WORKFLOW_LABELS = {'observe': 'observe', 'adopt': 'adopt', 'intent': 'intent', 'propose': 'propose', 'review': 'review',
+                   'approve_execute': 'approve, execute', 'readback': 'readback', 'reconcile': 'reconcile',
+                   'record': 'record', 'observed_after': 'observed after', 'maintain': 'maintain'}
+# One mark per state of the projection; a state it does not name reads unknown here, never a state it was not given.
+WORKFLOW_MARKS = {'done': 'x', 'current': '+', 'waiting': ':', 'blocked': '!', 'refused': '#', 'unknown': '?',
+                  'not_recorded': '_', 'not_applicable': '-'}
+WORKFLOW_LABEL_WIDTH = 16
+WORKFLOW_WORD_WIDTH = 14          # the widest state word, "not applicable"
+WORKFLOW_BRANCH_INDENT = 3
+WORKFLOW_DETAIL_LABEL = 9
+# Where Enter goes from a stage, as the keys name the surfaces.
+WORKFLOW_SURFACES = {'2': '2 Inspector', '3': '3 Relationships', '5': '5 Plan', '7': '7 Coverage', '9': '9 Repository',
+                     'v': 'v Delivery'}
+WORKFLOW_FACT_WORDS = (
+    ('run_id', 'run'), ('observed_at', 'observed'), ('coverage', 'coverage'), ('freshness', 'freshness'),
+    ('recorded_at', 'recorded'), ('stack', 'stack'), ('component', 'component'), ('source_revision', 'revision'),
+    ('repository_intent_id', 'cited intent'), ('intent_freshness', 'intent'), ('intent_id', 'intent'),
+    ('field_changes', 'field changes'), ('opens_at', 'approval window opened'), ('closes_at', 'approval window closes'),
+    ('closed_at', 'approval window closed'), ('classification', 'readback'), ('second_plan', 'second plan'),
+    ('mismatch_count', 'mismatches'), ('previous_status', 'after'), ('count', 'reconciliations'),
+    ('journal_status', 'journal'), ('service_revision', 'service revision'), ('before_revision', 'before revision'),
+    ('baseline_admissible', 'baseline admissible'), ('context_changed', 'context changed'))
+
+
+def workflow_fits(size):
+    """Whether a window of `size` (columns, rows) has room for the workflow map; below it the layer says there is none."""
+    return size[0] >= WORKFLOW_MIN_SIZE[0] and size[1] >= WORKFLOW_MIN_SIZE[1]
+
+
+def workflow_unavailable_lines(width):
+    """What the workflow layer says where there is no map: that it needs a larger window, and the plain-text command."""
+    return word_wrap(WORKFLOW_NEEDS + ' Esc closes it; nothing else here has changed.', width)
+
+
+def workflow_legends():
+    """The legend's forms, widest first, each one row: the marks in words, then the keys only, so the width picks the form
+    and a state never does."""
+    keys = '> focus @ position'
+    marks = ' '.join('[%s] %s' % (mark, state.replace('_', ' ')) for state, mark in WORKFLOW_MARKS.items())
+    return ('%s | %s' % (marks, keys), 'marks: ? help | %s' % keys, keys)
+
+
+def _workflow_state(value):
+    """(mark, word) of a projection state: a state the map does not know reads unknown, never a state."""
+    state = value if value in WORKFLOW_MARKS else 'unknown'
+    return WORKFLOW_MARKS[state], state.replace('_', ' ')
+
+
+def _workflow_fact(name, value):
+    if name in ('observed_at', 'recorded_at'):
+        return readable_time(value) or str(value)
+    if name in ('opens_at', 'closes_at', 'closed_at'):
+        return str(_readable_epoch(value))
+    if name in ('repository_intent_id', 'intent_id', 'source_revision'):
+        return short_id(value)
+    return ('yes' if value else 'no') if isinstance(value, bool) else str(value)
+
+
+def workflow_fact_words(stage):
+    """The recorded values a stage carries, in words and in a fixed order, as one list of `what value` parts."""
+    facts = stage.get('facts') if isinstance(stage.get('facts'), dict) else {}
+    known = [name for name, _ in WORKFLOW_FACT_WORDS]
+    words = dict(WORKFLOW_FACT_WORDS)
+    return ['%s %s' % (words.get(name, name.replace('_', ' ')), _workflow_fact(name, facts[name]))
+            for name in known + sorted(set(facts) - set(known)) if name in facts]
+
+
+def workflow_stage_label(stage):
+    return WORKFLOW_LABELS.get(stage.get('id'), safe_text(str(stage.get('id')).replace('_', ' ')))
+
+
+def _workflow_route(flow, stage):
+    opens = stage.get('opens')
+    if opens:
+        return 'Enter opens ' + WORKFLOW_SURFACES.get(opens, safe_text(str(opens)))
+    return 'Enter opens nothing' + (': no operation is recorded' if not flow.get('operation') else '')
+
+
+def workflow_detail_rows(flow, stage, width):
+    """The focused stage in words: the identity row (state, reason, where Enter goes), then its basis, the recorded
+    values and the step the existing screens give. (pinned rows, flow rows): the pane keeps the first in view."""
+    _, word = _workflow_state(stage.get('state'))
+    reason = stage.get('reason')
+    parts = ['FOCUS ' + workflow_stage_label(stage), word,
+             'reason ' + safe_text(str(reason)) if reason else 'no reason recorded', _workflow_route(flow, stage)]
+    pinned = [PinnedRow(row) for row in _pack(parts, width)]
+    rows = _labelled('basis', str(stage.get('basis')), width, WORKFLOW_DETAIL_LABEL)
+    facts = workflow_fact_words(stage)
+    if facts:
+        rows += _labelled('recorded', '; '.join(facts), width, WORKFLOW_DETAIL_LABEL)
+    step = stage.get('continuation')
+    if isinstance(step, str) and step:
+        # A step that prints commands writes each on its own row after the sentence, as every screen does.
+        first, *commands = step.split(COMMAND_BREAK)
+        head = _labelled('next', first, width, WORKFLOW_DETAIL_LABEL)
+        pinned += [PinnedRow(row) for row in head[:2]]
+        rows += head[2:] + [row for part in commands for row in _labelled('', part, width, WORKFLOW_DETAIL_LABEL)]
+    return pinned, rows
+
+
+def workflow_map_lines(flow, width, rules='ascii', focus=None, prefixes=None, detail=True):
+    """The workflow map of one policy, then its legend and the focused stage's rows, for a pane `width` cells wide.
+
+    One lane per stage, in the projection's order. The rows of the lanes are MapLines (geometry: the pane never wraps
+    them); the header is ordinary text; the legend, the focused stage's identity and the head of its step are
+    PinnedRows, which the pane keeps in view when the map is taller than it. focus: a stage id (default: the position,
+    else the first stage). detail=False leaves the focused stage's rows out (the plain-text form lists every stage)."""
+    glyph = MAP_GLYPHS.get(rules, MAP_GLYPHS['ascii'])
+    stages = [stage for stage in flow.get('stages') or [] if isinstance(stage, dict)]
+    ids = [stage.get('id') for stage in stages]
+    position = flow.get('position')
+    focus = focus if focus in ids else position if position in ids else (ids[0] if ids else None)
+    name = flow.get('name') if isinstance(flow.get('name'), str) and flow['name'] else None
+    lines = word_wrap('[WORKFLOW] %s (%s) | %s' % (name or '(no name)', short_id(flow.get('object_id'), prefixes),
+                                                  evidence_words(flow.get('evidence_class'))), width)
+    for index, stage in enumerate(stages):
+        branch = bool(stage.get('branch_of'))
+        last = index == len(stages) - 1
+        spine = (glyph['guide'] if branch else '') + glyph['last' if last or branch else 'branch']
+        mark, word = _workflow_state(stage.get('state'))
+        room = WORKFLOW_LABEL_WIDTH - (WORKFLOW_BRANCH_INDENT if branch else 0)
+        gutter = ('>' if stage.get('id') == focus else ' ') + ('@' if stage.get('id') == position else ' ') + ' '
+        lines.append(_map_row('%s%s[%s] %s %s' % (gutter, spine, mark, pad(workflow_stage_label(stage), room),
+                                                  pad(word, WORKFLOW_WORD_WIDTH)), stage.get('id') == focus))
+    forms = workflow_legends()
+    lines.append(PinnedRow(next((form for form in forms if cell_width(form) <= width), forms[-1])))
+    chosen = next((stage for stage in stages if stage.get('id') == focus), None)
+    if detail and chosen is not None:
+        pinned, rows = workflow_detail_rows(flow, chosen, width)
+        lines += pinned + rows
+    return lines
+
+
 def history_lines(value, width, current=None):
     """Observations newest first, each with what changed since the one before it on this page.
 

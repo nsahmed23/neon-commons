@@ -7,6 +7,7 @@ need a real operation (prepared, closed window, unknown outcome, reconciled, rec
 modeled service and the maintenance engine over temporary directories.
 """
 import copy
+import re
 import unittest
 from unittest import mock
 
@@ -663,5 +664,251 @@ class RealStoreTests(unittest.TestCase):
         self.assertTrue(by_id(flow)['adopt']['basis'].startswith('adoption record '))
 
 
-if __name__ == '__main__':
+
+# ---- item 2: the renderer -------------------------------------------------------------------------------------------
+
+WIDTHS = {'120': 116, '80': 76, '60': 56}        # the pane's width inside the frame at each window width
+MARK = re.compile(r'\[[x+:!#?_-]\]')
+LANE_WIDTH = 41
+STATE_WORD_WIDTH = 14
+NAME = 'Windows Privacy Pilot'
+
+
+def closed_delivery():
+    delivery = prepared_delivery()
+    delivery['stages'][2] = stage_row('approval', 'expired', opens_at=1_792_000_000, closes_at=1_792_000_300)
+    return delivery
+
+
+def state_sets():
+    """One fixture (one policy, one operation) under five different sets of recorded states."""
+    stale_and_changed = with_operation(baseline())
+    stale_and_changed['states']['observation'].update(freshness='stale', freshness_reasons=['older_than_window'])
+    stale_and_changed['states']['intent']['status'] = 'changed'
+    verified = with_operation(baseline(), delivery=executed_delivery('verified'), journal='succeeded_verified',
+                              review=prepared_review('open', status='succeeded_verified'))
+    return {
+        'waiting': with_operation(baseline()),
+        'closed': with_operation(baseline(), delivery=closed_delivery(), review=prepared_review('closed'), window='closed'),
+        'unknown': with_operation(baseline(), delivery=executed_delivery('unknown'), journal='outcome_unknown',
+                                  review=prepared_review('open', status='outcome_unknown')),
+        'verified': verified,
+        'stale': stale_and_changed}
+
+
+def flows():
+    return {name: project(read) for name, read in state_sets().items()}
+
+
+def lines_of(flow, width=76, rules='ascii', **kw):
+    from intune_iac.workbench_screens import workflow_map_lines
+    return workflow_map_lines(flow, width, rules, **kw)
+
+
+def lanes_of(lines):
+    from intune_iac.workbench_screens import MapLine
+    return [row for row in lines if isinstance(row, MapLine)]
+
+
+def mask_lane(row):
+    """A lane row with its position mark, state mark and state word replaced by placeholders of the same cells."""
+    return row[0] + ' ' + MARK.sub('[M]', row[2:-STATE_WORD_WIDTH]) + 'S' * STATE_WORD_WIDTH
+
+
+def legend_at(lines):
+    return next(index for index, row in enumerate(lines) if '> focus' in row)
+
+
+def masked_frame(lines):
+    """Every row above and including the legend, the lanes with marks and state words masked: the geometry."""
+    from intune_iac.workbench_screens import MapLine
+    return [mask_lane(row) if isinstance(row, MapLine) else str(row) for row in lines[:legend_at(lines) + 1]]
+
+
+class WorkflowMapLinesTests(unittest.TestCase):
+    def test_eleven_lanes_in_stage_order_each_a_fixed_width_cell_with_a_mark_and_a_state_word(self):
+        from intune_iac.workbench_screens import WORKFLOW_LABELS
+        flow = flows()['waiting']
+        rows = lanes_of(lines_of(flow))
+        self.assertEqual(len(rows), 11)
+        for row, stage in zip(rows, flow['stages']):
+            self.assertEqual(len(row), LANE_WIDTH, row)
+            found = MARK.search(row)
+            self.assertEqual(found.group(0)[1], {'done': 'x', 'current': '+', 'waiting': ':', 'blocked': '!', 'refused': '#',
+                                                 'unknown': '?', 'not_recorded': '_', 'not_applicable': '-'}[stage['state']], row)
+            self.assertEqual(found.start(), 9 if stage['branch_of'] else 6, row)       # the side lane hangs three cells in
+            # The stage's own label follows its mark, so the rows are in the projection's order.
+            self.assertTrue(row[found.end() + 1:].startswith(WORKFLOW_LABELS[stage['id']]), row)
+            self.assertEqual(row[-STATE_WORD_WIDTH:], stage['state'].replace('_', ' ').ljust(STATE_WORD_WIDTH), row)
+
+    def test_the_state_words_are_the_closed_set_in_words_and_never_not_started(self):
+        for name, flow in flows().items():
+            lanes = '\n'.join(lanes_of(lines_of(flow)))
+            self.assertNotIn('not started', lanes, name)
+            self.assertNotIn('not_', lanes, name)               # words, not codes: not recorded, not applicable
+        text = '\n'.join(lanes_of(lines_of(flows()['unknown'])))
+        for word in ('done', 'not recorded', 'unknown', 'current'):
+            self.assertIn(word, text)
+
+    def test_the_reconcile_branch_is_a_side_lane_right_under_readback_in_the_same_state_column(self):
+        for rules in ('ascii', 'unicode'):
+            rows = lanes_of(lines_of(flows()['unknown'], rules=rules))
+            names = sorted(('observe', 'adopt', 'intent', 'propose', 'review', 'approve, execute', 'readback', 'reconcile',
+                            'record', 'observed after', 'maintain'), key=len, reverse=True)
+            labels = [next(name for name in names if row[row.index('] ') + 2:].startswith(name)) for row in rows]
+            self.assertEqual(labels.index('reconcile'), labels.index('readback') + 1)
+            readback, branch, record = rows[labels.index('readback')], rows[labels.index('reconcile')], rows[labels.index('record')]
+            self.assertGreater(branch.index('['), readback.index('['))           # the branch hangs inside its parent
+            self.assertEqual(len(branch), len(readback))
+            # The spine carries on past the branch to the stage after readback.
+            spine = '|' if rules == 'ascii' else '\u2502'
+            self.assertIn(spine, branch[3:6])
+            self.assertEqual(branch[branch.index('[') + 4:][:9], 'reconcile')
+            self.assertEqual(record[3], readback[3])
+
+    def test_the_position_is_marked_apart_from_the_focus_and_both_leave_the_state_cell_alone(self):
+        flow = flows()['unknown']
+        rows = lanes_of(lines_of(flow, focus='intent'))
+        stages = [stage['id'] for stage in flow['stages']]
+        self.assertEqual([index for index, row in enumerate(rows) if row[0] == '>'], [stages.index('intent')])
+        self.assertEqual([index for index, row in enumerate(rows) if row[1] == '@'], [stages.index(flow['position'])])
+        self.assertNotEqual(stages.index('intent'), stages.index(flow['position']))
+        both = lanes_of(lines_of(flow, focus=flow['position']))
+        self.assertEqual([row[:2] for row in both if row[:2].strip()], ['>@'])
+        # The default focus is the position; an id that is not a stage falls back to it too.
+        for focus in (None, 'nonsense'):
+            rows = lanes_of(lines_of(flow, focus=focus))
+            self.assertEqual([row[:2] for row in rows if row[:2].strip()], ['>@'])
+
+    def test_one_legend_row_names_focus_and_position_in_every_width(self):
+        for width in (56, 76, 116, 130):
+            lines = lines_of(flows()['waiting'], width)
+            legend = [row for row in lines if '> focus' in row]
+            self.assertEqual(len(legend), 1, width)
+            self.assertIn('@ position', legend[0])
+            self.assertLessEqual(len(legend[0]), width)
+        wide = [row for row in lines_of(flows()['waiting'], 130) if '> focus' in row][0]
+        for word in ('done', 'current', 'waiting', 'blocked', 'refused', 'unknown', 'not recorded', 'not applicable'):
+            self.assertIn(word, wide)
+        narrow = [row for row in lines_of(flows()['waiting'], 76) if '> focus' in row][0]
+        self.assertIn('? help', narrow)
+
+    def test_the_detail_block_names_basis_reason_continuation_and_what_enter_opens(self):
+        from intune_iac.workbench_screens import lifecycle_next
+        flow = flows()['waiting']
+        lines = lines_of(flow, 76, focus='approve_execute')
+        text = '\n'.join(str(row) for row in lines[legend_at(lines):])
+        self.assertIn('FOCUS approve, execute | waiting', text)
+        self.assertIn('Enter opens v Delivery', text)
+        self.assertIn('basis', text)
+        self.assertIn('operation 4d972e93 delivery stage approval', text.replace('\n', ' '))
+        head = lifecycle_next(4, state_sets()['waiting']['review'], 0.0, None).split('\n')[0]
+        self.assertIn(head[:40], text)
+        # Commands in a step stand on their own rows, as every screen prints them.
+        self.assertTrue(any(str(row).strip().startswith('execute /w/operation DIGEST') for row in lines), lines)
+        self.assertTrue(any(str(row).startswith('        ') and 'execute /w/operation DIGEST' in str(row) for row in lines), lines)
+
+    def test_a_reason_is_shown_as_the_recorded_code_and_an_absent_one_is_said(self):
+        flows_ = flows()
+        text = '\n'.join(str(row) for row in lines_of(flows_['closed'], 76, focus='approve_execute'))
+        self.assertIn('reason closed', text)
+        text = '\n'.join(str(row) for row in lines_of(flows_['waiting'], 76, focus='approve_execute'))
+        self.assertIn('no reason recorded', text)
+
+    def test_a_closed_window_shows_the_closed_time_in_the_detail(self):
+        from intune_iac.workbench_screens import _readable_epoch
+        text = ' '.join(' '.join(str(row) for row in lines_of(flows()['closed'], 76, focus='approve_execute')).split())
+        self.assertIn('approval window closed ' + _readable_epoch(1_792_000_300), text)
+
+    def test_a_stage_with_no_step_prints_no_step_and_no_operation_says_what_enter_does(self):
+        flow = project(baseline())
+        lines = lines_of(flow, 76, focus='readback')
+        text = '\n'.join(str(row) for row in lines[legend_at(lines):])
+        self.assertFalse(any(str(row).startswith('next') for row in lines), lines)
+        self.assertIn('Enter opens nothing: no operation is recorded', text)
+        self.assertIn('FOCUS readback | not recorded', text)
+
+    def test_every_line_fits_the_pane_at_120_80_and_60_in_both_rules_for_every_focus(self):
+        for name, flow in flows().items():
+            for rules in ('ascii', 'unicode'):
+                for width in WIDTHS.values():
+                    for stage in [None] + [stage['id'] for stage in flow['stages']]:
+                        for row in lines_of(flow, width, rules, focus=stage):
+                            self.assertLessEqual(len(str(row)), width, (name, rules, width, stage, row))
+
+    def test_ascii_output_has_no_byte_above_0x7f_and_the_unicode_rules_do(self):
+        for flow in flows().values():
+            ascii_text = '\n'.join(str(row) for row in lines_of(flow, 116, 'ascii'))
+            self.assertTrue(all(ord(char) < 0x80 for char in ascii_text), [c for c in ascii_text if ord(c) >= 0x80])
+        unicode_text = '\n'.join(str(row) for row in lines_of(flows()['waiting'], 116, 'unicode'))
+        self.assertTrue(any(ord(char) >= 0x80 for char in unicode_text))
+
+    def test_the_renderer_writes_no_escape_sequence_and_a_hostile_name_is_shown_escaped(self):
+        read = state_sets()['waiting']
+        read['name'] = 'Evil \x1b[31mred\x1b[0m \x1b]0;title\x07 \u202egnp'
+        text = '\n'.join(str(row) for row in lines_of(project(read), 76, 'unicode'))
+        for forbidden in ('\x1b', '\x07', '\u202e'):
+            self.assertNotIn(forbidden, text)
+        self.assertIn('\\u001b[31m', text)
+        for flow in flows().values():
+            self.assertNotIn('\x1b', '\n'.join(str(row) for row in lines_of(flow)))
+
+    def test_the_geometry_is_the_same_under_five_state_sets_once_marks_and_state_words_are_masked(self):
+        for rules in ('ascii', 'unicode'):
+            for width in WIDTHS.values():
+                # A fixed focus: the default focus is the position, which moves with the records like the marks do.
+                drawn = {name: lines_of(flow, width, rules, focus='observe') for name, flow in flows().items()}
+                frames = {name: masked_frame(lines) for name, lines in drawn.items()}
+                first = frames['waiting']
+                for name, rows in frames.items():
+                    self.assertEqual(rows, first, (rules, width, name))
+                # The states really differ: unmasked, every set draws something different.
+                raw = {name: tuple(str(row) for row in lines[:legend_at(lines) + 1]) for name, lines in drawn.items()}
+                self.assertEqual(len(set(raw.values())), len(raw))
+
+    def test_the_geometry_does_not_depend_on_the_pane_width_either(self):
+        for name, flow in flows().items():
+            narrow = lanes_of(lines_of(flow, 56))
+            wide = lanes_of(lines_of(flow, 116))
+            self.assertEqual([str(row) for row in narrow], [str(row) for row in wide], name)
+
+    def test_the_lanes_are_unwrappable_map_rows_and_the_legend_and_focus_rows_are_pinned(self):
+        from intune_iac.workbench_screens import MapLine, PinnedRow
+        lines = lines_of(flows()['waiting'], 76, focus='approve_execute')
+        self.assertEqual(len(lanes_of(lines)), 11)
+        self.assertEqual(sum(row.focused for row in lanes_of(lines)), 1)
+        self.assertTrue(lanes_of(lines)[5].focused)
+        self.assertIsInstance(lines[legend_at(lines)], PinnedRow)
+        focus = next(index for index, row in enumerate(lines) if str(row).startswith('FOCUS'))
+        self.assertIsInstance(lines[focus], PinnedRow)
+        self.assertFalse(any(isinstance(row, MapLine) for row in lines[legend_at(lines):]))
+
+    def test_the_header_names_the_policy_and_does_not_change_with_a_state(self):
+        headers = {name: str(lines_of(flow)[0]) for name, flow in flows().items()}
+        self.assertEqual(len(set(headers.values())), 1)
+        header = next(iter(headers.values()))
+        self.assertTrue(header.startswith('[WORKFLOW] ' + NAME + ' (' + OBJECT[:8] + ')'), header)
+
+    def test_the_size_gate_and_the_larger_window_sentence(self):
+        from intune_iac.workbench_screens import WORKFLOW_MIN_SIZE, workflow_fits, workflow_unavailable_lines
+        self.assertEqual(WORKFLOW_MIN_SIZE, (60, 20))
+        for size in ((120, 40), (80, 24), (60, 20)):
+            self.assertTrue(workflow_fits(size), size)
+        for size in ((40, 12), (59, 24), (80, 19)):
+            self.assertFalse(workflow_fits(size), size)
+        for width in (36, 76):
+            text = ' '.join(' '.join(workflow_unavailable_lines(width)).split())
+            self.assertIn('needs a larger window', text)
+            self.assertIn('intune-iac workbench workflow --root ROOT --policy ID', text)
+            self.assertTrue(all(len(row) <= width for row in workflow_unavailable_lines(width)))
+
+    def test_a_projection_with_an_unknown_state_or_no_stages_still_draws_without_claiming_one(self):
+        flow = flows()['waiting']
+        broken = dict(flow, stages=[dict(stage, state='mystery') if stage['id'] == 'review' else stage for stage in flow['stages']])
+        row = lanes_of(lines_of(broken))[4]
+        self.assertEqual((row[7], row[-STATE_WORD_WIDTH:].strip()), ('?', 'unknown'))
+        self.assertEqual(lanes_of(lines_of(dict(flow, stages=[]))), [])
+
+
+if __name__ == "__main__":
     unittest.main()

@@ -165,7 +165,7 @@ def _approve_execute(by, delivery, tag, error):
         return _row('unknown', '%s delivery' % tag, error)
     status = approval.get('status')
     refusals = _refusals(delivery)
-    facts = _facts(approval, ('opens_at',))
+    facts = {}      # the window's close is the one time a reader needs: when it closes, or when it closed
     window = approval.get('closes_at')
     basis = '%s delivery stage approval' % tag
     if status == 'done':
