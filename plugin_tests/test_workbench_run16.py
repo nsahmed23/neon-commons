@@ -173,6 +173,69 @@ class InterruptedLineControlCharacterTests(unittest.TestCase):
                         self.assertFalse(set(row) & set('\t\n\v\f\r'), repr(row))
 
 
+class InterruptedPathsAreDisplaySafeTests(unittest.TestCase):
+    """The whole class behind the review of e1e153c: a path never puts a raw control character on the screen, in the
+    sentence (escaped for display) or in a command row (ANSI-C quoted, so it is one line and still pastes correctly)."""
+    CONTROLS = ''.join(chr(code) for code in list(range(32)) + [127])
+
+    def setUp(self):
+        import json
+        import tempfile
+        from pathlib import Path
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        directory = Path(tmp.name) / 'op\n[REFUSED] forged\tx'
+        directory.mkdir()
+        (directory / 'plan.json').write_text(json.dumps({'operation_id': '678e749f' + '0' * 24}))
+        self.path = str(directory)
+
+    def rows(self, command, width=200, path=None):
+        from intune_iac.workbench import interrupted_text
+        return interrupted_text({'store_root': '/s', 'interrupted_during': {
+            'command': command, 'operation_root': path or self.path}}, width)
+
+    def test_no_raw_control_character_and_one_row_each_for_the_sentence_and_the_commands(self):
+        for command in ('execute', 'reconcile'):
+            for width in (80, 200):
+                rows = self.rows(command, width)
+                self.assertFalse(set(''.join(rows)) & set(self.CONTROLS), rows)
+                self.assertFalse(any(row.startswith('[REFUSED]') for row in rows), (width, rows))
+                self.assertEqual(sum(row.startswith('Interrupted while') for row in rows), 1, rows)
+                self.assertIn('\\n[REFUSED] forged\\tx', rows[0])
+                self.assertEqual(sum(row.startswith('  intune-iac workbench reconcile --operation') for row in rows), 1)
+
+    def test_the_printed_command_argument_gives_back_the_exact_path_in_bash(self):
+        import subprocess
+        for command in ('execute', 'reconcile'):
+            row = next(row for row in self.rows(command) if row.startswith('  intune-iac workbench reconcile'))
+            argument = row.split('--operation ', 1)[1]
+            self.assertTrue(argument.startswith("$'"), argument)
+            done = subprocess.run(['bash', '-c', 'printf %s ' + argument], capture_output=True, timeout=20)
+            self.assertEqual(done.stdout.decode('utf-8'), self.path)
+
+    def test_every_control_character_a_backslash_and_a_quote_round_trip(self):
+        import subprocess
+        from intune_iac.workbench import _shell_arg
+        text = '/w/a' + self.CONTROLS.replace('\x00', '') + "\\b'c d"
+        done = subprocess.run(['bash', '-c', 'printf %s ' + _shell_arg(text)], capture_output=True, timeout=20)
+        self.assertEqual(done.stdout.decode('utf-8'), text)
+        self.assertNotIn('\n', _shell_arg(text))
+
+    def test_an_ordinary_path_prints_exactly_as_before(self):
+        import json
+        import shlex
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp) / 'journey 28 run 16' / 'operation-22222222-96c94f884625'
+            directory.mkdir(parents=True)
+            (directory / 'plan.json').write_text(json.dumps({'operation_id': '678e749f' + '0' * 24}))
+            rows = self.rows('execute', 200, str(directory))
+            quoted = shlex.quote(str(directory))
+            self.assertEqual(rows[0], 'Interrupted while executing operation 678e749f (directory %s).' % quoted)
+            self.assertIn('  intune-iac workbench reconcile --operation ' + quoted, rows)
+
+
 class GitPinWordsAndStagedFrameTests(unittest.TestCase):
     """Items 5 (run16-N5, N6): the pin flags go to the shell command below, not the command Enter stages; while a command
     is staged the shell-pins block is omitted, so the screen's Next stays on the first page."""

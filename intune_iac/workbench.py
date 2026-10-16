@@ -1090,11 +1090,35 @@ def _interrupted_during(current):
     return {'command': name}
 
 
+def _is_control(char):
+    return ord(char) < 32 or ord(char) == 127
+
+
+def _display_safe(text):
+    """Text for a sentence: a backslash and every C0 control character (and DEL) written as a visible escape, so a path
+    never puts a raw tab, newline or other control character on the screen or starts a forged row."""
+    named = {'\\': '\\\\', '\t': '\\t', '\n': '\\n', '\r': '\\r'}
+    return ''.join(named.get(char) or ('\\x%02x' % ord(char) if _is_control(char) else char) for char in text)
+
+
+def _shell_arg(value):
+    """A path as a shell argument on one line. Quoted with shlex.quote, exactly as before, unless it holds a control
+    character; then in bash ANSI-C quoting ($'...'), with the backslash, the single quote and every control character
+    escaped, so the printed command is one row and still pastes back to the same path."""
+    import shlex
+    text = str(value)
+    if not any(_is_control(char) for char in text):
+        return shlex.quote(text)
+    body = ''.join('\\\\' if char == '\\' else "\\'" if char == "'" else '\\x%02x' % ord(char) if _is_control(char) else char
+                   for char in text)
+    return "$'" + body + "'"
+
+
 def _operation_words(operation_root):
     """The operation as the after-exit sentence names it: its short id (the one every screen uses) beside the quoted
     directory; the directory alone when the plan cannot be read."""
     import shlex
-    quoted = shlex.quote(str(operation_root))
+    quoted = _display_safe(shlex.quote(str(operation_root)))
     try:
         identity = json.loads((Path(str(operation_root)) / 'plan.json').read_text(encoding='utf-8')).get('operation_id')
     except (OSError, ValueError, AttributeError):
@@ -1112,7 +1136,7 @@ def interrupted_lines(result):
     import shlex
     during = result.get('interrupted_during') if isinstance(result.get('interrupted_during'), dict) else None
     # Paths are shell-quoted so the printed command runs as shown when pasted, spaces and quotes included.
-    store = shlex.quote(str(result['store_root'])) if result.get('store_root') else 'STORE'
+    store = _shell_arg(result['store_root']) if result.get('store_root') else 'STORE'
     others = 'Other processes, such as a scheduled collector, were not stopped.'
     # Each command stands on its own line, indented by two spaces, so a terminal's soft wrap copies it whole.
     if during and during.get('command') == 'execute':
@@ -1122,13 +1146,13 @@ def interrupted_lines(result):
                 'Its outcome is unknown: the change may or may not have reached the service. Nothing retries it.',
                 'Next: reconcile it before anything else. Reconcile reads the service and never replays the change. '
                 'Run:',
-                '  intune-iac workbench reconcile --operation %s' % shlex.quote(str(operation)),
+                '  intune-iac workbench reconcile --operation %s' % _shell_arg(operation),
                 RECONCILE_ROOT_NOTE,
                 'or reopen the workspace and choose Reconcile with a.', others]
     if during and during.get('command') == 'reconcile':
         return ['Interrupted while reconciling operation %s.' % _operation_words(during.get('operation_root')),
                 'Reconcile only reads the service, so running it again is safe. Run:',
-                '  intune-iac workbench reconcile --operation %s' % shlex.quote(str(during.get('operation_root'))),
+                '  intune-iac workbench reconcile --operation %s' % _shell_arg(during.get('operation_root')),
                 RECONCILE_ROOT_NOTE,
                 others]
     if during and during.get('command') == 'collect':
@@ -1136,7 +1160,7 @@ def interrupted_lines(result):
                 'That run records no end; the newest complete observation is kept and is labelled as such.',
                 'Next: collect again. Run:',
                 '  intune-iac workbench collect --root %s --service-root %s' % (
-                    store, shlex.quote(str(during['service_root'])) if during.get('service_root') else 'SERVICE'),
+                    store, _shell_arg(during['service_root']) if during.get('service_root') else 'SERVICE'),
                 'or reopen the workspace and choose Collect again with a.', others]
     if during:
         return ['Interrupted while running %s.' % during.get('command'),
