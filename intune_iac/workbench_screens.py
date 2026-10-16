@@ -804,7 +804,8 @@ def lifecycle_next(tab, value, now, eligibility=None, newest_open=None):
             # The Approval window row states the fact; this line refers to it rather than say it again.
             if newest_open:
                 return ('Prepare a proposal from the recorded intent (a: actions), or review the newest operation, %s, '
-                        'whose approval window is open; Expiry and Approval window above say why this plan cannot run'
+                        'whose approval window was open at the last read of this policy; Expiry and Approval window above say why '
+                        'this plan cannot run'
                         % newest_open)
             return 'Prepare a proposal from the recorded intent (a: actions); Expiry and Approval window above say why'
         # The command stands on its own row after the sentence, so a copied row carries no words (run 9, frame 18).

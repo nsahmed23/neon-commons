@@ -224,7 +224,8 @@ class ClosedPlanNextNamesTheOpenProposalTests(unittest.TestCase):
     def test_the_next_names_the_open_newest_operation(self):
         text = self.rows('open')
         self.assertIn('Next: Prepare a proposal from the recorded intent (a: actions), or review the newest operation, '
-                      'a23983bd, whose approval window is open; Expiry and Approval window above say why this plan cannot run',
+                      'a23983bd, whose approval window was open at the last read of this policy; Expiry and Approval window above say '
+                      'why this plan cannot run',
                       text)
 
     def test_no_open_operation_keeps_the_old_next(self):

@@ -301,3 +301,19 @@ class FrameNeverTallerThanTheWindowTests(MapTruth):
         self.assertTrue(any('more: ?' in row and 'T = tenant' in row for row in rows), rows)
         rows = self.screen((40, 30), 4)
         self.assertTrue(any('more: ?' in row and 'T = tenant' in row for row in rows), rows)
+
+
+class OpenWindowWasOpenAtTheLastReadTests(unittest.TestCase):
+    """Item 6, low 37: the newest operation's approval window comes from the last read of the policy, which can be
+    older than the 300-second window, so the Next says it was open then."""
+
+    def text(self):
+        from plugin_tests.test_workbench_run12 import ClosedPlanNextNamesTheOpenProposalTests as Closed
+        return Closed('test_the_next_names_the_open_newest_operation').rows('open')
+
+    def test_the_next_says_the_window_was_open_at_the_last_read_of_this_policy(self):
+        self.assertIn('review the newest operation, a23983bd, whose approval window was open at the last read of this '
+                      'policy; Expiry and Approval window above say why this plan cannot run', self.text())
+
+    def test_it_no_longer_claims_the_window_is_open_now(self):
+        self.assertNotIn('approval window is open', self.text())
