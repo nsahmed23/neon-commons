@@ -1354,6 +1354,34 @@ class StopTests(Fixture):
         self.assertEqual(again.exception.code, 'companion_live_close_unsettled')
         self.assertIsNone(again.exception.__cause__)
 
+    def wedged_with_a_forced_close_failure(self):
+        """The first stopper is wedged in shutdown(); the forced raw close fails once (A) and the next close works."""
+        from intune_iac import companion_live
+        patch = mock.patch.object(companion_live, 'STOP_WAIT_SECONDS', 0.2)
+        patch.start()
+        self.addCleanup(patch.stop)
+        live = self.start()
+        self.hold_first_stopper(live)
+        real_socket = live.server.socket
+        live.server.socket = FlakySocket(real_socket)
+        self.addCleanup(lambda: setattr(live.server, 'socket', real_socket))
+        return live
+
+    def test_a_forced_close_failure_is_named_on_a_later_interrupt_from_the_close(self):
+        live = self.wedged_with_a_forced_close_failure()
+        with mock.patch.object(live.server, 'server_close', side_effect=KeyboardInterrupt('interrupted')):
+            with self.assertRaises(KeyboardInterrupt) as caught:
+                live.stop()
+        self.assertIn('PermissionError', ' '.join(getattr(caught.exception, '__notes__', [])))
+
+    def test_a_recovered_close_diagnostic_survives_a_later_drain_failure(self):
+        from intune_iac.io import AppError
+        live = self.wedged_with_a_forced_close_failure()
+        self.scripted_drain(live, AppError('companion_live_writer_timeout', 'held'))
+        with self.assertRaises(PermissionError) as caught:
+            live.stop()
+        self.assertIn('AppError', ' '.join(getattr(caught.exception, '__notes__', [])))
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500

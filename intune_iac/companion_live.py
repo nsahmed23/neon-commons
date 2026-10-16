@@ -440,19 +440,39 @@ class LiveCompanion:
                 if forced is not None and not isinstance(forced, Exception):
                     raise forced
                 self._serving_stopped = self._listener_closed()
-        problem = self._close_listener()
+        try:
+            problem = self._close_listener()
+        except BaseException as later:
+            # An interrupt from the close propagates, carrying the class of the forced close failure it would have hidden.
+            if forced is not None:
+                self._note_once(later, 'The earlier forced close had failed: %s' % type(forced).__name__)
+            raise
         if forced is not None:
             # The failure of the forced close is kept even if the close then worked: it is the diagnostic. A later
             # problem is named on it by class.
             if problem is not None:
-                note = 'A later close attempt also failed: %s' % type(problem).__name__
-                if note not in getattr(forced, '__notes__', ()):
-                    forced.add_note(note)
+                self._note_once(forced, 'A later close attempt also failed: %s' % type(problem).__name__)
             problem = forced
         if not self._listener_closed():
             raise problem or AppError('companion_live_close_failed', 'The listening socket is still open.')
-        self._drain_writers()
+        try:
+            self._drain_writers()
+        except BaseException as later:
+            if problem is None:
+                raise
+            # The earlier diagnostic is not discarded by what failed after it: an ordinary later failure is named on it
+            # (it stays the primary, as in the ordering above); an interrupt propagates and carries its class.
+            if isinstance(later, Exception):
+                self._note_once(problem, 'A later close step also failed: %s' % type(later).__name__)
+                raise problem
+            self._note_once(later, 'An earlier close diagnostic was: %s' % type(problem).__name__)
+            raise
         return problem
+
+    @staticmethod
+    def _note_once(error, note):
+        if note not in getattr(error, '__notes__', ()):
+            error.add_note(note)
 
     def _publish(self, generation, state, error=None, note=None, background=False):
         """Record the outcome of a stop attempt, unless a newer attempt has taken over: a late finish never overwrites the
