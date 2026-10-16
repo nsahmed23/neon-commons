@@ -2890,6 +2890,29 @@ class ConstrainedBandFrameTests(LayerFixture):
         # The layer's own sentence and command are still whole beside the band.
         self.assertIn('intune-iac workbench workflow --root', self.text(layer).replace(' \\', ''))
 
+    def test_at_40x12_40x13_and_41x12_every_required_piece_is_whole(self):
+        import shlex
+        self.lose_the_response()
+        key = lambda char: ('text', char)
+        for size in ((40, 12), (40, 13), (41, 12)):
+            ws, frames = self.run_keys(typed('select ' + OBJECT) + typed('workflow') + [key('q')], size, 'ascii')
+            rows = [row.rstrip() for row in self.plain(frames[-1])]
+            joined = ' | '.join(rows)
+            self.assertIn('The workflow map needs a larger window', joined, size)
+            self.assertIn('(at least 60x20). Plain text:', joined, size)
+            start, block = command_block(rows)
+            self.assertIsNotNone(start, (size, rows))
+            self.assertEqual(shlex.split(' '.join(row.rstrip('\\') for row in block))[:4],
+                             ['intune-iac', 'workbench', 'workflow', '--root'], size)
+            self.assertIn('! Outcome unknown.', rows, size)
+            self.assertIn('Reconcile; it never replays', rows, size)
+            self.assertIn('T 11111111 | P 22222222', rows, size)
+            self.assertIn('T = tenant | P = policy', rows, size)
+            self.assertIn('Esc closes it.', rows, size)
+            self.assertTrue(any('q exits' in row for row in rows), (size, rows))
+            for row in rows:
+                self.assertLessEqual(len(row), size[0], (size, row))
+
 
 # ---- PKG-UXVIS-5b item 5: three recorded test gaps (mutants P28, P39 and W06 of the workflow map's mutation run) ----------
 

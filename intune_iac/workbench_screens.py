@@ -553,9 +553,17 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
         # What the map needs, then the plain-text command that prints it anywhere on its own rows (route: the workspace's
         # root and the selected policy, which the command names when it knows them).
         groups['header'] = workflow_unavailable_lines(width, *route)
+    if layer == 'workflow' and not typing:
+        # The notice row only repeats the sentence above it, so the rows go to the strip's legend and the keys instead.
+        groups['prompt'] = []
     budget, kept = height, {}
     for name in ('band', 'header', 'prompt', 'strip', 'keys', 'legend'):
-        kept[name] = groups[name][:max(0, budget)]
+        room = budget
+        if layer == 'workflow' and name == 'strip':
+            # The strip's first row (tenant and policy) is explained by the legend: keep the legend and the keys before
+            # the strip's further rows.
+            room = max(1, budget - len(groups['keys']) - len(groups['legend']))
+        kept[name] = groups[name][:max(0, room)]
         budget -= len(kept[name])
     lines, band_rows = [], []
     for name in ('header', 'strip', 'band', 'prompt', 'keys', 'legend'):
@@ -2397,7 +2405,7 @@ WORKFLOW_COMMAND = 'intune-iac workbench workflow --root ROOT --policy ID'
 # The sentence ends before the command: a command is never printed inside a sentence (a screen puts every printed command on
 # its own rows), so what follows the colon is rows a person can copy whole.
 WORKFLOW_NEEDS = 'The workflow map needs a larger window (at least %dx%d). Plain text:' % WORKFLOW_MIN_SIZE
-WORKFLOW_UNAVAILABLE_CLOSE = 'Esc closes it; nothing else here has changed.'
+WORKFLOW_UNAVAILABLE_CLOSE = 'Esc closes it.'       # the catalog layer's own short form
 WORKFLOW_LABELS = {'observe': 'observe', 'adopt': 'adopt', 'intent': 'intent', 'propose': 'propose', 'review': 'review',
                    'approve_execute': 'approve, execute', 'readback': 'readback', 'reconcile': 'reconcile',
                    'record': 'record', 'observed_after': 'observed after', 'maintain': 'maintain'}
