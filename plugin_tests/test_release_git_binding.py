@@ -222,6 +222,17 @@ class ContentDigestTests(GitCase):
         self.assertEqual(report.get('runtime_content_sha256'), repo.identity('runtime')['content_sha256'])
         self.assertEqual(report.get('source_content_sha256'), repo.identity('source')['content_sha256'])
 
+    def test_the_build_refuses_a_digest_that_check_only_would_not_report(self):
+        real = builder.content_digests
+        for kind, lie in (('runtime', lambda r, s: ('0' * 64, s)), ('source', lambda r, s: (r, '1' * 64))):
+            with self.subTest(kind):
+                repo = hard.GitFixture(self)
+                with patch.object(builder, 'content_digests', lambda snapshot, runtime: lie(*real(snapshot, runtime))):
+                    # The digests are worked out once, so the lie reaches the check made against what the archive embeds.
+                    message = self.refusal(repo)
+                self.assertIn(kind, message)
+                self.assertIn('--check-only reports', message)
+
     def test_the_digests_follow_the_captured_files_and_not_the_identity_record_or_the_listing(self):
         repo = hard.GitFixture(self)
         repo.build()
