@@ -1641,7 +1641,15 @@ class Workspace:
         from .workbench_screens import strip_layout
         strip_text, definitions = self._strip_choice(width)
         status_rows, key_rows = strip_layout(strip_text, definitions if self._strip_key_rows(width) else [], width)
-        available = max(0, height - 8 - len(band) - (1 if staged_rows else 0) - len(key_rows) - (len(status_rows) - 1))
+        def room_left():
+            return height - 8 - len(band) - (1 if staged_rows else 0) - len(key_rows) - (len(status_rows) - 1)
+        # A frame taller than the window scrolls its title and tab line away: at the minimum height the key rows go
+        # first, then the strip split, so the title, the tab line, the strip and the band stay (review 36).
+        if room_left() < 0 and key_rows:
+            key_rows = []
+        if room_left() < 0 and len(status_rows) > 1:
+            status_rows = status_rows[:1]
+        available = max(0, room_left())
         # One column of space inside each border: text never touches the frame (journey 27 review, Sonnet 23).
         content = inner - 2
         data = self._body_lines(content, RULES[getattr(self, 'rules', 'ascii')][1])

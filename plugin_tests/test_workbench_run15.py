@@ -264,3 +264,40 @@ class StoreLastRegisteredLabelTests(unittest.TestCase):
         text = self.row()
         self.assertIn('dddddddd succeeded verified; store last registered 2026-10-16 01:16:31 UTC', text)
         self.assertNotIn('journal last recorded', text)
+
+
+class FrameNeverTallerThanTheWindowTests(MapTruth):
+    """Item 6, low 36: when the band, the strip split and the key rows would make the frame taller than the window at
+    the minimum height, the key rows are dropped first, then the strip split, before the title and tab line scroll
+    away. A band of any height is patched in, because the real band's wording is shorter than the rows it would need."""
+    FACTS = {'operation': 'outcome_unknown', 'observation': 'source changed', 'repository': 'current',
+             'name': 'Windows Privacy Pilot'}
+
+    def screen(self, size, band_rows, tab=1):
+        from unittest import mock
+        band = ['! band row %d' % number for number in range(band_rows)]
+        with mock.patch('intune_iac.workbench_screens.hazard_rows', lambda *args, **kw: band):
+            ws = self.workspace(size, tab=tab, facts=dict(self.FACTS, object_id=self.object_id))
+            return self.plain(ws)
+
+    def test_the_frame_has_no_more_rows_than_the_window_when_dropping_rows_can_make_it_fit(self):
+        for band_rows in (1, 2, 3, 4):
+            rows = self.screen((40, 12), band_rows)
+            self.assertLessEqual(len(rows), 12, (band_rows, rows))
+
+    def test_the_title_and_tab_line_stay_on_the_first_rows(self):
+        rows = self.screen((40, 12), 4)
+        self.assertTrue(rows[0].startswith('INTUNE WORKBENCH'), rows)
+        self.assertTrue(rows[1].startswith('[2'), rows)
+        self.assertEqual(sum(1 for row in rows if row.startswith('! band row')), 4, rows)
+
+    def test_the_split_is_dropped_before_the_title(self):
+        rows = self.screen((40, 12), 4)
+        self.assertFalse(any('more: ?' in row or 'T = tenant' in row for row in rows), rows)
+        self.assertTrue(rows[2].startswith('SYNTHETIC | T '), rows)
+
+    def test_a_frame_that_fits_keeps_the_split_and_its_definitions(self):
+        rows = self.screen((40, 12), 1)
+        self.assertTrue(any('more: ?' in row and 'T = tenant' in row for row in rows), rows)
+        rows = self.screen((40, 30), 4)
+        self.assertTrue(any('more: ?' in row and 'T = tenant' in row for row in rows), rows)
