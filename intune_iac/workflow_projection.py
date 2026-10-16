@@ -45,8 +45,6 @@ INTENT_REASONS = {'changed': 'repository_stale', 'consumer_changed': 'repository
 OBSERVATION_SIGNALS = ('collection_failed', 'collection_not_finished', 'observation_stale')
 REPOSITORY_SIGNALS = ('repository_stale', 'repository_consumer_mismatch', 'repository_unavailable',
                       'workbench_repository_scope_ambiguous')
-# The approval refusals the journal records (maintenance._execute): a refusal for the window, with its code.
-WINDOW_REASONS = {'closed': 'closed', 'closed_recorded': 'closed_recorded'}
 
 
 def _fail(message):

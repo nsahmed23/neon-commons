@@ -1113,6 +1113,15 @@ class LayerFrameTests(LayerFixture):
         lane = next(row for row in coloured[-1] if 'approve, execute' in row)
         self.assertIn('\x1b[38;5;', lane)                       # the mark is tinted ...
         self.assertIn('waiting', ANSI.sub('', lane))              # ... and the word is still there
+        # A stage that does not apply, and one with no record, are not tinted like a warning: colour never says more than
+        # the word, and neither of these needs attention.
+        cell = re.compile(r'\[((?:\x1b\[[0-9;]*m)?)([x+:!#?_-])')
+
+        def tint(word):
+            row = next(row for row in coloured[-1] if word in ANSI.sub('', row) and cell.search(row))
+            return cell.search(row).group(1)
+        self.assertEqual((tint('not applicable'), tint('not recorded')), ('', ''))
+        self.assertNotEqual(tint('waiting'), '')
 
     def test_at_80x24_the_focused_lane_stays_in_view_with_the_legend_and_the_focus_rows_pinned_below_it(self):
         self.prepare()

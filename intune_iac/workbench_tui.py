@@ -625,10 +625,21 @@ MAP_MARK_TONES = {'x': 'ok', '!': 'bad', '#': 'bad', '?': 'warn', '-': 'warn', '
 _MAP_MARK = re.compile(r'\[([x+.:!#?-])\] ')
 
 
-def paint_marks(line, palette, base=None):
-    """Tint the state marks of a map row; the text is unchanged and the background is kept."""
+# The workflow map's marks: a stage that does not apply or has no record needs no attention, so neither is tinted (the
+# relationship map's - is a cancelled node and is tinted as a warning).
+WORKFLOW_MARK_TONES = {'x': 'ok', '!': 'bad', '#': 'bad', '?': 'warn', '+': 'accent', ':': 'accent'}
+
+
+def paint_marks(line, palette, base=None, tones=None):
+    """Tint the state marks of a map row; the text is unchanged and the background is kept. A mark with no tone in
+    `tones` stays as it is."""
     base = base or palette['fg']
-    return _MAP_MARK.sub(lambda m: '[\x1b[38;5;%sm%s\x1b[38;5;%sm] ' % (palette[MAP_MARK_TONES[m.group(1)]], m.group(1), base), line)
+    tones = MAP_MARK_TONES if tones is None else tones
+
+    def tint(match):
+        tone = tones.get(match.group(1))
+        return match.group(0) if tone is None else '[\x1b[38;5;%sm%s\x1b[38;5;%sm] ' % (palette[tone], match.group(1), base)
+    return _MAP_MARK.sub(tint, line)
 
 
 def emphasize(line):
@@ -1862,7 +1873,7 @@ class Workspace:
                 # Body lines, the context strip and the notice get word-level reinforcement; words never change.
                 # A map row's marks are tinted; each mark is also written as its state word beside it.
                 if i in map_rows:
-                    line = paint_marks(line, palette, base)
+                    line = paint_marks(line, palette, base, WORKFLOW_MARK_TONES if getattr(self, 'layer', 'summary') == 'workflow' else None)
                 elif line.startswith(side) or 2 <= i < 2 + len(status_rows) or i == len(frame) - 2 - len(key_rows):
                     line = paint(line, palette, base)
                 painted.append('\x1b[48;5;%s;38;5;%sm%s\x1b[0m' % (palette['bg'], base, line))
