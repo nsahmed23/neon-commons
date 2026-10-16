@@ -480,6 +480,7 @@ CHILD = textwrap.dedent('''
 
     def fail(code):
         raise AppError(code, 'toy store refusal')
+    validity.FAMILIES = validity.FAMILIES + ('latched',)  # the toy family is registered for this child process
     store = validity.Store(Path(args['root']), connect, 'latched', fail, create=True, domain='family')
     payload = {'issuer': 'issuer-1', 'nonce': 'a' * 32, 'operation_id': 'operation-1', 'expires_at': args['expires']}
     outcome = 'open'

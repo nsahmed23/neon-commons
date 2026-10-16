@@ -170,6 +170,11 @@ class Store:
 
     def __post_init__(self):
         table_sql(self.table)
+        if self.table not in FAMILIES:
+            # The migration cutoff counts history only in registered families' tables, so a family that is not registered
+            # cannot be judged at all. The message names the field, not the value.
+            raise AppError('validity_family_unregistered',
+                           'The expiry table of this authorization store is not a registered family (validity.FAMILIES).')
         if self.domain is None:
             object.__setattr__(self, 'domain', self.table)
 

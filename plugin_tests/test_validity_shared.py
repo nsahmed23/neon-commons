@@ -37,6 +37,9 @@ class ToyStoreTests(unittest.TestCase):
             db.execute(validity.table_sql('latched_other'))
             db.execute(validity.table_v2_sql('latched'))
             db.execute(validity.table_v2_sql('latched_other'))
+        patcher = patch.object(validity, 'FAMILIES', tuple(validity.FAMILIES) + ('latched', 'latched_other'))  # toy families, registered for the test
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.start = 1_800_000_000
         self.clocks = Clocks(self.start)
         for target, name, function in ((time, 'time', self.clocks.time), (clock, 'monotonic', self.clocks.monotonic)):

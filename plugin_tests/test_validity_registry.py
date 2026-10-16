@@ -10,6 +10,7 @@ import unittest
 from pathlib import Path
 
 from intune_iac import validity
+from intune_iac.io import AppError
 
 PACKAGE = Path(__file__).resolve().parent.parent / 'intune_iac'
 
@@ -48,6 +49,16 @@ class RegistryGuardTests(unittest.TestCase):
                         found.append((path.name, node.targets[0].id))
                         self.assertIn(literal, validity.FAMILIES, '%s defines %s outside the registry' % (path.name, node.targets[0].id))
         self.assertGreaterEqual(len(found), 4)
+
+    def test_a_store_for_an_unregistered_family_is_refused_at_construction(self):
+        # A Store built from a variable escapes the source scan, and its family's rows would be missing from the history scan,
+        # so an unregistered family cannot be judged at all. The message names the field, not the value.
+        with self.assertRaises(AppError) as raised:
+            validity.Store(Path('/nonexistent'), lambda: None, 'unregistered_family_name', lambda code: None)
+        self.assertEqual(raised.exception.code, 'validity_family_unregistered')
+        self.assertIn('table', raised.exception.message)
+        self.assertNotIn('unregistered_family_name', raised.exception.message)
+        validity.Store(Path('/nonexistent'), lambda: None, validity.FAMILIES[0], lambda code: None)  # a registered one is fine
 
     def test_the_registry_holds_valid_distinct_family_names(self):
         self.assertEqual(len(set(validity.FAMILIES)), len(validity.FAMILIES))
