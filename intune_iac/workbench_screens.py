@@ -2377,8 +2377,23 @@ def workflow_fact_words(stage):
     facts = stage.get('facts') if isinstance(stage.get('facts'), dict) else {}
     known = [name for name, _ in WORKFLOW_FACT_WORDS]
     words = dict(WORKFLOW_FACT_WORDS)
-    return ['%s %s' % (words.get(name, name.replace('_', ' ')), _workflow_fact(name, facts[name]))
+    # A fact's name and value are record text: each part is escaped here, before it is joined or wrapped.
+    return [safe_text('%s %s' % (words.get(name, name.replace('_', ' ')), _workflow_fact(name, facts[name])))
             for name in known + sorted(set(facts) - set(known)) if name in facts]
+
+
+def _workflow_header(flow, width, prefixes=None):
+    """The title row: the policy's name, identity and evidence words, each escaped before it is joined and wrapped."""
+    name = flow.get('name') if isinstance(flow.get('name'), str) and flow['name'] else None
+    return word_wrap('[WORKFLOW] %s (%s) | %s' % (
+        safe_text(name) if name else '(no name)', safe_text(short_id(flow.get('object_id'), prefixes)),
+        safe_text(evidence_words(flow.get('evidence_class')))), width)
+
+
+def _workflow_step_parts(step):
+    """A step's parts: the trusted COMMAND_BREAKs split first, so a command stays on its own rows, then each part is
+    escaped on its own, so record text inside a part cannot act on a terminal or forge a row."""
+    return [safe_text(part) for part in str(step).split(COMMAND_BREAK)]
 
 
 def workflow_stage_label(stage):
@@ -2401,14 +2416,14 @@ def workflow_detail_rows(flow, stage, width):
     parts = ['FOCUS ' + workflow_stage_label(stage), word,
              'reason ' + safe_text(str(reason)) if reason else 'no reason recorded', _workflow_route(flow, stage)]
     rows = [PinnedRow(row) for row in _pack(parts, width)]
-    rows += _labelled('basis', str(stage.get('basis')), width, WORKFLOW_DETAIL_LABEL)
+    rows += _labelled('basis', safe_text(str(stage.get('basis'))), width, WORKFLOW_DETAIL_LABEL)
     facts = workflow_fact_words(stage)
     if facts:
         rows += _labelled('recorded', '; '.join(facts), width, WORKFLOW_DETAIL_LABEL)
     step = stage.get('continuation')
     if isinstance(step, str) and step:
         # A step that prints commands writes each on its own row after the sentence, as every screen does.
-        first, *commands = step.split(COMMAND_BREAK)
+        first, *commands = _workflow_step_parts(step)
         head = _labelled('next', first, width, WORKFLOW_DETAIL_LABEL)
         rows += [PinnedRow(row) for row in head[:2]] + head[2:]
         rows += [row for part in commands for row in _labelled('', part, width, WORKFLOW_DETAIL_LABEL)]
@@ -2434,9 +2449,7 @@ def workflow_map_lines(flow, width, rules='ascii', focus=None, prefixes=None, de
     ids = [stage.get('id') for stage in stages]
     position = flow.get('position')
     focus = focus if focus in ids else position if position in ids else (ids[0] if ids else None)
-    name = flow.get('name') if isinstance(flow.get('name'), str) and flow['name'] else None
-    lines = word_wrap('[WORKFLOW] %s (%s) | %s' % (name or '(no name)', short_id(flow.get('object_id'), prefixes),
-                                                  evidence_words(flow.get('evidence_class'))), width)
+    lines = _workflow_header(flow, width, prefixes)
     for index, stage in enumerate(stages):
         branch = bool(stage.get('branch_of'))
         last = index == len(stages) - 1
@@ -2471,9 +2484,7 @@ def workflow_text_lines(flow, width, rules='ascii', prefixes=None):
         lines = [str(row).rstrip() for row in workflow_map_lines(flow, width, rules, prefixes=prefixes, detail=False,
                                                                  keyboard=False)]
     else:
-        name = flow.get('name') if isinstance(flow.get('name'), str) and flow['name'] else None
-        lines = word_wrap('[WORKFLOW] %s (%s) | %s' % (name or '(no name)', short_id(flow.get('object_id'), prefixes),
-                                                      evidence_words(flow.get('evidence_class'))), width)
+        lines = _workflow_header(flow, width, prefixes)
     here = next((stage for stage in stages if stage.get('id') == flow.get('position')), None)
     lines += [''] + word_wrap('Position: %s (the last stage with a recorded state; @ marks it in the map).' % (
         workflow_stage_label(here) if here else 'none recorded'), width)
@@ -2483,13 +2494,14 @@ def workflow_text_lines(flow, width, rules='ascii', prefixes=None):
         reason = stage.get('reason')
         lines += word_wrap('%d %s: %s | %s' % (number, workflow_stage_label(stage), word,
                                                'reason ' + safe_text(str(reason)) if reason else 'no reason recorded'), width)
-        lines += _labelled('  basis', str(stage.get('basis')), width, 11)
+        lines += _labelled('  basis', safe_text(str(stage.get('basis'))), width, 11)
         facts = workflow_fact_words(stage)
         if facts:
             lines += _labelled('  recorded', '; '.join(facts), width, 11)
         step = stage.get('continuation')
         if isinstance(step, str) and step:
-            lines += _labelled_steps('  next', step, width, 11)
+            for index, part in enumerate(_workflow_step_parts(step)):
+                lines += _labelled('  next' if index == 0 else '', part, width, 11)
     # Said once, on the last rows, because a small terminal shows the end of the output and not its start.
     return lines + [''] + word_wrap(WORKFLOW_READ_ONLY_STATEMENT, width)
 

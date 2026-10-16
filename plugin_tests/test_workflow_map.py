@@ -1934,5 +1934,154 @@ class ReviewReadOnlyTests(LayerFixture):
                 self.assertEqual(self.tree(), before, (state, extra))
 
 
+
+# ---- round 2, item 1: record-derived text is escaped by the workflow renderers themselves -----------------------------
+
+HOSTILE = ('\x1b[2J\x1b[H\x1b]0;forged title\x07\rKEYS: q exits\x00\x08\x0b\x0c\x1f\x7f\u0085\u009b31m\u202e'
+           '\n? help | : command | Up/Down stage | Enter open | Esc close | b back | q exit')
+KEY_LINE = '? help | : command | Up/Down stage'
+
+
+SGR = re.compile(r'\x1b\[[0-9;]*m')
+
+
+def raw_controls(text):
+    """The characters of one output line a terminal would act on: C0 (a CR or LF too), DEL, C1, format and combining
+    characters, which is what the product's safe_text escapes. The workspace's own bold and reset sequences (SGR) are
+    its styling, not recorded text, and are set aside; any other escape sequence is not."""
+    import unicodedata
+    return [char for char in SGR.sub('', text) if unicodedata.category(char)[0] in 'CM' or char == '\x7f']
+
+
+def hostile_flow():
+    """The projection of a prepared operation with hostile text in every field a record can supply."""
+    flow = project(with_operation(baseline()))
+    flow['name'] = HOSTILE
+    for stage in flow['stages']:
+        stage['basis'] = 'basis ' + HOSTILE
+        stage['reason'] = 'reason ' + HOSTILE
+        stage['facts'] = {name: HOSTILE for name in ('run_id', 'observed_at', 'stack', 'classification', 'closes_at',
+                                                     'intent_id', 'proposal_check', 'zz unlisted ' + HOSTILE)}
+        # A step: its sentence, then a command after the trusted line break, both holding recorded text.
+        stage['continuation'] = 'Step ' + HOSTILE + '\n  reconcile ' + HOSTILE
+        stage['opens'] = HOSTILE
+    flow['stages'][0]['id'] = 'observe'
+    return flow
+
+
+class RecordedTextTests(LayerFixture):
+    def frame_of(self, flow, size, rules, focus=None):
+        from intune_iac.workbench_tui import Workspace
+        out = io.StringIO()
+        ws = Workspace(self.store.root, stdout=out, stdin=io.StringIO(), no_color=True)
+        ws.pending.clear()
+        ws.rules = rules
+        ws._terminal_size = lambda: size
+        ws.size = size
+        ws.selected = flow['object_id']
+        ws.last_command = 'workflow'
+        ws.workflow_focus = focus
+        ws.receive(flow)
+        return out.getvalue().split('\x1b[H')[-1].replace('\x1b[J', '').split('\r\n')
+
+    def test_no_character_a_terminal_acts_on_reaches_the_plain_text_form_whatever_a_record_holds(self):
+        from intune_iac.workbench_screens import workflow_text_lines
+        flow = hostile_flow()
+        for width in (36, 50, 80, 120):
+            for rules in ('ascii', 'unicode'):
+                lines = workflow_text_lines(flow, width, rules)
+                self.assertGreater(len(lines), 40)
+                for line in lines:
+                    self.assertEqual(raw_controls(line), [], (width, rules, line))
+                text = '\n'.join(lines)
+                # Escaped, not dropped: the reader sees what the record holds.
+                self.assertIn('\\u001b[2J', text)
+                self.assertIn('\\r', text)
+
+    def test_no_character_a_terminal_acts_on_reaches_the_layer_frame_and_no_key_line_is_forged(self):
+        flow = hostile_flow()
+        for size in ((120, 40), (80, 24), (60, 20)):
+            for rules in ('ascii', 'unicode'):
+                for focus in IDS:
+                    frame = self.frame_of(flow, size, rules, focus)
+                    self.assertEqual(len(frame), size[1], (size, rules, focus))
+                    for row in frame:
+                        self.assertEqual(raw_controls(row), [], (size, rules, focus, row))
+                    # The one key line is the frame's own last row; recorded text inside the pane never starts a row of it.
+                    self.assertEqual([index for index, row in enumerate(frame) if row.startswith('? help |')],
+                                     [len(frame) - 1] if frame[-1].startswith('? help |') else [], (size, rules, focus))
+
+    def test_the_renderers_escape_for_themselves_and_do_not_lean_on_the_wrapper_doing_it(self):
+        from intune_iac import workbench_screens as screens
+        flow = hostile_flow()
+        raw_wrap = lambda value, width: [str(value)]       # a wrapper that escapes nothing
+        with mock.patch.object(screens, 'word_wrap', side_effect=raw_wrap):
+            for rules in ('ascii', 'unicode'):
+                lines = [str(row) for row in screens.workflow_text_lines(flow, 80, rules)]
+                lines += [str(row) for focus in IDS for row in screens.workflow_map_lines(flow, 100, rules, focus=focus)]
+                for line in lines:
+                    self.assertEqual(raw_controls(line), [], (rules, line))
+
+
+class RecordedNameFixture(LayerFixture):
+    """A store whose policy carries a hostile name from the collection onward."""
+
+    def setUp(self):
+        import json
+        import shutil
+        import tempfile
+        from pathlib import Path
+        from intune_iac.engine import generate
+        from intune_iac.modeled_service import ModeledService
+        from intune_iac.workbench_store import WorkbenchStore
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        root = Path(repository_tests.ROOT)
+        self.root = Path(temp.name)
+        generate(root / 'examples/supported/input/export.json', root / 'examples/context.json', self.root / 'generated')
+        self.repo = self.root / 'repository'
+        shutil.copytree(self.root / 'generated', self.repo)
+        capture = json.loads((root / 'examples/supported/input/export.json').read_text())
+        for item in capture['collections'][0]['pages'][0]['body']['value']:
+            if item.get('id') == OBJECT:
+                item['name'] = HOSTILE
+        self.service = ModeledService.create(self.root / 'service', capture, [OBJECT])
+        self.store = WorkbenchStore.create(self.root / 'store', TENANT)
+        self.store.collect(self.service)
+
+
+class StoredNameTests(RecordedNameFixture):
+    def test_a_stored_hostile_name_is_kept_exactly_in_the_data_form_and_escaped_in_every_text_form(self):
+        import json
+        import subprocess
+        import sys
+        from pathlib import Path
+        from intune_iac import workbench
+        self.assertEqual(workbench._workflow(self.store, OBJECT, service_root=self.service.root)['name'], HOSTILE)
+        script = Path(__file__).resolve().parents[1] / 'scripts/intune-iac.py'
+        command = [sys.executable, str(script), 'workbench', 'workflow', '--root', str(self.store.root), '--policy', OBJECT,
+                   '--service-root', str(self.service.root)]
+        piped = subprocess.run(command, capture_output=True, cwd='/tmp')
+        self.assertEqual(piped.returncode, 0, piped.stderr)
+        for line in piped.stdout.decode('utf-8').split('\n'):
+            self.assertEqual(raw_controls(line), [], line)
+        self.assertNotIn(b'\x1b', piped.stdout)
+        self.assertNotIn(b'\r', piped.stdout)
+        data = subprocess.run(command + ['--json'], capture_output=True, cwd='/tmp')
+        self.assertEqual(data.returncode, 0, data.stderr)
+        self.assertTrue(all(byte < 0x80 for byte in data.stdout))          # ensure_ascii: nothing a terminal acts on
+        self.assertEqual(json.loads(data.stdout)['name'], HOSTILE)
+
+    def test_a_stored_hostile_name_reaches_no_frame_of_the_layer_as_a_character_a_terminal_acts_on(self):
+        key = lambda char: ('text', char)
+        for size, rules in (((120, 40), 'unicode'), ((80, 24), 'ascii')):
+            ws, frames = self.run_keys(typed('select ' + OBJECT) + typed('workflow') + ['down'] * 3 + [key('q')], size, rules)
+            self.assertEqual(ws.states[-1]['layer'], 'workflow')
+            frame = frames[-1]
+            self.assertEqual(len(frame), size[1])
+            for row in frame:
+                self.assertEqual(raw_controls(row), [], (size, rules, row))
+
+
 if __name__ == "__main__":
     unittest.main()
