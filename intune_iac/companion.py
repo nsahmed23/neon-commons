@@ -136,7 +136,9 @@ def release_listener(live, primary=None):
     note and returned as True, never raised in its place; with nothing escaping, the failure is raised."""
     try:
         live.stop()
-    except Exception as failure:
+    except BaseException as failure:
+        # With an error already escaping, even an interrupt raised by the cleanup is only noted on it. With nothing
+        # escaping, whatever the cleanup raised propagates unchanged.
         if primary is None:
             raise
         note_cleanup_failure(primary, failure)

@@ -354,6 +354,43 @@ class FailingStopTests(Fixture):
         self.assertNotIn('127.0.0.1', notes)
         self.assertNotIn(self.listeners[0].token, notes)
 
+    def raise_on_stop(self, error):
+        def hook():
+            patch = unittest.mock.patch.object(self.listeners[0], 'stop', side_effect=error)
+            patch.start()
+            self.addCleanup(patch.stop)
+        return hook
+
+    def test_a_cleanup_baseexception_does_not_replace_the_error_escaping_the_session(self):
+        from intune_iac.workbench import _run_terminal
+
+        class Boom(RuntimeError):
+            pass
+        for error in (KeyboardInterrupt('stop interrupted'), SystemExit(3)):
+            with self.subTest(error=type(error).__name__):
+                self.listeners.clear()
+                script = ['select ' + self.object_id, 'companion serve']
+
+                def feed(prompt, script=script, error=error):
+                    while script:
+                        return script.pop(0)
+                    if not getattr(feed, 'armed', False):
+                        feed.armed = True
+                        self.raise_on_stop(error)()
+                    raise Boom('the input failed')
+                with self.assertRaises(Boom) as caught:
+                    _run_terminal(self.root, input_fn=feed, result_fn=lambda value: None)
+                notes = ' '.join(getattr(caught.exception, '__notes__', []))
+                self.assertIn(type(error).__name__, notes)
+                self.assertNotIn('127.0.0.1', notes)
+
+    def test_with_nothing_escaping_a_cleanup_keyboardinterrupt_propagates_as_one(self):
+        def end_of_input():
+            raise EOFError
+        with self.assertRaises(KeyboardInterrupt):
+            self.run_terminal('select ' + self.object_id, 'companion serve', self.raise_on_stop(KeyboardInterrupt('stop interrupted')),
+                              end_of_input)
+
     def test_with_nothing_escaping_a_failing_stop_at_the_end_is_raised(self):
         from intune_iac.io import AppError
         def end_of_input():

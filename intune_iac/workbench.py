@@ -1264,7 +1264,9 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
         for listener in list(held):
             try:
                 listener.stop()
-            except Exception as error:
+            except BaseException as error:
+                if escaping is None and not isinstance(error, Exception):
+                    raise      # nothing is escaping, so an interrupt from the cleanup propagates unchanged
                 failure = failure or error
                 # The failure is shown, but a listener that is confirmed closed is no longer one the session holds.
                 if not getattr(listener, 'is_closed', False):

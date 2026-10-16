@@ -1133,6 +1133,51 @@ class StopTests(Fixture):
             release_listener(Stuck(), None)
         self.assertEqual(caught.exception.code, 'companion_live_close_failed')
 
+    def run_live_with_a_stop_that_raises(self, announce, error):
+        """run_companion(serve=True) whose listener's stop() raises `error` (any BaseException) every time."""
+        from intune_iac import companion
+        real_start = companion.start_live
+
+        def capturing(*arguments, **keywords):
+            live = real_start(*arguments, **keywords)
+            self.addCleanup(live.stop)       # the real stop, bound now: it runs after the patch below is undone
+            patch = mock.patch.object(live, 'stop', side_effect=error)
+            patch.start()
+            self.addCleanup(patch.stop)
+            return live
+        with mock.patch.object(companion, 'start_live', capturing):
+            companion.run_companion(self.read, serve=True, announce=announce)
+
+    def test_a_cleanup_baseexception_does_not_replace_the_error_that_is_escaping(self):
+        def announce(text):
+            raise RuntimeError('the announcement failed')
+        for error in (KeyboardInterrupt('stop interrupted'), SystemExit(3)):
+            with self.subTest(error=type(error).__name__):
+                with self.assertRaises(RuntimeError) as caught:
+                    self.run_live_with_a_stop_that_raises(announce, error)
+                self.assertEqual(str(caught.exception), 'the announcement failed')
+                notes = ' '.join(getattr(caught.exception, '__notes__', []))
+                self.assertIn(type(error).__name__, notes)
+                self.assertNotIn('127.0.0.1', notes)
+
+    def test_an_interrupt_is_kept_when_the_cleanup_raises_a_baseexception(self):
+        def announce(text):
+            raise KeyboardInterrupt
+        with self.assertRaises(KeyboardInterrupt) as caught:
+            self.run_live_with_a_stop_that_raises(announce, SystemExit(3))
+        self.assertIn('SystemExit', ' '.join(getattr(caught.exception, '__notes__', [])))
+
+    def test_with_nothing_escaping_a_cleanup_baseexception_propagates_unchanged(self):
+        from intune_iac.companion import release_listener
+
+        class Interrupted:
+            def stop(self):
+                raise KeyboardInterrupt('stop interrupted')
+        with self.assertRaises(KeyboardInterrupt) as caught:
+            release_listener(Interrupted(), None)
+        self.assertEqual(str(caught.exception), 'stop interrupted')
+        self.assertEqual(getattr(caught.exception, '__notes__', []), [])
+
     def test_serve_prints_the_address_never_launches_a_browser_and_stops_when_idle(self):
         from intune_iac.companion import run_companion
         said = []
