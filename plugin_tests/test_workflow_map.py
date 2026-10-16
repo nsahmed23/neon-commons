@@ -2910,7 +2910,7 @@ class ConstrainedBandFrameTests(LayerFixture):
             self.assertIn('! Outcome unknown.', rows, size)
             self.assertIn('Reconcile, never replays', rows, size)
             self.assertIn('T 11111111 | P 22222222', rows, size)
-            self.assertIn('T = tenant | P = policy', rows, size)
+            self.assertTrue(any(row.startswith('T = tenant | P = policy') for row in rows), (size, rows))
             self.assertIn('Esc closes it.', rows, size)
             self.assertTrue(any('q exits' in row for row in rows), (size, rows))
             for row in rows:
@@ -3058,6 +3058,26 @@ class RoundThreeFindingFourTests(LayerFixture):
         ws2.scroll = ws2._workflow_page(rows, 5, 1)
         ws2.value = dict(ws2.value, revision='0' * 64)          # the projection changed under the same row count
         self.assertEqual(ws2._workflow_page(rows, 5, -1), 0)
+
+
+class RoundThreeFindingFiveTests(LayerFixture):
+    """Finding 5: the legend is an atomic block, or its last kept row carries a truncation mark."""
+    def test_at_40x13_40x14_and_40x15_the_legend_is_whole_or_marked(self):
+        from intune_iac import maintenance
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'], fault='lost-response')
+        key = lambda char: ('text', char)
+        for size in ((40, 13), (40, 14), (40, 15)):
+            ws, frames = self.run_keys(typed('select ' + OBJECT) + typed('workflow') + [key('q')], size, 'ascii')
+            rows = [row.rstrip() for row in self.plain(frames[-1])]
+            legend = rows[rows.index(next(row for row in rows if row.startswith('T = tenant | P = policy'))):]
+            legend = [row for row in legend if row]
+            text = ' '.join(' '.join(legend).split())
+            if 'unknown =' in text:
+                self.assertIn('reconcile it (a)', text, (size, legend))          # the definition shows whole
+            else:
+                self.assertTrue(legend[-1].endswith('...'), (size, legend))      # or the cut says it is a cut
+            self.assertFalse(legend[-1].endswith('reached'), (size, legend))
 
 
 if __name__ == "__main__":

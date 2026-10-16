@@ -508,6 +508,20 @@ def _pack(items, width):
     return lines
 
 
+def _legend_block(definitions, width, room):
+    """The legend in `room` rows, a definition at a time: each one whole or not at all. When some are left out, the last row
+    kept ends in "..." so the cut says it is a cut; no definition is ever shown as its first words."""
+    for count in range(len(definitions), -1, -1):
+        rows = strip_key_rows(definitions[:count], width)
+        if len(rows) <= room:
+            break
+    if count < len(definitions) and rows:
+        mark = ' ...'
+        last = rows[-1]
+        rows[-1] = last + mark if cell_width(last + mark) <= width else fit(last, width - len(mark), '') + mark
+    return rows
+
+
 def constrained_rows(tenant, selected, facts, mode_class, width, height, need, prompt, typing=False, layer='summary',
                      route=(None, None)):
     """The window below the minimum size: (lines, band_rows), never the body.
@@ -557,9 +571,9 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
             band = band[:max(min(len(band), 2), height - 1)]
     elif len(band) >= height:
         band = band[:max(1, height - 1)]
+    definitions = [STRIP_DEFINITIONS[key] for key in dict.fromkeys(shown)]
     groups = {'header': [header], 'strip': _pack(items, width), 'prompt': [prompt], 'keys': [keys] if keys else [],
-              'band': band,
-              'legend': strip_key_rows([STRIP_DEFINITIONS[key] for key in dict.fromkeys(shown)], width)}
+              'band': band, 'legend': strip_key_rows(definitions, width)}
     if layer == 'workflow':
         # What the map needs, then the plain-text command that prints it anywhere on its own rows (route: the workspace's
         # root and the selected policy, which the command names when it knows them).
@@ -574,7 +588,10 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
             # The strip's first row (tenant and policy) is explained by the legend: keep the legend and the keys before
             # the strip's further rows.
             room = max(min(1, budget), budget - len(groups['keys']) - len(groups['legend']))
-        kept[name] = groups[name][:max(0, room)]
+        if name == 'legend':
+            kept[name] = _legend_block(definitions, width, max(0, room))
+        else:
+            kept[name] = groups[name][:max(0, room)]
         budget -= len(kept[name])
     lines, band_rows = [], []
     for name in ('header', 'strip', 'band', 'prompt', 'keys', 'legend'):
