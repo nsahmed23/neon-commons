@@ -14,7 +14,9 @@
 # with itself, and a pip wheel runs as code. EXPECTED_ARCHIVE_SHA256 (64 lowercase hex digits) is therefore required, and so
 # is --pip-wheel-sha256 whenever --pip-wheel is given; a run without either is refused with exit status 64 before anything is
 # created. Take each digest from the published release record, not from this script's own printed line, which only echoes
-# the file it was given.
+# the file it was given. A named file that is a link, or is not a plain file, is refused. The archive and the wheel are
+# copied once into a new folder that only this run can enter (under TMPDIR, or /tmp), and every check and every use reads
+# those copies, hashed again just before first use; the folder is removed when the script ends.
 #
 # Many Debian and Ubuntu hosts ship CPython without ensurepip, so `python3 -m venv` fails there. Either install the
 # python3.12-venv package, or give --pip-wheel PATH (any pip wheel file, read in place): the virtual environment is
@@ -102,26 +104,71 @@ fi
 if inside_checkout "$(nearest_existing "$WORK")"; then
     refuse 2 "WORK_FOLDER is inside a git checkout; choose a folder outside every checkout."
 fi
-[ -f "$ARCHIVE" ] || refuse 64 "ARCHIVE is not a file: $ARCHIVE"
+# An input is a plain file. A link is refused, so that the file that is copied below is the file that was named.
+plain_file() {
+    [ ! -L "$2" ] || refuse 64 "$1 is a symbolic link: $2 (name the file itself, not a link to it)."
+    [ -f "$2" ] || refuse 64 "$1 is not a file: $2"
+}
+plain_file ARCHIVE "$ARCHIVE"
 [ -d "$WHEELS" ] || refuse 64 "WHEEL_FOLDER is not a folder: $WHEELS"
 if [ -e "$WORK" ] && [ -n "$(ls -A "$WORK" 2>/dev/null)" ]; then
     refuse 64 "WORK_FOLDER exists and is not empty; use a new folder."
 fi
+if [ "$PIP_WHEEL_GIVEN" = yes ]; then plain_file "the --pip-wheel path" "$PIP_WHEEL"; fi
+
+# Staging. The archive and the wheel are copied once, before any check, into a new folder that only this run can enter, and
+# every check and every use after this point reads the copies. Checking a named path and then reading it again would leave a
+# window in which the file could be replaced by another one. The folder is removed when the script ends, however it ends.
+STAGE=
+cleanup() {
+    case $STAGE in
+        */intune-iac-stage.*) rm -rf -- "$STAGE" ;;
+    esac
+}
+trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+STAGE=$(mktemp -d "${TMPDIR:-/tmp}/intune-iac-stage.XXXXXXXX") || refuse 64 "cannot create a private staging folder under ${TMPDIR:-/tmp}."
+STAGE=$(cd "$STAGE" && pwd -P)
+if [ ! -O "$STAGE" ] || [ "$(stat -c %a "$STAGE")" != 700 ]; then
+    refuse 64 "the staging folder is not private to this run: $STAGE"
+fi
+
+# stage_copy LABEL SOURCE DESTINATION: copy one input (a link is copied as a link, never followed) and refuse if what arrived is
+# not a plain file, which is what a swap for a link between the check above and this copy would leave.
+stage_copy() {
+    cp -P -- "$2" "$3" 2>/dev/null || refuse 64 "$1 cannot be copied into the staging folder: $2"
+    if [ -L "$3" ] || [ ! -f "$3" ]; then refuse 64 "$1 changed into a link or a special file while it was being copied: $2"; fi
+    chmod 600 "$3"
+}
+
+# recheck LABEL STAGED_PATH DIGEST EXIT_STATUS: hash a staged copy again, immediately before it is used.
+recheck() {
+    local actual
+    actual=$(sha256sum "$2" | cut -d' ' -f1)
+    [ "$actual" = "$3" ] || refuse "$4" "the staged $1 changed after it was verified (expected $3, actual $actual)."
+}
+
+STAGED_ARCHIVE=$STAGE/archive.zip
+stage_copy ARCHIVE "$ARCHIVE" "$STAGED_ARCHIVE"
 if [ "$PIP_WHEEL_GIVEN" = yes ]; then
-    [ -f "$PIP_WHEEL" ] || refuse 64 "the --pip-wheel path is not a file: $PIP_WHEEL"
-    PIP_WHEEL=$(cd "$(dirname "$PIP_WHEEL")" && pwd -P)/$(basename "$PIP_WHEEL")
-    # The digest is taken and compared first, so that nothing opens a wheel that is not the one that was named, and a
-    # refusal here has created nothing.
+    mkdir -m 700 "$STAGE/wheel"
+    STAGED_WHEEL=$STAGE/wheel/$(basename -- "$PIP_WHEEL")
+    stage_copy "the --pip-wheel file" "$PIP_WHEEL" "$STAGED_WHEEL"
+    PIP_WHEEL_NAMED=$PIP_WHEEL
+    PIP_WHEEL=$STAGED_WHEEL
+    # The digest of the copy is taken and compared first, so that nothing opens a wheel that is not the one that was named.
     pip_sha256=$(sha256sum "$PIP_WHEEL" | cut -d' ' -f1)
     if [ "$pip_sha256" != "$PIP_WHEEL_SHA256" ]; then
         refuse 64 "the pip wheel's sha256 does not match --pip-wheel-sha256 (expected $PIP_WHEEL_SHA256, actual $pip_sha256); nothing was created."
     fi
     # A pip wheel is a zip that holds the package's __main__.py, which is what `python PATH/pip` runs.
     "$PYTHON" -c 'import sys, zipfile; sys.exit(0 if "pip/__main__.py" in zipfile.ZipFile(sys.argv[1]).namelist() else 1)' \
-        "$PIP_WHEEL" 2>/dev/null || refuse 64 "the --pip-wheel file is not a pip wheel (no pip/__main__.py inside): $PIP_WHEEL"
+        "$PIP_WHEEL" 2>/dev/null || refuse 64 "the --pip-wheel file is not a pip wheel (no pip/__main__.py inside): $PIP_WHEEL_NAMED"
 fi
 
-archive_sha256=$(sha256sum "$ARCHIVE" | cut -d' ' -f1)
+archive_sha256=$(sha256sum "$STAGED_ARCHIVE" | cut -d' ' -f1)
 say "archive sha256: $archive_sha256"
 if [ "$PIP_WHEEL_GIVEN" = yes ]; then
     say "pip wheel sha256: $pip_sha256 (matches --pip-wheel-sha256)"
@@ -133,14 +180,14 @@ fi
 mkdir -p -m 700 "$WORK" || refuse 64 "cannot create WORK_FOLDER."
 WORK=$(cd "$WORK" && pwd -P)
 mkdir -m 700 "$WORK/extract" "$WORK/logs" "$WORK/home"
-ARCHIVE=$(cd "$(dirname "$ARCHIVE")" && pwd -P)/$(basename "$ARCHIVE")
 WHEELS=$(cd "$WHEELS" && pwd -P)
 
 # Nothing may come from the invoking user's environment or home.
 export HOME="$WORK/home" PYTHONDONTWRITEBYTECODE=1 PIP_CONFIG_FILE=/dev/null PIP_DISABLE_PIP_VERSION_CHECK=1
 unset PYTHONPATH PYTHONHOME VIRTUAL_ENV
 
-"$PYTHON" -m zipfile -e "$ARCHIVE" "$WORK/extract" >"$WORK/logs/00-extract.txt" 2>&1 \
+recheck archive "$STAGED_ARCHIVE" "$EXPECTED" 3
+"$PYTHON" -m zipfile -e "$STAGED_ARCHIVE" "$WORK/extract" >"$WORK/logs/00-extract.txt" 2>&1 \
     || refuse 3 "the archive cannot be unpacked (see $WORK/logs/00-extract.txt)."
 roots=$(ls -A "$WORK/extract")
 [ "$(printf '%s\n' "$roots" | wc -l)" -eq 1 ] || refuse 3 "the archive does not have exactly one top folder."
@@ -193,7 +240,7 @@ summary() {
 }
 
 if [ "$PIP_WHEEL_GIVEN" = yes ]; then
-    if [ "$PIP_WHEEL_SHA256_GIVEN" = yes ]; then record pip-wheel PASS "sha256 $pip_sha256 (matches --pip-wheel-sha256)"; else record pip-wheel PASS "sha256 $pip_sha256"; fi
+    record pip-wheel PASS "sha256 $pip_sha256 (matches --pip-wheel-sha256)"
     # The environment is made without pip, so only the venv module is needed, not ensurepip.
     "$PYTHON" -c 'import venv' >/dev/null 2>&1 && ok=1 || ok=0
     missing="the venv module"
@@ -213,7 +260,11 @@ fi
 # The commands are single-quoted text that `step` evaluates, so a path is expanded where it is used and is never read as shell syntax.
 step venv "$venv_command" || summary
 step wheelhouse '"$PYTHON" scripts/verify-dependencies.py --wheelhouse "$WHEELS"' '"status": "verified"' || summary
+# The staged wheel runs as code, so it is hashed again just before each run of it.
+before_pip() { if [ "$PIP_WHEEL_GIVEN" = yes ]; then recheck "pip wheel" "$PIP_WHEEL" "$PIP_WHEEL_SHA256" 64; fi; }
+before_pip
 step install "$pip_command"' --isolated install --no-index --no-cache-dir --find-links "$WHEELS" --require-hashes --only-binary :all: -r requirements-runtime-linux-x86_64-cp312.lock' || summary
+before_pip
 step pip-check "$pip_command"' --isolated check' || summary
 
 # The guide's quickstart, command for command. The guide defines this function in the reader's shell.

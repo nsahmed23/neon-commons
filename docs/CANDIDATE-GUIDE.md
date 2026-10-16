@@ -341,7 +341,10 @@ To see the whole path work on a machine that has never held the product, run the
 unpacks the archive into a new folder, checks `SHA256SUMS`, makes a fresh virtual environment, installs only from the
 folder of wheels with `--no-index`, runs the quickstart above without a terminal (every command in it except the
 interactive workspace, which it replaces with the text variant of step 7), and prints one line for each step. Run it
-from a folder that is not inside a git checkout, and give it a work folder that does not exist yet.
+from a folder that is not inside a git checkout, and give it a work folder that does not exist yet. The script first
+copies the archive (and the wheel, below) into a private temporary folder that is removed when it ends, and checks and
+uses only those copies, so replacing a file after the script has started changes nothing. It refuses a file that is a
+symbolic link or is not a plain file.
 
 The script refuses to run without the archive's sha256 as its last argument (exit status 64, nothing created). An
 archive carries its own `SHA256SUMS`, so an altered archive can agree with itself; only a digest that reached you by

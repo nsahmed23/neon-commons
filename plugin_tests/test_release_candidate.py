@@ -9,6 +9,7 @@ import importlib.util
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -799,6 +800,8 @@ class PipWheelInstallTests(unittest.TestCase):
         self.outside.mkdir()
         self.wheels = self.base / 'wheels'
         self.wheels.mkdir()
+        self.tmp = self.base / 'tmp'     # the script's TMPDIR: the folder it stages its copies in
+        self.tmp.mkdir()
         members = {'scripts/intune-iac.py': STUB_PRODUCT, 'scripts/verify-dependencies.py': STUB_VERIFY,
                    LOCK: '# a stand-in lock: this test runs the plumbing, not an install\n'}
         members['SHA256SUMS'] = ''.join(f'{sha256(text.encode())}  {name}\n' for name, text in sorted(members.items()))
@@ -843,7 +846,7 @@ class PipWheelInstallTests(unittest.TestCase):
                 args.append(sha256(Path(positional[0]).read_bytes()))
         environment = {'PATH': f'{self.host_bin}:{os.environ["PATH"]}', 'LANG': 'C.UTF-8', 'PYTHON': str(self.interpreter),
                        'REAL_PYTHON': sys.executable, 'FAKE_ENSUREPIP': ensurepip, 'FAKE_LOG': str(self.log),
-                       'FAKE_PIP_LOG': str(self.pip_log), 'FAKE_AZ_LOG': str(self.az_log)}
+                       'FAKE_PIP_LOG': str(self.pip_log), 'FAKE_AZ_LOG': str(self.az_log), 'TMPDIR': str(self.tmp)}
         return subprocess.run(['bash', str(DEMO), *args], cwd=self.outside, capture_output=True, text=True,
                               env=environment, timeout=180)
 
@@ -861,9 +864,12 @@ class PipWheelInstallTests(unittest.TestCase):
         result = self.run_script('--pip-wheel', self.pip_wheel, self.archive, self.wheels, self.base / 'work')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(self.venv_calls(), ['venv -m venv --without-pip .venv'])
-        wheel = f'{self.pip_wheel}/pip'
-        self.assertEqual(self.pip_calls(), [f'wheel-pip {wheel} {self.install_arguments()}',
-                                            f'wheel-pip {wheel} --isolated check'])
+        # The wheel that runs is the copy made in the script's private staging folder, not the file that was named.
+        staged = re.escape(f'{self.tmp}') + r'/intune-iac-stage\.\w+/wheel/' + re.escape(self.pip_wheel.name) + '/pip'
+        calls = self.pip_calls()
+        self.assertEqual(len(calls), 2, calls)
+        self.assertRegex(calls[0], f'^wheel-pip {staged} ' + re.escape(self.install_arguments()) + '$')
+        self.assertRegex(calls[1], f'^wheel-pip {staged} ' + re.escape('--isolated check') + '$')
         self.assertIn('RESULT: every step passed.', result.stdout)
 
     def test_the_sign_in_step_runs_with_no_search_path_so_a_hosts_az_is_never_called(self):
@@ -896,11 +902,12 @@ class PipWheelInstallTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(self.venv_calls(), ['venv -m venv --without-pip .venv'])
 
-    def test_the_wheel_is_read_in_place_and_not_copied_into_the_work_folder(self):
+    def test_the_wheel_runs_from_a_staged_copy_that_is_not_left_behind_and_the_named_file_is_untouched(self):
         before = self.pip_wheel.read_bytes()
         result = self.run_script('--pip-wheel', self.pip_wheel, self.archive, self.wheels, self.base / 'work')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertEqual(list((self.base / 'work').rglob('*.whl')), [])
+        self.assertEqual(list((self.base / 'work').rglob('*.whl')), [], 'the copy is not left in the work folder')
+        self.assertEqual(list(self.tmp.iterdir()), [], 'the staging folder is removed when the script ends')
         self.assertEqual(self.pip_wheel.read_bytes(), before)
 
     # --pip-wheel-sha256: the wheel runs as code, so the caller can say which file it must be.
