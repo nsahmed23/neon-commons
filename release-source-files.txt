@@ -859,6 +859,7 @@ plugin_tests/test_ci_contract.py
 plugin_tests/test_cli.py
 plugin_tests/test_cli_audit.py
 plugin_tests/test_cli_portability_r4.py
+plugin_tests/test_cli_value_redaction.py
 plugin_tests/test_clock_authority.py
 plugin_tests/test_companion_live.py
 plugin_tests/test_companion_page.py

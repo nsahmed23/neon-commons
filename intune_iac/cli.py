@@ -7,6 +7,7 @@ import importlib.util
 import json
 import os
 import platform
+import re
 import shutil
 import sys
 
@@ -14,8 +15,50 @@ from . import __version__
 from .io import AppError, load_json
 
 # Help for the read-token routes. No flag takes the token itself.
-_TOKEN_ENV_HELP='Name of an environment variable that holds the token (not the token). The token must then sit in the environment of this process, so set it for this one command only; the descriptor route (-fd flag) keeps it out of the environment'
-_TOKEN_FD_HELP='Number of an inherited file descriptor to read the token from (private regular file or FIFO, 4096 bytes, 5 seconds, ASCII). This route keeps the token out of the parent session (environment, history, process list) and wins over the environment-variable route, which is then not read. Example: --FLAG 3 3<token-file'
+_CLAIMS_RULE=' Claims inside a token are unverified: they may cause an early local refusal and explain a service refusal; they never permit a call or an action.'
+_TOKEN_ENV_HELP='Name of an environment variable that holds the token (not the token). The token must then sit in the environment of this process, so set it for this one command only; the descriptor route (-fd flag) keeps it out of the environment.'+_CLAIMS_RULE
+_TOKEN_FD_HELP='Number of an inherited file descriptor to read the token from (private regular file or FIFO, 4096 bytes, 5 seconds, ASCII; the descriptor is closed after it is read). This route keeps the token out of the parent session (environment, history, process list) and wins over the environment-variable route, which is then not read. Example: --FLAG 3 3<token-file.'+_CLAIMS_RULE
+
+
+class _Parser(argparse.ArgumentParser):
+    """Every parser (this class is also the subparsers' class): no abbreviated options, and no argument VALUE is ever
+    echoed. A person can paste a token where a number or a name belongs, so the usage error names options only."""
+
+    def __init__(self,*args,**kwargs):
+        kwargs.setdefault('allow_abbrev',False)
+        super().__init__(*args,**kwargs)
+
+    def error(self,message):
+        self.print_usage(sys.stderr)
+        self.exit(2,'%s: error: %s\n'%(self.prog,_parser_message(message)))
+
+
+_SAFE_PARSER_TEXT=(re.compile(r'expected (?:one|at least one) argument'),re.compile(r'expected \d+ arguments?'),
+    re.compile(r'expects the number of an inherited file descriptor'),re.compile(r'not allowed with argument [-\w., /]+'))
+
+
+def _parser_message(message):
+    # REDACTION POINT for the usage-error path. argparse puts values into several of its messages (invalid int value,
+    # invalid choice, unrecognized arguments), so only fixed text and option names survive; anything else is generic.
+    if message.startswith('unrecognized arguments: '):
+        return 'unrecognized arguments (%d); argument values are never shown'%len(message.split(': ',1)[1].split())
+    if message.startswith('the following arguments are required: '):
+        return message
+    match=re.fullmatch(r'(argument [-\w., /<>{}|]+): (.*)',message,re.S)
+    if match:
+        rest=match.group(2)
+        if any(p.fullmatch(rest) for p in _SAFE_PARSER_TEXT):return message
+        if rest.startswith('invalid choice'):return match.group(1)+': invalid choice (the value is not shown)'
+        return match.group(1)+': invalid value (the value is not shown)'
+    return 'invalid arguments (values are not shown)'
+
+
+def _descriptor(value):
+    # A descriptor flag is parsed here, not with type=int: int()'s error text carries the value, and a token is exactly
+    # what a person may paste there by mistake.
+    if not isinstance(value,str) or not (value.isascii() and value.isdigit()) or len(value)>9:
+        raise argparse.ArgumentTypeError('expects the number of an inherited file descriptor')
+    return int(value)
 
 
 def _fd_token(descriptor):
@@ -88,7 +131,7 @@ def _paths(parser, output=False):
 
 
 def parser():
-    p=argparse.ArgumentParser(prog='intune-iac',description='Inspect Intune captures, query relationships, and build verified local artifacts.')
+    p=_Parser(prog='intune-iac',description='Inspect Intune captures, query relationships, and build verified local artifacts.')
     p.add_argument('--version',action='version',version=__version__)
     commands=p.add_subparsers(dest='command',required=True)
     from .workbench import add_parser as add_workbench_parser
@@ -146,7 +189,7 @@ def parser():
     judge.add_argument('--config',required=True);judge.add_argument('--claim',required=True);judge.add_argument('--evidence',required=True)
     cap=commands.add_parser('capture',help='Capture public Graph beta pages using an explicitly supplied read token')
     cap.add_argument('--tenant',required=True);cap.add_argument('--policy',required=True);cap.add_argument('--output',required=True);cap.add_argument('--token-env',default='INTUNE_GRAPH_TOKEN',help=_TOKEN_ENV_HELP)
-    cap.add_argument('--token-fd',type=int,help=_TOKEN_FD_HELP);cap.add_argument('--max-pages',type=int,default=100)
+    cap.add_argument('--token-fd',type=_descriptor,help=_TOKEN_FD_HELP);cap.add_argument('--max-pages',type=int,default=100)
     cap.add_argument('--max-attempts-per-page',type=int,default=3,help='Bounded GET attempts per page, including the first (1 through 10)')
     cap.add_argument('--max-elapsed-seconds',type=float,default=120,help='Total network and retry budget, greater than zero and at most 120 seconds')
     cap.add_argument('--max-retry-delay-seconds',type=float,default=30,help='Maximum admitted Retry-After/backoff; a larger delay stops partial instead of retrying early')
@@ -155,11 +198,11 @@ def parser():
     tc=target.add_parser('compare');tc.add_argument('--expected',required=True);tc.add_argument('--observed',required=True)
     collect=target.add_parser('collect');collect.add_argument('--input',required=True)
     collect.add_argument('--graph-token-env',default='INTUNE_GRAPH_TOKEN',help=_TOKEN_ENV_HELP);collect.add_argument('--management-token-env',default='INTUNE_MANAGEMENT_TOKEN',help=_TOKEN_ENV_HELP)
-    collect.add_argument('--graph-token-fd',type=int,help=_TOKEN_FD_HELP);collect.add_argument('--management-token-fd',type=int,help=_TOKEN_FD_HELP)
+    collect.add_argument('--graph-token-fd',type=_descriptor,help=_TOKEN_FD_HELP);collect.add_argument('--management-token-fd',type=_descriptor,help=_TOKEN_FD_HELP)
     authenticate=target.add_parser('authenticate',help='Read-only explicit identity binding; credentials arrive on inherited file descriptors')
     authenticate.add_argument('--input',required=True)
-    authenticate.add_argument('--provider-secret-fd',required=True,type=int)
-    authenticate.add_argument('--backend-secret-fd',required=True,type=int)
+    authenticate.add_argument('--provider-secret-fd',required=True,type=_descriptor)
+    authenticate.add_argument('--backend-secret-fd',required=True,type=_descriptor)
     provider=commands.add_parser('provider',help='Use an operator-admitted generated executor with external signed approval; network denied').add_subparsers(dest='provider_command',required=True)
     for operation in ('prepare','review','execute','reconcile','status','wizard'):
         command=provider.add_parser(operation)
