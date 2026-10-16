@@ -445,6 +445,12 @@ def _service_row(operation, f):
         action = ('Name the tenant as a GUID in the context or export JSON, then run: %s start DIRECTORY' % PROGRAM)
         role = 'engineer'
     azure = verdicts.get('azure')
+    if azure and single and azure['usable'] and operation == 'discover':
+        # Offered, never run: the engineer asks for it. Usable means only that the sign-in is in the right tenant.
+        action = ('%s signin collect --tenant %s --policy POLICY --output NEW_DIR (the Azure CLI gives a short-lived read token '
+                  'to the collecting command on an inherited file descriptor; whether it can read is known only after it does)'
+                  % (PROGRAM, single))
+        role = 'engineer'
     if azure and single and azure['status'] in SIGNIN_STEPS:
         # The sign-in itself is the blocker, so its exact next step comes first. The row is never ready, whatever the sign-in.
         action, role = azure['next_step'], 'engineer'
