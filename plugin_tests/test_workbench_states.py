@@ -285,8 +285,9 @@ class LifecycleTests(unittest.TestCase):
         self.assertIn('Lifecycle: 9 Repository > 5 Plan (here) > 6 Execution > Delivery (v opens it)', text)
         # Run 9 (frame 18): the placeholder template stands on its own row after the sentence, so a copied row carries
         # no words; the sentence and the template are both still said.
-        self.assertIn('Next: approve and run it with the review digest (6 Execution shows the result). Command: '
-                      'execute OPERATION_DIR DIGEST', text)
+        self.assertIn('Next: approve and run it with the review digest (6 Execution shows the result). In the workspace: '
+                      'execute OPERATION_DIR DIGEST From a shell: intune-iac workbench execute --operation OPERATION_DIR '
+                      '--approve-digest DIGEST', text)  # run 12 item 3
 
     def test_the_repository_and_execution_surfaces_say_it_too(self):
         text = self.summary(8, {'schema_version': 'workbench-repository-status/1', 'object_id': OBJECT,

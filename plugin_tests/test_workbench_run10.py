@@ -318,7 +318,7 @@ class NoChangePlanTests(CommandRows, unittest.TestCase):
 
     def test_a_plan_with_a_change_is_unchanged(self):
         text = self.next_text(self.review(changes=['description'], no_configuration_change=False))
-        self.assertIn('Next: approve and run it with the review digest (6 Execution shows the result). Command:', text)
+        self.assertIn('Next: approve and run it with the review digest (6 Execution shows the result). In the workspace:', text)  # run 12 item 3
 
     def test_the_words_are_what_executing_a_no_change_plan_does(self):
         # The code's own answer: a real no-change proposal executes without sending anything and reads the service back.

@@ -268,7 +268,7 @@ class AdoptionSummaryTests(unittest.TestCase):
         self.assertIn('Ownership: unknown', text)
         self.assertIn('What adopt does:', text)
         self.assertIn('sends nothing to a tenant', text)
-        self.assertIn('Next: adopt', text)
+        self.assertIn('Next: In the workspace: adopt', text)  # run 12 item 3: where the command is typed
 
     def test_the_adopt_result_names_the_handoff_and_how_to_use_it(self):
         from intune_iac.workbench_adoption import adopt
@@ -371,7 +371,7 @@ class AdoptedServiceTests(unittest.TestCase):
         self.assertEqual(service_words({'root': '/work/service', 'source': 'command line'}),
                          'Modeled service: /work/service (--service-root)')
         self.assertEqual(service_words(None),
-                         'Modeled service: none yet. Adopt a completed journey (:adopt), or start with --service-root.')
+                         'Modeled service: none yet. Adopt a completed journey (the adopt command), or start with --service-root.')
         self.assertEqual(service_words({'root': '/gone', 'source': 'adoption', 'artifact_id': 'b' * 64,
                                         'problem': 'service_unavailable'}),
                          'Modeled service: unavailable. The latest adoption record bbbbbbbbbbbb names /gone, which '

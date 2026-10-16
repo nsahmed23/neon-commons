@@ -777,12 +777,19 @@ def lifecycle_next(tab, value, now, eligibility=None):
             # to the service (service_no_change, mutation_dispatched False); the readback confirms the desired state.
             return ('Nothing to apply: the desired body equals the observed body. execute with the review digest sends no '
                     'change to the service; it runs the operation and reads the service back (6 Execution shows the '
-                    'result). Command:' + COMMAND_BREAK + '  execute %s DIGEST' % operation)
-        return ('approve and run it with the review digest (6 Execution shows the result). Command:' + COMMAND_BREAK
-                + '  execute %s DIGEST' % operation)
+                    'result). ' + _execute_forms(operation))
+        return 'approve and run it with the review digest (6 Execution shows the result). ' + _execute_forms(operation)
     if status == 'outcome_unknown':
         return RECONCILE_NEXT
     return 'v shows every delivery stage of this operation'
+
+
+def _execute_forms(operation):
+    """Where the plan review's execute is typed, as Delivery frames its commands: the workspace's command bar, or a
+    shell with the complete program form. DIGEST stays a placeholder: the engineer copies the digest from the review
+    they approve, and it is never filled in (run 12, frames 18, 31, 53, 63, 64)."""
+    return ('In the workspace:' + COMMAND_BREAK + '  execute %s DIGEST' % operation + COMMAND_BREAK + 'From a shell:'
+            + COMMAND_BREAK + '  intune-iac workbench execute --operation %s --approve-digest DIGEST' % operation)
 
 
 def lifecycle_lines(tab, width, value=None, now=None, eligibility=None, band_names_refresh=False, band_has_next=False):
@@ -806,7 +813,7 @@ def lifecycle_lines(tab, width, value=None, now=None, eligibility=None, band_nam
     if band_has_next and tab == 5:
         return word_wrap('Lifecycle: %s.' % path, width)
     lines = word_wrap('Lifecycle: %s. Next: %s%s' % (path, head, '' if command else '.'), width)
-    return lines + (word_wrap(command, width) if command else [])
+    return lines + (step_rows(command, width) if command else [])
 
 
 def _when(value, missing='time not recorded'):
@@ -963,7 +970,7 @@ def review_lines(value, width):
         lines += word_wrap('Then record the form you filled in. A review is an annotation, never approval or execution. '
                            'The last word of the command is the earlier review it replaces' + (
                                '; none means this finding has no earlier review to replace.' if prior == 'none' else '.')
-                           + ' Command:', width)
+                           + ' In the workspace:', width)
         lines += word_wrap("  queue-amend '%s' %s" % (value.get('path'), prior), width)
         return lines
     if value.get('schema_version') == 'workbench-queue-history/1':
@@ -3361,7 +3368,8 @@ def adoption_lines(value, width):
     lines += word_wrap('What adopt does: creates a new handoff directory with its own modeled service built from the '
                        'captured estate, records one collection of these policies in this store and one adoption '
                        'record for each. It sends nothing to a tenant and leaves the journey unchanged.', width)
-    lines += word_wrap("Next: adopt '%s' NEW_HANDOFF_DIR" % binding.get('session'), width)
+    lines += word_wrap('Next: In the workspace:', width)
+    lines += word_wrap("  adopt '%s' NEW_HANDOFF_DIR" % binding.get('session'), width)
     return lines
 
 

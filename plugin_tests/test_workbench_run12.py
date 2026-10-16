@@ -47,3 +47,55 @@ class StripSentenceTests(unittest.TestCase):
         text = ' '.join(' '.join(workspace._strip_note(118)).split())
         self.assertEqual(text, "The strip's OP prepared is operation a23983bd, the newest for this policy, not operation "
                                "f728f275, the one this screen is about.")
+
+
+class WhereToTypeTests(unittest.TestCase):
+    """Item 3 (frames 18, 31, 53, 63, 64; also 02 and 48): a printed command says where it is typed. The plan review's
+    execute gets the framing frame 20 uses, with the complete shell form; DIGEST stays a placeholder, never prefilled."""
+    OPERATION = '/w/op'
+
+    def review(self, **kw):
+        import time
+        value = {'operation_id': 'f' * 32, 'operation_root': self.OPERATION, 'object_id': 'o' * 8, 'status': 'prepared',
+                 'approval_digest': 'd' * 64, 'expires_at': time.time() + 200}
+        return dict(value, **kw)
+
+    def rows(self, value, width=118):
+        from intune_iac.workbench_screens import lifecycle_lines
+        return lifecycle_lines(4, width, value)
+
+    def test_the_plan_review_frames_both_forms_and_keeps_the_placeholder(self):
+        for width in (80, 118):
+            text = '\n'.join(row.strip() for row in self.rows(self.review(), width))
+            self.assertIn('In the workspace:\nexecute /w/op DIGEST\nFrom a shell:\nintune-iac workbench execute --operation '
+                          '/w/op --approve-digest DIGEST', text, width)
+            self.assertNotIn('Command:', text)
+            self.assertNotIn('d' * 64, text)
+
+    def test_a_no_change_plan_and_a_review_without_a_directory_say_it_too(self):
+        no_change = ' '.join(' '.join(self.rows(self.review(changes=[], no_configuration_change=True))).split())
+        self.assertIn('In the workspace: execute /w/op DIGEST From a shell: intune-iac workbench execute --operation /w/op '
+                      '--approve-digest DIGEST', no_change)
+        value = self.review()
+        del value['operation_root']
+        bare = ' '.join(' '.join(self.rows(value)).split())
+        self.assertIn('In the workspace: execute OPERATION_DIR DIGEST From a shell: intune-iac workbench execute '
+                      '--operation OPERATION_DIR --approve-digest DIGEST', bare)
+
+    def test_a_path_with_spaces_is_quoted_in_both_forms(self):
+        text = ' '.join(' '.join(self.rows(self.review(operation_root='/w/my op'))).split())
+        self.assertIn("execute '/w/my op' DIGEST", text)
+        self.assertIn("--operation '/w/my op' --approve-digest DIGEST", text)
+
+    def test_the_queue_amend_command_says_it_is_typed_in_the_workspace(self):
+        from intune_iac.workbench_screens import review_lines
+        form = {'status': 'review_form_written', 'path': '/w/queue review.json', 'finding': 'incomplete', 'object_id': 'o' * 8}
+        text = '\n'.join(row.strip() for row in review_lines(form, 118))
+        self.assertNotIn('Command:', text)
+        self.assertIn("In the workspace:\nqueue-amend '/w/queue review.json' none", text)
+
+    def test_the_adopt_command_says_it_is_typed_in_the_workspace(self):
+        from intune_iac.workbench_screens import adoption_lines
+        value = {'status': 'ready_local_model_handoff', 'binding': {'session': '/w/session.json', 'object_ids': ['o' * 8]}}
+        text = '\n'.join(row.strip() for row in adoption_lines(value, 118))
+        self.assertIn("In the workspace:\nadopt '/w/session.json' NEW_HANDOFF_DIR", text)
