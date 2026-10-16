@@ -2,9 +2,12 @@
 (PKG-RELEASE-1 round 4). Real temporary repositories, with the fixture and the secret-shaped test data of test_release_hardening
 (values are built at run time and never written out whole)."""
 import contextlib
+import hashlib
+import importlib.util
 import io
 import json
 import shutil
+import subprocess
 import sys
 import unittest
 import zipfile
@@ -244,6 +247,106 @@ class ContentDigestTests(GitCase):
         for key in ('runtime_content_sha256', 'source_content_sha256'):
             self.assertNotEqual(after.get(key), before.get(key), key + ' did not follow an edited member')
         self.assertNotEqual(after.get('runtime_content_sha256'), repo.identity('runtime')['content_sha256'])
+
+
+CHECKER = base.ROOT / 'research/enterprise-ci/check-archives.py'
+IDENTITY = 'BUILD-IDENTITY.json'
+DIFFERENT_BYTES = 'Runtime bytes differ from source release bytes.'
+RUNTIME = (f'Intune_IaC_Plugin_{builder.__version__}.zip', 'intune-iac')
+SOURCE = (f'Intune_IaC_Plugin_{builder.__version__}_Source.zip', 'intune-iac-source')
+
+
+class ArchiveCheckTests(GitCase):
+    """Round 6: the CI's archive check (research/enterprise-ci/check-archives.py) accepts the runtime and the source archive of one
+    clean build. Each archive's BUILD-IDENTITY.json describes that archive, so the two differ by design and are not compared; every
+    other member the two share must still have the same bytes, and every member still has to match its own archive's digest list."""
+
+    def setUp(self):
+        super().setUp()
+        spec = importlib.util.spec_from_file_location('ci_archive_checker', CHECKER)
+        self.checker = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(self.checker)
+
+    def build(self):
+        """The runtime and source archive of one clean commit of a fresh repository."""
+        repo = hard.GitFixture(self)
+        repo.build()
+        return repo
+
+    def check(self, repo, folder='extracted'):
+        """The repository's check on the build's two archives: its refusal as the message, success as None. Anything other than
+        a refusal is a defect of the check and is left to fail the test."""
+        try:
+            self.checker.check_release(repo.output, repo.parent / folder)
+        except ValueError as refused:
+            return str(refused)
+        return None
+
+    def rewrite(self, repo, archive, changes, consistent=True):
+        """Change members of one archive (a member mapped to None is dropped). When consistent, its SHA256SUMS and the build receipt
+        follow the new bytes, so the comparison of shared members is the only check left that can notice the difference; when not,
+        only the member bytes change."""
+        filename, prefix = archive
+        path = repo.output / filename
+        with zipfile.ZipFile(path) as opened:
+            members = {info.filename[len(prefix) + 1:]: opened.read(info) for info in opened.infolist()}
+        listing = members.pop('SHA256SUMS')
+        for name, data in changes.items():
+            if data is None:
+                del members[name]
+            else:
+                members[name] = data
+        if consistent:
+            listing = ''.join(f'{hashlib.sha256(data).hexdigest()}  {name}\n' for name, data in sorted(members.items())).encode()
+        path.unlink()
+        with zipfile.ZipFile(path, 'w') as rewritten:
+            for name, data in {**members, 'SHA256SUMS': listing}.items():
+                rewritten.writestr(f'{prefix}/{name}', data)
+        if consistent:
+            receipt_path = repo.output / 'Intune_IaC_Plugin_Archive_Receipt.json'
+            receipt = json.loads(receipt_path.read_text())
+            row = next(item for item in receipt['archives'] if item['filename'] == filename)
+            row.update(files=len(members) + 1, listed_hashes=len(members), bytes=path.stat().st_size,
+                       sha256=hashlib.sha256(path.read_bytes()).hexdigest())
+            receipt_path.write_text(json.dumps(receipt))
+
+    def test_the_runtime_and_source_archive_of_one_clean_build_pass_and_are_extracted(self):
+        repo = self.build()
+        self.assertNotEqual(repo.member(IDENTITY, 'runtime'), repo.member(IDENTITY, 'source'), 'the two identity records differ by design')
+        self.assertEqual(repo.member('README.md', 'runtime'), repo.member('README.md', 'source'))
+        refused = self.check(repo)
+        self.assertIsNone(refused, 'the check refused the two archives of one clean build: ' + str(refused))
+        for folder, kind in (('intune-iac', 'runtime'), ('intune-iac-source', 'source')):
+            self.assertEqual(json.loads((repo.parent / 'extracted' / folder / IDENTITY).read_text())['archive_kind'], kind)
+            self.assertEqual((repo.parent / 'extracted' / folder / 'README.md').read_bytes(), repo.member('README.md', kind))
+
+    def test_the_command_the_workflow_runs_passes_on_the_same_archives(self):
+        repo = self.build()
+        result = subprocess.run([sys.executable, '-B', str(CHECKER), '--directory', str(repo.output), '--output',
+                                 str(repo.parent / 'by-command')], capture_output=True, text=True, timeout=120)
+        self.assertEqual(result.returncode, 0, 'the check failed on the two archives of one clean build: ' + result.stderr[-400:])
+        report = json.loads(result.stdout)
+        self.assertIs(report['success'], True)
+        self.assertIs(report['shared_runtime_bytes_verified'], True)
+
+    def test_an_edited_shared_member_other_than_the_identity_record_still_fails(self):
+        cases = {'edited in the source archive': (SOURCE, {'README.md': b'edited in the source archive only\n'}),
+                 'edited in the runtime archive': (RUNTIME, {'README.md': b'edited in the runtime archive only\n'}),
+                 'dropped from the source archive': (SOURCE, {'README.md': None})}
+        for name, (archive, changes) in cases.items():
+            with self.subTest(name):
+                repo = self.build()
+                self.assertIsNone(self.check(repo, 'untouched'), 'the untouched pair must pass, or this proves nothing')
+                self.rewrite(repo, archive, changes)
+                self.assertEqual(self.check(repo), DIFFERENT_BYTES)
+                self.assertFalse((repo.parent / 'extracted').exists(), 'nothing is extracted from archives that differ')
+
+    def test_the_identity_record_is_left_out_of_the_comparison_but_not_out_of_the_archive_digest_list(self):
+        for member in (IDENTITY, 'README.md'):
+            with self.subTest(member):
+                repo = self.build()
+                self.rewrite(repo, SOURCE, {member: b'changed without updating the digest list\n'}, consistent=False)
+                self.assertEqual(self.check(repo), 'Archive member digest mismatch.')
 
 
 if __name__ == '__main__':

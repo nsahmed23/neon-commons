@@ -83,7 +83,10 @@ def check_release(directory, output):
         snapshots[expected[name]] = files
         reports.append({'archive': name, 'files': len(files), 'listed_hashes': len(files) - 1})
     runtime = snapshots['intune-iac']; source = snapshots['intune-iac-source']
-    if any(name not in source or data != source[name] for name, data in runtime.items() if name != 'SHA256SUMS'):
+    # Each archive's SHA256SUMS lists its own members and its BUILD-IDENTITY.json describes that archive (its kind and its companion),
+    # so those two differ between the archives by design; verify_archive has already matched every member, the record included, to its own list.
+    own_to_each_archive = ('SHA256SUMS', 'BUILD-IDENTITY.json')
+    if any(name not in source or data != source[name] for name, data in runtime.items() if name not in own_to_each_archive):
         raise ValueError('Runtime bytes differ from source release bytes.')
     destination.mkdir(mode=0o700)  # A previous extraction must not be reused.
     for prefix, files in snapshots.items():
