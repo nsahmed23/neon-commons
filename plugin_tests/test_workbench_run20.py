@@ -387,5 +387,32 @@ class ClosedWindowNeedsPreparedTests(LayerFixture):
         self.assertIn('operation_outcome_unknown', codes)
 
 
+class OperationTextEscapingTests(LayerFixture):
+    """Sol could not verify from the diff that operation-derived text in the new note, step and signal is escaped."""
+
+    BAD = 'ab\x1b[31m\rcd ef'
+
+    def test_control_characters_are_shown_escaped_on_every_surface_that_prints_them(self):
+        from intune_iac.workbench_screens import actions_lines, inspector_lines, lifecycle_lines
+        bad = self.BAD
+        status = {'freshness': {'status': 'current'},
+                  'newest_operation': {'short_id': bad, 'journal_status': 'prepared', 'approval_window': 'open'}}
+        action = {'kind': 'propose-from-intent', 'label': 'Prepare a proposal from the recorded intent', 'available': True,
+                  'note': 'operation %s is already prepared; this would be another' % bad, 'summary': 's', 'effects': 'e',
+                  'needs': [], 'command': 'propose-from-intent x'}
+        inspection = {'object_id': OBJECT, 'name': 'n', 'actions': [action],
+                      'attention': {'status': 'attention', 'checked': {}, 'signals': [
+                          {'area': 'operations', 'code': 'operation_approval_closed',
+                           'observed': 'Operation %s is prepared, but its approval window closed' % bad,
+                           'next_step': 'Prepare %s' % bad, 'evidence': {'operation_id': bad}}]}}
+        screens = {'repository': lifecycle_lines(8, 80, status), 'inspector': inspector_lines(inspection, 80),
+                   'actions layer': actions_lines([action], 0, 80)}
+        for name, rows in screens.items():
+            text = '\n'.join(rows)
+            self.assertIn('ab', text, name)
+            for char in ('\x1b', '\r', ' '):
+                self.assertNotIn(char, text, name)
+
+
 if __name__ == '__main__':
     unittest.main()
