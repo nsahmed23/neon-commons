@@ -106,7 +106,12 @@ class CliTextTests(unittest.TestCase):
             with self.subTest(name=label):
                 text = run_catalog_text(parent, name)
                 self.assertNotIn('workbench workspace --root DIRECTORY', text)
-                self.assertIn('Resume: no command (the command names a path whose name is not shown here)', text)
+                # round 2: the operation stays as prose; no command, no hidden operand
+                flat = ' '.join(text.split())
+                self.assertIn('Resume with the workbench workspace command using this saved store; its path cannot be shown here.',
+                              flat)
+                self.assertNotIn('Resume: no command', flat)
+                self.assertNotIn('intune-iac workbench workspace', flat)
 
     def test_the_recorded_start_command_is_not_printed_with_a_stand_in_either(self):
         for label, name in NAMES.items():
@@ -159,6 +164,7 @@ class RefusedFileNameTests(unittest.TestCase):
                     for line in text.split('\n'):
                         self.assertIsNone(STAND_IN.search(line.replace(' \\', '')), line)
                     self.assertNotIn('--input PATH', flat)
+                    self.assertIn('Resume with the wizard command using this export; its path cannot be shown here.', flat)
 
     def test_an_ordinary_export_name_keeps_its_resume_command(self):
         parent = self.workspace('export.json')

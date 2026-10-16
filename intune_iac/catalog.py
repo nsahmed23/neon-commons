@@ -273,6 +273,22 @@ class Catalog(dict):
         return dict, (dict(self),)
 
 
+RESUME_NOUNS = {'wizard_session': 'saved session', 'journey_session': 'saved session', 'guided_session': 'saved session',
+                'store': 'saved store', 'repository': 'repository', 'operation': 'operation', 'export': 'export'}
+RESUME_WORDS = 'Resume with the '
+
+
+def _resume_words(command, kind):
+    """A resume command the screen may not print, as the operation in prose: its program words and the options that take no
+    operand (no path, so nothing hidden and nothing to copy), and what it is run on. 'Resume with the workbench workspace command
+    using this saved store; its path cannot be shown here.'"""
+    words = command.split()[1:]
+    lead = [word for word in words[:next((i for i, w in enumerate(words) if w.startswith('-')), len(words))]]
+    flags = [word for word in words if word in ('--journey', '--guided')]
+    return '%s%s command using this %s; its path cannot be shown here.' % (RESUME_WORDS, ' '.join(lead + flags),
+                                                                          RESUME_NOUNS.get(kind, 'saved item'))
+
+
 def _text_build(result, survey, goal, relative_to):
     """(the catalog as a screen prints it, the placeholders written). Every state and verdict is the JSON build's; only the
     strings that carry paths differ: each resume command (projects[].command) and the sign-in command of an unchecked
@@ -290,7 +306,9 @@ def _text_build(result, survey, goal, relative_to):
         # for a real path, the command is not printed.
         _, own, stood_in, _ = entry.text_paths(root, relative_to)
         command, note = _resume(item, survey['items'], own)
-        row['command'], row['note'] = (None, COMMAND_NOT_SHOWN) if stood_in else (command, note)
+        if stood_in and command:
+            command, note = None, _resume_words(command, item['kind'])
+        row['command'], row['note'] = command, note
         row['path'] = entry.screen_path(row['path'], placeholders)
     # the directory as a screen says it, and as the path writer writes it in a command (the refused name is not kept here)
     data.update(entry.screen_directory(survey.get('directory'), directory()))
@@ -499,6 +517,8 @@ def catalog_lines(value, width):
                            width, '  ', '    ')
             if project['command']:
                 lines += _flow('Resume: ' + project['command'], width, '    ', '    ', commands=True)
+            elif (project['note'] or '').startswith(RESUME_WORDS):
+                lines += _flow(project['note'], width, '    ', '    ')
             else:
                 lines += _flow('Resume: no command (%s)' % project['note'], width, '    ', '    ')
         # What the state words mean, once, under the projects they describe.

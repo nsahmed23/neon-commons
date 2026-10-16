@@ -1004,7 +1004,8 @@ class TerminalSafetyTests(Base):
                     self.assertNotIn('DIRECTORY/', catalog)
                     self.assertIn('run the catalog command with this directory and --check-signin azure '
                                   '(the directory cannot be shown here', catalog)
-                    self.assertIn('Resume: no command (the command names a path whose name is not shown here)', catalog)
+                    self.assertIn('Resume with the workbench workspace command using this saved store; its path cannot be shown here.',
+                                  catalog)
                     start = flat(screens['start'].decode('utf-8').split('\n'))
                     self.assertIn('intune-iac workbench workspace --root DIRECTORY/store', start)         # the next steps
                     self.assertIn('intune-iac wizard --session DIRECTORY/session.json', start)
@@ -1223,7 +1224,8 @@ class OperandRenderingTests(Base):
             for project in value['projects']:
                 # a command the screen may not print says why in its note (PKG-CATALOG-6); the commands themselves are path strings
                 project['command'] = project['path'] = None
-                project['note'] = None if project['note'] == module.COMMAND_NOT_SHOWN else project['note']
+                said = project['note'] == module.COMMAND_NOT_SHOWN or (project['note'] or '').startswith(module.RESUME_WORDS)
+                project['note'] = None if said else project['note']
             for goal in value['integrations'][0]['goals']:
                 goal['authenticated']['message'] = goal['next_action'] = None
                 goal['blocked']['next_action'] = goal['blocked']['missing'] = None  # recorded strings; the states beside them stay
