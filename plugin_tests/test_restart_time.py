@@ -416,15 +416,29 @@ class MigrationTests(StoreFixture):
         self.held_in('second_cutoff')
         self.assertEqual(self.cutoff(), [(START + 60,)])
 
-    def test_history_in_the_open_table_of_a_maximum_length_family_name_still_counts(self):
+    def test_history_in_the_version_2_table_of_a_maximum_length_family_name_still_counts(self):
+        name = 'f' * 64
+        with self.connect() as db:
+            db.execute(validity.table_v2_sql(name))
+            db.execute('INSERT INTO ' + validity.v2_table(name) + " VALUES ('d', 'issuer-1', 'old', 'operation-8', 'q', ?, ?, ?)",
+                       (START + 100, START + 50, START + 50))
+        self.clocks.wall = START + 60
+        self.held_in(name)
+        self.assertEqual(self.cutoff(), [(START + 60,)])
+
+    def test_a_maximum_length_family_name_with_only_an_open_row_refuses_judgment_as_a_lost_record(self):
+        # An open row is only written under a canonical cutoff; with none, the record was lost.
         name = 'f' * 64
         with self.connect() as db:
             db.execute(validity.table_open_sql(name))
             db.execute('INSERT INTO ' + validity.open_table(name) + " VALUES ('d', 'issuer-1', 'old', 'operation-8', 'q', ?, NULL, NULL, NULL, ?, ?, ?, 'p')",
                        (START + 100, START + 50, START + 50, START + 50))
         self.clocks.wall = START + 60
-        self.held_in(name)
-        self.assertEqual(self.cutoff(), [(START + 60,)])
+        store = validity.Store(self.base, self.connect, name, fail, create=True, domain=name)
+        with self.assertRaises(AppError) as raised:
+            with validity.critical(store, self.issued(START + 40, nonce='z', operation_id='operation-9'), 'q', expired_code='toy_expired'):
+                pass
+        self.assertEqual(raised.exception.code, 'validity_cutoff_invalid')
 
     def test_registry_rows_of_a_fresh_store_are_not_history_so_the_first_approval_is_current(self):
         # A live service or adoption store has registry rows (jobs, ownership, ...) before its first approval is judged. They
@@ -456,6 +470,45 @@ class MigrationTests(StoreFixture):
         self.legacy_row_in_second()
         self.clocks.wall = START + 60
         self.held_in('second')
+        self.assertEqual(self.cutoff(), [(START + 60,)])
+
+    def lost_cutoff(self, recreate_empty):
+        """Judgments exist under a cutoff of START+60 (approval A judged open), and then the canonical record is lost."""
+        self.legacy_store()
+        self.clocks.wall = START + 60
+        self.refused(lambda: self.enter(self.issued(START + 40)))  # the first judgment writes the cutoff START+60
+        self.assertEqual(self.cutoff(), [(START + 60,)])
+        self.clocks.elapse(2)
+        self.enter(self.issued(START + 62, nonce='b' * 32, operation_id='operation-2', expires_at=START + 1000))  # A: current, judged open
+        self.assertEqual(len(self.rows('SELECT * FROM latched_open')), 1)
+        with self.connect() as db:
+            db.execute('DROP TABLE _validity_cutoff')
+            if recreate_empty:
+                db.execute(validity.cutoff_sql())
+        self.clocks.elapse(60)
+        with self.assertRaises(AppError) as raised:
+            self.enter(self.issued(START + 90, nonce='c' * 32, operation_id='operation-3', expires_at=START + 1000))  # B: would be held by a later cutoff
+        self.assertEqual(raised.exception.code, 'validity_cutoff_invalid')
+        self.assertNotIn('_validity_cutoff', raised.exception.message)
+        self.assertIn('new store', raised.exception.message)
+        self.assertIn('backup', raised.exception.message)
+        self.assertEqual(self.rows("SELECT count(*) FROM sqlite_master WHERE name = '_validity_cutoff'"), [(1 if recreate_empty else 0,)])
+        if recreate_empty:
+            self.assertEqual(self.cutoff(), [])  # nothing was initialized
+
+    def test_a_dropped_canonical_table_with_judgments_recorded_is_not_re_initialized_later(self):
+        self.lost_cutoff(recreate_empty=False)
+
+    def test_a_canonical_table_recreated_empty_with_judgments_recorded_is_not_re_initialized_later(self):
+        self.lost_cutoff(recreate_empty=True)
+
+    def test_a_database_whose_only_history_is_base_or_version_2_rows_still_initializes_to_now(self):
+        with self.connect() as db:
+            db.execute(validity.table_sql('second'))
+            db.execute(validity.table_v2_sql('second'))
+            db.execute("INSERT INTO second_v2 VALUES ('d', 'issuer-1', 'old', 'operation-8', 'q', ?, ?, ?)", (START + 100, START + 50, START + 50))
+        self.clocks.wall = START + 60
+        self.held_in('second')  # the migration time is now, and the legacy approval stays held
         self.assertEqual(self.cutoff(), [(START + 60,)])
 
     def test_per_family_cutoff_rows_do_not_create_history_either(self):

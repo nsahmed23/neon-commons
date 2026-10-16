@@ -405,6 +405,14 @@ def _ensure_cutoff(store, floor, wall):
         if _read_cutoff(db) is not None:  # another process wrote it while this one waited for the write reservation
             db.execute('COMMIT')
             return
+        existing = {name for (name,) in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+        if any(open_table(family) in existing and db.execute('SELECT 1 FROM ' + _quoted(open_table(family)) + ' LIMIT 1').fetchone()
+               for family in FAMILIES):
+            # An open judgment is only ever written under a canonical cutoff, so a populated open table with no cutoff means the
+            # record was lost (dropped, or recreated empty). Writing a new, later one would re-hold approvals that were current.
+            raise AppError('validity_cutoff_invalid',
+                           'The migration cutoff record of this authorization store is missing, so it cannot establish which '
+                           'approvals predate its migration. Start a new store, or restore the record from a backup.')
         db.execute(cutoff_sql())
         _freeze_cutoff(db)
         value = _first_cutoff(db, floor, wall)
