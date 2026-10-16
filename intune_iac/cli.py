@@ -55,10 +55,15 @@ def _parser_message(message):
 
 
 # The last line of defence at the text output boundary. Renderers escape record text through safe_text; this is for the surface
-# that forgot. Every C0 control (the line feed, carriage return and tab as safe_text writes them), DEL, the C1 controls, the line and
-# paragraph separators and the bidirectional overrides and isolates are shown as a visible escape, so no text-mode command can
-# move the cursor, rewrite the terminal, start a row of its own or reorder what a person reads. Text safe_text already escaped
-# holds none of these and is unchanged. Not applied to --json: JSON output keeps its own escaping.
+# that forgot. THE INVARIANT it keeps: no text-mode command writes a terminal control (it cannot move the cursor or rewrite the
+# terminal), forges a row of its own, or reorders what a person reads with a direction or format character. Text safe_text already
+# escaped holds none of these and is unchanged. Not applied to --json: JSON output keeps its own escaping.
+#
+# WHAT IT DOES NOT CLAIM: that all invisible text is escaped. Invisible default-ignorable characters outside Cf (U+034F combining
+# grapheme joiner, the variation selectors such as U+FE0F, the Hangul fillers U+115F, U+3164 and U+FFA0, U+180B to U+180D) pass
+# unchanged on purpose: they do not move the terminal, forge a row or reorder text, and escaping them would damage legitimate text
+# (emoji with VS16, CJK variants). Names that look identical but differ (spoofing) are a separate concern that this guard does not
+# address.
 #
 # THE RULE is a Unicode category, not a list: every character whose unicodedata.category is Cc (controls: C0, DEL, C1), Cf (format
 # characters: direction marks, embeddings, overrides and isolates, zero-width and joiner characters, the deprecated U+206A to U+206F,

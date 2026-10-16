@@ -533,6 +533,20 @@ class GuardUnitTests(unittest.TestCase):
         expected = {ch for ch in sample if unicodedata.category(ch) in GUARDED_CATEGORIES and ch != '\n'}
         self.assertEqual(len(matched ^ expected), 0)
 
+    def test_invisible_default_ignorable_marks_outside_cf_are_deliberately_not_escaped(self):
+        """The decision, pinned: the invariant is no terminal control, no row forging and no direction or format reordering. A
+        combining grapheme joiner, variation selectors and Hangul fillers stay, because escaping them would damage emoji with VS16
+        and CJK variants. Visually identical names (spoofing) are a separate concern and are not addressed here."""
+        marks = (0x034f, 0xfe0f, 0xfe00, 0x180b, 0x115f, 0x3164, 0xffa0)
+        for number in marks:
+            with self.subTest(code=hex(number)):
+                self.assertNotIn(unicodedata.category(chr(number)), GUARDED_CATEGORIES)
+                self.assertEqual(cli.text_guard('Policy' + chr(number) + 'Admin'), 'Policy' + chr(number) + 'Admin')
+        self.assertEqual(cli.text_guard('\U0001f600️'), '\U0001f600️')
+        # The mutation that would widen the guard to these marks (here: their category, Mn) is what this test refuses.
+        with mock.patch.object(cli, '_TEXT_GUARDED_CATEGORIES', cli._TEXT_GUARDED_CATEGORIES | {'Mn'}):
+            self.assertNotEqual(cli.text_guard('Policy' + chr(0x034f) + 'Admin'), 'Policy' + chr(0x034f) + 'Admin')
+
     def test_the_deprecated_format_controls_are_escaped(self):
         for number in range(0x206a, 0x2070 - 0):
             if unicodedata.category(chr(number)) == 'Cf':
