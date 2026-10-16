@@ -3,6 +3,7 @@ import json
 import os
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 from plugin_tests.orchestration_fixtures import (DIGEST, event, header_for, lifecycle, write_export)
@@ -261,6 +262,77 @@ class ExportAdapterTests(unittest.TestCase):
         (self.dir / 'header.json').write_text('{}')
         with self.assertRaises(ExportUnreadable):  # a header and no events file
             read(self.dir)
+
+    def swapping_open(self, trigger, swap):
+        """os.open that runs swap() once, just before the first open that trigger(path, flags) selects."""
+        real, state = os.open, {'done': False}
+
+        def opener(path, flags, *args, **kwargs):
+            if not state['done'] and trigger(str(path), flags):
+                state['done'] = True
+                swap()
+            return real(path, flags, *args, **kwargs)
+        return mock.patch.object(os, 'open', opener)
+
+    @unittest.skipUnless(hasattr(os, 'symlink'), 'needs symbolic links')
+    def test_a_file_swapped_for_a_link_between_the_check_and_the_open_is_refused_where_there_is_no_no_follow(self):
+        from intune_iac.orchestration_export import ExportUnreadable
+        write_export(self.dir, lifecycle('T-1'))
+        write_export(self.root / 'other', lifecycle('T-2'))
+        target = self.dir / 'events.jsonl'
+
+        def swap():
+            target.unlink()
+            os.symlink(self.root / 'other' / 'events.jsonl', target)
+
+        with mock.patch.object(os, 'O_NOFOLLOW', 0, create=True):  # as on Windows
+            with self.swapping_open(lambda path, flags: path.endswith('events.jsonl'), swap):
+                with self.assertRaises(ExportUnreadable):
+                    read(self.dir)
+
+    @unittest.skipUnless(hasattr(os, 'symlink') and hasattr(os, 'O_DIRECTORY'), 'needs symbolic links and O_DIRECTORY')
+    def test_a_records_directory_swapped_for_a_link_after_it_was_checked_is_refused(self):
+        from intune_iac.orchestration_export import ExportUnreadable
+        write_export(self.dir, lifecycle('T-1'))
+        write_export(self.root / 'other', lifecycle('T-2'))
+
+        def swap():
+            (self.dir / 'events.jsonl').unlink()
+            (self.dir / 'header.json').unlink()
+            self.dir.rmdir()
+            os.symlink(self.root / 'other', self.dir)
+
+        with self.swapping_open(lambda path, flags: path == str(self.dir) or path.endswith('header.json'), swap):
+            with self.assertRaises(ExportUnreadable):
+                read(self.dir)
+
+    @unittest.skipUnless(os.open in os.supports_dir_fd and os.stat in os.supports_dir_fd, 'needs dir_fd')
+    def test_the_files_are_read_from_the_directory_that_was_checked_even_if_its_name_is_reused(self):
+        write_export(self.dir, lifecycle('T-1'))
+        write_export(self.root / 'other', lifecycle('T-2'))
+
+        def swap():
+            self.dir.rename(self.root / 'moved')
+            (self.root / 'other').rename(self.dir)
+
+        with self.swapping_open(lambda path, flags: path.endswith('header.json'), swap):
+            result = read(self.dir)
+        self.assertEqual({e['task'] for e in result['events']}, {'T-1'})
+
+    def test_without_a_directory_handle_the_export_still_reads_and_a_swapped_directory_is_refused(self):
+        from intune_iac import orchestration_export
+        write_export(self.dir, lifecycle('T-1'))
+        write_export(self.root / 'other', lifecycle('T-2'))
+
+        def swap():
+            self.dir.rename(self.root / 'moved')
+            (self.root / 'other').rename(self.dir)
+
+        with mock.patch.object(orchestration_export, '_DIR_FD', False):  # as on Windows
+            self.assertEqual({e['task'] for e in read(self.dir)['events']}, {'T-1'})
+            with self.swapping_open(lambda path, flags: path.endswith('events.jsonl'), swap):
+                with self.assertRaises(orchestration_export.ExportUnreadable):
+                    read(self.dir)
 
     @unittest.skipUnless(hasattr(os, 'symlink'), 'needs symbolic links')
     def test_a_symbolic_link_in_place_of_the_events_file_is_refused(self):

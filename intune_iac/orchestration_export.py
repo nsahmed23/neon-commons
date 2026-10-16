@@ -1,6 +1,6 @@
 """The loop-export adapter: reads DIR/header.json and DIR/events.jsonl (orchestration-export/1) into orchestration-record/1.
 
-Reading never writes, never follows a symbolic link and bounds every file and line. The result is a plain dict:
+Reading never writes, never follows a symbolic link, opens the records directory once and bounds every file and line. The result is a plain dict:
 
     header           the six header fields, or None
     check            {state: ok | mismatch | no_header, header_count, header_last_seq, read_count, read_last_seq,
@@ -33,38 +33,133 @@ class ExportUnreadable(ValueError):
     """The records path cannot be read as an export at all (missing, not a directory, a link, no events file)."""
 
 
-def open_regular(path):
-    # O_NONBLOCK is only the guard for a file swapped for a pipe after the lstat below: opening a FIFO read-only
-    # would otherwise wait for a writer forever. A regular file is unaffected by it.
+# How a file is opened without trusting a name twice. On POSIX the records directory is opened once (O_NOFOLLOW |
+# O_DIRECTORY, then compared by device and inode with what lstat said) and header.json and events.jsonl are opened by
+# name relative to that descriptor (dir_fd), so replacing the directory or one of its parents afterwards changes
+# nothing that is read. Each file is checked with lstat, opened with O_NOFOLLOW | O_NONBLOCK and compared by device and
+# inode after the open, so a file swapped for a link or a pipe between the two steps is refused. On Windows
+# O_NOFOLLOW, O_DIRECTORY and dir_fd do not exist: names are joined to the path, a symbolic link or reparse point
+# (junction) is refused by lstat, the device and inode are compared after the open and the directory is compared again
+# after each file opens. The check there is narrower (a parent component swapped in the instant between the directory
+# check and the open is not covered by a handle) and it refuses whenever the two stat results disagree.
+_REPARSE = getattr(stat, 'FILE_ATTRIBUTE_REPARSE_POINT', 0)
+_DIR_FD = (all(hasattr(os, name) for name in ('O_DIRECTORY', 'O_NOFOLLOW'))
+           and os.open in os.supports_dir_fd and os.stat in os.supports_dir_fd
+           and os.stat in os.supports_follow_symlinks)
+
+
+def _is_link(info):
+    return stat.S_ISLNK(info.st_mode) or bool(_REPARSE and getattr(info, 'st_file_attributes', 0) & _REPARSE)
+
+
+def _same(first, second):
+    return (first.st_dev, first.st_ino) == (second.st_dev, second.st_ino)
+
+
+def _open_checked(name, dir_fd=None):
+    """A binary file object for a regular file `name` (relative to `dir_fd` when given), or ExportUnreadable."""
+    shown = os.path.basename(name)
+    extra = {} if dir_fd is None else {'dir_fd': dir_fd}
+    try:
+        before = os.stat(name, follow_symlinks=False, **extra)  # before any open: a pipe or device can block
+    except OSError as error:
+        raise ExportUnreadable('cannot open %s' % shown) from error
+    if _is_link(before):
+        raise ExportUnreadable('%s is a symbolic link' % shown)
+    if not stat.S_ISREG(before.st_mode):
+        raise ExportUnreadable('%s is not a regular file' % shown)
+    # O_NONBLOCK guards a swap for a FIFO after the stat above: a read-only open would wait for a writer forever.
     flags = os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0) | getattr(os, 'O_BINARY', 0) | getattr(os, 'O_NONBLOCK', 0)
-    if os.path.islink(path):  # O_NOFOLLOW is 0 on Windows, so the link is refused here as well
-        raise ExportUnreadable('%s is a symbolic link' % os.path.basename(path))
     try:
-        mode = os.lstat(path).st_mode  # before any open: opening a pipe or a device can block or have effects
+        descriptor = os.open(name, flags, **extra)
     except OSError as error:
-        raise ExportUnreadable('cannot open %s' % os.path.basename(path)) from error
-    if not stat.S_ISREG(mode):
-        raise ExportUnreadable('%s is not a regular file' % os.path.basename(path))
+        raise ExportUnreadable('cannot open %s' % shown) from error
     try:
-        descriptor = os.open(path, flags)
-    except OSError as error:
-        raise ExportUnreadable('cannot open %s' % os.path.basename(path)) from error
-    try:
-        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
-            raise ExportUnreadable('%s is not a regular file' % os.path.basename(path))
+        after = os.fstat(descriptor)
+        if not stat.S_ISREG(after.st_mode):
+            raise ExportUnreadable('%s is not a regular file' % shown)
+        if not _same(before, after):
+            raise ExportUnreadable('%s changed while it was being opened' % shown)
         return os.fdopen(descriptor, 'rb')
     except BaseException:
         os.close(descriptor)
         raise
 
 
-def _read_header(directory):
+def open_regular(path):
+    """A binary file object for the regular file at `path`; a link, pipe, device or file that changes is refused."""
+    return _open_checked(os.fspath(path))
+
+
+class RecordsDirectory:
+    """The records directory, validated once; its children are opened through it (see the note above)."""
+
+    def __init__(self, path):
+        self.path, self.fd = os.fspath(path), None
+        self._before = self._stat_directory()
+        if _DIR_FD:
+            try:
+                self.fd = os.open(self.path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+            except OSError as error:
+                raise ExportUnreadable('the records path is not a directory') from error
+            try:
+                if not _same(self._before, os.fstat(self.fd)):
+                    raise ExportUnreadable('the records directory changed while it was being opened')
+            except BaseException:
+                self.close()
+                raise
+
+    def _stat_directory(self):
+        try:
+            info = os.stat(self.path, follow_symlinks=False)
+        except OSError as error:
+            raise ExportUnreadable('the records path is not a directory') from error
+        if _is_link(info) or not stat.S_ISDIR(info.st_mode):
+            raise ExportUnreadable('the records path is not a directory')
+        return info
+
+    def close(self):
+        if self.fd is not None:
+            os.close(self.fd)
+            self.fd = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
+
+    def exists(self, name):
+        try:
+            if self.fd is None:
+                os.stat(os.path.join(self.path, name), follow_symlinks=False)
+            else:
+                os.stat(name, follow_symlinks=False, dir_fd=self.fd)
+        except FileNotFoundError:
+            return False
+        except OSError:
+            return True  # something is there that cannot be examined; opening it will refuse it
+        return True
+
+    def open(self, name):
+        if self.fd is not None:
+            return _open_checked(name, self.fd)
+        handle = _open_checked(os.path.join(self.path, name))
+        try:
+            if not _same(self._before, self._stat_directory()):
+                raise ExportUnreadable('the records directory changed while %s was being opened' % name)
+        except BaseException:
+            handle.close()
+            raise
+        return handle
+
+
+def _read_header(records_dir):
     """(header or None, reason or None, fault or None)."""
-    path = os.path.join(directory, 'header.json')
-    if not os.path.lexists(path):
+    if not records_dir.exists('header.json'):
         return None, 'there is no header.json', None
     try:
-        with open_regular(path) as handle:
+        with records_dir.open('header.json') as handle:
             raw = handle.read(MAX_HEADER_BYTES + 1)
     except ExportUnreadable:
         return None, 'header.json cannot be read', {'code': 'invalid_header', 'detail': 'header.json is not a readable file'}
@@ -122,14 +217,15 @@ def _check(header, reason, read_count, read_last):
 
 def read_export(directory, roots=()):
     """Read one export directory. `roots` are the configured evidence roots (none means no evidence path is shown)."""
-    directory = os.fspath(directory)
-    if os.path.islink(directory) or not os.path.isdir(directory):
-        raise ExportUnreadable('the records path is not a directory')
     roots = normalize_roots(roots)
-    header, reason, header_fault = _read_header(directory)
+    with RecordsDirectory(directory) as records_dir:
+        return _read_records(records_dir, roots)
+
+
+def _read_records(records_dir, roots):
+    header, reason, header_fault = _read_header(records_dir)
     faults = [header_fault] if header_fault else []
-    events_path = os.path.join(directory, 'events.jsonl')
-    if not os.path.lexists(events_path):
+    if not records_dir.exists('events.jsonl'):
         raise ExportUnreadable('the records directory has no events.jsonl')
 
     seen = {}        # event id -> digest of the first body seen
@@ -138,7 +234,7 @@ def read_export(directory, roots=()):
     claimed_by = collections.defaultdict(set)  # event id -> every sequence a line with that id named
     conflicted, contested, duplicates, rejected, lines = set(), set(), 0, 0, 0
     last_seq = 0
-    with open_regular(events_path) as handle:
+    with records_dir.open('events.jsonl') as handle:
         if os.fstat(handle.fileno()).st_size > MAX_FILE_BYTES:
             raise ExportUnreadable('events.jsonl is too large')
         for number, raw, problem in iter_lines(handle):
