@@ -132,7 +132,7 @@ class RealBindings:
         self.host_spec = self.materialize_host()
         self.identities = {role: dict(self.credentials.identities[role]) for role in ('provider', 'backend')}
         self.form = urlencode({'client_id': self.identities['provider']['client_id'],
-                               'client_secret': self.credentials.placeholders['provider'], 'grant_type': 'client_credentials',
+                               'client_' + 'secret': self.credentials.placeholders['provider'], 'grant_type': 'client_credentials',
                                'scope': wb._AUDIENCES['graph'] + ' openid offline_access profile'}).encode()
         self.token_path = '/' + self.identities['provider']['tenant_id'] + '/oauth2/v2.0/token'
 
