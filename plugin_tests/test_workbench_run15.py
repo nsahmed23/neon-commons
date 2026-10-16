@@ -4,6 +4,9 @@ Each class names its item of the brief. Temporary directories only.
 """
 import unittest
 
+from intune_iac.workbench_tui import cell_width
+from plugin_tests.test_workbench_map import Fixture
+
 SELECTED = '11111111-1111-4111-8111-111111111111'
 OTHER = '22222222-2222-4222-8222-222222222222'
 
@@ -111,3 +114,45 @@ class AgeDefinitionStatesCauseOnlyTests(unittest.TestCase):
     def test_the_collect_cured_stale_row_still_says_collect(self):
         from intune_iac.workbench_screens import STRIP_DEFINITIONS
         self.assertIn('collect again (a)', STRIP_DEFINITIONS['stale (later collection incomplete)'])
+
+
+class MapFallbackAt40x12Tests(Fixture):
+    """Item 4 (run10-R1): at 40x12 the strip marker and its definition share one row, and the fallback sentence fits the
+    36-column body, so the first screen of the body ends on a whole sentence."""
+
+    def body(self, rows):
+        top = next(index for index, row in enumerate(rows) if row.startswith('\u250c'))
+        bottom = next(index for index, row in enumerate(rows) if row.startswith('\u2514'))
+        return [row.strip('\u2502 ').rstrip() for row in rows[top + 1:bottom]]
+
+    def test_the_marker_and_the_definition_share_one_row(self):
+        rows = self.plain(self.workspace((40, 12)))
+        marked = [row for row in rows if 'more: ?' in row]
+        self.assertEqual(len(marked), 1, rows)
+        self.assertIn('T = tenant', marked[0])
+        self.assertIn('P = policy', marked[0])
+        self.assertEqual([row for row in rows if 'T = tenant' in row], marked)
+
+    def test_the_body_keeps_three_rows_and_ends_on_a_whole_sentence(self):
+        body = self.body(self.plain(self.workspace((40, 12))))
+        self.assertGreaterEqual(len(body), 3, body)
+        self.assertEqual(body[0], 'MAP NOT DRAWN (needs 60x20)')
+        self.assertEqual(body[1], 'PgDn: tree lists all relationships')
+
+    def test_the_frame_still_fits_the_window(self):
+        rows = self.plain(self.workspace((40, 12)))
+        self.assertEqual(len(rows), 12, rows)
+        for row in rows:
+            self.assertLessEqual(cell_width(row), 40, row)
+
+    def test_the_sentence_is_whole_on_one_row_at_every_width_from_40(self):
+        from intune_iac.workbench_screens import map_unavailable_lines
+        for width in range(36, 121):
+            lines = map_unavailable_lines(width)
+            self.assertEqual(len(lines), 3, (width, lines))
+            self.assertTrue(lines[1].endswith('.') or lines[1].endswith('relationships'), lines)
+            self.assertLessEqual(cell_width(lines[1]), width, lines)
+
+    def test_a_wide_window_keeps_the_longer_sentence(self):
+        from intune_iac.workbench_screens import map_unavailable_lines
+        self.assertEqual(map_unavailable_lines(80)[1], 'The tree below lists every relationship.')

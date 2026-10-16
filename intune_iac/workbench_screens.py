@@ -154,6 +154,18 @@ def strip_rows(text, width):
     return [text]
 
 
+def strip_layout(text, definitions, width):
+    """The rows under the title and tab line for the strip and for the definitions of its abbreviated forms:
+    (strip rows, key rows). Where the marker had to take a row of its own, it shares that row with the definitions
+    (and no key row follows the prompt) rather than costing the body a second row (run10-R1); otherwise the two are
+    as strip_rows and strip_key_rows say."""
+    rows = strip_rows(text, width)
+    keys = strip_key_rows(definitions, width)
+    if len(rows) == 2 and keys:
+        return rows[:1] + strip_key_rows([rows[1]] + list(definitions), width), []
+    return rows, keys
+
+
 def context_strip(tenant, selected, facts, width, mode_class=None):
     """The strip's text; see strip_choice."""
     return strip_choice(tenant, selected, facts, width, mode_class)[0]
@@ -2041,7 +2053,11 @@ def map_fits(size):
 def map_unavailable_lines(width, graph=True):
     """What the Relationships view says where there is no map: that it is not drawn, and where the relationships are."""
     first = 'MAP NOT DRAWN (needs %dx%d)' % MAP_MIN_SIZE if graph else 'MAP NOT DRAWN (this result names no object)'
-    return [first] + word_wrap('The tree below lists every relationship.', width) + ['']
+    sentence = 'The tree below lists every relationship.'
+    if cell_width(sentence) > width:
+        # The narrowest body (36 columns) holds the sentence whole in its short form, never cut mid-sentence (run10-R1).
+        sentence = 'PgDn: tree lists all relationships'
+    return [first] + word_wrap(sentence, width) + ['']
 
 
 def _drawn_layers(graph):

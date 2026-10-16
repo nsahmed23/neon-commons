@@ -1638,9 +1638,9 @@ class Workspace:
             # A staged action's boundary and its mechanics each get a row, each in the longest complete form that fits.
             pick = lambda forms: next((form for form in forms if cell_width(form) <= width), forms[-1])
             staged_rows = [pick(staged['boundary']), pick(staged.get('mechanics') or ('',))]
-        key_rows = self._strip_key_rows(width)
-        from .workbench_screens import strip_rows
-        status_rows = strip_rows(self._context_strip(width), width)
+        from .workbench_screens import strip_layout
+        strip_text, definitions = self._strip_choice(width)
+        status_rows, key_rows = strip_layout(strip_text, definitions if self._strip_key_rows(width) else [], width)
         available = max(0, height - 8 - len(band) - (1 if staged_rows else 0) - len(key_rows) - (len(status_rows) - 1))
         # One column of space inside each border: text never touches the frame (journey 27 review, Sonnet 23).
         content = inner - 2
