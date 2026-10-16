@@ -209,6 +209,7 @@ class LiveCompanion:
         self._close_error = None   # why the last attempt failed; meaningful in close_failed only
         self._close_note = None    # a close problem that was recovered from (diagnostic only, never the end reason)
         self._serving_stopped = False
+        self._generation = 0       # one per stop attempt; only the newest attempt may publish a state
         self._writers = 0          # handlers admitted to write a protected response, until they have finished
         self._thread = None
         self._watchdog = None
@@ -283,6 +284,12 @@ class LiveCompanion:
                 raise AppError('companion_live_writer_timeout', 'A response was still being written when the listener stopped.')
 
     @property
+    def is_closed(self):
+        """True once the stop has been established: the listening socket is closed and no protected response is being written."""
+        with self._lock:
+            return self._state == 'closed'
+
+    @property
     def close_note(self):
         """A problem closing the port that was recovered from (the fallback closed the socket), or None. Never the end reason."""
         with self._lock:
@@ -347,38 +354,82 @@ class LiveCompanion:
             return False
 
     def _close_listener(self):
-        """Close the listening socket: server_close(), then the raw socket if that left it open. Returns the problem that
-        was met on the way, if any (a diagnostic once the socket is closed). An interrupt still gets the raw close."""
+        """Close the listening socket: server_close(), then the raw socket if that left it open. Returns the problem met on
+        the way, if any (a diagnostic once the socket is closed). When both fail, the raw close's class is kept as a note on
+        the first error (class only: no address, no token). An interrupt in server_close() still gets the raw close first."""
         problem = None
         try:
             self.server.server_close()
-        except Exception as error:
+        except BaseException as error:
             problem = error
-        finally:
-            if not self._listener_closed():
-                raw_problem = self._raw_close()
-                problem = problem or raw_problem
+        raw_problem = None if self._listener_closed() else self._raw_close()
+        if raw_problem is not None:
+            if problem is None:
+                problem = raw_problem
+            else:
+                note = 'The raw close also failed: %s' % type(raw_problem).__name__
+                if note not in getattr(problem, '__notes__', ()):
+                    problem.add_note(note)
+        if problem is not None and not isinstance(problem, Exception):
+            raise problem
         return problem
 
+    def _bounded_shutdown(self):
+        """server.shutdown() waits for the serve loop to leave, and nothing bounds that, so it runs in a helper thread and
+        is waited for at most STOP_WAIT_SECONDS. True if it finished; False if it is still wedged (the caller then closes
+        the socket itself). The helper changes no state of this object, so a late finish is harmless."""
+        bound = STOP_WAIT_SECONDS    # read before the helper starts: this attempt keeps the bound it began with
+        finished, failure = threading.Event(), []
+
+        def run():
+            try:
+                self.server.shutdown()
+            except BaseException as error:
+                failure.append(error)
+            finally:
+                finished.set()
+        threading.Thread(target=run, daemon=True).start()
+        if not finished.wait(bound):
+            return False
+        if failure:
+            raise failure[0]
+        self._thread.join(bound)
+        return True
+
     def _shut_down_and_close(self):
-        """What the one stopper does, in order. Raises if the port could not be closed; returns the recovered problem."""
+        """What the one stopper does, in order, every step bounded. Raises if the port could not be closed; returns the
+        recovered problem, if any."""
         if self.server is None:
             return None
+        forced = None
         if self._thread is not None and not self._serving_stopped:
-            self.server.shutdown()
-            self._thread.join(STOP_WAIT_SECONDS)
-            self._serving_stopped = True
+            if self._bounded_shutdown():
+                self._serving_stopped = True
+            else:
+                forced = self._raw_close(wake=True)
+                self._serving_stopped = self._listener_closed()
         problem = self._close_listener()
         if not self._listener_closed():
-            raise problem or AppError('companion_live_close_failed', 'The listening socket is still open.')
+            raise problem or forced or AppError('companion_live_close_failed', 'The listening socket is still open.')
         self._drain_writers()
         return problem
 
+    def _publish(self, generation, state, error=None, note=None):
+        """Record the outcome of a stop attempt, unless a newer attempt has taken over: a late finish never overwrites."""
+        with self._changed:
+            if self._generation != generation:
+                return False
+            self._state, self._close_error = state, error
+            if state == 'closed':
+                self._close_note = note
+            self._changed.notify_all()
+            return True
+
     def stop(self):
         """Stop the listener; returns once the port is closed. A call that is not the first waits for the first to finish
-        closing it; if that takes longer than STOP_WAIT_SECONDS it closes the raw listening socket itself and raises, so
-        it never returns with the port bound and never reports an end that has not happened. After a failed close the
-        next stop() tries the close again."""
+        closing it; if that takes longer than STOP_WAIT_SECONDS it closes the raw listening socket itself, verifies it, and
+        raises, so it never returns with the port bound unannounced and never reports an end that has not happened. After
+        a failed close the next stop() tries the close again."""
         with self._lock:
             if self._state == 'running':
                 role = 'first'
@@ -390,34 +441,48 @@ class LiveCompanion:
                 role = 'follower'
             if role != 'follower':
                 self._state = 'stopping'
+                self._generation += 1
+                mine = self._generation
         if role == 'follower':
             return self._follow()
         self._stop.set()
         try:
             problem = self._shut_down_and_close()
         except BaseException as error:
-            with self._changed:
-                self._close_error, self._state = error, 'close_failed'
-                self._changed.notify_all()
+            self._publish(mine, 'close_failed', error)
             if role == 'retry' and isinstance(error, Exception):
                 raise self._close_failure(error) from error
             raise
-        with self._changed:
-            self._close_error, self._close_note, self._state = None, problem, 'closed'
-            self._changed.notify_all()
-        # Set the state before this join: the watchdog may itself be waiting above as a second caller.
-        if self._watchdog is not None and self._watchdog is not threading.current_thread():
-            self._watchdog.join(STOP_WAIT_SECONDS)
+        if self._publish(mine, 'closed', note=problem):
+            # Publish before this join: the watchdog may itself be waiting above as a second caller.
+            if self._watchdog is not None and self._watchdog is not threading.current_thread():
+                self._watchdog.join(STOP_WAIT_SECONDS)
 
     def _follow(self):
         with self._changed:
+            generation = self._generation
             settled = self._changed.wait_for(self._settled, STOP_WAIT_SECONDS)
             state, error = self._state, self._close_error
-        if not settled:
-            self._raw_close(wake=True)
-            raise AppError('companion_live_stop_timeout', 'The listener is still being stopped by another caller.')
-        if state == 'close_failed':
-            raise self._close_failure(error)
+        if settled:
+            if state == 'close_failed':
+                raise self._close_failure(error)
+            return
+        # The stopper outlived the bound. Close the socket here, check that it is closed, and say what is true. This
+        # attempt takes over the state, so a stopper that finishes later cannot overwrite it; the next stop() retries.
+        forced = self._raw_close(wake=True)
+        if self._listener_closed():
+            message = 'The listener is still being stopped by another caller; its port is closed.'
+        else:
+            message = ('The listener is still being stopped by another caller, and its port could not be closed: %s.'
+                       % (type(forced).__name__ if forced is not None else 'the socket stayed open'))
+        failure = AppError('companion_live_stop_timeout', message)
+        failure.__cause__ = forced
+        with self._changed:
+            if self._state == 'stopping' and self._generation == generation:
+                self._generation += 1
+                self._state, self._close_error = 'close_failed', failure
+                self._changed.notify_all()
+        raise failure
 
     def __enter__(self):
         return self.start()

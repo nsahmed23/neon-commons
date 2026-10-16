@@ -40,7 +40,10 @@ class UnclosableSocket:
         self._real = real
 
     def close(self):
-        raise OSError('raw close failed')
+        raise PermissionError('raw close failed')
+
+    def shutdown(self, how):
+        raise OSError('raw shutdown failed')
 
     def __getattr__(self, name):
         return getattr(self._real, name)
@@ -758,6 +761,55 @@ class StopTests(Fixture):
         self.assertFalse(self.port_accepts(live), 'the timed-out caller returned with the port still bound')
         release.set()
         first.join(5)
+
+    def test_a_first_stopper_wedged_in_shutdown_is_bounded_and_the_port_is_closed(self):
+        from intune_iac import companion_live
+        with mock.patch.object(companion_live, 'STOP_WAIT_SECONDS', 0.2):
+            live = self.start()
+            entered, release = self.hold_first_stopper(live)
+            stopper, outcome = self.run_in_thread(live.stop)
+            stopper.join(3)
+            self.assertFalse(stopper.is_alive(), 'stop() did not return within the bound while shutdown() was wedged')
+            self.assertEqual(outcome, [('returned', None)])
+            self.assertFalse(self.port_accepts(live), 'the port is closed when stop() returns')
+            live.stop()
+            self.assertEqual(live.wait_step(), 'stopped')
+            release.set()
+            threading.Event().wait(0.3)    # the wedged attempt's helper now finishes; it must not change the state
+            self.assertEqual(live.wait_step(), 'stopped')
+            self.assertTrue(live.is_closed)
+
+    def test_a_follower_whose_raw_close_fails_records_that_error_and_reports_the_port_truthfully(self):
+        from intune_iac import companion_live
+        from intune_iac.io import AppError
+        live = self.start()
+        entered, release = self.hold_first_stopper(live)
+        real_socket = live.server.socket
+        live.server.socket = UnclosableSocket(real_socket)
+        self.addCleanup(lambda: setattr(live.server, 'socket', real_socket))
+        first, _ = self.run_in_thread(live.stop)
+        self.assertTrue(entered.wait(5))
+        with mock.patch.object(companion_live, 'STOP_WAIT_SECONDS', 0.2):
+            with self.assertRaises(AppError) as caught:
+                live.stop()
+        self.assertEqual(caught.exception.code, 'companion_live_stop_timeout')
+        self.assertIsInstance(caught.exception.__cause__, PermissionError, 'the raw-close error is recorded')
+        self.assertIn('could not be closed', caught.exception.message)
+        self.assertTrue(self.port_accepts(live), 'precondition: the port really is still bound')
+        release.set()
+        first.join(5)
+
+    def test_when_both_closes_fail_the_recorded_error_carries_the_raw_close_class(self):
+        live = self.start()
+        self.break_close(live)
+        first, outcome = self.run_in_thread(live.stop)
+        first.join(5)
+        error = outcome[0][1]
+        self.assertIsInstance(error, OSError)
+        notes = ' '.join(getattr(error, '__notes__', []))
+        self.assertIn('PermissionError', notes)
+        self.assertNotIn('127.0.0.1', notes)
+        self.assertNotIn(live.token, notes)
 
     def test_ending_from_a_request_thread_hands_the_stopping_over_and_the_first_reason_wins(self):
         live = self.start()
