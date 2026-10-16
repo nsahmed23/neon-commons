@@ -28,10 +28,15 @@ CLI = ROOT / 'scripts/intune-iac.py'
 
 # ESC with a CSI tail, CR and LF inside one value, BEL, DEL, C1 CSI, the line and paragraph separators and a bidirectional override.
 HOSTILE = ''.join(chr(n) for n in (0x1b,)) + '[31m' + 'a' + chr(13) + 'b' + chr(10) + 'c' + chr(7) + chr(0x7f) + chr(0x9b) + \
-    chr(0x2028) + chr(0x2029) + chr(0x202e) + 'z'
+    chr(0x2028) + chr(0x2029) + chr(0x202e) + chr(0x200e) + chr(0x200f) + chr(0x061c) + chr(0xfeff) + chr(0x200b) + \
+    chr(0x2060) + chr(0x2064) + 'z'
 # A file or directory name cannot hold a slash; this one holds every other character of the hostile value.
 CLEAN = 'plain-value'
-FORBIDDEN = re.compile('[\x00-\x09\x0b-\x1f\x7f-\x9f  ‪-‮⁦-⁩]')
+FORBIDDEN = re.compile('[\x00-\x09\x0b-\x1f\x7f-\x9f\u061c\u200b-\u200f\u2028\u2029\u202a-\u202e\u2060-\u2064\u2066-\u2069\ufeff]')
+# Every member of the guarded set, as ranges (the unit cases walk each one) and a few neighbours that must pass unchanged.
+GUARDED_RANGES = ((0x00, 0x1f), (0x7f, 0x9f), (0x061c, 0x061c), (0x200b, 0x200f), (0x2028, 0x202e), (0x2060, 0x2064),
+                  (0x2066, 0x2069), (0xfeff, 0xfeff))
+NEIGHBOURS = (0x20, 0x7e, 0xa0, 0xad, 0x061b, 0x061d, 0x200a, 0x2010, 0x202f, 0x205f, 0x2065, 0x206a, 0xfefe, 0xff00)
 OLD_NAME = 'Privacy pilot 7'
 
 
@@ -205,13 +210,23 @@ class TextGuardSweepTests(unittest.TestCase):
 class GuardUnitTests(unittest.TestCase):
     def test_every_forbidden_character_is_shown_as_the_escape_safe_text_uses(self):
         from intune_iac.workbench_tui import safe_text
-        every = [chr(n) for n in range(0x20) if n != 10] + [chr(0x7f)] + [chr(n) for n in range(0x80, 0xa0)] + \
-            [chr(0x2028), chr(0x2029)] + [chr(n) for n in range(0x202a, 0x202f)] + [chr(n) for n in range(0x2066, 0x206a)]
+        every = [chr(n) for low, high in GUARDED_RANGES for n in range(low, high + 1) if n != 10]
+        self.assertEqual(len(every), 32 - 1 + 33 + 1 + 5 + 7 + 5 + 4 + 1)
         for char in every:
             with self.subTest(code=hex(ord(char))):
                 shown = cli.text_guard('x' + char + 'y')
                 self.assertEqual(shown, 'x' + safe_text(char) + 'y')
                 self.assertNotRegex(shown, FORBIDDEN)
+
+    def test_the_characters_next_to_the_guarded_set_pass_unchanged(self):
+        for number in NEIGHBOURS:
+            with self.subTest(code=hex(number)):
+                self.assertEqual(cli.text_guard('x' + chr(number) + 'y'), 'x' + chr(number) + 'y')
+
+    def test_the_direction_marks_and_invisible_format_characters_are_escaped(self):
+        for number in (0x200e, 0x200f, 0x061c, 0xfeff, 0x200b, 0x200c, 0x200d, 0x2060, 0x2061, 0x2062, 0x2063, 0x2064):
+            with self.subTest(code=hex(number)):
+                self.assertEqual(cli.text_guard('Policy 123' + chr(number) + 'ABC'), 'Policy 123\\u%04xABC' % number)
 
     def test_text_the_renderers_already_escaped_is_unchanged(self):
         from intune_iac.workbench_tui import safe_text

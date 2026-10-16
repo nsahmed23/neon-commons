@@ -58,7 +58,13 @@ def _parser_message(message):
 # paragraph separators and the bidirectional overrides and isolates are shown as a visible escape, so no text-mode command can
 # move the cursor, rewrite the terminal, start a row of its own or reorder what a person reads. Text safe_text already escaped
 # holds none of these and is unchanged. Not applied to --json: JSON output keeps its own escaping.
-_TEXT_GUARDED=re.compile('[\x00-\x1f\x7f-\x9f\u2028\u2029\u202a-\u202e\u2066-\u2069]')
+#
+# The guarded set, final: U+0000 to U+001F (C0), U+007F (DEL), U+0080 to U+009F (C1), U+061C (Arabic letter mark), U+200B to U+200F
+# (zero-width space, non-joiner, joiner, left-to-right and right-to-left marks), U+2028 and U+2029 (line and paragraph separators),
+# U+202A to U+202E (embeddings and overrides), U+2060 to U+2064 (word joiner and the invisible math operators), U+2066 to U+2069
+# (isolates) and U+FEFF (byte order mark, zero-width no-break space). The direction marks and the invisible format characters
+# reorder or hide what a person reads without moving the cursor.
+_TEXT_GUARDED=re.compile('[\x00-\x1f\x7f-\x9f\u061c\u200b-\u200f\u2028\u2029\u202a-\u202e\u2060-\u2064\u2066-\u2069\ufeff]')
 _TEXT_NAMED={'\n':'\\n','\r':'\\r','\t':'\\t'}
 
 
