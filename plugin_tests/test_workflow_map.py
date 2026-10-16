@@ -2905,7 +2905,7 @@ class ConstrainedBandFrameTests(LayerFixture):
             self.assertEqual(shlex.split(' '.join(row.rstrip('\\') for row in block))[:4],
                              ['intune-iac', 'workbench', 'workflow', '--root'], size)
             self.assertIn('! Outcome unknown.', rows, size)
-            self.assertIn('Reconcile; it never replays', rows, size)
+            self.assertIn('Reconcile, never replays', rows, size)
             self.assertIn('T 11111111 | P 22222222', rows, size)
             self.assertIn('T = tenant | P = policy', rows, size)
             self.assertIn('Esc closes it.', rows, size)
@@ -2942,6 +2942,32 @@ class RecordedGapTests(unittest.TestCase):
 
 # W06 (the read model reports no policy name) needs no test here: the whole module already fails under it, in
 # StoredNameTests and StoredSeparatorTests (three tests), which read the stored name back through the real read model.
+
+
+# ---- PKG-UXVIS-5b round 3 (Sol review): findings 1 to 5 -----------------------------------------------------------------
+
+class RoundThreeFindingOneTests(unittest.TestCase):
+    """Finding 1: no size the constrained view draws loses "never replays"."""
+    rows = ConstrainedBandPureTests.rows
+
+    def test_no_size_loses_the_safety_clause_on_any_surface(self):
+        for layer in ('summary', 'catalog', 'workflow'):
+            for width, height in ((24, 3), (30, 4), (39, 11), (40, 12), (24, 2), (30, 2), (36, 5), (20, 3)):
+                band, lines = self.rows(layer, width, height)
+                self.assertIn('never replays', ' '.join(' '.join(lines).split()), (layer, width, height, lines))
+                self.assertLessEqual(len(lines), height, (layer, width, height))
+                for row in lines:
+                    self.assertLessEqual(len(row), width, (layer, width, height, row))
+
+    def test_a_single_row_window_keeps_it_too(self):
+        band, lines = self.rows('summary', 30, 1)
+        self.assertIn('never replays', ' '.join(lines))
+
+    def test_the_compact_form_is_two_rows_and_no_other_form_replaces_it(self):
+        from intune_iac.workbench_screens import BAND_COMPACT, BAND_ESSENTIAL
+        self.assertIn(BAND_ESSENTIAL['operation_outcome_unknown'], BAND_COMPACT['operation_outcome_unknown'])
+        band, _ = self.rows('summary', 24, 5)
+        self.assertEqual(band[:2], ['! Outcome unknown.', 'Reconcile, never replays'])
 
 
 if __name__ == "__main__":

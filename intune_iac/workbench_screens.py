@@ -374,6 +374,8 @@ def hazard_band(facts, signals, width):
 
 # Words a hazard's band keeps while any form that has them fits a row by itself: what makes its response safe.
 BAND_ESSENTIAL = {'operation_outcome_unknown': 'never replays'}
+# The shortest complete form of such a hazard: two rows at 24 columns ("! Outcome unknown." and "Reconcile, never replays").
+BAND_COMPACT = {'operation_outcome_unknown': '! Outcome unknown. Reconcile, never replays'}
 
 
 # Key routes in the band's wording; dropped where no surface or key can take them (below the minimum, while typing).
@@ -463,8 +465,9 @@ def hazard_rows(facts, signals, width, *, routes=True, here=False, listed=False,
     essential = BAND_ESSENTIAL.get(primary.get('code'))
     whole = [form for form in forms if essential in form] if essential else []
     if keep_essential and whole and not any(cell_width(form) <= width for form in whole):
-        # The window holds no complete form on one row: the shortest complete one is wrapped, condition then response.
-        forms, whole = [min(whole, key=cell_width)], []
+        # The window holds no complete form on one row: the compact form (the condition, then the response that keeps the
+        # essential words) is wrapped, condition then response, and no form without them is ever chosen.
+        forms, whole = [BAND_COMPACT.get(primary.get('code')) or min(whole, key=cell_width)], []
     for candidates in ([whole] if whole else []) + [forms]:
         keep = next((form for form in candidates if cell_width(form) <= width), None) if candidates is whole else None
         if keep is not None:
@@ -542,10 +545,18 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
                                                    and str(value) in SHORT_STATES and str(value) in STRIP_DEFINITIONS]
     band = hazard_rows(facts, facts.get('signals') or [], width, routes=False, surface=False,
                        keep_essential=True) if selected else []
-    if len(band) >= height:
-        # A window too short to hold the whole band and the line that says what it needs keeps the shorter forms: the
-        # header outranks the wrapped band only when the band would take every row.
-        band = hazard_rows(facts, facts.get('signals') or [], width, routes=False, surface=False)
+    if band and any(BAND_ESSENTIAL.get(code) for code in [_band_primary(facts, facts.get('signals') or [])[0].get('code')]):
+        # The safety clause outranks everything but the first row: a short window keeps the whole compact form (two rows)
+        # and gives up the header's row before it gives up "never replays"; one row holds the shortest statement of it.
+        if height < 2:
+            band = [fit('Unknown; never replays', width)]
+        elif width < cell_width(BAND_COMPACT['operation_outcome_unknown'].split('. ')[1]):
+            # Narrower than the compact form's response: it would wrap to a third row, so the two rows state the clause.
+            band = [fit('! Outcome unknown,', width), fit('never replays', width)]
+        else:
+            band = band[:max(min(len(band), 2), height - 1)]
+    elif len(band) >= height:
+        band = band[:max(1, height - 1)]
     groups = {'header': [header], 'strip': _pack(items, width), 'prompt': [prompt], 'keys': [keys] if keys else [],
               'band': band,
               'legend': strip_key_rows([STRIP_DEFINITIONS[key] for key in dict.fromkeys(shown)], width)}
@@ -562,7 +573,7 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
         if layer == 'workflow' and name == 'strip':
             # The strip's first row (tenant and policy) is explained by the legend: keep the legend and the keys before
             # the strip's further rows.
-            room = max(1, budget - len(groups['keys']) - len(groups['legend']))
+            room = max(min(1, budget), budget - len(groups['keys']) - len(groups['legend']))
         kept[name] = groups[name][:max(0, room)]
         budget -= len(kept[name])
     lines, band_rows = [], []
