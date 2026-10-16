@@ -829,8 +829,19 @@ plugin_tests/fixtures/pre_pin_migration/session/repository/components/terraform/
 plugin_tests/fixtures/pre_pin_migration/session/repository/stacks/deploy/dev.yaml
 plugin_tests/fixtures/pre_pin_migration/session/session.json
 plugin_tests/fixtures/pre_pin_migration/session/session.json.repository-context.7afc87cf3f7641e8bafde059edb3b335.json
+plugin_tests/fixtures/signin_golden/collect_child_fails.json
+plugin_tests/fixtures/signin_golden/collect_expired_token.json
+plugin_tests/fixtures/signin_golden/collect_nil_policy.json
+plugin_tests/fixtures/signin_golden/collect_not_signed_in.json
+plugin_tests/fixtures/signin_golden/collect_ok.json
 plugin_tests/fixtures/signin_golden/collect_opaque_token.json
+plugin_tests/fixtures/signin_golden/collect_output_exists.json
+plugin_tests/fixtures/signin_golden/collect_partial_denied.json
+plugin_tests/fixtures/signin_golden/collect_partial_expired.json
 plugin_tests/fixtures/signin_golden/collect_token_without_account_claim.json
+plugin_tests/fixtures/signin_golden/collect_withheld_full_token.json
+plugin_tests/fixtures/signin_golden/collect_withheld_shape.json
+plugin_tests/fixtures/signin_golden/collect_wrong_tenant_listing.json
 plugin_tests/fixtures/signin_golden/cred_github.json
 plugin_tests/fixtures/signin_golden/cred_github_unbroken_run.json
 plugin_tests/fixtures/signin_golden/cred_jwt_prefix.json
@@ -976,6 +987,7 @@ plugin_tests/test_restricted_hashes.py
 plugin_tests/test_runner.py
 plugin_tests/test_secret_redaction_harness.py
 plugin_tests/test_signin_collect.py
+plugin_tests/test_signin_collect_readable.py
 plugin_tests/test_signin_detect.py
 plugin_tests/test_signin_expired.py
 plugin_tests/test_signin_fix1.py
@@ -1011,6 +1023,7 @@ plugin_tests/test_start_paths.py
 plugin_tests/test_start_root.py
 plugin_tests/test_start_steps.py
 plugin_tests/test_start_unknown.py
+plugin_tests/test_start_verdict_last.py
 plugin_tests/test_start_wording.py
 plugin_tests/test_stateful_service_epoch.py
 plugin_tests/test_successor_expiry_latch.py
