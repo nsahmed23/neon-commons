@@ -2824,7 +2824,12 @@ def repository_entry_lines(value, width, focus=0):
         lines += _labelled('     Backend', backend, width, 15)
         if candidate.get('resource_address'):
             lines += _labelled('     Address', str(candidate['resource_address']), width, 15)
-        lines += _labelled('', str(candidate.get('explanation', '')), width, 5)
+        explanation = str(candidate.get('explanation', ''))
+        if '--git-executable' in explanation:
+            # The flags are named by the engine's explanation; what they are is said here, where they are shown (run 12).
+            explanation += (' --git-executable is the path of the git program to run and --git-sha256 that program\'s SHA-256; '
+                            'give both or neither.')
+        lines += _labelled('', explanation, width, 5)
     lines.append('')
     lines += word_wrap('Next: ' + str(value.get('next_action')), width)
     if value.get('candidates'):
@@ -3415,8 +3420,9 @@ def adoption_lines(value, width):
     context = binding.get('context') if isinstance(binding.get('context'), dict) else {}
     field('Source', '%s | context %s' % (_path_words(source.get('path')), _path_words(context.get('path'))))
     atmos = binding.get('atmos') if isinstance(binding.get('atmos'), dict) else {}
-    field('Stack', '%s / %s (%s; Atmos %s)' % (atmos.get('stack'), atmos.get('component'),
-          str(atmos.get('assurance')).replace('_', ' '), 'was run' if atmos.get('native_atmos_executed') else 'was not run'))
+    field('Stack', '%s / %s (%s; Atmos, the tool that resolves stack configuration, %s)' % (
+          atmos.get('stack'), atmos.get('component'), str(atmos.get('assurance')).replace('_', ' '),
+          'was run' if atmos.get('native_atmos_executed') else 'was not run'))
     repository = binding.get('repository')
     field('Repository', 'none supplied (local context only)' if repository is None else str(
         _path_words(repository.get('root') if isinstance(repository, dict) else repository)))

@@ -662,3 +662,42 @@ class ReopenedReviewInputsTests(Proposed):
         text = self.summary(self.workspace(4, {'operation_id': 'a' * 32, 'operation_root': '/nonexistent/operation',
                                               'object_id': states_tests.OBJECT, 'status': 'prepared'}))
         self.assertNotIn('Input files', text)
+
+
+class UndefinedTermsTests(unittest.TestCase):
+    """Item 8, L-undef (frames 79, 80, 02, 05, 06): a term is explained where it is shown."""
+
+    def test_the_offline_capability_map_is_defined_in_the_sentence_that_names_it(self):
+        from intune_iac.workbench_repository import capability_explanation
+        desired = {'platforms': 'windows10', 'technologies': ['mdm'], 'settings': {'settings': [{
+            'id': '0', 'settingInstance': {
+                '@odata.type': '#microsoft.graph.deviceManagementConfigurationChoiceSettingInstance',
+                'settingDefinitionId': 'device_vendor_msft_policy_config_privacy_letappsaccesslocation',
+                'choiceSettingValue': {'@odata.type': '#microsoft.graph.deviceManagementConfigurationChoiceSettingValue',
+                                       'value': 'device_vendor_msft_policy_config_privacy_letappsaccesslocation_9',
+                                       'children': []}}}]}}
+        text = capability_explanation(desired)
+        self.assertIn('in the offline capability map (the packaged list of settings and values with a worked mapping; '
+                      'anything outside it can be reviewed but no change to it is prepared)', text)
+
+    def test_atmos_is_named_for_what_it_is(self):
+        from intune_iac.workbench_screens import adoption_lines
+        value = {'status': 'ready_local_model_handoff', 'binding': {'session': '/w/s.json', 'object_ids': ['o' * 8],
+                 'atmos': {'stack': 's', 'component': 'c', 'assurance': 'literal_source_or_context_intent',
+                           'native_atmos_executed': False}}}
+        text = ' '.join(' '.join(adoption_lines(value, 140)).split())
+        self.assertIn('Atmos, the tool that resolves stack configuration, was not run', text)
+
+    def test_the_git_flags_are_explained_where_the_survey_names_them(self):
+        from intune_iac.workbench_screens import repository_entry_lines
+        explanation = ('Ready to record: every value comes from the repository, and the component consumes exactly this '
+                       'policy. The commit is recorded as stated; add --git-executable and --git-sha256 to the command to '
+                       'verify it against the files.')
+        value = {'repository': '/w/repo', 'revision': 'f' * 40, 'tenant_id': 't' * 8, 'status': 'discovered', 'components': [],
+                 'candidates': [{'number': 1, 'object_id': 'o' * 32, 'state': 'ready', 'stack': 's', 'component': 'c',
+                                 'policy_key': 'p', 'backend': 'local', 'backend_source': 'none_declared',
+                                 'explanation': explanation, 'observed': {'present': False}}],
+                 'next_action': 'x'}
+        text = ' '.join(' '.join(repository_entry_lines(value, 140)).split())
+        self.assertIn('--git-executable is the path of the git program to run and --git-sha256 that program\'s SHA-256; give '
+                      'both or neither', text)

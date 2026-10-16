@@ -255,6 +255,12 @@ def _propose_from_intent(store, store_root, service_root, object_id, output, wri
     return maintenance.propose(store_root, service_root, object_id, desired_path, output, context_path=context_path)
 
 
+# What the capability map is, said where a sentence first names it (reference.validation.capability_findings: a setting
+# outside the worked offline mapping is review-only).
+CAPABILITY_MAP_WORDS = ('(the packaged list of settings and values with a worked mapping; anything outside it can be '
+                        'reviewed but no change to it is prepared)')
+
+
 def capability_explanation(desired):
     """The capability map's finding for a desired body, in words naming the setting and value; None when it passes."""
     from reference.validation import capability_findings
@@ -269,12 +275,13 @@ def capability_explanation(desired):
         return None
     finding = findings[0]
     if finding['reason'] == 'value_not_supported':
-        return ('Setting %s: value %s is not a supported value for this setting in the offline capability map '
-                '(supported: %s).' % (finding['setting_definition_id'], finding['value'],
-                                      ', '.join(finding['supported_values'])))
+        return ('Setting %s: value %s is not a supported value for this setting in the offline capability map %s. '
+                'Supported values: %s.' % (finding['setting_definition_id'], finding['value'], CAPABILITY_MAP_WORDS,
+                                           ', '.join(finding['supported_values'])))
     if finding['reason'] == 'definition_not_supported':
-        return ('Setting %s (value %s) is not in the offline capability map for %s, %s.' % (
-            finding['setting_definition_id'], finding['value'], finding['platforms'], finding['technologies']))
+        return ('Setting %s (value %s) is not in the offline capability map %s for %s, %s.' % (
+            finding['setting_definition_id'], finding['value'], CAPABILITY_MAP_WORDS, finding['platforms'],
+            finding['technologies']))
     return 'The desired settings are empty or not in the shape the capability map reads.'
 
 
