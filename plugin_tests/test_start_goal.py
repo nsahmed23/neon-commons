@@ -163,7 +163,11 @@ class StartGoalTests(unittest.TestCase):
                 closing = lines[len(today):]
                 self.assertTrue(closing, 'no closing line')
                 joined = ' '.join(part.strip() for part in closing)
-                self.assertEqual(joined, HINT)
+                # The hint, then the one line that names the catalog (PKG-UXVIS-3).
+                self.assertTrue(joined.startswith(HINT), joined)
+                pointer = ('Catalog of what this build supports and where each goal stands: intune-iac catalog %s'
+                           % self.dirs[fixture])
+                self.assertEqual(joined[len(HINT):].split(), pointer.split())
                 self.assertTrue(all(len(line) <= width for line in closing))
 
     def test_the_workspace_start_screen_has_no_closing_line(self):
@@ -403,7 +407,11 @@ class StartGoalTests(unittest.TestCase):
                 for width in (50, 120):
                     _, block = goal_block(self.goal(fixture, goal, width=width))
                     shown = []
-                    for line in self.logical_lines(block):
+                    # The pointer start adds at its end (PKG-UXVIS-3): its sentence and its one command are not goal rows.
+                    lines = [line for line in self.logical_lines(block) if line]
+                    cut = next(i for i, line in enumerate(lines) if line.startswith('Catalog of what this build supports'))
+                    lines = lines[:cut]
+                    for line in lines:
                         if line.strip().startswith('intune-iac '):
                             shown += extractor.printed_commands(line.strip())
                         else:

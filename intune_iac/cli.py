@@ -191,6 +191,11 @@ def parser():
     from .readiness import OPERATIONS as goals
     start.add_argument('--goal',choices=goals,help='Also show what one goal needs and what is missing, from facts start can gather offline')
     start.add_argument('--check-signin',choices=('azure','github','all'),help='With --goal: also look for an existing sign-in by running the CLI listing (az account list --output json, gh auth status --json hosts); reads no token')
+    catalog=commands.add_parser('catalog',help='List the integrations this build holds, what each goal needs here, and the saved projects (read-only, offline)')
+    catalog.add_argument('directory',nargs='?',default='.')
+    catalog.add_argument('--json',action='store_true',help='Print the catalog as JSON instead of the readable screen')
+    catalog.add_argument('--goal',choices=goals,help='Show one goal only (and its one next action)')
+    catalog.add_argument('--check-signin',choices=('azure','github','all'),help='Look for an existing sign-in by running the CLI listing (az account list --output json, gh auth status --json hosts); reads no token; a sign-in is never permission')
     engineering=commands.add_parser('engineering',help='Show engineering orchestration records from a loopctl export (read-only, offline)')
     engineering.add_argument('--records',help='Directory written by loopctl export (header.json and events.jsonl); without it the command says nothing is configured')
     engineering.add_argument('--controller-log',help='Controller log (JSON lines); its dispatch lines are counted, never modelled')
@@ -281,6 +286,16 @@ def execute(args):
         if args.goal:value['readiness']=goal_readiness(value,args.goal,_start_signin(args))
         else:_start_signin(args)
         return value
+    if args.command=='catalog':
+        from .catalog import build
+        from .entry import survey
+        value=survey(args.directory,relative_to=os.getcwd())
+        # The sign-in listing runs only when asked; the catalog reads it as a verdict, never as permission.
+        signin=None
+        if args.check_signin:
+            from .signin import detect
+            signin=detect(args.check_signin)
+        return build(value,signin=signin,goal=args.goal,relative_to=os.getcwd())
     if args.command=='engineering':
         from .engineering_view import command
         return command(args)
@@ -470,6 +485,11 @@ def main(argv=None):
             print('\n'.join(text_lines(args)));sys.stdout.flush()
             return 0
         result=execute(args)
+        if args.command=='catalog' and not args.json:
+            # A person reads the catalog; --json keeps the data form. Read-only, so the exit is 0.
+            from .catalog import catalog_lines
+            print('\n'.join(catalog_lines(result,shutil.get_terminal_size((100,40)).columns)));sys.stdout.flush()
+            return 0
         if args.command=='engineering' and not args.json:
             # A person reads the engineering view; --json keeps the data form. Read-only, so the exit is 0.
             from .engineering_view import lines_for

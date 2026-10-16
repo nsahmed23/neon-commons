@@ -18,7 +18,11 @@ listed. The module reads no network, no credential and no environment value; the
 """
 from __future__ import annotations
 
+import shlex
+from pathlib import Path
+
 from . import integration_manifest, readiness as readiness_model
+from .entry import STATE_WORDS
 
 VERSION = 'integration-catalog/1'
 STATES = ('available', 'configured', 'authenticated', 'operation_ready', 'blocked', 'unsupported')
@@ -102,7 +106,8 @@ def _goal(manifest, model, signin, goal, flag):
     return {'goal': goal, 'available': available, 'configured': _configured(operation),
             'authenticated': _authenticated(signin, flag),
             'operation_ready': {'state': 'yes' if operation['status'] == 'ready' else 'no', 'status': operation['status']},
-            'blocked': _blocked(operation), 'unsupported': _unsupported(available, manifest)}
+            'blocked': _blocked(operation), 'unsupported': _unsupported(available, manifest),
+            'next_action': _blocked(operation)['next_action'] or 'No action needed.'}
 
 
 def _kind(manifest, kind):
@@ -121,15 +126,75 @@ def _family(entry):
             'object_kind': entry['object_kind']}
 
 
-def build(survey, doctor=None, signin=None, manifest=None, goal=None):
+def _state_words(item):
+    states = item['states']
+    configured = 'usable here' if states.get('configured') else 'not usable here: %s' % str(
+        states.get('configured_reason', 'incomplete')).replace('_', ' ')
+    return ' | '.join(['discovered', configured, STATE_WORDS.get(states['authenticated'], states['authenticated']),
+                       STATE_WORDS.get(states['qualified'], states['qualified'])])
+
+
+def _resume(item, items, show):
+    """(command, note) to pick the project up again. A project with nothing to resume says so; no command is invented."""
+    q = lambda rel: shlex.quote(show(rel))
+    kind = item['kind']
+    path = item['path']
+    stores = [s for s in items if s['kind'] == 'store' and (s['states']['configured'] or s.get('tenant_id'))]
+    if kind == 'wizard_session' and item.get('valid'):
+        if item.get('step') != 'complete':
+            return 'intune-iac wizard --session %s' % q(path), None
+        return None, 'complete; nothing to resume'
+    if kind == 'journey_session' and item.get('valid'):
+        if item.get('lifecycle') != 'complete_simulation':
+            return 'intune-iac wizard --journey --session %s' % q(path), None
+        return None, 'complete; nothing to resume'
+    if kind == 'guided_session' and item.get('valid'):
+        if item.get('lifecycle') != 'complete_local':
+            return 'intune-iac wizard --guided --session %s' % q(path), None
+        return None, 'complete; nothing to resume'
+    if kind == 'store':
+        service = next((s for s in items if s['kind'] == 'modeled_service' and s.get('tenant_id') == item.get('tenant_id')), None)
+        return 'intune-iac workbench workspace --root %s%s' % (q(path), ' --service-root ' + q(service['path']) if service else ''), None
+    if kind == 'repository':
+        if stores:
+            return 'intune-iac workbench repository-entry --root %s --repo %s' % (q(stores[0]['path']), q(path)), None
+        return 'intune-iac workbench init --root STORE --tenant TENANT_ID', None
+    if kind == 'operation':
+        return 'intune-iac workbench delivery --operation %s' % q(path), None
+    if kind == 'export':
+        context = next((s for s in items if s['kind'] == 'context'), None)
+        return ('intune-iac wizard --session NEW_SESSION.json --input %s --context %s --output NEW_OUTPUT_DIR' % (
+            q(path), q(context['path']) if context else 'CONTEXT_JSON')), None
+    if item.get('valid') is False or item['states'].get('configured_reason') in (
+            'session_invalid', 'service_unreadable', 'repository_unreadable'):
+        return None, 'unreadable; nothing to resume'
+    return None, 'nothing to resume from here'
+
+
+def projects(survey, relative_to=None):
+    """The surveyed directory's stores, sessions, repositories and operations with state and one resume command each."""
+    from . import entry
+    items = survey.get('items') or []
+    show = entry._shower(Path(survey['directory']) if survey.get('directory') else None, relative_to)
+    rows = []
+    for item in items:
+        command, note = _resume(item, items, show)
+        rows.append({'kind': item['kind'], 'label': entry.LABELS.get(item['kind'], item['kind']), 'path': item['path'],
+                     'summary': entry._summary(item), 'state': _state_words(item), 'command': command, 'note': note})
+    return rows
+
+
+def build(survey, doctor=None, signin=None, manifest=None, goal=None, relative_to=None):
     """The catalog as plain data. `survey` is entry.survey's result; `doctor` the doctor result (default: the offline
-    one that looks up no executable); `signin` the detect result when the engineer asked for the check."""
+    one that looks up no executable); `signin` the detect result when the engineer asked for the check; `relative_to` the
+    directory the commands run from."""
     manifest = manifest if manifest is not None else integration_manifest.load()
     if doctor is None:
         from . import cli
         doctor = cli.doctor(executables=False)
     model = readiness_model.readiness(survey, doctor.get('host_capabilities'), doctor, signin=signin)
-    flag = '' if goal is None else '--goal %s ' % goal
+    where = shlex.quote(survey['directory']) + ' ' if isinstance(survey, dict) and survey.get('directory') else ''
+    flag = where + ('' if goal is None else '--goal %s ' % goal)
     goals = [goal] if goal else list(readiness_model.OPERATIONS)
     integration = manifest['integration']
     record = {'id': integration['id'], 'label': integration['label'], 'product': integration['product'],
@@ -140,6 +205,7 @@ def build(survey, doctor=None, signin=None, manifest=None, goal=None):
               'live_blockers': list(manifest['live_blockers'])}
     return {'schema_version': VERSION, 'directory': survey.get('directory') if isinstance(survey, dict) else None,
             'integrations': [record], 'other_integrations': NO_OTHERS, 'signin_checked': bool(model.get('signin')),
+            'projects': projects(survey, relative_to) if isinstance(survey, dict) else [],
             'execution_authorized': False, 'cloud_authority': False}
 
 
@@ -185,7 +251,7 @@ def _state_lines(goal, width):
     if unsupported['state'] == 'unsupported':
         text = 'yes: ' + ' '.join(unsupported['reasons'])
     else:
-        text = 'nothing recorded as unsupported in this build'
+        text = 'nothing recorded as unsupported in this build.'
     text += ' Live: not run. Live blockers recorded: %s.' % ', '.join(b.replace('_', ' ') for b in unsupported['live_blockers'])
     lines += row('unsupported', text)
     return lines
@@ -200,7 +266,7 @@ def catalog_lines(value, width):
     lines += word_wrap(value['other_integrations'], width)
     for record in value['integrations']:
         lines.append('')
-        lines += word_wrap('%s (id %s, %s %s)' % (record['label'], record['id'], record['product'], record['product_version']), width)
+        lines += word_wrap('%s (id %s, build %s)' % (record['label'], record['id'], record['product_version']), width)
         lines.append('GOALS')
         for goal in record['goals']:
             lines.append('  GOAL ' + goal['goal'])
@@ -217,4 +283,21 @@ def catalog_lines(value, width):
         for family in record['families']:
             lines += _flow('%s: release stage %s; live: %s' % (family['family'], family['release_stage'], family['live']),
                            width, '  ', '    ')
+    lines.append('')
+    lines.append('SAVED PROJECTS')
+    if value['projects']:
+        for project in value['projects']:
+            lines += _flow('%s %s: %s | %s' % (project['label'], project['path'], project['summary'], project['state']),
+                           width, '  ', '    ')
+            if project['command']:
+                lines += _flow('Resume: ' + project['command'], width, '    ', '    ', commands=True)
+            else:
+                lines += _flow('Resume: no command (%s)' % project['note'], width, '    ', '    ')
+    else:
+        lines += word_wrap('Nothing recognized here yet.', width)
+    lines.append('NEXT ACTION')
+    for record in value['integrations']:
+        for goal in record['goals']:
+            lines.append('  %s:' % goal['goal'])
+            lines += _flow(goal['next_action'], width, '    ', '    ', commands=True)
     return lines

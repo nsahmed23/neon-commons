@@ -664,4 +664,11 @@ def start_lines(value, width, goal=None, goal_hint=False):
         lines += _goal_lines(goal, width)
     elif goal_hint:
         lines += word_wrap(GOAL_HINT, width)
+    if goal or goal_hint:
+        # One pointer, not a copy: the catalog holds what each goal needs and the saved projects.
+        directory = value['directory']
+        # A name with a control character is never echoed into a command; the placeholder stands for it.
+        shown = shlex.quote(directory) if directory.isprintable() else 'DIRECTORY'
+        lines += _flow('Catalog of what this build supports and where each goal stands: intune-iac catalog %s' % shown,
+                       width, '', '    ', commands=True)
     return lines
