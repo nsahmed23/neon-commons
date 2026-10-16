@@ -56,8 +56,10 @@ def logical_lines(lines):
 
 
 def next_section(text):
-    """The rows under the NEXT heading."""
+    """The rows under the NEXT heading; none when there is no heading (PKG-SETUP-5C: start prints no empty NEXT)."""
     lines = text.split('\n')
+    if 'NEXT' not in lines:
+        return []
     start = lines.index('NEXT')
     end = next(i for i in range(start + 1, len(lines)) if lines[i] and not lines[i].startswith(' '))
     return lines[start + 1:end]

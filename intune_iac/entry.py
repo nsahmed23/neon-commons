@@ -420,7 +420,12 @@ LABELS = {'wizard_session': 'Wizard session', 'journey_session': 'Journey', 'gui
           'export': 'Export', 'context': 'Context', 'generated_project': 'Generated', 'store': 'Store',
           'repository': 'Repository', 'modeled_service': 'Service', 'operation': 'Operation',
           'session_backup': 'Kept session'}
-STATE_WORDS = {OFFLINE: 'not authenticated (no live connection)', 'source_asserted_not_authenticated': 'source-asserted, not authenticated',
+# The product's own connection (none, offline) is told apart from the sign-in an Azure or GitHub CLI holds: the two are separate facts.
+PRODUCT_CONNECTION_WORDS = 'this product has no live connection (not authenticated)'
+SIGNIN_LABELS = {'azure': "Azure CLI sign-in (the Azure CLI's own, not a connection of this product)",
+                 'github': "GitHub CLI sign-in (the GitHub CLI's own, not a connection of this product)"}
+FOUND_LABELS = {'azure_sign_in': SIGNIN_LABELS['azure'], 'github_sign_in': SIGNIN_LABELS['github']}
+STATE_WORDS = {OFFLINE: PRODUCT_CONNECTION_WORDS, 'source_asserted_not_authenticated': 'source-asserted, not authenticated',
                'modeled_service_no_authentication': 'modeled service, no authentication', 'synthetic_only': 'synthetic only',
                'not_qualified': 'not qualified'}
 
@@ -595,14 +600,23 @@ def _goal_lines(view, width):
     lines += _flow('Unsupported profiles: %s' % (', '.join(host['unsupported_profiles']) or 'none'), width, '', '    ')
     lines += _flow('Tenant named by the surveyed inputs: %s' % (', '.join(view['tenants']) or 'none named in GUID form'),
                    width, '', '    ')
-    for name, label in (('azure', 'Azure sign-in'), ('github', 'GitHub sign-in')):
+    shown_signin = False
+    for name in ('azure', 'github'):
         verdict = view.get('signin', {}).get(name)
         if verdict:
-            lines += _flow('%s: %s' % (label, verdict['message']), width, '', '    ')
+            lines += _flow('%s: %s' % (SIGNIN_LABELS[name], verdict['message']), width, '', '    ')
+            shown_signin = True
+    if shown_signin:
+        # Said once, where a sign-in is shown: this screen reports and exits 0; the status command is the one that passes or fails.
+        tenants = view['tenants']
+        flag = ' --tenant %s' % tenants[0] if len(tenants) == 1 else ''
+        lines += _flow('This screen is a report and exits 0 whatever it finds; for a pass or fail exit code run: '
+                       'intune-iac signin status%s.' % flag, width, '', '    ', commands=True)
     lines.append('NEEDED FOR THIS GOAL')
     for row in (row for row in view['rows'] if row['needed']):
         lines.append('  %s: %s' % (row['label'], row['state']))
-        found = '; '.join('%s: %s' % (str(key).replace('_', ' '), _plain(item)) for key, item in row['detected'].items())
+        found = '; '.join('%s: %s' % (FOUND_LABELS.get(str(key), str(key).replace('_', ' ')), _plain(item))
+                          for key, item in row['detected'].items())
         lines += _flow('Found: %s' % (found or 'nothing'), width, '    ', '      ')
         if row['state'] == 'ready' and not row['missing']:
             lines.append('    Missing: nothing')
@@ -648,7 +662,9 @@ def start_lines(value, width, goal=None, goal_hint=False):
                 lines.append(' ' * len(label) + part)
     else:
         lines += word_wrap('Nothing recognized here yet.', width)
-    lines.append('NEXT')
+    if value['next_actions']:
+        # No heading over nothing: an empty NEXT promised steps that were not there.
+        lines.append('NEXT')
     for number, action in enumerate(value['next_actions'], 1):
         prefix = '  %d. ' % number
         lines += _flow(action, width, prefix, ' ' * len(prefix), commands=True)
