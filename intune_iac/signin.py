@@ -485,9 +485,11 @@ def collector_schema(value):
 
 
 def _output_check_supported():
-    """Whether this host has the POSIX primitives the output-path check (and the capture command) need."""
+    """Whether this host has the POSIX primitives the output-path check and the capture command need: descriptor-relative
+    open, stat, access and mkdir (capture creates the folder with mkdir(dir_fd=)), and access with effective ids (the ids mkdir
+    will use)."""
     return (os.name == 'posix' and hasattr(os, 'O_DIRECTORY') and hasattr(os, 'O_NOFOLLOW')
-            and {os.open, os.stat, os.access} <= os.supports_dir_fd)
+            and {os.open, os.stat, os.access, os.mkdir} <= os.supports_dir_fd and os.access in os.supports_effective_ids)
 
 
 def check_new_output(destination):
@@ -524,7 +526,7 @@ def check_new_output(destination):
             next_fd = os.open(piece, flags, dir_fd=parent_fd)
             os.close(parent_fd)
             parent_fd = next_fd
-        if not os.access('.', os.W_OK | os.X_OK, dir_fd=parent_fd):
+        if not os.access('.', os.W_OK | os.X_OK, dir_fd=parent_fd, effective_ids=True):
             raise conflict  # a stable non-writable parent: the capture command's mkdir would fail after the token was minted
         try:
             os.stat(path.name, dir_fd=parent_fd, follow_symlinks=False)

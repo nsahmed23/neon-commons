@@ -75,6 +75,41 @@ class EarlyValidationTests(Base):  # items 23 and 24
         self.assertEqual(self.fakes.calls(), [])
         self.assertEqual(self.collectors(), [])
 
+    def test_every_primitive_the_check_and_capture_use_is_required(self):
+        import os
+        full = frozenset({os.open, os.stat, os.access, os.mkdir})
+        self.assertTrue(signin._output_check_supported())
+        with patch.object(os, 'supports_dir_fd', full - {os.mkdir}):  # capture creates the folder with mkdir(dir_fd=)
+            self.assertFalse(signin._output_check_supported())
+            with self.assertRaises(AppError) as caught:
+                signin.collect(TENANT_A, POLICY, str(Path(self.box) / 'new'), deadline=5)
+        self.assertEqual(caught.exception.code, 'capture_platform_unavailable')
+        self.assertEqual(self.fakes.calls(), [])
+        for missing in (os.open, os.stat, os.access):
+            with patch.object(os, 'supports_dir_fd', full - {missing}):
+                self.assertFalse(signin._output_check_supported())
+        with patch.object(os, 'supports_effective_ids', frozenset()):  # os.access(effective_ids=True) is not available
+            self.assertFalse(signin._output_check_supported())
+            with self.assertRaises(AppError) as caught:
+                signin.collect(TENANT_A, POLICY, str(Path(self.box) / 'new'), deadline=5)
+        self.assertEqual(caught.exception.code, 'capture_platform_unavailable')
+        self.assertEqual(self.fakes.calls(), [])
+
+    def test_the_access_probe_uses_the_effective_ids_the_mkdir_will_use(self):
+        import os
+        seen = []
+        real = os.access
+
+        def spy(path, mode, **kwargs):
+            seen.append((mode, kwargs.get('effective_ids'), 'dir_fd' in kwargs))
+            return real(path, mode, **kwargs)
+
+        # the spy stands in for os.access, so it must also stand in the capability sets the support check consults
+        with patch('intune_iac.signin.os.access', spy), patch.object(os, 'supports_effective_ids', frozenset({spy})), \
+                patch.object(os, 'supports_dir_fd', frozenset(os.supports_dir_fd) | {spy}):
+            signin.check_new_output(str(Path(self.box) / 'fresh-probe'))
+        self.assertEqual(seen, [(os.W_OK | os.X_OK, True, True)])
+
     def test_a_stable_non_writable_parent_is_refused_before_any_token(self):
         import os
         if os.geteuid() == 0:
