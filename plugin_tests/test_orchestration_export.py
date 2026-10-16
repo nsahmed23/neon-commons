@@ -91,6 +91,18 @@ class ExportAdapterTests(unittest.TestCase):
         self.assertEqual(len(self.faults(result, 'event_conflict')), 1)
         self.assertEqual(len(self.faults(result, 'seq_reused')), 2)
 
+    def test_many_conflicts_are_read_in_time_that_does_not_grow_with_the_square_of_the_events(self):
+        import time
+        count = 20000
+        lines = [json.dumps(dict(event(n, 'dispatch.queued', 'T-1', kind=kind), event_id='e%d' % n))
+                 for kind in ('advisor', 'other') for n in range(1, count + 1)]
+        write_export(self.dir, [], raw_lines=lines, header=header_for([]))
+        started = time.monotonic()
+        result = read(self.dir)
+        elapsed = time.monotonic() - started
+        self.assertEqual(len(self.faults(result, 'event_conflict')), count)
+        self.assertLess(elapsed, 3.0, 'reading took %.1f s' % elapsed)
+
     def test_a_header_of_another_contract_or_with_bad_fields_is_not_a_header(self):
         events = lifecycle('T-1')
         for bad in (dict(header_for(events), contract='orchestration-export/2'),
