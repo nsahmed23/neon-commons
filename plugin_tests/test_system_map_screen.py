@@ -982,5 +982,40 @@ class HeightTests(unittest.TestCase):
                 self.assertLessEqual(len(screen().render(crowded(count), size[0], size[1], colour=False, unicode=False)), size[1])
 
 
+class LimiterTests(unittest.TestCase):
+    """Every way out of render() is held to the window's height, the notice and the refusal included."""
+    WIDTHS = (24, 40, 59, 60, 80, 100, 120, 200)
+
+    def cases(self):
+        out = {name: build() for name, build in SCENARIOS.items()}
+        out.update({'crowded': crowded(21), 'hostile': hostile()})
+        out.update({'bad: ' + name: build() for name, build in UnavailableTests.BAD.items()})
+        return out
+
+    def test_a_valid_snapshot_in_a_window_one_row_high_gets_the_start_of_the_notice(self):
+        rows = screen().render(recorded(), 60, 1, colour=False, unicode=False)
+        self.assertEqual(len(rows), 1)
+        self.assertTrue(rows[0].startswith('The system map needs a larger window'), rows)
+
+    def test_an_empty_result_in_a_window_one_row_high_gets_the_start_of_the_refusal(self):
+        rows = screen().render({}, 60, 1, colour=False, unicode=False)
+        self.assertEqual(len(rows), 1)
+        self.assertTrue(rows[0].startswith('System map unavailable: '), rows)
+
+    def test_no_result_is_ever_taller_than_the_window_and_always_the_start_of_what_it_would_say(self):
+        for name, snapshot in self.cases().items():
+            for width in self.WIDTHS:
+                for height in (-1, 0, 1, 2, 3):
+                    rows = screen().render(snapshot, width, height, colour=False, unicode=False)
+                    self.assertLessEqual(len(rows), max(0, height), (name, width, height))
+                    self.assertTrue(all(width_of(row) <= width for row in rows), (name, width, height))
+                    if height < 1:
+                        continue
+                    whole = screen().render(snapshot, width, 1000 if name.startswith('bad') else 19, colour=False, unicode=False)
+                    # the rows kept are the first rows of the whole result, in order, never a fragment from its middle
+                    self.assertEqual(rows, whole[:height], (name, width, height))
+                    self.assertTrue(rows[0].startswith(('The system map needs', 'System map unavailable')), (name, width, height))
+
+
 if __name__ == '__main__':
     unittest.main()

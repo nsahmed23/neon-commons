@@ -261,6 +261,12 @@ def render(snapshot, width, height, *, colour=False, unicode=False, focus=None):
 
     The map is complete before anything else is added: the header, one row per node, one row per supplied edge, the boundary
     letters and the sentence that says what `recorded` means. The focused node's detail takes the rows that are left."""
+    # One exit: whatever is said, a window shows at most its own height, from the first row (the start of the notice or the
+    # refusal), never a fragment from the middle.
+    return _render(snapshot, width, height, colour, unicode, focus)[:max(0, height)]
+
+
+def _render(snapshot, width, height, colour, unicode, focus):
     reason = unavailable_reason(snapshot)
     if reason:
         return unavailable_lines(reason, width)
