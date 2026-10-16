@@ -7,6 +7,7 @@ import json
 import re
 import stat
 import zipfile
+from datetime import datetime
 from pathlib import Path
 
 MAX_ARCHIVE_BYTES = 64 * 1024 * 1024
@@ -63,6 +64,34 @@ OTHER = {'runtime': 'source', 'source': 'runtime'}
 # names the source's content digest (the source ZIP does not exist yet when the runtime record is written), the source record names
 # the runtime ZIP's own digest. They are required: the receipt is unsigned, so a pair whose records dropped both has no binding.
 LINKS = {'runtime': 'content_sha256', 'source': 'archive_sha256'}
+SCHEMA = 'build-identity/1'  # intune_iac.build_identity.SCHEMA, which the builder writes into every record
+BUILT_AT_FORMAT = '%Y-%m-%dT%H:%M:%SZ'  # scripts/build-release.py build_time(): UTC, whole seconds
+
+
+def _is_build_time(value, version):
+    # strptime also takes numbers without their zero padding, so the text must come back unchanged from a round trip.
+    if not isinstance(value, str):
+        return False
+    try:
+        return datetime.strptime(value, BUILT_AT_FORMAT).strftime(BUILT_AT_FORMAT) == value
+    except ValueError:
+        return False
+
+
+def _is_git_id(value, version):
+    return isinstance(value, str) and re.fullmatch(r'[0-9a-f]{40}', value) is not None
+
+
+# What the builder guarantees about each shared field, and how a refusal says it. Archives are made only from a known, clean commit
+# at the version the receipt names, so a value no build can have is refused even when both records agree on it: the receipt is unsigned.
+INVARIANTS = {
+    'built_at': (_is_build_time, 'is not a UTC time written as YYYY-MM-DDTHH:MM:SSZ'),
+    'commit': (_is_git_id, 'is not a 40-character lowercase hexadecimal object name'),
+    'dirty': (lambda value, version: value is False, 'is not false (archives are made only from a clean checkout)'),
+    'product_version': (lambda value, version: value == version, 'is not the version in the receipt'),
+    'schema_version': (lambda value, version: value == SCHEMA, 'is not ' + SCHEMA),
+    'tree': (_is_git_id, 'is not a 40-character lowercase hexadecimal object name'),
+}
 
 
 def _record(kind, files):
@@ -86,17 +115,21 @@ def _content(files):
     return len(digests), hashlib.sha256(lines.encode()).hexdigest()
 
 
-def check_identity_records(archives):
+def check_identity_records(archives, version):
     """Refuse, naming the field, unless the two identity records belong together. `archives` maps 'runtime' and 'source' to
-    {'files': the verified members, 'sha256': the archive file's digest}. In this order: both archives hold a record; the fields that
-    name the build agree; each record's companion names the other archive as it is (its kind and the digest in LINKS, both required, and
-    any other digest it carries); each record describes its own archive (kind, member count, content digest)."""
+    {'files': the verified members, 'sha256': the archive file's digest}; `version` is the receipt's. In this order: both archives hold
+    a record; the fields that name the build agree, and what they agree on is a value the builder writes (INVARIANTS); each record's
+    companion names the other archive as it is (its kind and the digest in LINKS, both required, and any other digest it carries); each
+    record describes its own archive (kind, member count, content digest)."""
     records = {kind: _record(kind, archive['files']) for kind, archive in archives.items()}
     content = {kind: _content(archive['files']) for kind, archive in archives.items()}
     for field in SHARED_FIELDS:
         values = [json.dumps(record[field], sort_keys=True) for record in records.values() if field in record]
         if len(values) != 2 or values[0] != values[1]:
             raise ValueError(f'The runtime and source {IDENTITY} records do not agree on {field}.')
+    for field, (valid, why) in INVARIANTS.items():
+        if not valid(records['runtime'].get(field), version):
+            raise ValueError(f'The runtime and source {IDENTITY} records agree on {field}, but it {why}.')
     for kind, other in OTHER.items():
         companion = records[kind].get('companion')
         if not isinstance(companion, dict):
@@ -150,7 +183,7 @@ def check_release(directory, output):
     if any(name not in source or data != source[name] for name, data in runtime.items() if name not in own_to_each_archive):
         raise ValueError('Runtime bytes differ from source release bytes.')
     check_identity_records({'runtime': {'files': runtime, 'sha256': digests['intune-iac']},
-                            'source': {'files': source, 'sha256': digests['intune-iac-source']}})
+                            'source': {'files': source, 'sha256': digests['intune-iac-source']}}, version)
     destination.mkdir(mode=0o700)  # A previous extraction must not be reused.
     for prefix, files in snapshots.items():
         for name, data in files.items():

@@ -480,6 +480,42 @@ class IdentityRecordTests(ArchivePairCase):
                     self.edit_record(repo, archive, {key: None})
                 self.refused(repo, f'The {kind} {IDENTITY} field {path} is missing.')
 
+    def test_shared_fields_that_agree_are_still_checked_against_what_the_builder_writes(self):
+        """Two records can agree on an identity no build has: another version than the receipt's, a dirty checkout, a malformed object
+        name, an unsupported schema, a time that is not the builder's. Both records are changed alike, so only a check of the value
+        itself can refuse them (the receipt is unsigned)."""
+        wrong = {'product_version': ['0.0.1'], 'dirty': [True, 0], 'schema_version': ['build-identity/2'],
+                 'commit': ['1' * 39, 'A' * 40, 'g' * 40, 12345], 'tree': ['2' * 41, 'B' * 40, 'h' * 40, 12345],
+                 'built_at': ['2026-10-16T01:02:03+00:00', '2026-13-45T01:02:03Z', '2026-1-5T1:2:3Z', '2026-10-16 01:02:03Z', 20261016]}
+        self.assertEqual(sorted(wrong), sorted(SHARED_FIELDS))
+        for field, values in wrong.items():
+            for value in values:
+                with self.subTest(f'{field} {value!r}'):
+                    repo = self.build()
+                    self.assertIsNone(self.check(repo, 'untouched'), 'the untouched pair must pass, or this proves nothing')
+                    for archive in (RUNTIME, SOURCE):
+                        self.edit_record(repo, archive, {field: value})
+                    self.assertEqual(self.record(repo, RUNTIME)[field], self.record(repo, SOURCE)[field], 'the records agree')
+                    message = self.check(repo)
+                    self.assertTrue(str(message).startswith(f'The runtime and source {IDENTITY} records agree on {field}, but it '), message)
+                    self.assertFalse((repo.parent / 'extracted').exists(), 'nothing is extracted from a pair with an impossible identity')
+
+    def test_a_version_that_differs_from_the_receipts_in_both_records_is_refused_naming_the_field(self):
+        repo = self.build()
+        for archive in (RUNTIME, SOURCE):
+            self.edit_record(repo, archive, {'product_version': '0.0.1'})
+        self.assertEqual(json.loads((repo.output / 'Intune_IaC_Plugin_Archive_Receipt.json').read_text())['version'], builder.__version__)
+        self.refused(repo, f'The runtime and source {IDENTITY} records agree on product_version, but it is not the version in the receipt.')
+
+    def test_the_checker_expects_what_the_builder_writes(self):
+        """The checker does not import the product it checks, so what it expects of a record is held to the builder's own values here."""
+        self.assertEqual(getattr(self.checker, 'SCHEMA', None), builder.build_identity.SCHEMA)
+        invariants = getattr(self.checker, 'INVARIANTS', {})
+        self.assertIn('built_at', invariants)
+        valid_time = invariants['built_at'][0]
+        for written in (builder.build_time(), base.BUILT_AT):
+            self.assertTrue(valid_time(written, None), written)
+
     def test_a_record_that_does_not_describe_its_own_archive_is_refused(self):
         for kind, archive, other in (('runtime', RUNTIME, 'source'), ('source', SOURCE, 'runtime')):
             for label, field, change in (('archive_kind', 'archive_kind', lambda count: other),
