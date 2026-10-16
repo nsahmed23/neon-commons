@@ -77,6 +77,16 @@ def detect_azure(deadline=DEFAULT_DEADLINE):
     return signin_facts.parse_azure(out)
 
 
+def detect(which, deadline=DEFAULT_DEADLINE):
+    """Facts for 'azure', 'github' or 'all', keyed by provider; only the listings of the chosen providers run."""
+    facts = {}
+    if which in ('azure', 'all'):
+        facts['azure'] = detect_azure(deadline)
+    if which in ('github', 'all'):
+        facts['github'] = detect_github(deadline)
+    return facts
+
+
 def detect_github(deadline=DEFAULT_DEADLINE):
     """GitHub facts from the CLI's own status: host, account, whether a session exists."""
     try:

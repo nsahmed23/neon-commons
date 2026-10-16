@@ -242,7 +242,8 @@ class ReadinessTests(unittest.TestCase):
         change = rows_of(value, 'change')['integration_service']
         joined = ' '.join(change['missing'])
         self.assertIn('never implies permission for a change', joined)
-        self.assertIn('no route yet for sign-in reuse', joined)
+        self.assertIn('no sign-in check was run', joined)
+        self.assertIn('--check-signin azure', joined)
         self.assertIn('OIDC', joined)
         self.assertEqual(value['operations']['change']['status'], 'missing')
 

@@ -481,7 +481,7 @@ _TOKEN = re.compile(r"(?:'[^']*'|[^\s'])+")
 _COMMAND_STOP = frozenset({'and', 'then', 'or', 'from', 'to', 'with', 'for', 'as', 'that', 'is', 'the', 'in', 'on', 'by'})
 
 
-def goal_readiness(value, goal):
+def goal_readiness(value, goal, signin=None):
     """The readiness of one goal on the survey plus the host and doctor facts that need no process and no environment value.
 
     Left out of the doctor facts: the executables lookup (it reads the search path). Everything else it reports is read from
@@ -490,12 +490,12 @@ def goal_readiness(value, goal):
     from . import cli, readiness
     doctor = cli.doctor(executables=False)
     host = doctor['host_capabilities']
-    model = readiness.readiness(value, host, doctor)
+    model = readiness.readiness(value, host, doctor, signin=signin)
     operation = model['operations'][goal]
     profiles = host.get('profiles', {})
     facts = host.get('host', {})
     service = next((row for row in operation['rows'] if row['id'] == 'integration_service'), {})
-    return {'schema_version': model['schema_version'], 'goal': goal, 'status': operation['status'], 'directory': value['directory'],
+    view = {'schema_version': model['schema_version'], 'goal': goal, 'status': operation['status'], 'directory': value['directory'],
             'host': {'os_name': facts.get('os_name'), 'sys_platform': facts.get('sys_platform'), 'machine': facts.get('machine'),
                      'python_version': facts.get('python_version'),
                      'supported_profiles': [name for name, entry in profiles.items() if entry.get('status') == 'IMPLEMENTED'],
@@ -504,6 +504,10 @@ def goal_readiness(value, goal):
             'blocking': operation['blocking'], 'blockers': operation['blockers'], 'inputs': model['inputs'],
             'not_established': model['not_established'], 'omitted_facts': list(OMITTED_FACTS),
             'execution_authorized': False, 'cloud_authority': False}
+    if 'signin' in model:
+        # The judgement of each supplied sign-in (az, gh); present only when start was asked to look (--check-signin).
+        view['signin'] = model['signin']
+    return view
 
 
 def _segments(text):
@@ -591,6 +595,10 @@ def _goal_lines(view, width):
     lines += _flow('Unsupported profiles: %s' % (', '.join(host['unsupported_profiles']) or 'none'), width, '', '    ')
     lines += _flow('Tenant named by the surveyed inputs: %s' % (', '.join(view['tenants']) or 'none named in GUID form'),
                    width, '', '    ')
+    for name, label in (('azure', 'Azure sign-in'), ('github', 'GitHub sign-in')):
+        verdict = view.get('signin', {}).get(name)
+        if verdict:
+            lines += _flow('%s: %s' % (label, verdict['message']), width, '', '    ')
     lines.append('NEEDED FOR THIS GOAL')
     for row in (row for row in view['rows'] if row['needed']):
         lines.append('  %s: %s' % (row['label'], row['state']))

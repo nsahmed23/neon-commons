@@ -68,6 +68,14 @@ def _fd_token(descriptor,owner=None):
     return read_token_fd(descriptor,owner)
 
 
+def _start_signin(args):
+    # start runs no process unless --check-signin asks for the CLI listing; the flag without a goal has nothing to show.
+    if not args.check_signin:return None
+    if not args.goal:raise AppError('signin_check_needs_goal','--check-signin needs --goal (it adds the sign-in to that goal\'s readiness).')
+    from .signin import detect
+    return detect(args.check_signin)
+
+
 def _fd_owner(*descriptors):
     # One owner for every descriptor the route was given: all are closed once on any exit, a consumed one never again.
     if any(d is not None for d in descriptors) and os.name == 'posix':
@@ -160,6 +168,7 @@ def parser():
     start.add_argument('--json',action='store_true',help='Print the survey as JSON instead of the readable screen')
     from .readiness import OPERATIONS as goals
     start.add_argument('--goal',choices=goals,help='Also show what one goal needs and what is missing, from facts start can gather offline')
+    start.add_argument('--check-signin',choices=('azure','github','all'),help='With --goal: also look for an existing sign-in by running the CLI listing (az account list --output json, gh auth status --json hosts); reads no token')
     engineering=commands.add_parser('engineering',help='Show engineering orchestration records from a loopctl export (read-only, offline)')
     engineering.add_argument('--records',help='Directory written by loopctl export (header.json and events.jsonl); without it the command says nothing is configured')
     engineering.add_argument('--controller-log',help='Controller log (JSON lines); its dispatch lines are counted, never modelled')
@@ -234,7 +243,8 @@ def execute(args):
     if args.command=='start':
         from .entry import goal_readiness, survey
         value=survey(args.directory,relative_to=os.getcwd())
-        if args.goal:value['readiness']=goal_readiness(value,args.goal)
+        if args.goal:value['readiness']=goal_readiness(value,args.goal,_start_signin(args))
+        else:_start_signin(args)
         return value
     if args.command=='engineering':
         from .engineering_view import command
@@ -397,7 +407,8 @@ def main(argv=None):
             # The guided entry is read by a person first; --json keeps the machine form.
             from .entry import goal_readiness, start_lines, survey
             value=survey(args.directory,relative_to=os.getcwd())
-            goal=goal_readiness(value,args.goal) if args.goal else None
+            goal=goal_readiness(value,args.goal,_start_signin(args)) if args.goal else None
+            if goal is None:_start_signin(args)
             print('\n'.join(start_lines(value,shutil.get_terminal_size((100,40)).columns,goal,goal_hint=goal is None)))
             return 0
         if args.command=='simulate' and args.format=='text':

@@ -117,3 +117,122 @@ def parse_github(text, code, error_text):
     if any(a['session'] == SESSION_ACTIVE for a in accounts):
         return _facts('github', 'signed_in', accounts)
     return _facts('github', 'expired', accounts)
+
+
+# Judgement -------------------------------------------------------------------------------------------------------
+
+def _clean_accounts(facts, provider):
+    """The accounts of a facts dictionary that pass the plain-shape rules; a dictionary from elsewhere is never trusted."""
+    listed = facts.get('accounts') if isinstance(facts, dict) else None
+    cleaned = []
+    for entry in listed if isinstance(listed, list) else []:
+        if not isinstance(entry, dict) or entry.get('session') not in (SESSION_ACTIVE, SESSION_EXPIRED):
+            continue
+        name = shown(entry.get('account'))
+        if provider == 'azure':
+            tenant, cloud = shown(entry.get('tenant'), GUID), shown(entry.get('cloud'), CLOUD)
+            if name and tenant and cloud:
+                cleaned.append({'tenant': tenant.lower(), 'account': name, 'cloud': cloud, 'default': entry.get('default') is True,
+                                'session': entry['session']})
+        else:
+            host = shown(entry.get('host'), HOST)
+            if name and host:
+                cleaned.append({'host': host, 'account': name, 'active': entry.get('active') is True, 'session': entry['session']})
+    return cleaned
+
+
+def _verdict(provider, status, message, next_step, tenant, usable=False, signed_in=()):
+    return {'provider': provider, 'status': status, 'usable': usable, 'tenant_wanted': tenant, 'signed_in': list(signed_in),
+            'message': message, 'next_step': next_step}
+
+
+def _who(entry):
+    return 'tenant %s as %s (%s)' % (entry['tenant'], entry['account'], entry['cloud'])
+
+
+def evaluate(facts, tenant=None, account=None):
+    """Judge facts against the tenant the context names (and the account the engineer named, if any).
+
+    Pure. status is signed_in, not_signed_in, expired, wrong_tenant, several_accounts, account_mismatch or unknown; usable is
+    true only for an azure sign-in that is in the context's tenant, is the one account the CLI would use, and (when the
+    engineer named one) is that account. The next step is the exact thing the engineer does; the product runs none of it.
+    """
+    provider = facts.get('provider') if isinstance(facts, dict) else None
+    tenant = shown(tenant, GUID)
+    tenant = tenant.lower() if tenant else None
+    if provider == 'github':
+        return _evaluate_github(facts)
+    wanted = tenant or 'TENANT_ID'
+    login = 'az login --tenant %s' % wanted
+    state = facts.get('state') if isinstance(facts, dict) else None
+    accounts = _clean_accounts(facts, 'azure')
+    active = [a for a in accounts if a['session'] == SESSION_ACTIVE]
+    expired = [a for a in accounts if a['session'] == SESSION_EXPIRED]
+    if state == 'not_signed_in':
+        return _verdict('azure', 'not_signed_in', 'Not signed in to Azure.',
+                        'Sign in to the tenant the context names: %s; then run this command again.' % login, tenant)
+    if state not in ('signed_in', 'expired') or not accounts:
+        reason = shown(facts.get('reason') if isinstance(facts, dict) else None, NAME) or 'not_established'
+        return _verdict('azure', 'unknown', 'The Azure sign-in could not be determined (reason: %s).' % reason,
+                        'Run az account list --output json yourself to see the sign-in, or sign in with: %s; then run this '
+                        'command again.' % login, tenant)
+    in_tenant = [a for a in expired if a['tenant'] == tenant]
+    if not active or (tenant and not any(a['tenant'] == tenant for a in active) and in_tenant):
+        listing = '; '.join(_who(a) for a in (expired if not active else in_tenant))
+        return _verdict('azure', 'expired', 'The Azure sign-in reports itself expired: %s. Nothing that needs a token runs.' % listing,
+                        'Sign in again to the tenant the context names: %s; then run this command again.' % login, tenant)
+    default = next((a for a in active if a['default']), None)
+    names = sorted({a['account'] for a in active})
+    if default is None:
+        return _verdict('azure', 'unknown', 'The Azure CLI lists signed-in accounts but marks none as the one it uses.',
+                        'Choose one with: az account set --subscription SUBSCRIPTION; then run this command again.', tenant,
+                        signed_in=active)
+    if tenant and default['tenant'] != tenant:
+        others = [a for a in active if a is not default]
+        extra = (' Other sign-ins listed: %s.' % '; '.join(_who(a) for a in others)) if others else ''
+        return _verdict('azure', 'wrong_tenant',
+                        'Signed in to %s; the context names tenant %s. Nothing proceeds.%s' % (_who(default), tenant, extra),
+                        'Sign in to the tenant the context names: %s; then run this command again.' % login, tenant, signed_in=active)
+    if len(names) > 1 and account != default['account']:
+        listing = '; '.join('%s%s' % (_who(a), ' (the CLI uses this one)' if a is default else '') for a in active)
+        tail = '' if account is None else ' You named %s.' % account
+        return _verdict('azure', 'several_accounts',
+                        'Several accounts are signed in: %s. The product does not pick one.%s' % (listing, tail),
+                        'Name the account with --account NAME; it must be the one the Azure CLI uses by default (change that '
+                        'with: az account set --subscription SUBSCRIPTION), or sign out the others with: az logout --username NAME.',
+                        tenant, signed_in=active)
+    if account is not None and account != default['account']:
+        return _verdict('azure', 'account_mismatch',
+                        'You named account %s; the Azure CLI uses %s by default. Nothing proceeds.' % (account, default['account']),
+                        'Sign in with that account (az login --tenant %s) or leave --account out.' % wanted, tenant, signed_in=active)
+    return _verdict('azure', 'signed_in', 'Signed in to %s.' % _who(default),
+                    'No sign-in step is needed.' if tenant else 'Name the context tenant to compare it with this sign-in.',
+                    tenant, usable=bool(tenant), signed_in=[default])
+
+
+def _evaluate_github(facts):
+    accounts = _clean_accounts(facts, 'github')
+    state = facts.get('state') if isinstance(facts, dict) else None
+    login = 'gh auth login'
+    if state == 'not_signed_in':
+        return _verdict('github', 'not_signed_in', 'Not signed in to GitHub.', 'Sign in: %s; then check again.' % login, None)
+    if state not in ('signed_in', 'expired') or not accounts:
+        reason = shown(facts.get('reason') if isinstance(facts, dict) else None, NAME) or 'not_established'
+        return _verdict('github', 'unknown', 'The GitHub sign-in could not be determined (reason: %s).' % reason,
+                        'Run gh auth status yourself to see it.', None)
+    active = [a for a in accounts if a['session'] == SESSION_ACTIVE]
+    if not active:
+        return _verdict('github', 'expired', 'The GitHub sign-in reports an invalid session: %s.' % '; '.join(
+            '%s as %s' % (a['host'], a['account']) for a in accounts), 'Sign in again: %s; then check again.' % login, None)
+    per_host = {}
+    for entry in active:
+        per_host.setdefault(entry['host'], []).append(entry)
+    crowded = {host: entries for host, entries in per_host.items() if len(entries) > 1}
+    if crowded:
+        listing = '; '.join('%s: %s' % (host, ', '.join(e['account'] + (' (active)' if e['active'] else '') for e in entries))
+                            for host, entries in sorted(crowded.items()))
+        return _verdict('github', 'several_accounts',
+                        'Several accounts are signed in to one host: %s. The product does not pick one.' % listing,
+                        'Make one active with: gh auth switch --user NAME; then check again.', None, signed_in=active)
+    return _verdict('github', 'signed_in', 'Signed in to %s.' % '; '.join('%s as %s' % (a['host'], a['account']) for a in active),
+                    'No sign-in step is needed.', None, usable=False, signed_in=active)

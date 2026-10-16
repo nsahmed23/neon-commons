@@ -948,6 +948,7 @@ plugin_tests/test_restricted_hashes.py
 plugin_tests/test_runner.py
 plugin_tests/test_secret_redaction_harness.py
 plugin_tests/test_signin_detect.py
+plugin_tests/test_signin_tenant.py
 plugin_tests/test_security_audit_completion.py
 plugin_tests/test_security_boundaries_completion.py
 plugin_tests/test_service_expiry_latch.py

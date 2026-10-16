@@ -105,7 +105,7 @@ def _row(operation, row_id, label, state, detected, missing, next_action, owner_
             'detected': detected, 'missing': list(missing), 'next_action': next_action, 'owner_role': owner_role}
 
 
-def _facts(survey, host, doctor):
+def _facts(survey, host, doctor, signin=None):
     """Allow-listed, validated facts from the three inputs; nothing else is read."""
     survey = _dict(survey)
     usable = isinstance(survey.get('items'), list)
@@ -128,7 +128,8 @@ def _facts(survey, host, doctor):
             'targets': targets, 'identities': identities, 'hostreport': host, 'doctorreport': doctor,
             'connection': survey.get('connection') if survey.get('connection') == 'offline' else None,
             'connection_unrecognized': usable and 'connection' in survey and survey['connection'] != 'offline',
-            'directory': _text(survey.get('directory'), _PATH) if usable else None}
+            'directory': _text(survey.get('directory'), _PATH) if usable else None,
+            'signin': signin if isinstance(signin, dict) and signin else None}
 
 
 def _repository(item, states):
@@ -340,8 +341,34 @@ def _iac_target_row(operation, f):
 
 # Integration, backend, execution route, secret input ------------------------------------------------------------
 
-NO_SIGN_IN_ROUTE = ('The product has no route yet for sign-in reuse, device-code or browser sign-in, OIDC, managed identity or '
+NO_SIGN_IN_ROUTE = ('The product has no route yet for device-code or browser sign-in, OIDC, managed identity or '
                     'per-operation scopes.')
+NOT_ACCESS = ('A signed-in account does not establish Graph, Intune or state-storage access; those stay unknown until a read '
+              'actually succeeds.')
+ACCESS_UNKNOWN = {'graph_access': 'unknown', 'intune_access': 'unknown', 'state_storage_access': 'unknown'}
+# Verdicts after which the row is blocked on the sign-in itself (missing), and those that replace its next action.
+SIGNIN_BLOCKS = ('wrong_tenant', 'not_signed_in', 'expired')
+SIGNIN_STEPS = SIGNIN_BLOCKS + ('several_accounts', 'account_mismatch', 'unknown')
+
+
+def _single_tenant(f):
+    """The one displayed tenant the surveyed inputs name, or None when none, several, or one that cannot be shown."""
+    identities = f['identities']
+    tenants = sorted({i['tenant'] for i in identities if i['tenant']})
+    hidden = any(i['named'] and not i['tenant'] for i in identities)
+    return tenants[0] if len(tenants) == 1 and not hidden else None
+
+
+def _signin_verdicts(f, single):
+    """Verdicts (signin_facts.evaluate, pure) for the az and gh facts the caller supplied; empty when none were given."""
+    from . import signin_facts
+    given = f['signin'] or {}
+    verdicts = {}
+    if 'azure' in given:
+        verdicts['azure'] = signin_facts.evaluate(given['azure'], single)
+    if 'github' in given:
+        verdicts['github'] = signin_facts.evaluate(given['github'])
+    return verdicts
 
 
 def _service_row(operation, f):
@@ -372,7 +399,20 @@ def _service_row(operation, f):
         missing.append('Two tenants are named by the surveyed inputs; choose one.')
     elif named > 2:
         missing.append('Several tenants are named by the surveyed inputs; choose one.')
-    missing.append('No verified sign-in: the product does not detect an existing sign-in for this selection.')
+    # Only a single, displayed tenant is compared with a sign-in; an ambiguous selection is never decided by the sign-in.
+    single = _single_tenant(f)
+    verdicts = _signin_verdicts(f, single)
+    if verdicts:
+        for name, label in (('azure', 'Azure'), ('github', 'GitHub')):
+            if name in verdicts:
+                detected['%s_sign_in' % name] = verdicts[name]['message']
+                if verdicts[name]['status'] != 'signed_in':
+                    missing.append('%s: %s' % (label, verdicts[name]['message']))
+        detected.update(ACCESS_UNKNOWN)
+        missing.append(NOT_ACCESS)
+    else:
+        missing.append('No verified sign-in, and no sign-in check was run: start with --goal %s --check-signin azure looks '
+                       'for an existing Azure sign-in (it runs az account list --output json and nothing else).' % operation)
     if 'source_asserted_not_authenticated' in evidence:
         missing.append('The tenant is asserted by a file; nothing checks it against a sign-in.')
     missing.append(NO_SIGN_IN_ROUTE)
@@ -385,7 +425,7 @@ def _service_row(operation, f):
     absent = not tenants and not named_hidden
     state = 'missing' if absent and 'unrecognized' not in evidence and not f['connection_unrecognized'] else 'unknown'
     # Only a single, displayed tenant is filled into a command; any ambiguity keeps the placeholder (no silent pick).
-    tenant = tenants[0] if len(tenants) == 1 and not named_hidden else 'TENANT_ID'
+    tenant = single or 'TENANT_ID'
     if operation == 'discover':
         action = ('%s capture --tenant %s --policy POLICY --output NEW_DIR --token-env TOKEN_VARIABLE_NAME (reads the named '
                   'variable; one of the explicit-token routes, target collect is another)' % (PROGRAM, tenant))
@@ -404,6 +444,12 @@ def _service_row(operation, f):
     elif named_hidden:
         action = ('Name the tenant as a GUID in the context or export JSON, then run: %s start DIRECTORY' % PROGRAM)
         role = 'engineer'
+    azure = verdicts.get('azure')
+    if azure and single and azure['status'] in SIGNIN_STEPS:
+        # The sign-in itself is the blocker, so its exact next step comes first. The row is never ready, whatever the sign-in.
+        action, role = azure['next_step'], 'engineer'
+        if azure['status'] in SIGNIN_BLOCKS:
+            state = 'missing'
     return _row(operation, 'integration_service', 'Integration and service', state, detected, missing, action, role)
 
 
@@ -464,9 +510,12 @@ def _operation(operation, f):
                           'owner_role': row['owner_role']} for row in blocking]}
 
 
-def readiness(survey=None, host=None, doctor=None):
+def readiness(survey=None, host=None, doctor=None, signin=None):
     """Readiness by operation and row from entry.survey, host_capabilities.report and doctor facts; pure and offline."""
-    f = _facts(survey, host, doctor)
-    return {'schema_version': VERSION, 'inputs': {'survey': f['survey'], 'host': f['host'], 'doctor': f['doctor']},
-            'directory': f['directory'], 'operations': {operation: _operation(operation, f) for operation in OPERATIONS},
-            'not_established': list(NOT_ESTABLISHED), 'execution_authorized': False, 'cloud_authority': False}
+    f = _facts(survey, host, doctor, signin)
+    result = {'schema_version': VERSION, 'inputs': {'survey': f['survey'], 'host': f['host'], 'doctor': f['doctor']},
+              'directory': f['directory'], 'operations': {operation: _operation(operation, f) for operation in OPERATIONS},
+              'not_established': list(NOT_ESTABLISHED), 'execution_authorized': False, 'cloud_authority': False}
+    if f['signin']:
+        result['signin'] = _signin_verdicts(f, _single_tenant(f))
+    return result
