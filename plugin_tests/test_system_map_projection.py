@@ -123,6 +123,33 @@ class ShapeTests(unittest.TestCase):
         pins['setup_pins']['pinned']['engine_version'] = '9.9.8'
         self.assertNotEqual(project(pins)['revision'], base['revision'])
 
+    def test_the_revision_is_the_digest_of_the_whole_canonical_projection(self):
+        import hashlib
+        import json
+        for read in (baseline(), with_adoption(operation_read('verified')), operation_read('unknown'), without_intent(baseline())):
+            flow = project(read)
+            body = {key: value for key, value in flow.items() if key != 'revision'}
+            canonical = json.dumps(body, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False, default=str)
+            self.assertEqual(flow['revision'], hashlib.sha256(canonical.encode('utf-8')).hexdigest())
+
+    def test_the_node_kinds_are_fixed(self):
+        self.assertEqual({node['id']: node['kind'] for node in project(baseline())['nodes']},
+                         {'repo.source': 'repository_source', 'atmos.component': 'atmos_component', 'tofu.engine': 'opentofu',
+                          'tofu.backend': 'backend', 'provider': 'provider', 'service': 'service', 'readback': 'readback',
+                          'observation': 'observation'})
+
+    def test_the_operation_and_the_evidence_class_are_the_recorded_ones(self):
+        self.assertIsNone(project(baseline())['operation'])
+        flow = project(operation_read('verified'))
+        self.assertIsNotNone(flow['operation'])
+        self.assertEqual(flow['operation']['operation_id'], flow_tests.OPERATION)
+        self.assertEqual(flow['operation']['journal_status'], 'succeeded_verified')
+        read = with_observation(baseline(), evidence_class='observation_class')
+        read['evidence_class'] = 'read_class'
+        self.assertEqual(project(read)['evidence_class'], 'observation_class')
+        read['states']['observation'] = None
+        self.assertEqual(project(read)['evidence_class'], 'read_class')
+
     def test_an_unnamed_policy_is_refused(self):
         from intune_iac.io import AppError
         for read in ({}, None, {'object_id': ''}, {'object_id': 3}):
@@ -141,6 +168,17 @@ class RepositoryNodeTests(unittest.TestCase):
         self.assertEqual(node['basis']['record'], 'repository_intent')
         self.assertEqual(node['basis']['record_id'], baseline()['states']['intent']['artifact_id'])
         self.assertEqual(node['opens'], '9')
+        self.assertEqual(node['facts'], {'recorded_at': '2026-10-14T19:50:01.000001Z',
+                                         'effective_pointer': '/vars/policies/key'})
+
+    def test_a_source_row_without_a_path_is_not_a_source_file(self):
+        read = baseline()
+        read['repository_record']['sources'] = [{'path': 'stacks/dev.yaml'}, {'sha256': 'x'}, 'text', {'path': ''}, None]
+        try:
+            flow = project(read)
+        except Exception as error:      # a malformed row must be skipped, not raise
+            self.fail('a source row without a path raised %r' % error)
+        self.assertEqual(nodes_of(flow)['repo.source']['identity']['source_files'], ['stacks/dev.yaml'])
 
     def test_every_state_the_intent_status_can_take(self):
         table = {'current': ('recorded', None), 'changed': ('stale', 'repository_stale'),
@@ -215,6 +253,7 @@ class BackendNodeTests(unittest.TestCase):
         node = nodes_of(project(baseline()))['tofu.backend']
         self.assertEqual((node['state'], node['identity']), ('recorded', {'backend': 'local'}))
         self.assertEqual(node['basis']['field'], 'scope.backend')
+        self.assertEqual(node['basis']['record_id'], baseline()['states']['intent']['artifact_id'])
 
     def test_an_intent_that_names_no_backend_is_not_configured(self):
         read = baseline()
@@ -264,6 +303,13 @@ class ManifestNodeTests(unittest.TestCase):
         read['setup_pins']['pinned'].pop('provider_version')
         node = nodes_of(project(read))['provider']
         self.assertEqual((node['state'], node['reason']), ('not_configured', 'provider_pin_not_recorded'))
+
+    def test_an_engine_pin_needs_both_its_name_and_its_version(self):
+        read = baseline()
+        del read['setup_pins']['pinned']['engine']
+        node = nodes_of(project(read))['tofu.engine']
+        self.assertEqual((node['state'], node['reason'], node['identity']),
+                         ('not_configured', 'engine_pin_not_recorded', {'engine': None, 'version': '9.9.9'}))
 
     def test_half_a_provider_pin_is_unknown_not_configured(self):
         read = baseline()
@@ -318,6 +364,7 @@ class ServiceAndObservationTests(unittest.TestCase):
         node = nodes_of(project(baseline()))['observation']
         self.assertEqual(node['identity'], {'run_id': 4, 'observed_at': '2026-10-14T19:55:52.390326Z'})
         self.assertEqual(node['basis']['record_id'], '4')
+        self.assertEqual(node['facts'], {'coverage': 'complete', 'freshness': 'fresh'})
 
 
 class ReadbackNodeTests(unittest.TestCase):
@@ -342,6 +389,13 @@ class ReadbackNodeTests(unittest.TestCase):
             node = nodes_of(project(operation_read(outcome)))['readback']
             self.assertEqual((node['state'], node['reason']), ('unknown', 'maintenance_service_incomplete'), outcome)
 
+    def test_the_reason_of_an_unknown_outcome_is_the_error_code_the_execution_recorded_not_the_readback_status(self):
+        for outcome in ('unknown', 'reconciled'):
+            read = operation_read(outcome)
+            self.assertEqual(read['delivery']['stages'][4]['status'], 'not_recorded')
+            node = nodes_of(project(read))['readback']
+            self.assertEqual(node['reason'], 'maintenance_service_incomplete', outcome)
+
     def test_a_pending_readback_is_unverified(self):
         read = operation_read('verified')
         read['delivery']['stages'][4] = flow_tests.stage_row('readback', 'pending', classification='matches_precondition')
@@ -360,6 +414,22 @@ class ReadbackNodeTests(unittest.TestCase):
         read['delivery']['stages'][4] = flow_tests.stage_row('readback', 'failed')
         node = nodes_of(project(read))['readback']
         self.assertEqual((node['state'], node['reason']), ('unknown', 'failed'))
+        # The execution's own recorded error code is the reason when it holds one.
+        read['delivery']['stages'][3]['error_code'] = 'service_unreachable'
+        self.assertEqual(nodes_of(project(read))['readback']['reason'], 'service_unreachable')
+
+    def test_a_dispatched_execution_with_no_verified_result_holds_even_a_done_readback_unknown(self):
+        read = operation_read('verified')
+        read['delivery']['stages'][3] = flow_tests.stage_row('execution', 'unknown', engine_status='succeeded_verified',
+                                                             error_code='maintenance_service_incomplete')
+        node = nodes_of(project(read))['readback']
+        self.assertEqual((node['state'], node['reason']), ('unknown', 'maintenance_service_incomplete'))
+
+    def test_a_readback_status_the_producer_does_not_define_is_unknown_with_that_word(self):
+        read = operation_read('verified')
+        read['delivery']['stages'][4] = flow_tests.stage_row('readback', 'odd_status')
+        node = nodes_of(project(read))['readback']
+        self.assertEqual((node['state'], node['reason']), ('unknown', 'odd_status'))
 
     def test_an_operation_whose_delivery_cannot_be_read_is_unknown_with_the_code(self):
         read = flow_tests.with_operation(baseline())
@@ -481,8 +551,52 @@ class EdgeTableTests(unittest.TestCase):
 
     def test_nothing_is_inferred_from_a_name_or_a_string(self):
         read = baseline()
-        read['name'] = 'applies-through readback generates cites observes'
+        read['name'] = 'applies-through readback generates cites observes stale unknown unverified not configured'
         read['states']['intent']['scope']['backend'] = 'generates'
+        before, after = project(baseline()), project(read)
+        self.assertEqual(sorted(edges_of(after)), sorted(edges_of(before)))
+        self.assertEqual(states_of(after), states_of(before))
+
+    def test_the_cites_edges_need_the_intent_record_its_scope_and_a_status(self):
+        read = baseline()
+        del read['states']['intent']['scope']['stack']
+        self.assertNotIn('cites:repo.source>atmos.component', edges_of(project(read)))
+        read = baseline()
+        del read['states']['intent']['artifact_id']
+        self.assertEqual(sorted(edges_of(project(read))), ['observes:service>observation'])
+        # A scope that is carried but belongs to no recorded intent establishes nothing.
+        read = without_intent(baseline())
+        read['states']['intent']['scope'] = dict(baseline()['states']['intent']['scope'])
+        read['states']['intent']['artifact_id'] = 'e927410221924400' + '0' * 48
+        self.assertEqual(sorted(edges_of(project(read))), ['observes:service>observation'])
+
+    def test_an_engine_edge_needs_a_recorded_engine_status_and_is_verified_only_by_the_verified_one(self):
+        read = operation_read('verified')
+        del read['delivery']['stages'][3]['engine_status']
+        try:
+            edges = edges_of(project(read))
+        except Exception as error:      # an absent engine status must leave the edge out, not raise
+            self.fail('an execution with no engine status raised %r' % error)
+        self.assertNotIn('applies-through:tofu.engine>provider', edges)
+        read['delivery']['stages'][3]['engine_status'] = 'failed'
+        self.assertEqual(edges_of(project(read))['applies-through:tofu.engine>provider']['state'], 'unverified')
+
+    def test_a_dispatch_with_no_verified_result_leaves_the_service_edge_unverified(self):
+        read = operation_read('unknown')
+        read['delivery']['stages'][3]['service_status'] = 500
+        self.assertEqual(edges_of(project(read))['applies-through:provider>service']['state'], 'unverified')
+
+    def test_an_execution_that_never_dispatched_establishes_no_apply_edge(self):
+        read = operation_read('prepared')
+        read['delivery']['stages'][3] = flow_tests.stage_row('execution', 'not_started', engine_status='succeeded_verified',
+                                                             service_status=200)
+        edges = edges_of(project(read))
+        self.assertNotIn('applies-through:tofu.engine>provider', edges)
+        self.assertNotIn('applies-through:provider>service', edges)
+
+    def test_a_delivery_with_no_operation_establishes_no_execution_or_readback_edge(self):
+        read = baseline()
+        read['delivery'] = flow_tests.executed_delivery('verified')
         self.assertEqual(sorted(edges_of(project(read))), sorted(edges_of(project(baseline()))))
 
 
@@ -573,9 +687,17 @@ class RealStoreTests(unittest.TestCase):
         self.assertEqual(sorted(edges_of(flow)), ['observes:service>observation'])
 
     def test_an_imported_intent_gives_the_repository_nodes_their_recorded_identity(self):
+        from intune_iac import workbench
         intent = self.import_intent()
+        raw = workbench._system_map_read(self.store, flow_tests.OBJECT, service_root=self.service.root)
+        self.assertTrue({'object_id', 'tenant_id', 'states', 'attention', 'adoptions', 'delivery', 'review'} <= set(raw))
         read, flow = self.read()
+        # The workflow map's own read values are all still there beside the two additive fields.
+        self.assertTrue({'states', 'attention', 'adoptions', 'delivery', 'review'} <= set(read))
+        self.assertIsNotNone(read['repository_record'])
         self.assertEqual(read['repository_record']['artifact_id'], intent['artifact_id'])
+        self.assertEqual(read['repository_record']['effective_pointer'], intent['data']['effective_pointer'])
+        self.assertEqual(read['repository_record']['resource_address'], self.RESOURCE_ADDRESS)
         self.assertTrue(read['repository_record']['sources'])
         nodes = nodes_of(flow)
         self.assertEqual(nodes['repo.source']['identity']['revision'], 'a' * 40)
@@ -596,6 +718,24 @@ class RealStoreTests(unittest.TestCase):
         self.assertEqual(changed, ['repo.source', 'atmos.component'])
         self.assertEqual(states_of(after)['repo.source'], 'stale')
         self.assertEqual(edges_of(after)['cites:repo.source>atmos.component']['state'], 'stale')
+
+    def test_the_newest_of_several_intents_is_the_one_the_repository_record_reads(self):
+        self.prepare()      # imports, then refreshes: two intents for the policy
+        read, flow = self.read()
+        self.assertEqual(read['repository_record']['artifact_id'], self.intent['artifact_id'])
+        self.assertEqual(nodes_of(flow)['repo.source']['identity']['revision'], 'b' * 40)
+
+    def test_the_service_root_reaches_the_observation_check_and_the_system_map_command_returns_the_projection(self):
+        from intune_iac import maintenance, workbench
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'])
+        _, flow = self.read()
+        observation = nodes_of(flow)['observation']
+        # The execution moved the service: the observation is fresh by age and no longer current with its source.
+        self.assertEqual((observation['state'], observation['reason']), ('stale', 'service_changed'))
+        result = workbench._system_map(self.store, flow_tests.OBJECT, service_root=self.service.root)
+        self.assertEqual(result, flow)
+        self.assertEqual(result['schema_version'], 'system-map/1')
 
     def test_a_verified_change_establishes_the_apply_and_readback_edges_from_the_journal(self):
         from intune_iac import maintenance
@@ -636,7 +776,8 @@ class RealStoreTests(unittest.TestCase):
             return {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for root in roots
                     for path in sorted(Path(root).rglob('*')) if path.is_file()}
         before = tree(self.store.root, self.operation)
-        workbench._system_map(self.store, flow_tests.OBJECT, service_root=self.service.root)
+        result = workbench._system_map(self.store, flow_tests.OBJECT, service_root=self.service.root)
+        self.assertEqual(result['schema_version'], 'system-map/1')
         self.assertEqual(tree(self.store.root, self.operation), before)
 
     def test_an_unreadable_manifest_is_carried_as_its_code(self):
