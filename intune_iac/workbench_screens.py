@@ -2329,7 +2329,7 @@ WORKFLOW_SURFACES = {'2': '2 Inspector', '3': '3 Relationships', '5': '5 Plan', 
                      'v': 'v Delivery'}
 WORKFLOW_FACT_WORDS = (
     ('run_id', 'run'), ('observed_at', 'observed'), ('coverage', 'coverage'), ('freshness', 'freshness'),
-    ('recorded_at', 'recorded'), ('stack', 'stack'), ('component', 'component'), ('source_revision', 'revision'),
+    ('proposal_check', 'proposal check'), ('recorded_at', 'recorded'), ('stack', 'stack'), ('component', 'component'), ('source_revision', 'revision'),
     ('repository_intent_id', 'cited intent'), ('intent_freshness', 'intent'), ('intent_id', 'intent'),
     ('field_changes', 'field changes'), ('opens_at', 'approval window opened'), ('closes_at', 'approval window closes'),
     ('closed_at', 'approval window closed'), ('classification', 'readback'), ('second_plan', 'second plan'),

@@ -921,9 +921,9 @@ def _workflow_read(store, object_id, *, service_root=None):
     from .workbench_adoption import lineage
     return {'object_id': object_id, 'tenant_id': store.tenant_id, 'name': found.get('name'),
             'evidence_class': found.get('evidence_class'), 'states': states, 'attention': found['attention'],
-            'eligibility': found.get('observation_eligibility'), 'adoptions': lineage(store, object_id)['adoptions'],
-            'review': review, 'delivery': delivered, 'identity_prefixes': found.get('identity_prefixes'),
-            'now': time.time()}
+            'eligibility': found.get('observation_eligibility'), 'service_checked': service_root is not None,
+            'adoptions': lineage(store, object_id)['adoptions'], 'review': review, 'delivery': delivered,
+            'identity_prefixes': found.get('identity_prefixes'), 'now': time.time()}
 
 
 def _workflow(store, object_id, *, service_root=None):

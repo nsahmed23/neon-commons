@@ -76,13 +76,16 @@ def _row(state, basis, reason=None, facts=None):
 
 # ---- the stages that read the policy's own records -------------------------------------------------------------------
 
-def _observe(states):
+def _observe(states, service_checked=None):
     from .workbench_diagnostics import clock_hold
     observation = states.get('observation')
     if not isinstance(observation, dict):
         return _row('not_recorded', 'states.observation')
     reasons = [item for item in observation.get('freshness_reasons') or [] if isinstance(item, str)]
     facts = _facts(observation, ('run_id', 'observed_at', 'coverage', 'freshness'))
+    if isinstance(service_checked, bool):
+        # Without a modeled service only the age is judged: a source that moved on is not known, so it is not claimed.
+        facts['proposal_check'] = 'made against the service' if service_checked else 'not made: no service root'
     freshness = observation.get('freshness')
     if freshness == 'fresh':
         # Fresh by age is not current: the source can have moved on since (the proposal's own check says so).
@@ -376,7 +379,8 @@ def project(read):
     states, attention = _dict(read.get('states')), _dict(read.get('attention'))
     operation = states.get('operation') if isinstance(states.get('operation'), dict) else None
     delivery = read.get('delivery') if isinstance(read.get('delivery'), dict) else None
-    rows = {'observe': _observe(states), 'adopt': _adopt(read.get('adoptions')), 'intent': _intent(states)}
+    rows = {'observe': _observe(states, read.get('service_checked')), 'adopt': _adopt(read.get('adoptions')),
+            'intent': _intent(states)}
     if operation is None:
         absent = _row('not_recorded', 'states.operation')
         rows.update({stage: dict(absent) for stage in ('propose', 'review', 'approve_execute', 'readback', 'reconcile',

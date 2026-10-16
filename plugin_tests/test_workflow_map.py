@@ -274,6 +274,17 @@ class OneRecordedFieldAtATimeTests(unittest.TestCase):
         self.assertEqual(stages['observe']['continuation'], 'Collect again (a: actions) before preparing or judging a change.')
         self.assertIsNone(stages['intent']['continuation'])
 
+    def test_the_observe_stage_says_whether_the_proposal_check_was_made_and_claims_nothing_without_it(self):
+        from intune_iac.workbench_screens import workflow_fact_words
+        for checked, words in ((True, 'made against the service'), (False, 'not made: no service root')):
+            read = baseline()
+            read['service_checked'] = checked
+            stage = by_id(project(read))['observe']
+            self.assertEqual(stage['state'], 'done', checked)                 # the state is the age's either way
+            self.assertEqual(stage['facts']['proposal_check'], words)
+            self.assertIn('proposal check ' + words, workflow_fact_words(stage))
+        self.assertNotIn('proposal_check', by_id(project(baseline()))['observe']['facts'])      # not said, not claimed
+
     def test_a_recorded_operation_changes_the_operation_stages_and_the_position(self):
         before = project(baseline())
         after = project(with_operation(baseline()))
@@ -570,6 +581,8 @@ class RealStoreTests(unittest.TestCase):
                                            'observed_after': 'not_recorded', 'maintain': 'not_recorded'})
         self.assertEqual(flow['position'], 'intent')
         self.assertIn('Prepare a proposal from the recorded intent', by_id(flow)['propose']['continuation'])
+        # The service was consulted for the proposal check, and the stage says so.
+        self.assertEqual(by_id(flow)['observe']['facts']['proposal_check'], 'made against the service')
 
     def test_a_repository_edit_blocks_the_intent_and_nothing_else(self):
         self.import_intent()
@@ -1337,6 +1350,9 @@ class CommandTests(LayerFixture):
         plain = json.loads(self.cli('--root', self.store.root, '--policy', OBJECT, '--json').stdout)
         self.assertEqual(plain['schema_version'], 'workflow-map/1')
         self.assertEqual(plain['position'], 'approve_execute')
+        # Without a service only the age of the observation is judged, and the map says the proposal check was not made.
+        observe = next(stage for stage in plain['stages'] if stage['id'] == 'observe')
+        self.assertEqual(observe['facts']['proposal_check'], 'not made: no service root')
 
     def test_it_writes_nothing_and_changes_neither_the_store_nor_the_operation(self):
         self.prepare()
