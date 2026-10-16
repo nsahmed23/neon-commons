@@ -297,6 +297,29 @@ class OwnershipTests(Descriptors):
         self.assertEqual(json.loads(err)['error']['code'], 'identity_credential_fd_private')
         self.assertEqual(counts, {loose: 1, other: 1})
 
+    def test_authenticate_refuses_equal_descriptors_before_any_read_and_closes_once(self):
+        path = self.root / 'not-even-valid.json'
+        path.write_text('{}')
+        fd = self.secret_fd(canary('same'))
+        argv = ['target', 'authenticate', '--input', str(path), '--provider-secret-fd', str(fd),
+                '--backend-secret-fd', str(fd)]
+        (code, out, err), counts = self.closes(argv, [fd])
+        self.assertEqual(json.loads(err)['error']['code'], 'identity_separate_credential_fds_required')
+        self.assertEqual(counts, {fd: 1})
+
+    def test_a_read_of_a_consumed_or_unowned_number_is_refused(self):
+        fd = self.secret_fd(canary('once'))
+        other = self.secret_fd(canary('other'), 'other')
+        with pj.DescriptorOwner(fd) as owner:
+            self.assertTrue(owner.read(fd))
+            with self.assertRaises(AppError) as caught:
+                owner.read(fd)
+            self.assertEqual(caught.exception.code, 'identity_credential_fd_not_pending')
+        with pj.DescriptorOwner(fd) as owner, self.assertRaises(AppError) as caught:
+            owner.read(other)  # never supplied to this owner
+        self.assertEqual(caught.exception.code, 'identity_credential_fd_not_pending')
+        os.fstat(other)  # an unowned descriptor is left alone
+
     def test_a_descriptor_given_to_capture_is_closed_once(self):
         fd = self.secret_fd(canary('cap'))
         (code, out, err), counts = self.closes(['capture', '--tenant', TENANT, '--policy', POLICY, '--output',

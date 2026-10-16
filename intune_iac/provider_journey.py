@@ -467,6 +467,9 @@ class DescriptorOwner:
         character that remains (a second line ending included) is refused, so a value cannot smuggle a header or a
         line. An empty result is refused so no route sends an empty credential.
         """
+        if type(descriptor) is int and descriptor >= 3 and descriptor not in self.pending:
+            # Never read a number this owner no longer holds: it may have been closed and reused for something else.
+            _fail('identity_credential_fd_not_pending')
         try:
             value = read_credential_fd(descriptor)
             if value.endswith('\r\n'): value = value[:-2]
@@ -489,6 +492,8 @@ def read_token_fd(descriptor, owner=None):
 def authenticate_target(args):
     """Read-only explicit identity collection; only its redacted report leaves. Both descriptors are closed once."""
     with DescriptorOwner(args.provider_secret_fd, args.backend_secret_fd) as owner:
+        # Refused before the input is read and before either descriptor is read; the owner closes the shared one once.
+        if args.provider_secret_fd == args.backend_secret_fd: _fail('identity_separate_credential_fds_required')
         return _authenticate_target(args, owner)
 
 
