@@ -520,6 +520,10 @@ class DeliveredChangeTests(unittest.TestCase):
         stage = by_id(project(read))['maintain']
         self.assertEqual((stage['state'], stage['reason']), ('blocked', 'repository_stale'))
         self.assertEqual(stage['continuation'], 'Review the difference on the Repository surface (9).')
+        # The step is the one the first signal recorded, never another signal's: with none recorded there is none.
+        read['attention']['signals'].insert(0, {'area': 'operations', 'code': 'operation_unreadable', 'observed': 'x', 'evidence': {}})
+        stage = by_id(project(read))['maintain']
+        self.assertEqual((stage['reason'], stage['continuation']), ('operation_unreadable', None))
         read['attention'] = {'status': 'partly_checked', 'checked': {}, 'signals': []}
         self.assertEqual(by_id(project(read))['maintain']['state'], 'unknown')
 

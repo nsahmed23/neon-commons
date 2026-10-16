@@ -352,8 +352,9 @@ def _continuations(rows, read, by, delivery):
     next_action = _text(_dict(delivery).get('next_action'))
     if owner and next_action and owner not in steps and rows[owner]['state'] not in ('done', 'not_applicable'):
         steps[owner] = next_action
-    if rows['maintain']['state'] == 'blocked':
-        steps['maintain'] = next((item['next_step'] for item in signals if _text(item.get('next_step'))), None)
+    if rows['maintain']['state'] == 'blocked' and signals:
+        # The step of the very signal whose code is the stage's reason, never another signal's.
+        steps['maintain'] = signals[0].get('next_step')
     return {stage: step for stage, step in steps.items() if _text(step)}
 
 
