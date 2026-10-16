@@ -610,6 +610,14 @@ def snapshot_record(graph, mode_class=None, observed_at=None):
             'observed_at': observed_at if isinstance(observed_at, str) and observed_at else None}
 
 
+def idle_limit_words(seconds):
+    """The idle limit as a person reads it: whole minutes when it is one or more of them, else seconds, singular where
+    it is 1 (journey 29 N1: a 2-second limit was printed as "1 minutes")."""
+    if seconds >= 60 and seconds % 60 == 0:
+        return '%d minute%s' % (seconds // 60, '' if seconds == 60 else 's')
+    return '%d second%s' % (seconds, '' if seconds == 1 else 's')
+
+
 def render_page(graph, *, mode_class=None, tenant=None, observed_at=None, tree_lines=None, live=None):
     """The page for one graph.
 
@@ -630,12 +638,12 @@ def render_page(graph, *, mode_class=None, tenant=None, observed_at=None, tree_l
     revision = graph['revision']
     if live:
         status = 'LIVE: checking the local listener for a newer snapshot...'
-        note = ('Live mode ends when the command ends, or %d minutes after this page was last loaded; after that this page '
+        note = ('Live mode ends when the command ends, or %s after this page was last loaded; after that this page '
                 'shows DISCONNECTED and keeps the last snapshot. The address of this page is a secret: anyone on the same machine '
                 'who has it can read this page, because users of one machine are not isolated from each other. After it loads, '
                 'this page replaces the address in the address bar with "/", so use the button to load a newer snapshot, not the '
                 'browser\'s reload; the browser may still keep the address in its history.'
-                % max(1, round(live['idle_seconds'] / 60)))
+                % idle_limit_words(live['idle_seconds']))
         body_live = (' data-live="1" data-snapshot="%s" data-poll="%d"' % (_t(live['snapshot']), live['poll_seconds'] * 1000))
     else:
         status = ('STATIC FILE: this page does not update itself. It shows revision %s, %s. To see a newer snapshot, '

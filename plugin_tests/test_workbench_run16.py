@@ -186,5 +186,82 @@ class GitPinWordsAndStagedFrameTests(unittest.TestCase):
         self.assertIn('staged=', inspect.getsource(workbench_tui).split('repository_entry_lines(value, width')[1][:200])
 
 
+class IdleLimitWordsTests(unittest.TestCase):
+    """Item 6 (journey 29 N1): the idle limit is printed in the unit it is, never rounded up to minutes."""
+
+    def test_seconds_below_a_minute_or_not_a_whole_minute(self):
+        from intune_iac.companion_page import idle_limit_words
+        self.assertEqual([idle_limit_words(n) for n in (1, 2, 59, 90, 61)],
+                         ['1 second', '2 seconds', '59 seconds', '90 seconds', '61 seconds'])
+
+    def test_whole_minutes_with_singular_and_plural(self):
+        from intune_iac.companion_page import idle_limit_words
+        self.assertEqual([idle_limit_words(n) for n in (60, 120, 1800)], ['1 minute', '2 minutes', '30 minutes'])
+
+    def test_the_listener_notice_states_the_limit_in_seconds(self):
+        from plugin_tests.test_workbench_companion import Fixture
+        from intune_iac.companion import start_live
+        from intune_iac.workbench import _companion_read, _store
+
+        class Case(Fixture):
+            def runTest(self):
+                live = start_live(_companion_read(_store(self.root), self.object_id), idle_seconds=2)
+                try:
+                    self.said = live.notice
+                finally:
+                    live.stop()
+        Case.setUpClass()
+        try:
+            case = Case()
+            case.setUp()
+            case.runTest()
+            case.doCleanups()
+        finally:
+            Case.tearDownClass()
+        self.assertIn('it also stops after 2 seconds without a page request', case.said)
+        self.assertNotIn('minutes', case.said)
+
+    def test_the_page_note_states_the_limit_in_seconds_too(self):
+        from plugin_tests.test_companion_page import Fixture
+        Fixture.setUpClass()
+        try:
+            case = Fixture()
+            text = ' '.join(case.page(live={'snapshot': 'snapshot', 'poll_seconds': 3, 'idle_seconds': 2}).split())
+        finally:
+            Fixture.tearDownClass()
+        self.assertIn('or 2 seconds after this page was last loaded', text)
+        self.assertNotIn('1 minutes', text)
+
+
+class CompanionEndLineTests(unittest.TestCase):
+    """Item 8 (journey 29 N5): one prose line before the JSON end line, which stays as it is for scripts."""
+
+    def test_the_prose_line_names_how_it_ended(self):
+        from intune_iac.companion import end_line
+        self.assertEqual(end_line({'mode': 'live', 'stopped': 'interrupted'}),
+                         'The companion stopped (interrupted); its address no longer answers.')
+        self.assertEqual(end_line({'mode': 'live', 'stopped': 'idle'}),
+                         'The companion stopped (idle); its address no longer answers.')
+        self.assertIsNone(end_line({'mode': 'file', 'path': '/w/x.html'}))
+
+    def test_the_command_prints_the_prose_line_before_the_result_and_leaves_the_result_unchanged(self):
+        import contextlib
+        import io
+        from unittest import mock
+        from intune_iac import workbench
+        args = type('Args', (), {'workbench_command': 'companion', 'root': '/nowhere', 'object': 'o', 'out': None,
+                                 'serve': True, 'idle_seconds': 2})()
+        result = {'mode': 'live', 'stopped': 'idle'}
+        out = io.StringIO()
+        with mock.patch.object(workbench, '_store', return_value=object()), \
+                mock.patch.object(workbench, '_companion_read', return_value=lambda: {}), \
+                mock.patch('intune_iac.companion.run_companion', return_value=result), \
+                mock.patch('intune_iac.host_capabilities.require_profile'), contextlib.redirect_stdout(out):
+            returned = workbench.command(args)
+        self.assertEqual(returned, result)
+        self.assertEqual(out.getvalue().splitlines(),
+                         ['The companion stopped (idle); its address no longer answers.'])
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -953,8 +953,12 @@ def command(args):
         read = _companion_read(_store(args.root), args.object)
         read()  # an object that cannot be read is an error now, before a file is written or a port is bound
         # The address goes out before the command blocks; the result (how it ended) follows as the one JSON document.
-        return run_companion(read, out=args.out, serve=args.serve, announce=lambda text: print(text, flush=True),
-                             idle_seconds=args.idle_seconds)
+        result = run_companion(read, out=args.out, serve=args.serve, announce=lambda text: print(text, flush=True),
+                               idle_seconds=args.idle_seconds)
+        from .companion import end_line
+        if end_line(result):
+            print(end_line(result), flush=True)  # one prose line before the JSON end line, which scripts read
+        return result
     if name == 'families':
         from .families import families
         return families()

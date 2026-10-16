@@ -20,7 +20,7 @@ from pathlib import Path
 import tempfile
 
 from .companion_live import IDLE_SECONDS, POLL_SECONDS, LiveCompanion, as_close_failure, note_cleanup_failure  # noqa: F401
-from .companion_page import render_page, snapshot_record
+from .companion_page import idle_limit_words, render_page, snapshot_record
 from .graph_projection import project
 from .io import AppError
 
@@ -108,8 +108,8 @@ def start_live(read, *, idle_seconds=IDLE_SECONDS, poll_seconds=POLL_SECONDS):
     live.start()
     live.notice = ('Listening on %s (this machine only). This address is a secret: anyone on the same machine who has it can '
                    'read the page, because users of one machine are not isolated from each other, and the browser may keep it '
-                   'in its history. Ctrl+C stops it; it also stops after %d minutes without a page request. '
-                   'No browser was opened.' % (live.address, max(1, round(idle_seconds / 60))))
+                   'in its history. Ctrl+C stops it; it also stops after %s without a page request. '
+                   'No browser was opened.' % (live.address, idle_limit_words(idle_seconds)))
     return live
 
 
@@ -126,6 +126,14 @@ def release_listener(live, primary=None):
         note_cleanup_failure(primary, failure)
         return True
     return False
+
+
+def end_line(result):
+    """The sentence that precedes a live companion's JSON end line, or None for a file result (journey 29 N5). The JSON
+    line stays as it is for scripts; this says in words that the address no longer answers."""
+    if isinstance(result, dict) and result.get('mode') == 'live' and isinstance(result.get('stopped'), str):
+        return 'The companion stopped (%s); its address no longer answers.' % result['stopped']
+    return None
 
 
 def run_companion(read, *, out=None, serve=False, announce=None, idle_seconds=IDLE_SECONDS, poll_seconds=POLL_SECONDS):
