@@ -170,7 +170,16 @@ class RedactionHarness(unittest.TestCase):
                 if name.lower() == b"content-length" and value is not None and value.isdigit():
                     length = int(value)
             body_start = end + 4
-            requests.append((first[0].decode(), first[1].decode("latin-1"), headers, stream[body_start:body_start + length]))
+            if len(stream) < body_start + length:
+                # A partial request (its body is shorter than its Content-Length) is not complete: no exemption.
+                leftover += stream[position:]
+                break
+            if any(line[:1] in (b" ", b"\t") for line in lines[1:]):
+                # An obsolete folded continuation can change a header's value: no exemption, the request stays whole.
+                leftover += stream[position:body_start + length]
+            else:
+                requests.append((first[0].decode(), first[1].decode("latin-1"), headers,
+                                 stream[body_start:body_start + length]))
             position = body_start + length
         return requests, leftover
 
@@ -457,6 +466,15 @@ class RedactionHarness(unittest.TestCase):
                  (request([]), nested_body), {key: route}),
                 ('Authorization header on an undeclared route',
                  (request([b'Authorization: ' + bearer], path=b'/other'),), {key: route}),
+                ('folded continuation after the authorization value',
+                 (b'POST /v1/systemone HTTP/1.1\r\nauthorization: Bearer ' + key.encode() + b'\r\n extra\r\n'
+                  b'Content-Length: 0\r\n\r\n',), {key: route}),
+                ('tab continuation after the authorization value',
+                 (b'POST /v1/systemone HTTP/1.1\r\nAuthorization: Bearer ' + key.encode() + b'\r\n\textra\r\n'
+                  b'Content-Length: 0\r\n\r\n',), {key: route}),
+                ('body shorter than Content-Length',
+                 (b'POST /v1/systemone HTTP/1.1\r\nAuthorization: Bearer ' + key.encode() + b'\r\n'
+                  b'Content-Length: 1\r\n\r\n',), {key: route}),
                 ('declared path but another method',
                  (good.replace(b'POST', b'PUT', 1),), {key: route}),
                 ('payload in a body', (request([b'Authorization: ' + bearer], b'payload=' + bearer),), {key: route}),
