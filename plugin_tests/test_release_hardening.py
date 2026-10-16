@@ -703,6 +703,14 @@ class GitBindingTests(unittest.TestCase):
                     repo.build()
                 self.assertIn('changed while the snapshot was read', str(caught.exception))
 
+    def test_an_edit_to_a_tracked_file_outside_the_inventory_still_makes_the_build_dirty(self):
+        (self.repo.root / 'OTHER.md').write_text('tracked, not inventoried\n')
+        self.repo.commit('add a tracked file the inventory does not name')
+        (self.repo.root / 'OTHER.md').write_text('edited after the commit\n')
+        self.repo.build()
+        self.assertIs(self.repo.identity()['dirty'], True)
+        self.assertEqual(self.repo.member('README.md'), b'Reviewed project documentation\n', 'the captured files are the committed ones')
+
     def test_a_tree_inside_another_repository_names_no_commit(self):
         nested = GitFixture(self, nested=True)
         nested.git('init', '-q', '-b', 'main', root=nested.parent)       # the folder above the project is the repository
@@ -891,6 +899,75 @@ class SensitiveContentTests(unittest.TestCase):
         text = squashed(guide_section('Support limits'))
         for phrase in ('release-sensitive-allow.txt', 'does not classify arbitrary content', 'home path'):
             self.assertIn(phrase, text)
+
+
+class IdentityGapTests(unittest.TestCase):
+    """Item 7: tests for gaps the mutation run found in the round 2 tests. A record that lies about its own file count or content
+    digest while its SHA256SUMS line is brought along, and a record or listing that cannot be read, must each be reported."""
+
+    def setUp(self):
+        self.fixture = base.FixtureBuild(self)
+        self.fixture.build()
+        self.installed = self.fixture.extract('runtime')
+
+    def report(self):
+        from intune_iac import build_identity
+        return build_identity.report(self.installed)
+
+    def rewrite_record(self, **changes):
+        """Edit the identity record and bring its SHA256SUMS line along, so that only what the record claims is wrong."""
+        path = self.installed / base.IDENTITY
+        record = json.loads(path.read_text())
+        record.update(changes)
+        data = (json.dumps(record, indent=2, sort_keys=True) + '\n').encode()
+        path.write_bytes(data)
+        sums = self.installed / 'SHA256SUMS'
+        lines = [f'{sha256(data)}  {base.IDENTITY}' if line.endswith('  ' + base.IDENTITY) else line
+                 for line in sums.read_text().splitlines()]
+        sums.write_text('\n'.join(lines) + '\n')
+
+    def test_a_record_that_claims_another_file_count_is_inconsistent(self):
+        self.assertEqual(self.report()['status'], 'identified')
+        self.rewrite_record(file_count=self.report()['file_count'] + 5)
+        self.assertEqual(self.report()['status'], 'inconsistent')
+
+    def test_a_record_that_claims_another_content_digest_is_inconsistent(self):
+        self.rewrite_record(content_sha256='0' * 64)
+        self.assertEqual(self.report()['status'], 'inconsistent')
+
+    def test_a_record_or_listing_that_cannot_be_read_is_reported_and_never_raised(self):
+        record = self.installed / base.IDENTITY
+        good_record, sums = record.read_bytes(), self.installed / 'SHA256SUMS'
+        good_sums = sums.read_bytes()
+        cases = {'not json': (record, b'{not json'), 'not utf-8': (record, b'\xff\xfe\x00'), 'not an object': (record, b'[]'),
+                 'missing keys': (record, b'{"schema_version": "build-identity/1"}'), 'a line that is no digest': (sums, b'garbage line\n'),
+                 'a listing that is not utf-8': (sums, b'\xff\xfe')}
+        for name, (path, data) in cases.items():
+            with self.subTest(name):
+                path.write_bytes(data)
+                try:
+                    value = self.report()
+                except Exception as error:      # the point of the test: nothing may escape `doctor`
+                    self.fail(f'report() raised {error!r}')
+                finally:
+                    record.write_bytes(good_record)
+                    sums.write_bytes(good_sums)
+                self.assertEqual(value['status'], 'unreadable')
+
+
+class QuickstartCommandTests(unittest.TestCase):
+    """Item 7: the guide's quickstart code blocks and the script's steps are the same list of commands, in both directions."""
+
+    def test_the_scripts_simple_steps_are_lines_of_the_guides_quickstart_and_doctor_is_one_of_them(self):
+        section = guide_section('Quickstart with the bundled sample data')
+        lines = {squashed(line) for block in code_blocks(section) for line in block if line.startswith('intune-iac ')}
+        steps = re.findall(r'(?:^|\s)step (\S+) "(intune-iac [^"|]*)"', DEMO.read_text(), re.M)
+        self.assertGreaterEqual(len(steps), 12)
+        for name, command in steps:
+            if name != 'build-identity':
+                self.assertIn(squashed(command), lines, f'the script runs "{command}" and the guide does not show it')
+        for needed in ('intune-iac --version', 'intune-iac doctor'):
+            self.assertIn(needed, lines, 'the quickstart code blocks must show it')
 
 
 class GuideDigestTests(unittest.TestCase):
