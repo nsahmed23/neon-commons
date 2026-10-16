@@ -406,14 +406,23 @@ DIRECTORY_NOT_SHOWN = DIRECTORY_NOT_SHOWN_STEM + '; '
 DIRECTORY_NOT_SHOWN_SENTENCE = DIRECTORY_NOT_SHOWN_STEM + '.'
 
 
-def directory_hidden(directory):
-    """True when a screen must not print the surveyed directory: the rule that guards the output path of signin collect refuses it
-    (signin_facts.output_display: printable, within its limit, and not credential-shaped as a whole or in any piece). The
-    directory is user input and may be anything. A survey that names no directory has nothing to hide."""
-    if not directory:
+def display_refused(value):
+    """True when a screen must not print a path operand: the rule that guards the output path of signin collect refuses it
+    (signin_facts.output_display: printable, within its limit, and not credential-shaped as a whole or in any piece), or terminal
+    escaping would change it (workbench_tui.safe_text(value) != value: a combining mark, a format character and the like), which
+    would make a command shown for copying address another path. The value is user input and may be anything. Nothing to show
+    (an empty value) has nothing to hide."""
+    if not value:
         return False
     from .signin_facts import OUTPUT_NOT_SHOWN, output_display
-    return output_display(directory) == OUTPUT_NOT_SHOWN
+    if output_display(value) == OUTPUT_NOT_SHOWN:
+        return True
+    from .workbench_tui import safe_text
+    return safe_text(value) != value
+
+
+# The surveyed directory is one path operand like the others.
+directory_hidden = display_refused
 
 
 def screen_note(note, directory=None, said=False):

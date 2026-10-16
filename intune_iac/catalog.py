@@ -20,9 +20,15 @@ such as the verdict beside each next action, lives in catalog_lines only.
 An object kind shows a qualification word only where the manifest's level record establishes it; otherwise it reads
 "unknown (no record establishes it)". Nothing is inferred from a family name, and nothing the manifest does not hold is
 listed. The module reads no network, no credential and no environment value; the sign-in verdict is given to it.
+
+Two builds of the same catalog come out of build(): the JSON build (the dict itself, a frozen form) and, as the attribute text_build
+of that dict, the text build a screen prints. They hold the same states and verdicts; only the strings that carry paths differ,
+because the text build writes each command from its path operands (entry.text_paths): a directory the screen may not show is
+DIRECTORY plus the remainder, an operand it cannot show faithfully is PATH, and nothing is patched into rendered text.
 """
 from __future__ import annotations
 
+import copy
 import shlex
 from pathlib import Path
 
@@ -144,9 +150,9 @@ def _state_words(item):
                        STATE_WORDS.get(states['qualified'], states['qualified'])])
 
 
-def _resume(item, items, show):
-    """(command, note) to pick the project up again. A project with nothing to resume says so; no command is invented."""
-    q = lambda rel: shlex.quote(show(rel))
+def _resume(item, items, q):
+    """(command, note) to pick the project up again. A project with nothing to resume says so; no command is invented.
+    q writes a path operand as a command argument (entry.json_paths for the JSON form, entry.text_paths for a screen)."""
     kind = item['kind']
     path = item['path']
     stores = [s for s in items if s['kind'] == 'store' and (s['states']['configured'] or s.get('tenant_id'))]
@@ -181,14 +187,16 @@ def _resume(item, items, show):
     return None, 'nothing to resume from here'
 
 
-def projects(survey, relative_to=None):
-    """The surveyed directory's stores, sessions, repositories and operations with state and one resume command each."""
+def projects(survey, relative_to=None, paths=None):
+    """The surveyed directory's stores, sessions, repositories and operations with state and one resume command each.
+    paths is (show, q) from entry.json_paths (the default, the JSON form) or entry.text_paths (a screen)."""
     from . import entry
     items = survey.get('items') or []
-    show = entry._shower(Path(survey['directory']) if survey.get('directory') else None, relative_to)
+    show, q = paths if paths is not None else entry.json_paths(Path(survey['directory']) if survey.get('directory') else None,
+                                                               relative_to)
     rows = []
     for item in items:
-        command, note = _resume(item, items, show)
+        command, note = _resume(item, items, q)
         rows.append({'kind': item['kind'], 'label': entry.LABELS.get(item['kind'], item['kind']), 'path': item['path'],
                      'summary': entry._summary(item), 'state': _state_words(item), 'command': command, 'note': note})
     return rows
@@ -213,10 +221,70 @@ def build(survey, doctor=None, signin=None, manifest=None, goal=None, relative_t
               'object_kinds': [_kind(manifest, kind) for kind in manifest['object_kinds']],
               'families': [_family(entry) for entry in manifest['families']],
               'live_blockers': list(manifest['live_blockers'])}
-    return {'schema_version': VERSION, 'directory': survey.get('directory') if isinstance(survey, dict) else None,
-            'integrations': [record], 'other_integrations': NO_OTHERS, 'signin_checked': bool(model.get('signin')),
-            'projects': projects(survey, relative_to) if isinstance(survey, dict) else [],
-            'execution_authorized': False, 'cloud_authority': False}
+    result = Catalog({'schema_version': VERSION, 'directory': survey.get('directory') if isinstance(survey, dict) else None,
+                      'integrations': [record], 'other_integrations': NO_OTHERS, 'signin_checked': bool(model.get('signin')),
+                      'projects': projects(survey, relative_to) if isinstance(survey, dict) else [],
+                      'execution_authorized': False, 'cloud_authority': False})
+    result.text_build, result.text_placeholders = _text_build(result, survey, goal, relative_to)
+    return result
+
+
+class Catalog(dict):
+    """The catalog the JSON form prints, and beside it (as attributes, which no JSON form carries) text_build: the same catalog
+    with the strings that carry paths written for a screen from their operands, and text_placeholders: which placeholders that
+    wrote. catalog_lines prints from text_build; the JSON form keeps the recorded strings."""
+    text_build = None
+    text_placeholders = frozenset()
+
+
+def _text_build(result, survey, goal, relative_to):
+    """(the catalog as a screen prints it, the placeholders written). Every state and verdict is the JSON build's; only the
+    strings that carry paths differ: each resume command (projects[].command) and the sign-in command of an unchecked
+    authenticated state (authenticated.message), both written from their path operands with the relative_to the builder was
+    given, never patched into rendered text."""
+    from . import entry
+    data = copy.deepcopy(dict(result))
+    if not isinstance(survey, dict):
+        return data, frozenset()
+    root = Path(survey['directory']) if survey.get('directory') else None
+    show, q, placeholders = entry.text_paths(root, relative_to)
+    for row, written in zip(data['projects'], projects(survey, relative_to, paths=(show, q))):
+        row['command'] = written['command']
+    directory = survey.get('directory')
+    where = ''
+    if directory:
+        if readiness_model.display_refused(directory):
+            where = entry.DIRECTORY_PLACEHOLDER + ' '
+            placeholders.add(entry.DIRECTORY_PLACEHOLDER)
+        else:
+            where = shlex.quote(directory) + ' '
+    flag = where + ('' if goal is None else '--goal %s ' % goal)
+    for item in data['integrations'][0]['goals']:
+        if item['authenticated']['state'] == 'not_checked':
+            item['authenticated']['message'] = SIGNIN_CHECK % flag
+    return data, frozenset(placeholders)
+
+
+def _plain_text_build(value):
+    """The screen's catalog for plain data that this module did not build (for example a result that crossed a JSON boundary):
+    its recorded strings, except that a directory the screen may not show is not written in any of them. The operands are not at
+    hand here, so a resume command is shown as recorded only when the directory is shown and no word in it is refused; the sign-in
+    command is written again from the directory."""
+    from . import entry
+    data = copy.deepcopy(dict(value))
+    directory = data.get('directory')
+    hidden = readiness_model.display_refused(directory)
+    for row in data.get('projects') or []:
+        if row['command'] and entry.recorded_step_for_screen(row['command'], hidden) is None:
+            row['command'] = None
+            row['note'] = 'the command names a path whose name is not shown here'
+    goals = data['integrations'][0]['goals']
+    if hidden:
+        flag = entry.DIRECTORY_PLACEHOLDER + ' ' + ('--goal %s ' % goals[0]['goal'] if len(goals) == 1 else '')
+        for item in goals:
+            if item['authenticated']['state'] == 'not_checked':
+                item['authenticated']['message'] = SIGNIN_CHECK % flag
+    return data, frozenset()
 
 
 # -- text ----------------------------------------------------------------------------------------------------------
@@ -256,7 +324,7 @@ def verdict_words(goal):
 
 
 def _state_lines(goal, width, directory=None):
-    from .entry import _flow, hide_directory
+    from .entry import _flow
     rest = ' ' * (4 + LABEL)
 
     def row(name, text):
@@ -281,9 +349,7 @@ def _state_lines(goal, width, directory=None):
     else:
         text = '%s (Azure CLI sign-in: %s)' % (auth['state'].replace('_', ' '), auth.get('message') or auth.get('status'))
         text += ' ' + auth['permission']
-    # the recorded sign-in message names the directory in its command (authenticated.message in the JSON form, which keeps it):
-    # the printed copy hides a directory name the output-path rule refuses
-    lines += row('authenticated', hide_directory(text, directory))
+    lines += row('authenticated', text)
     lines += row('operation-ready', _ready_words(goal))
     if blocked['state'] == 'blocked':
         # said=True: a refused directory is said not to be shown once, under the screen's header, not again in each note
@@ -310,10 +376,16 @@ def _state_lines(goal, width, directory=None):
 
 
 def catalog_lines(value, width):
-    """The catalog as plain lines: ASCII words for every state, wrapped to the width. Every row passes the control-character
-    guard (entry.guard_rows), and a refused directory name is shown as DIRECTORY wherever the screen prints it."""
-    from .entry import _flow, guard_rows, hide_directory
+    """The catalog as plain lines: ASCII words for every state, wrapped to the width. The screen prints from the catalog's text
+    build, whose commands are written from their path operands (a refused directory is DIRECTORY plus the remainder, an operand
+    that cannot be shown is PATH); every row passes the control-character guard (entry.guard_rows)."""
+    from .entry import PATH_NOT_SHOWN_SENTENCE, PATH_PLACEHOLDER, _flow, guard_rows
     from .workbench_screens import word_wrap
+    built = getattr(value, 'text_build', None)
+    if built is not None:
+        value, placeholders = built, value.text_placeholders
+    else:  # plain data (for example a result that crossed a JSON boundary)
+        value, placeholders = _plain_text_build(value)
     lines = ['INTEGRATION CATALOG']
     directory = value.get('directory')
     # The directory is user input: a name the output-path rule of signin collect refuses prints as DIRECTORY, and the screen says
@@ -323,6 +395,8 @@ def catalog_lines(value, width):
                        width)
     if hidden:
         lines += word_wrap(readiness_model.DIRECTORY_NOT_SHOWN_SENTENCE, width)
+    if PATH_PLACEHOLDER in placeholders:
+        lines += word_wrap(PATH_NOT_SHOWN_SENTENCE, width)
     lines += word_wrap(value['other_integrations'], width)
     for record in value['integrations']:
         lines.append('')
@@ -351,14 +425,12 @@ def catalog_lines(value, width):
             # that directory is not in the data: say once, above the commands, where they are typed.
             lines += _flow(RESUME_BASE, width, '  ', '  ')
         for project in value['projects']:
-            # the resume commands carry paths made from the directory (projects[].command in the JSON form, which keeps them):
-            # the printed copy hides a directory name the output-path rule refuses
-            lines += _flow(hide_directory('%s %s: %s | %s' % (project['label'], project['path'], project['summary'],
-                                                              screen_words(project['state'])), directory), width, '  ', '    ')
+            lines += _flow('%s %s: %s | %s' % (project['label'], project['path'], project['summary'], screen_words(project['state'])),
+                           width, '  ', '    ')
             if project['command']:
-                lines += _flow(hide_directory('Resume: ' + project['command'], directory), width, '    ', '    ', commands=True)
+                lines += _flow('Resume: ' + project['command'], width, '    ', '    ', commands=True)
             else:
-                lines += _flow(hide_directory('Resume: no command (%s)' % project['note'], directory), width, '    ', '    ')
+                lines += _flow('Resume: no command (%s)' % project['note'], width, '    ', '    ')
         # What the state words mean, once, under the projects they describe.
         lines += _flow(STATE_LEGEND, width, '  ', '  ')
     else:

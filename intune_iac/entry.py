@@ -299,10 +299,49 @@ def _shower(root, relative_to):
     return show
 
 
-def _next_actions(items, root=None, relative_to=None):
+DIRECTORY_PLACEHOLDER = 'DIRECTORY'
+PATH_PLACEHOLDER = 'PATH'
+PATH_NOT_SHOWN_SENTENCE = PATH_PLACEHOLDER + ' is a path in this directory whose name is not shown here.'
+
+
+def json_paths(root, relative_to):
+    """(show, q): how the JSON forms write the path operands of a command. show is a path as a sentence says it; q is the same
+    as a command argument (a path with a space is quoted for the shell, as the rest of the product quotes one)."""
     show = _shower(root, relative_to)
-    # In a command a path with a space is quoted for the shell, as the rest of the product quotes one.
-    q = lambda rel: shlex.quote(show(rel))
+    return show, (lambda rel: shlex.quote(show(rel)))
+
+
+def text_paths(root, relative_to):
+    """(show, q, placeholders): how a screen writes the same path operands, built from the operand and never patched into
+    rendered text. For an operand at or under a surveyed directory that display_refused refuses, the directory is not
+    written: the operand is DIRECTORY plus the remainder inside it, and quoting (q) applies to that. An operand that
+    display_refused refuses (a credential shape, a character that terminal escaping would change) is the placeholder PATH.
+    Any other operand is written as the JSON forms write it, with the same relative_to. placeholders collects the
+    placeholders written, so the screen can say once what they stand for."""
+    from .readiness import display_refused
+    show = _shower(root, relative_to)
+    hidden = root is not None and display_refused(str(root))
+    placeholders = set()
+
+    def text(rel):
+        if hidden:
+            tail = '' if rel in ('.', '') else rel
+            if tail and display_refused(tail):
+                placeholders.add(PATH_PLACEHOLDER)
+                return PATH_PLACEHOLDER
+            placeholders.add(DIRECTORY_PLACEHOLDER)
+            return DIRECTORY_PLACEHOLDER + ('/' + tail if tail else '')
+        shown = show(rel)
+        if display_refused(shown):
+            placeholders.add(PATH_PLACEHOLDER)
+            return PATH_PLACEHOLDER
+        return shown
+    return text, (lambda rel: shlex.quote(text(rel))), placeholders
+
+
+def _next_actions(items, root=None, relative_to=None, paths=None):
+    """The next steps for what the survey found; paths is (show, q) from json_paths (the default) or text_paths."""
+    show, q = paths if paths is not None else json_paths(root, relative_to)
     kinds = {}
     for item in items:
         kinds.setdefault(item['kind'], []).append(item)
@@ -411,9 +450,22 @@ def survey(directory, relative_to=None):
         if (directory_path / 'atmos.yaml').is_file() and not generated:
             items.append(_repository_item(directory_path, rel))
     items.sort(key=lambda item: (ORDER.index(item['kind']) if item['kind'] in ORDER else len(ORDER), item['path']))
-    return {'schema_version': VERSION, 'directory': str(root), 'connection': 'offline', 'items': items,
-            'next_actions': _next_actions(items, root, relative_to),'missing': _missing(items), 'skipped_links': links,
-            'truncated': truncated, 'execution_authorized': False, 'cloud_authority': False}
+    result = Survey({'schema_version': VERSION, 'directory': str(root), 'connection': 'offline', 'items': items,
+                     'next_actions': _next_actions(items, root, relative_to), 'missing': _missing(items), 'skipped_links': links,
+                     'truncated': truncated, 'execution_authorized': False, 'cloud_authority': False})
+    # The same next steps, built from the same items and the same relative_to with the screen's path operands (text_paths).
+    show, q, placeholders = text_paths(root, relative_to)
+    result.text_build = dict(result, next_actions=_next_actions(items, root, relative_to, (show, q)))
+    result.text_placeholders = frozenset(placeholders)
+    return result
+
+
+class Survey(dict):
+    """The survey the JSON form prints, and beside it (as attributes, which no JSON form carries) text_build: the same survey
+    with its next steps written for a screen, and text_placeholders: which placeholders that wrote. start_lines reads the
+    screen's steps from text_build; the JSON form keeps the recorded steps."""
+    text_build = None
+    text_placeholders = frozenset()
 
 
 LABELS = {'wizard_session': 'Wizard session', 'journey_session': 'Journey', 'guided_session': 'Guided session',
@@ -498,7 +550,9 @@ GOAL_HINT = 'Add --goal inspect, discover, adopt or change to see what that goal
 # Facts the readiness model could use but start does not gather, with the reason; shown on the screen and in the JSON.
 OMITTED_FACTS = ('Executables on the search path (atmos, tofu, pwsh, codex, claude) are not looked up here, because a lookup '
                  'reads an environment value (the search path); the doctor command lists them.',)
-_TOKEN = re.compile(r"(?:'[^']*'|[^\s'])+")
+# A word as the shell reads it: single-quoted runs, double-quoted runs (shlex.quote writes an apostrophe as '"'"'), a backslash and
+# the character it escapes, and plain characters. A quote that never closes is a plain character, as it was.
+_TOKEN = re.compile(r"""(?:'[^']*'|"(?:[^"\\]|\\.)*"|\\.|[^\s'])+""")
 _COMMAND_STOP = frozenset({'and', 'then', 'or', 'from', 'to', 'with', 'for', 'as', 'that', 'is', 'the', 'in', 'on', 'by'})
 
 
@@ -576,29 +630,21 @@ def _command_rows(tokens, width, indent):
     return rows + [row]
 
 
-def hide_directory(text, directory):
-    """A printed copy of text in which the surveyed directory is shown as DIRECTORY wherever directory_hidden refuses its name.
-
-    Every occurrence of the absolute path and of the path relative to the working directory (the form the resume commands and
-    the next steps are written in) is replaced, each as the shell quotes it and as it stands, so that /work/ghp_x/store reads
-    DIRECTORY/store. Only this copy is edited: the survey and the catalog data it was printed from keep their paths, and the
-    JSON forms stay as they are."""
-    from .readiness import directory_hidden
-    if not directory_hidden(directory):
-        return text
-    forms = {directory}
+def recorded_step_for_screen(text, hidden):
+    """A recorded step that this module's builders did not write (plain data, for example a result that crossed a JSON
+    boundary) as a screen may show it: as it is only when the directory is shown and every word of it passes display_refused;
+    otherwise None, because the paths in it cannot be rewritten from their operands here."""
+    from .readiness import display_refused
+    if hidden:
+        return None
     try:
-        relative = Path(os.path.normpath(directory)).relative_to(Path(os.path.normpath(os.getcwd()))).as_posix()
-    except (ValueError, OSError):
-        relative = '.'
-    if relative != '.':
-        forms.add(relative)
-    for form in sorted(forms, key=len, reverse=True):
-        # a quoted word first (the shell quotes the whole path, tail included; the tail is quoted again only if it still needs it),
-        # then the bare path, in a command or in a sentence
-        text = re.sub(r"(?<![\w./-])'%s((?:/[^']*)?)'" % re.escape(form), lambda match: shlex.quote('DIRECTORY' + match.group(1)), text)
-        text = re.sub(r'(?<![\w./-])%s(?![\w.-])' % re.escape(form), 'DIRECTORY', text)
-    return text
+        words = shlex.split(text)
+    except ValueError:
+        return None
+    return None if any(display_refused(word) for word in words) else text
+
+
+UNSHOWN_STEP = 'A next step names a path whose name is not shown here.'
 
 
 def guard_rows(rows):
@@ -726,15 +772,25 @@ def start_lines(value, width, goal=None, goal_hint=False):
     # The directory is user input: a name the output-path rule of signin collect refuses prints as DIRECTORY, here, in the
     # Directory: line, in a note's command and in the catalog pointer, and the screen says once, under its header, that it is not shown.
     hidden = directory_hidden(value['directory'])
+    # The next steps for the screen are built from the operands (Survey.text_build); a survey that this module did not build
+    # (plain data) has only the recorded steps, which are shown only when they name nothing the screen may not show.
+    built = getattr(value, 'text_build', None)
+    if built is not None:
+        actions, placeholders = built['next_actions'], value.text_placeholders
+    else:
+        actions = [recorded_step_for_screen(action, hidden) or UNSHOWN_STEP for action in value['next_actions']]
+        placeholders = frozenset()
     lines += word_wrap('%s | offline (no live connection) | synthetic evidence stays labelled synthetic' % (
         'DIRECTORY' if hidden else value['directory']), width)
     if hidden:
         lines += word_wrap(DIRECTORY_NOT_SHOWN_SENTENCE, width)
+    if PATH_PLACEHOLDER in placeholders:
+        lines += word_wrap(PATH_NOT_SHOWN_SENTENCE, width)
     if value['items']:
         lines.append('FOUND')
         for item in value['items']:
             label = '  %-16s' % LABELS.get(item['kind'], item['kind'])
-            text = hide_directory(item['path'] + '  ' + _summary(item), value['directory'])
+            text = item['path'] + '  ' + _summary(item)
             for index, part in enumerate(word_wrap(text, max(10, width - len(label)))):
                 lines.append((label if index == 0 else ' ' * len(label)) + part)
             states = item['states']
@@ -746,19 +802,18 @@ def start_lines(value, width, goal=None, goal_hint=False):
                 lines.append(' ' * len(label) + part)
     else:
         lines += word_wrap('Nothing recognized here yet.', width)
-    if value['next_actions']:
+    if actions:
         # No heading over nothing: an empty NEXT promised steps that were not there.
         lines.append('NEXT')
-    for number, action in enumerate(value['next_actions'], 1):
+    for number, action in enumerate(actions, 1):
         prefix = '  %d. ' % number
-        # the next steps carry paths made from the directory (next_actions in the JSON form, which keeps them): the printed copy hides it
-        lines += _flow(hide_directory(action, value['directory']), width, prefix, ' ' * len(prefix), commands=True)
+        lines += _flow(action, width, prefix, ' ' * len(prefix), commands=True)
     lines.append('MISSING')
     for note in value['missing']:
         for index, part in enumerate(word_wrap(note, width - 4)):
             lines.append(('  - ' if index == 0 else '    ') + part)
     if value.get('skipped_links'):
-        lines += word_wrap(hide_directory('Symbolic links not followed: ' + ', '.join(value['skipped_links']), value['directory']), width)
+        lines += word_wrap('Symbolic links not followed: ' + ', '.join(value['skipped_links']), width)
     if value.get('truncated'):
         lines += word_wrap('The walk stopped at %d entries; narrow the directory to see everything.' % MAX_ENTRIES, width)
     if goal:

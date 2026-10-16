@@ -603,7 +603,8 @@ class CaptureCommandPositionTests(Base):
 
     def test_a_catalog_whose_next_action_only_names_the_decoy_gets_no_sentence(self):
         import copy
-        value = copy.deepcopy(self.model('full'))
+        # plain data: a catalog built here prints from its text build, so a hand-made one is a plain dict (no text build)
+        value = dict(copy.deepcopy(self.model('full')))
         for goal in value['integrations'][0]['goals']:
             if goal['goal'] == 'discover':
                 goal['blocked']['next_action'] = goal['next_action'] = self.DECOY_ACTION
@@ -911,6 +912,212 @@ class TerminalSafetyTests(Base):
                 for argv in (('catalog', str(folder)), ('start', str(folder))):
                     text = self.assert_no_control_byte(self.raw_output(temp, *argv)[1], argv)
                     self.assertIn(shown, text, argv)
+
+
+class OperandRenderingTests(Base):
+    """Round 5: the text form builds its commands from their path operands. A path operand at or under a refused directory is
+    written DIRECTORY plus the remainder before any quoting; an operand that terminal escaping would change is written as a
+    placeholder; the relative_to the builder was given is the one the text uses. The JSON forms keep their rendering."""
+
+    PATH_FLAGS = ('--root', '--session', '--operation', '--repo', '--service-root', '--input', '--context')
+    PATH_SAID = 'PATH is a path in this directory whose name is not shown here.'
+
+    def estate_in(self, parent, *names):
+        """A copy of the start tests' full estate in parent/names (a store, a session, a repository, an export ...); None when
+        the file system refuses a name."""
+        import shutil
+        from pathlib import Path
+        target = Path(parent).joinpath(*names)
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(self.dirs['full'], target)
+        except OSError:
+            return None
+        return target
+
+    def screens(self, cwd, folder):
+        """{what was typed: the screen} for catalog and start, all goals, typed from cwd, read from the raw stdout bytes."""
+        raw = TerminalSafetyTests.raw_output
+        shown = {'catalog': raw(cwd, 'catalog', str(folder))[1].decode('utf-8'),
+                 'start': raw(cwd, 'start', str(folder))[1].decode('utf-8')}
+        for goal in GOALS:
+            shown['catalog --goal ' + goal] = raw(cwd, 'catalog', str(folder), '--goal', goal)[1].decode('utf-8')
+            shown['start --goal ' + goal] = raw(cwd, 'start', str(folder), '--goal', goal)[1].decode('utf-8')
+        return shown
+
+    def command_rows(self, text):
+        from plugin_tests.test_start_goal import StartGoalTests
+        joined = StartGoalTests('logical_lines').logical_lines(text.split('\n'))
+        return [row.strip() for row in joined if row.strip().startswith('intune-iac ')]
+
+    def test_a_refused_directory_whose_own_name_needs_shell_quoting_is_replaced_before_the_quoting(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp, tempfile.TemporaryDirectory() as elsewhere:
+            folder = self.estate_in(temp, 'ghp_abc1234', "o'connor")
+            for cwd in (temp, elsewhere):
+                shown = self.screens(cwd, folder)
+                for label, text in shown.items():
+                    for fragment in ('ghp_', 'abc1234', 'connor'):
+                        self.assertNotIn(fragment, text, (cwd == temp, label))
+                for label in ('catalog', 'start'):
+                    self.assertIn('intune-iac workbench workspace --root DIRECTORY/store', flat(shown[label].split('\n')), label)
+
+    def test_the_relative_to_the_build_was_given_is_the_one_the_text_uses_not_the_working_directory(self):
+        import os
+        import tempfile
+        from intune_iac import catalog as module, entry
+        with tempfile.TemporaryDirectory() as temp, tempfile.TemporaryDirectory() as elsewhere:
+            hidden = self.estate_in(temp, 'ghp_abc1234')
+            ordinary = self.estate_in(temp, 'estate dir')
+            old = os.getcwd()
+            os.chdir(elsewhere)
+            try:
+                for folder, refused in ((hidden, True), (ordinary, False)):
+                    survey = entry.survey(folder, relative_to=temp)
+                    value = module.build(survey, doctor=tc.doctor(), relative_to=temp)
+                    catalog = flat(module.catalog_lines(value, 120))
+                    start = flat(entry.start_lines(survey, 120))
+                    if refused:
+                        self.assertNotIn('ghp_', catalog + start)
+                        self.assertIn('intune-iac workbench workspace --root DIRECTORY/store', catalog)
+                        self.assertIn('intune-iac workbench workspace --root DIRECTORY/store', start)
+                    else:  # written for temp, where the paths are relative to it
+                        self.assertIn("intune-iac workbench workspace --root 'estate dir/store'", catalog)
+                        self.assertIn("intune-iac workbench workspace --root 'estate dir/store'", start)
+            finally:
+                os.chdir(old)
+
+    def test_an_operand_that_terminal_escaping_would_change_is_a_placeholder_never_an_escaped_copy(self):
+        import shutil
+        import tempfile
+        from pathlib import Path
+        from plugin_tests.test_start_goal import ROOT
+        with tempfile.TemporaryDirectory() as temp, tempfile.TemporaryDirectory() as elsewhere:
+            # the directory itself: printable, not credential-shaped, but its accent is a combining mark
+            folder = self.estate_in(temp, 'café')
+            for cwd in (temp, elsewhere):
+                for label, text in self.screens(cwd, folder).items():
+                    for row in self.command_rows(text):
+                        self.assertNotIn('\\u0301', row, (label, row))
+                        self.assertNotIn('cafe', row, (label, row))
+                    self.assertNotIn('cafe', text, label)
+                shown = self.screens(cwd, folder)
+                self.assertIn('intune-iac workbench workspace --root DIRECTORY/store', flat(shown['catalog'].split('\n')))
+                self.assertEqual(shown['start'].count('its name is not shown here'), 1)
+            # a surveyed file: an operand inside an ordinary folder
+            work = Path(temp) / 'work'
+            work.mkdir()
+            shutil.copyfile(ROOT / 'examples/context.json', work / 'context.json')
+            shutil.copyfile(ROOT / 'examples/supported/input/export.json', work / 'ex́port.json')
+            for label, text in self.screens(temp, work).items():
+                for row in self.command_rows(text):
+                    self.assertNotIn('\\u0301', row, (label, row))
+            catalog = self.screens(temp, work)['catalog']
+            self.assertIn('--input PATH', flat(catalog.split('\n')))
+            self.assertEqual(catalog.count(self.PATH_SAID), 1)
+
+    def test_aliases_and_spellings_of_a_refused_directory_are_replaced_too(self):
+        import os
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as temp, tempfile.TemporaryDirectory() as elsewhere:
+            folder = self.estate_in(temp, 'ghp_abc1234')
+            (Path(temp) / 'other').mkdir()
+            backslash = self.estate_in(temp, 'win\\ghp_abc1234')
+            spellings = {'a .. alias': os.path.join(temp, 'other', '..', 'ghp_abc1234'), 'a trailing slash': str(folder) + '/',
+                         'a backslash in the name': str(backslash)}
+            for label, spelling in spellings.items():
+                for cwd in (temp, elsewhere):
+                    for what, text in self.screens(cwd, spelling).items():
+                        self.assertNotIn('ghp_', text, (label, what))
+                        self.assertNotIn('abc1234', text, (label, what))
+
+    def test_every_command_a_screen_prints_for_copying_parses_back_to_the_surveyed_paths(self):
+        import contextlib
+        import io
+        import os
+        import shlex
+        import tempfile
+        from pathlib import Path
+        from intune_iac import cli, entry
+        from plugin_tests.test_catalog_json_golden import build_estate
+        parser = cli.parser()
+        checked = operands = 0
+        with tempfile.TemporaryDirectory() as temp, tempfile.TemporaryDirectory() as elsewhere:
+            folders = {'the journey 33 estate': build_estate(temp), 'the start tests estate': self.estate_in(temp, 'full estate'),
+                       'a name with an apostrophe': self.estate_in(temp, "o'connor"),
+                       'a name with a space and a dollar sign': self.estate_in(temp, 'a b$c')}
+            for label, folder in folders.items():
+                targets = {os.path.realpath(folder / item['path']) for item in entry.survey(folder)['items']}
+                for cwd in (temp, elsewhere):
+                    for what, text in self.screens(cwd, folder).items():
+                        for row in self.command_rows(text):
+                            argv = shlex.split(row)
+                            self.assertEqual(argv[0], 'intune-iac', row)
+                            with contextlib.redirect_stderr(io.StringIO()) as err:
+                                try:
+                                    parser.parse_args(['3' if word == 'FD' else word for word in argv[1:]])
+                                except SystemExit:
+                                    self.fail('the product parser rejects %r (%s)\n%s' % (row, label, err.getvalue()))
+                            checked += 1
+                            if argv[1] in ('catalog', 'start') and len(argv) > 2 and not argv[2].startswith('-'):
+                                self.assertEqual(os.path.realpath(os.path.join(cwd, argv[2])), os.path.realpath(folder), (label, what, row))
+                                operands += 1
+                            for flag in self.PATH_FLAGS:
+                                if flag in argv:
+                                    operand = argv[argv.index(flag) + 1]
+                                    if operand.isupper() or operand.startswith('NEW_') or operand in ('STORE', 'CONTEXT_JSON'):
+                                        continue
+                                    self.assertIn(os.path.realpath(os.path.join(cwd, operand)), targets, (label, what, row))
+                                    operands += 1
+            type(self).round_trip_counts = (checked, operands)  # for the report: how many commands and operands were read back
+            self.assertGreater(checked, 200)
+            self.assertGreater(operands, 100)
+
+    def test_the_text_build_has_the_json_builds_judgments_and_only_its_path_strings_differ(self):
+        import copy
+        import tempfile
+        from intune_iac import catalog as module, entry
+
+        def judged(value):
+            """The build without the strings that carry paths: every state and verdict stays."""
+            value = copy.deepcopy(dict(value))
+            for project in value['projects']:
+                project['command'] = None
+            for goal in value['integrations'][0]['goals']:
+                goal['authenticated']['message'] = None
+            return value
+
+        with tempfile.TemporaryDirectory() as temp:
+            folders = {'ordinary': self.estate_in(temp, 'estate dir'), 'refused': self.estate_in(temp, 'ghp_abc1234'),
+                       'accent': self.estate_in(temp, 'café')}
+            for label, folder in folders.items():
+                survey = entry.survey(folder, relative_to=temp)
+                value = module.build(survey, doctor=tc.doctor(), relative_to=temp)
+                text = value.text_build
+                self.assertEqual(judged(value), judged(text), label)
+                self.assertEqual({k: v for k, v in survey.items() if k != 'next_actions'},
+                                 {k: v for k, v in survey.text_build.items() if k != 'next_actions'}, label)
+                self.assertEqual(len(survey['next_actions']), len(survey.text_build['next_actions']), label)
+                # the screen says the same states and verdicts as the data
+                lines = module.catalog_lines(value, 120)
+                for goal in value['integrations'][0]['goals']:
+                    rows = goal_rows(lines, goal['goal'])
+                    self.assertEqual(rows['operation-ready'], module._ready_words(goal), (label, goal['goal']))
+                    self.assertTrue(rows['blocked'].startswith(module._blocked_words(goal)), (label, goal['goal']))
+                    self.assertTrue(rows['authenticated'].startswith(goal['authenticated']['state'].replace('_', ' ')), (label, goal['goal']))
+                    self.assertIn('    Verdict: ' + module.verdict_words(goal), lines)
+
+    def test_the_json_forms_keep_today_rendering_for_a_refused_directory(self):
+        import tempfile
+        from intune_iac import catalog as module, entry
+        with tempfile.TemporaryDirectory() as temp:
+            folder = self.estate_in(temp, 'ghp_abc1234')
+            survey = entry.survey(folder, relative_to=temp)
+            value = module.build(survey, doctor=tc.doctor(), relative_to=temp)
+            self.assertIn('--root ghp_abc1234/store', ' '.join(p['command'] for p in value['projects'] if p['command']))
+            self.assertIn('--root ghp_abc1234/store', ' '.join(survey['next_actions']))
+            self.assertIn(str(folder), value['integrations'][0]['goals'][0]['authenticated']['message'])
 
 
 if __name__ == '__main__':
