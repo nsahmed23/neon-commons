@@ -22,7 +22,8 @@ from .orchestration_reducer import reduce_events
 
 NOT_CONFIGURED = ('Engineering records are not configured: pass --records DIR, a directory written by `loopctl export`. '
                   'Nothing is shown here; the rest of the product works as before.')
-MAX_LOG_BYTES = 64 * 1024 * 1024
+READ_ONLY_STATEMENT = 'This view is read-only: it cannot dispatch, approve or cancel anything.'
+MAX_LOG_BYTES =64 * 1024 * 1024
 MAX_FAULTS_SHOWN = 20
 PIPED_WIDTH = 80  # the width when the output is not a terminal
 NARROW_BELOW = 72  # under this width every task field gets its own line
@@ -188,7 +189,7 @@ def render_lines(view, width=None):
 
 def _plain_lines(view, width, placed):
     header, check = view['source']['header'], view['source']['check']
-    out = ['Engineering view (read-only): what the orchestration records say. It cannot dispatch, approve or cancel anything.']
+    out = ['Engineering view (read-only): what the orchestration records say.']
     if header:
         out.append('Source: %s, source %s (a digest of the store path), exported %s' % (
             header['contract'], header['source_id'][:12], header['exported_utc']))
@@ -222,6 +223,8 @@ def _plain_lines(view, width, placed):
                    'no line is matched to a task)%s' % (
                        log['only_in_controller_log'], log['dispatch_lines'], log['loop_tasks'],
                        '; %d unreadable lines' % log['unreadable_lines'] if log['unreadable_lines'] else ''))
+    # Said once, on the last line, because a small terminal shows the end of the output, not its start.
+    out.append(READ_ONLY_STATEMENT)
     return out
 
 

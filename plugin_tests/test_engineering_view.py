@@ -344,6 +344,14 @@ class ReadableTests(unittest.TestCase):
             for line in self.lines(width):
                 self.assertFalse(re.match(r'\s*\d+\b', line) and line.strip().split()[0].isdigit(), (width, line))
 
+    def test_the_read_only_statement_is_the_last_line_and_appears_once(self):
+        for width in (None, 80, 60):
+            lines = self.lines(width)
+            self.assertEqual(' '.join(' '.join(lines).split()).count('cannot dispatch, approve or cancel anything'), 1, width)
+            self.assertIn('cannot dispatch, approve or cancel anything', ' '.join(' '.join(lines[-2:]).split()), width)
+            self.assertIn('read-only', lines[0])
+        self.assertEqual(self.lines(None)[-1], 'This view is read-only: it cannot dispatch, approve or cancel anything.')
+
     def run_cli(self, *args):
         return subprocess.run([sys.executable, str(CLI), 'engineering', *map(str, args)], text=True,
                               capture_output=True, cwd='/tmp')
@@ -352,6 +360,7 @@ class ReadableTests(unittest.TestCase):
         result = self.run_cli('--records', self.dir)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual([line for line in result.stdout.splitlines() if len(line) > 80], [])
+        self.assertIn('cannot dispatch, approve or cancel anything', ' '.join(' '.join(result.stdout.splitlines()[-2:]).split()))
 
 
 if __name__ == '__main__':
