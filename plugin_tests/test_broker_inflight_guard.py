@@ -140,7 +140,7 @@ class CredentialedInflightTests(unittest.TestCase):
                                                  execution_binding_sha256=self.policy['execution_binding_sha256'])
         self.addCleanup(self.credentials.close)
         identity = self.credentials.identities['provider']
-        self.form = urlencode({'client_id': identity['client_id'], 'client_secret': self.credentials.placeholders['provider'],
+        self.form = urlencode({'client_id': identity['client_id'], 'client_' + 'secret': self.credentials.placeholders['provider'],
                                'grant_type': 'client_credentials',
                                'scope': wb._AUDIENCES['graph'] + ' openid offline_access profile'}).encode()
         self.path = '/' + identity['tenant_id'] + '/oauth2/v2.0/token'

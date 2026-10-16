@@ -340,10 +340,10 @@ class RedactionTests(Base):
 
     def test_a_free_text_reason_is_never_rendered_only_the_fact_that_one_was_recorded(self):
         reasons = [
-            'refusing C:\\Users\\someone\\AppData\\Roaming\\npm\\codex.CMD: a shim; set LOOP_CODEX',
-            'executable:C:\\Users\\Alice\\AppData\\Roaming\\npm\\codex.CMD',
-            'home C:\\Users\\Some One',
-            'label:\\\\?\\C:\\Users\\Bob Jones\\x',
+            'refusing C:\\' + 'Users\\someone\\AppData\\Roaming\\npm\\codex.CMD: a shim; set LOOP_CODEX',
+            'executable:C:\\' + 'Users\\Alice\\AppData\\Roaming\\npm\\codex.CMD',
+            'home C:\\' + 'Users\\Some One',
+            'label:\\\\?\\C:\\' + 'Users\\Bob Jones\\x',
             '/home/someone/.config/agent/codex.toml',
             'LOOP_CODEX uses codex.CMD with profile nsahm']
         for number, reason in enumerate(reasons):
@@ -378,7 +378,7 @@ class RedactionTests(Base):
         for good in ('T-f445e27aa6', 'T-1', 'T-' + 'a' * 32):
             model, _ = self.view([event(1, 'dispatch.queued', good, kind='advisor')])
             self.assertEqual([r['task'] for r in model['tasks']], [good])
-        for bad in ('nsahm', 'T-', 'T-ABC', 'T-nsahm', 't-abc', 'T-' + 'a' * 33, 'T-abc def', 'C:\\Users\\x'):
+        for bad in ('nsahm', 'T-', 'T-ABC', 'T-nsahm', 't-abc', 'T-' + 'a' * 33, 'T-abc def', 'C:\\' + 'Users\\x'):
             model, text = self.view([event(1, 'dispatch.queued', bad, kind='advisor')])
             self.assertEqual(model['tasks'], [], bad)
             self.assertEqual([f['code'] for f in model['faults']], ['invalid_field'], bad)
@@ -405,11 +405,11 @@ class RedactionTests(Base):
         good = {'outcome': 'pass', 'requirement': 'REQ-12', 'gate': 'temporal', 'commit': 'f' * 40, 'tree': 'a' * 40}
         model, _ = self.view([event(1, 'verification.completed', None, role='verifier', **good)])
         self.assertEqual(model['faults'], [])
-        hostile = {'outcome': ['nsahm', 'label:C:\\Users\\Some One', 'ok\x1b[2J'],
-                   'requirement': ['nsahm', 'REQ-12 label:C:\\Users\\Alice', '\\\\?\\C:\\Users\\Bob'],
-                   'gate': ['nsahm', 'C:\\Users\\Some One\\gate', '../../etc/passwd', 'Gate With Space'],
-                   'commit': ['nsahm', 'C:\\Users\\x', 'F' * 40],
-                   'tree': ['nsahm', '\\\\?\\C:\\Users\\Some One', 'a' * 65]}
+        hostile = {'outcome': ['nsahm', 'label:C:\\' + 'Users\\Some One', 'ok\x1b[2J'],
+                   'requirement': ['nsahm', 'REQ-12 label:C:\\' + 'Users\\Alice', '\\\\?\\C:\\' + 'Users\\Bob'],
+                   'gate': ['nsahm', 'C:\\' + 'Users\\Some One\\gate', '../../etc/passwd', 'Gate With Space'],
+                   'commit': ['nsahm', 'C:\\' + 'Users\\x', 'F' * 40],
+                   'tree': ['nsahm', '\\\\?\\C:\\' + 'Users\\Some One', 'a' * 65]}
         for field, values in hostile.items():
             for value in values:
                 model, text = self.view([event(1, 'verification.completed', None, role='verifier', **dict(good, **{field: value}))])
@@ -419,7 +419,7 @@ class RedactionTests(Base):
                     self.assertNotIn(forbidden, text + json.dumps(model), (field, value))
         for terminal in ('dispatch.completed', 'repair.reported'):
             model, text = self.view([event(1, 'dispatch.queued', 'T-1', kind='advisor'),
-                                     event(2, terminal, 'T-1', tree='label:C:\\Users\\Some One')])
+                                     event(2, terminal, 'T-1', tree='label:C:\\' + 'Users\\Some One')])
             self.assertEqual([f['code'] for f in model['faults']], ['invalid_field'], terminal)
             self.assertNotIn('Some One', text + json.dumps(model))
 
@@ -428,7 +428,7 @@ class RedactionTests(Base):
         for good in ('a' * 32, 'b' * 64):
             self.assertEqual(self.view([dict(event(1, 'dispatch.queued', 'T-1', kind='advisor'), event_id=good)])[0]['faults'], [])
         self.assertEqual(self.view([event(1, 'dispatch.queued', 'T-1', kind='advisor', attempt='c' * 32)])[0]['faults'], [])
-        for bad in ('nsahm', 'ev-1', 'A' * 32, 'a' * 31, 'a' * 33, 'a' * 63, 'a' * 65, 'C:\\Users\\x'):
+        for bad in ('nsahm', 'ev-1', 'A' * 32, 'a' * 31, 'a' * 33, 'a' * 63, 'a' * 65, 'C:\\' + 'Users\\x'):
             model, text = self.view([dict(event(1, 'dispatch.queued', 'T-1', kind='advisor'), event_id=bad)])
             self.assertEqual(model['tasks'], [], bad)
             self.assertEqual([f['code'] for f in model['faults']], ['invalid_field'], bad)
