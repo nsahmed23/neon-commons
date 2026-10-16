@@ -498,7 +498,7 @@ def _pack(items, width):
     return lines
 
 
-def constrained_rows(tenant, selected, facts, mode_class, width, height, need, prompt, typing=False):
+def constrained_rows(tenant, selected, facts, mode_class, width, height, need, prompt, typing=False, layer='summary'):
     """The window below the minimum size: (lines, band_rows), never the body.
 
     When rows run out they are kept in this order: the primary hazard with its response, the evidence mode with the
@@ -509,6 +509,10 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
     header = next((text for text in ('%s | window below %s: enlarge it' % (mode, need), '%s; window below %s' % (mode, need),
                                      '%s; below %s' % (mode, need), 'Below %s' % need) if cell_width(text) <= width),
                   fit('Below %s' % need, width))
+    if layer == 'catalog':
+        # The catalog is a layer of the Help surface; it says what it needs rather than a generic size line.
+        header = next((text for text in ('Catalog needs a larger window (%s)' % need, 'Catalog needs a larger window',
+                                         'Catalog: larger window') if cell_width(text) <= width), fit('Catalog: larger window', width))
     states = [('OBSERVED', 'OBS', observed_state(facts, None)), ('REPOSITORY', 'REPO', facts.get('repository')),
               ('OPERATION', 'OP', facts.get('operation'))]
     items = ['T ' + short_id(tenant), 'P ' + short_id(selected, facts.get('identity_prefixes')) if selected else 'no policy'] + [

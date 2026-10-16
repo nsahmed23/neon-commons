@@ -56,7 +56,8 @@ class EngineCommandTests(unittest.TestCase):
             run_workspace(store.root, stdin=io.StringIO('catalog\nquit\n'), stdout=out)
             text = out.getvalue()
             self.assertNotIn('unknown_workbench_command', text)
-            start = text.index('{\n  "schema_version": "integration-catalog/1"')
+            at = text.index('"integration-catalog/1"')
+            start = max(text.rfind('\n{\n', 0, at) + 1, text.rfind('> {\n', 0, at) + 2)
             shown, _ = json.JSONDecoder().raw_decode(text[start:])
             from intune_iac import catalog, entry
             expected = catalog.build(entry.survey(Path(directory)))
@@ -77,7 +78,9 @@ class LayerTests(unittest.TestCase):
     def test_a_catalog_result_opens_the_catalog_layer_on_the_help_surface(self):
         with tempfile.TemporaryDirectory() as directory:
             ws = workspace(directory)
-            ws.last_command = 'catalog'
+            ws._send('catalog')
+            self.assertEqual(ws.tab, 7)
+            self.assertEqual(ws.current_view, (7, 'catalog'))
             ws.receive(value())
             self.assertEqual(ws.layer, 'catalog')
             self.assertEqual(ws.tab, 7)
@@ -121,7 +124,7 @@ class LayerTests(unittest.TestCase):
             ws = workspace(directory, size=(120, 400))
             data = value()
             ws.value, ws.layer, ws.tab, ws.last_command = data, 'catalog', 7, 'catalog'
-            body = [row.strip() for row in rows_of(ws)]
+            body = [row.strip().strip('|').strip() for row in rows_of(ws)]
             for line in catalog.catalog_lines(data, 116):
                 if line.strip():
                     self.assertIn(line.strip(), body)

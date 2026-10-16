@@ -197,7 +197,7 @@ def wrap(value, width):
 
 # Views shown on a surface that is not their own; the title names both, so the tab and the body agree.
 SUBVIEWS = {'estate-overview': 'Relationship overview', 'diagnostics': 'Diagnostics', 'health': 'Health', 'queue': 'Maintenance queue', 'delivery': 'Delivery',
-            'families': 'Families', 'start': 'Start', 'dictionary': 'Setting dictionary', 'dictionary-page': 'Setting dictionary',
+            'families': 'Families', 'start': 'Start', 'catalog': 'Catalog', 'dictionary': 'Setting dictionary', 'dictionary-page': 'Setting dictionary',
             'lineage': 'Lineage', 'repository-entry': 'Repository entry', 'workflows': 'CI runs'}
 # From this many body cells, the readable summary and the exact engine record sit side by side.
 WIDE = 150
@@ -272,9 +272,15 @@ HELP_LINES = ('? help | a actions | : command | / search | e details | r raw rec
 # Read-only views that b (back) may return to; nothing that prepares, approves, executes or records is ever re-sent.
 VIEW_COMMANDS = frozenset({'overview', 'select', 'inspect', 'relationships', 'history', 'history-recent', 'views',
                            'help', 'health', 'queue', 'start', 'families', 'dictionary', 'dictionary-page', 'lineage',
-                           'diagnostics', 'estate-overview', 'repository-status', 'delivery', 'repository-entry',
+                           'catalog', 'diagnostics', 'estate-overview', 'repository-status', 'delivery', 'repository-entry',
                            'operations', 'review', 'workflows', 'search', 'search-page', 'views-page'})
-LAYERS = {'details': 'typed details', 'raw': 'raw record', 'actions': 'actions', 'filters': 'filters'}
+LAYERS = {'details': 'typed details', 'raw': 'raw record', 'actions': 'actions', 'filters': 'filters', 'catalog': 'read-only'}
+# The catalog layer needs this many columns and rows to show its lines whole; below it says so instead of cutting them.
+CATALOG_MIN = (60, 20)
+CATALOG_NEEDS = 'The catalog needs a larger window: at least %dx%d. Esc closes it; nothing else here has changed.' % CATALOG_MIN
+CATALOG_HELP_LINES = ('? help | : command | Esc close catalog | b back | q exit', '? help | Esc close | b back | q exit',
+                      'Esc close | b back | q exit', 'Esc close | q exit')
+CATALOG_READ_ONLY = 'The catalog is read-only; Esc closes it.'
 # The repository state the strip shows when the Inspector's diagnostics checked it.
 REPOSITORY_FROM_CHECK = {'clear': 'current', 'attention': 'needs attention', 'not_recorded': 'none recorded',
                          'unavailable': 'not checked', 'partly_checked': 'not checked'}
@@ -362,6 +368,8 @@ def help_line(width, layer='summary', lead=(), map_keys=False, inspect=True, pan
     offers is never missing from the line below. The actions list has its own keys. map_keys: a map is shown, so the
     line names its keys (and only then); inspect: the focused node has an inspect route, so Enter is named (a key
     with no route behind it is not drawn); stages: the focused action can be staged, so Enter stages is named."""
+    if layer == 'catalog':
+        return next((line for line in CATALOG_HELP_LINES if cell_width(line) <= width), CATALOG_HELP_LINES[-1])
     if layer in ('actions', 'filters'):
         lines = ACTION_KEY_LINES if layer == 'actions' else FILTER_KEY_LINES
         if layer == 'actions' and not stages:
@@ -895,6 +903,10 @@ class Workspace:
             # saves read-only paths, never approvals, captures or credentials.
             self.save_context()
             self.notice = self._notice_for(value)
+            if value.get('schema_version') == 'integration-catalog/1' and self.last_command.split(' ', 1)[0] == 'catalog':
+                # A layer over the Help surface: the same lines as `intune-iac catalog`, read-only; Esc returns to the view before.
+                self.layer = 'catalog'
+                self.notice = 'Catalog shown (read-only). Esc closes it.'
             if self.tab == 2 and isinstance(value.get('relationships'), list) and isinstance(value.get('object_id'), str):
                 self.notice += self._note_topology(value)
         pending, self.pending_stage = getattr(self, 'pending_stage', None), None
@@ -1150,6 +1162,9 @@ class Workspace:
         elif self.tab == 7 and value.get('schema_version') == 'workbench-families/1':
             from .workbench_screens import families_lines
             rows.extend(families_lines(value, width))
+        elif self.tab == 7 and value.get('schema_version') == 'integration-catalog/1':
+            from .catalog import catalog_lines
+            rows.extend(catalog_lines(value, width))
         elif self.tab == 7 and value.get('schema_version') == 'workbench-start/1':
             from .entry import start_lines
             rows.extend(start_lines(value, width))
@@ -1440,6 +1455,8 @@ class Workspace:
             facts = self.facts if self.selected and getattr(self, 'facts', {}).get('object_id') == self.selected else {}
             return actions_lines(self._actions(), getattr(self, 'action_focus', 0), width, facts.get('name'), self.selected,
                                  submit=self._submit_word(), prefixes=facts.get('identity_prefixes')) + self._strip_note(width)
+        if layer == 'catalog':
+            return self._catalog_lines(width)
         if layer == 'filters':
             from .workbench_screens import filter_lines
             return filter_lines(filter_choices(), getattr(self, 'filter_focus', 0),
@@ -1448,6 +1465,17 @@ class Workspace:
             return (word_wrap('RAW RECORD  The complete engine result exactly as returned, %d lines of JSON; Esc returns to the summary.'
                               % self._raw_count(), width) + [''] + self._detail_lines(width))
         return self._summary_lines(width) + self._strip_note(width) + [self._evidence_line(width)]
+
+    def _catalog_lines(self, width):
+        """The catalog as `intune-iac catalog` prints it; below CATALOG_MIN one sentence says it needs a larger window."""
+        from .workbench_screens import word_wrap
+        columns, rows = getattr(self, 'size', None) or (width + 2, CATALOG_MIN[1])
+        if columns < CATALOG_MIN[0] or rows < CATALOG_MIN[1]:
+            return word_wrap(CATALOG_NEEDS, width)
+        if self.value.get('schema_version') != 'integration-catalog/1':
+            return word_wrap('No catalog is loaded. Esc closes this layer.', width)
+        from .catalog import catalog_lines
+        return catalog_lines(self.value, width)
 
     def _strip_note(self, width):
         """Where no Operation row is shown, one line saying which operation the strip reports when it is not the newest
@@ -1503,7 +1531,7 @@ class Workspace:
 
     def _body_lines(self, inner, side):
         """The body as drawn. From WIDE cells, typed details or the raw record open beside the summary."""
-        if inner < WIDE or getattr(self, 'layer', 'summary') == 'summary':
+        if inner < WIDE or getattr(self, 'layer', 'summary') in ('summary', 'catalog'):
             return self._data_lines(inner)
         left = (inner - 3) * 11 // 20
         right = inner - 3 - left
@@ -1796,7 +1824,7 @@ class Workspace:
         known = self.facts if selected and getattr(self, 'facts', {}).get('object_id') == selected else {}
         lines, band_rows = constrained_rows(self.store.tenant_id, selected, known, getattr(self, 'mode_class', None), width,
                                             height, '%dx%d' % MIN_SIZE, self._draw_constrained_prompt(width, ellipsis),
-                                            typing=bool(self.mode))
+                                            typing=bool(self.mode), layer=getattr(self, 'layer', 'summary'))
         frame = [pad(safe_text(line), width) for line in lines] + [' ' * width] * (height - len(lines))
         if self.color:
             palette = THEMES.get(self.theme, THEMES['dark'])
@@ -2250,7 +2278,7 @@ class Workspace:
                 'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'evidence-history': 3, 'compare': 3, 'review': 4,
                 'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7,
                 'repository-status': 8, 'repository-refresh': 8, 'propose-from-intent': 4, 'dictionary': 1, 'dictionary-page': 1,
-                'health': 6, 'queue': 6, 'delivery': 5, 'start': 7, 'diagnostics': 6, 'families': 7,
+                'health': 6, 'queue': 6, 'delivery': 5, 'start': 7, 'catalog': 7, 'diagnostics': 6, 'families': 7,
                 'repository-entry': 8, 'estate-overview': 0, 'service-review': 4, 'service-status': 5, 'service-attach': 5,
                 'service-cancel': 5, 'service-recover': 5, 'adoption-review': 4,
                 'adoption-status': 5, 'adoption-attach': 5, 'adoption-cancel': 5, 'adoption-recover': 5,
@@ -2497,6 +2525,13 @@ class Workspace:
                         shlex.quote(current.get(key) or '-') for key in ('query', 'ownership', 'coverage', 'health'))))
                 self.draw()
                 continue
+            if key == 'escape' and getattr(self, 'layer', 'summary') == 'catalog':
+                # Closing the layer returns to the read-only view before it; with none, to the Estate overview.
+                self.layer = 'summary'; self.scroll = 0
+                if getattr(self, 'trail', []):
+                    sent = self._back()
+                    if sent is not None: return sent
+                return self._send('overview')
             if key == 'escape' and getattr(self, 'layer', 'summary') != 'summary':
                 self.layer = 'summary'; self.scroll = 0; self.notice = 'Summary shown.'
             elif key == 'escape': self.notice = 'Nothing to close. :clear-selection clears the selected policy.'
@@ -2537,7 +2572,10 @@ class Workspace:
                 return self._send('review ' + shlex.quote(self.operation_rows[self.operation_highlight]['operation_root']))
             elif isinstance(key, tuple):
                 char = key[1]
-                if char in (':', '/'):
+                if getattr(self, 'layer', 'summary') == 'catalog' and char in ('a', 'e', 'r', 'f'):
+                    # No actions, evidence layers or filters over the catalog: it is a read-only list.
+                    self.notice = CATALOG_READ_ONLY
+                elif char in (':', '/'):
                     self.mode = 'search' if char == '/' else 'command'; self.buffer = ''; self.cursor = 0
                 elif char == 'f':
                     # A list of the filters, like the actions; the typed form stays available through :views-page.
