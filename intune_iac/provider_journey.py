@@ -427,41 +427,72 @@ def read_credential_fd(descriptor):
         finally: os.close(fd)
 
 
-def close_credential_fd(descriptor):
-    """Close the CLI-owned source descriptor once it has been consumed or refused (never a standard stream)."""
-    if type(descriptor) is int and descriptor >= 3:
-        try: os.close(descriptor)
-        except OSError: pass
+class DescriptorOwner:
+    """The one owner of every descriptor a route was given.
 
-
-def read_token_fd(descriptor):
-    """A credential from an inherited descriptor: read_credential_fd's rules, then the content rules, then close it.
-
-    Exactly one trailing line ending (LF or CRLF) is removed, as `echo` or a here-string leaves one; any control
-    character that remains (a second line ending included) is refused, so a value cannot smuggle a header or a line.
-    An empty result is refused so no route sends an empty credential. The source descriptor is closed in all cases.
+    Use it as a context manager around the whole route, naming every supplied descriptor up front. Each read goes
+    through read(), which marks the descriptor consumed (and closes it) in a finally. On any exit of the route (an
+    equality refusal, a first read that fails, success) every descriptor still pending is closed. A consumed number
+    is never closed again, so a number the process has since reused for something else is never touched.
     """
-    try:
-        value = read_credential_fd(descriptor)
-        if value.endswith('\r\n'): value = value[:-2]
-        elif value.endswith('\n'): value = value[:-1]
-        if any(ord(c) < 32 or ord(c) == 127 for c in value): _fail('identity_credential_control_character')
-        if not value: _fail('identity_credential_fd_empty')
-        return value
-    finally:
-        close_credential_fd(descriptor)
+
+    def __init__(self, *descriptors):
+        self.pending = []
+        for descriptor in descriptors:
+            # Standard streams and non-integers are never ours to close; a repeated number is owned once.
+            if type(descriptor) is int and descriptor >= 3 and descriptor not in self.pending:
+                self.pending.append(descriptor)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close_pending()
+        return False
+
+    def _close(self, descriptor):
+        if descriptor in self.pending:
+            self.pending.remove(descriptor)
+            try: os.close(descriptor)
+            except OSError: pass
+
+    def close_pending(self):
+        for descriptor in list(self.pending):
+            self._close(descriptor)
+
+    def read(self, descriptor):
+        """A credential from an inherited descriptor: read_credential_fd's rules, then the content rules.
+
+        Exactly one trailing line ending (LF or CRLF) is removed, as `echo` or a here-string leaves one; any control
+        character that remains (a second line ending included) is refused, so a value cannot smuggle a header or a
+        line. An empty result is refused so no route sends an empty credential.
+        """
+        try:
+            value = read_credential_fd(descriptor)
+            if value.endswith('\r\n'): value = value[:-2]
+            elif value.endswith('\n'): value = value[:-1]
+            if any(ord(c) < 32 or ord(c) == 127 for c in value): _fail('identity_credential_control_character')
+            if not value: _fail('identity_credential_fd_empty')
+            return value
+        finally:
+            self._close(descriptor)  # consumed: closed here, and never again
+
+
+def read_token_fd(descriptor, owner=None):
+    """A credential from one descriptor, which is closed whatever happens (or by the caller's owner when given)."""
+    if owner is not None:
+        return owner.read(descriptor)
+    with DescriptorOwner(descriptor) as single:
+        return single.read(descriptor)
 
 
 def authenticate_target(args):
-    """Read-only explicit identity collection; only its redacted report leaves. Both descriptors are closed after."""
-    try:
-        return _authenticate_target(args)
-    finally:
-        close_credential_fd(args.provider_secret_fd)
-        close_credential_fd(args.backend_secret_fd)
+    """Read-only explicit identity collection; only its redacted report leaves. Both descriptors are closed once."""
+    with DescriptorOwner(args.provider_secret_fd, args.backend_secret_fd) as owner:
+        return _authenticate_target(args, owner)
 
 
-def _authenticate_target(args):
+def _authenticate_target(args, owner):
     from . import identity_binding as ib
     value = load_json(args.input)
     if type(value) is not dict or set(value) != {'cloud', 'provider', 'backend_identity', 'backend'}:
@@ -474,8 +505,8 @@ def _authenticate_target(args):
                               ib.BackendSpec(**value['backend']), value['cloud'])
     provider = backend = None
     try:
-        provider = ib.ClientSecretHandle(read_token_fd(args.provider_secret_fd))
-        backend = ib.ClientSecretHandle(read_token_fd(args.backend_secret_fd))
+        provider = ib.ClientSecretHandle(read_token_fd(args.provider_secret_fd, owner))
+        backend = ib.ClientSecretHandle(read_token_fd(args.backend_secret_fd, owner))
         return ib.bind_live(config, provider_credential=provider, backend_credential=backend).evidence()
     finally:
         if provider is not None: provider.close()

@@ -61,11 +61,20 @@ def _descriptor(value):
     return int(value)
 
 
-def _fd_token(descriptor):
+def _fd_token(descriptor,owner=None):
     if os.name != 'posix':
         raise AppError('identity_fd_platform_unsupported','Explicit credential file descriptors require a Unix host.')
     from .provider_journey import read_token_fd
-    return read_token_fd(descriptor)
+    return read_token_fd(descriptor,owner)
+
+
+def _fd_owner(*descriptors):
+    # One owner for every descriptor the route was given: all are closed once on any exit, a consumed one never again.
+    if any(d is not None for d in descriptors) and os.name == 'posix':
+        from .provider_journey import DescriptorOwner
+        return DescriptorOwner(*[d for d in descriptors if d is not None])
+    import contextlib
+    return contextlib.nullcontext()
 
 
 def doctor(executables=True):
@@ -307,7 +316,8 @@ def execute(args):
         from .capture import capture
         def progress(event):
             print(json.dumps(event,ensure_ascii=True,sort_keys=True,allow_nan=False),file=sys.stderr,flush=True)
-        token=_fd_token(args.token_fd) if args.token_fd is not None else None
+        with _fd_owner(args.token_fd) as owner:
+            token=_fd_token(args.token_fd,owner) if args.token_fd is not None else None
         return capture(args.tenant,args.policy,args.output,token_env=args.token_env,token=token,max_pages=args.max_pages,
                        max_attempts_per_page=args.max_attempts_per_page,max_elapsed_seconds=args.max_elapsed_seconds,
                        max_retry_delay_seconds=args.max_retry_delay_seconds,progress=progress)
@@ -333,12 +343,13 @@ def _target_command(args):
     from .target import inspect_target, compare_targets, collect_azure_observations
     if args.target_command=='inspect':return inspect_target(load_json(args.input))
     if args.target_command=='compare':return compare_targets(load_json(args.expected),load_json(args.observed))
-    if args.graph_token_fd is not None and args.graph_token_fd==args.management_token_fd:
-        raise AppError('identity_separate_credential_fds_required','Use a separate file descriptor for each token.')
-    # Each token comes from its descriptor when one is named (the environment variable is then not read), else from
-    # the environment variable it names.
-    graph_token=_fd_token(args.graph_token_fd) if args.graph_token_fd is not None else os.environ.get(args.graph_token_env)
-    management_token=_fd_token(args.management_token_fd) if args.management_token_fd is not None else os.environ.get(args.management_token_env)
+    with _fd_owner(args.graph_token_fd,args.management_token_fd) as owner:
+        if args.graph_token_fd is not None and args.graph_token_fd==args.management_token_fd:
+            raise AppError('identity_separate_credential_fds_required','Use a separate file descriptor for each token.')
+        # Each token comes from its descriptor when one is named (the environment variable is then not read), else
+        # from the environment variable it names. The owner closes whichever descriptor a failure left unread.
+        graph_token=_fd_token(args.graph_token_fd,owner) if args.graph_token_fd is not None else os.environ.get(args.graph_token_env)
+        management_token=_fd_token(args.management_token_fd,owner) if args.management_token_fd is not None else os.environ.get(args.management_token_env)
     if not graph_token or not management_token:
         raise AppError('missing_explicit_credentials','Both explicit read-token environment variables are required.')
     return collect_azure_observations(load_json(args.input),graph_token=graph_token,management_token=management_token)

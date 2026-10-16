@@ -221,6 +221,90 @@ class DescriptorHandlingTests(Descriptors):
                     self.assertNotIn(token, out + err)
 
 
+class OwnershipTests(Descriptors):
+    """One owner for every supplied descriptor: each is closed exactly once on every route exit."""
+
+    def closes(self, argv, numbers, patches=()):
+        """Run argv; return how many times os.close was called with each original number. os.dup is moved above 100 so
+        a duplicate can never take an original's number and be mistaken for a second close of it."""
+        import fcntl
+        calls = []
+        real_close = os.close
+        identities = {n: (os.fstat(n).st_dev, os.fstat(n).st_ino) for n in numbers}
+
+        def recording_close(d):
+            # Count a close only while the number still names the original file: a number the CLI later reuses for
+            # something else (an output directory, say) is not a second close of the descriptor it was given.
+            try:
+                info = os.fstat(d)
+                calls.append(d if identities.get(d) == (info.st_dev, info.st_ino) else None)
+            except OSError:
+                calls.append(d)  # closing a number that is already closed is a double close
+            return real_close(d)
+
+        with patch('os.close', recording_close), \
+                patch('os.dup', lambda d: fcntl.fcntl(d, fcntl.F_DUPFD_CLOEXEC, 100)):
+            for p in patches:
+                p.start()
+            try:
+                result = self.main(argv)
+            finally:
+                for p in patches:
+                    p.stop()
+        return result, {n: calls.count(n) for n in numbers}
+
+    def collect_argv(self, graph, management):
+        document = self.root / 'target.json'
+        document.write_text('{}')
+        return ['target', 'collect', '--input', str(document), '--graph-token-fd', str(graph),
+                '--management-token-fd', str(management)]
+
+    def test_the_equality_refusal_closes_the_shared_descriptor_once(self):
+        fd = self.secret_fd(canary('same'))
+        (code, out, err), counts = self.closes(self.collect_argv(fd, fd), [fd])
+        self.assertEqual(json.loads(err)['error']['code'], 'identity_separate_credential_fds_required')
+        self.assertEqual(counts, {fd: 1})
+        with self.assertRaises(OSError):
+            os.fstat(fd)
+
+    def test_a_failed_first_read_still_closes_the_unattempted_descriptor(self):
+        loose = self.secret_fd('tok', name='loose', mode=0o644)
+        other = self.secret_fd(canary('other'), name='other')
+        (code, out, err), counts = self.closes(self.collect_argv(loose, other), [loose, other])
+        self.assertEqual(json.loads(err)['error']['code'], 'identity_credential_fd_private')
+        self.assertEqual(counts, {loose: 1, other: 1})
+        with self.assertRaises(OSError):
+            os.fstat(other)
+
+    def test_authenticate_closes_each_number_once_on_success_and_on_failure(self):
+        from dataclasses import asdict
+        from intune_iac import identity_binding as ib
+        from plugin_tests.test_identity_binding_v5 import config, RecordedServices, Clock
+        path = self.root / 'identity.json'
+        path.write_text(json.dumps(asdict(config())))
+
+        def laboratory(cfg, **kwargs):
+            return ib.bind_laboratory(cfg, **kwargs, transport=RecordedServices(), clock=Clock())
+
+        a, b = self.secret_fd(canary('p'), 'p'), self.secret_fd(canary('b'), 'b')
+        argv = ['target', 'authenticate', '--input', str(path), '--provider-secret-fd', str(a), '--backend-secret-fd', str(b)]
+        (code, out, err), counts = self.closes(argv, [a, b], [patch.object(ib, 'bind_live', side_effect=laboratory)])
+        self.assertEqual((code, counts), (0, {a: 1, b: 1}), out + err)
+        loose, other = self.secret_fd('tok', 'loose2', 0o644), self.secret_fd(canary('o'), 'other2')
+        argv = ['target', 'authenticate', '--input', str(path), '--provider-secret-fd', str(loose),
+                '--backend-secret-fd', str(other)]
+        (code, out, err), counts = self.closes(argv, [loose, other])
+        self.assertEqual(json.loads(err)['error']['code'], 'identity_credential_fd_private')
+        self.assertEqual(counts, {loose: 1, other: 1})
+
+    def test_a_descriptor_given_to_capture_is_closed_once(self):
+        fd = self.secret_fd(canary('cap'))
+        (code, out, err), counts = self.closes(['capture', '--tenant', TENANT, '--policy', POLICY, '--output',
+                                                str(self.root / 'o'), '--token-fd', str(fd)], [fd],
+                                               [patch('intune_iac.capture._http_transport', CaptureFdTests.fake(None, []))])
+        self.assertEqual(counts, {fd: 1})
+
+
 class CollectFdTests(Descriptors):
     def run_collect(self, argv_tail, env=None):
         from plugin_tests import test_target as tt
@@ -257,6 +341,8 @@ class CollectFdTests(Descriptors):
         (code, out, err), sent = self.run_collect(['--graph-token-fd', str(a), '--management-token-fd', str(a)])
         self.assertEqual(json.loads(err)['error']['code'], 'identity_separate_credential_fds_required')
         self.assertEqual(sent, [])
+        # the equality refusal closed the shared descriptor, so the next route gets a fresh one
+        a = self.secret_fd(canary('two'), 'two')
         loose = self.secret_fd('tok', 'loose', 0o644)
         (code, out, err), sent = self.run_collect(['--graph-token-fd', str(loose), '--management-token-fd', str(a)])
         self.assertEqual(json.loads(err)['error']['code'], 'identity_credential_fd_private')
