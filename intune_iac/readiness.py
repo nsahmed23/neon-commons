@@ -384,7 +384,9 @@ NO_SIGN_IN_ROUTE = ('The product has no route yet for device-code or browser sig
 NO_CHECK_RECORDED = ('No verified sign-in, and no sign-in check was run: start with --goal %s --check-signin azure looks '
                      'for an existing Azure sign-in (it runs az account list --output json and nothing else).')
 NO_CHECK_SCREEN = ('No sign-in check was run. To look for an existing Azure sign-in, run: %s start %s--goal %s --check-signin azure '
-                   '(it runs az account list --output json and nothing else).')
+                   '(%sit runs az account list --output json and nothing else).')
+# Said once, inside the note's bracket, when the directory is not named: the same words for every reason it was refused.
+DIRECTORY_NOT_SHOWN = 'DIRECTORY is the directory this screen is about; its name is not shown here; '
 
 
 def screen_note(note, directory=None):
@@ -392,11 +394,20 @@ def screen_note(note, directory=None):
     own rows (a screen puts every printed command there); any other note as it is.
 
     The command names the surveyed directory, so that it runs on what the screen is about and not on the directory it is typed
-    in; a name with a control character is never put in a command, the placeholder stands for it (as start does)."""
-    where = '' if not directory else (shlex.quote(directory) if directory.isprintable() else 'DIRECTORY') + ' '
+    in. The directory is user input, so it is named only when the rule that guards the output path of signin collect accepts it
+    (signin_facts.output_display: printable, within its limit, and not credential-shaped as a whole or in any piece). Otherwise
+    the placeholder DIRECTORY stands for it, and the note says in words that its name is not shown, the same words whatever
+    the reason, so the screen never says which rule applied."""
+    where, legend = '', ''
+    if directory:
+        from .signin_facts import OUTPUT_NOT_SHOWN, output_display
+        if output_display(directory) == OUTPUT_NOT_SHOWN:
+            where, legend = 'DIRECTORY ', DIRECTORY_NOT_SHOWN
+        else:
+            where = shlex.quote(directory) + ' '
     for operation in OPERATIONS:
         if note == NO_CHECK_RECORDED % operation:
-            return NO_CHECK_SCREEN % (PROGRAM, where, operation)
+            return NO_CHECK_SCREEN % (PROGRAM, where, operation, legend)
     return note
 
 

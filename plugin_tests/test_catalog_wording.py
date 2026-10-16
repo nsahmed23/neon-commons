@@ -471,5 +471,93 @@ class CaptureContactTests(Base):
         self.assertNotIn('graph.microsoft.com', action)
 
 
+class DirectoryInCommandTests(Base):
+    """Round 2, item 1: the surveyed directory is named in the printed start command only when the PKG-SETUP-5D output rule accepts it
+    (signin_facts.output_display: printable, within its limit, not credential-shaped as a whole or in any of its pieces). Otherwise
+    the placeholder DIRECTORY stands for it, and the note says once, in the same words for every rejection, that it is not shown."""
+
+    NOT_SHOWN = 'DIRECTORY is the directory this screen is about; its name is not shown here; '
+    # label: (the surveyed directory, the pieces of it that must never be printed)
+    REJECTED = {
+        'a token prefix as a folder name': ('/tmp/work/ghp_abc1234', ('ghp_', 'abc1234')),
+        'a token prefix at the end of a windows path': ('C:\\work\\ghp_abc1234', ('ghp_', 'abc1234')),
+        'a bearer value': ('/tmp/work/Bearer ' + 'Qx7' * 10, ('Bearer', 'Qx7')),
+        'a jwt-shaped piece': ('/tmp/work/eyJhbGciOiJIUzI1NiJ9.e30.c2ln/ctx', ('eyJ', 'c2ln', 'hbGci')),
+        'an unbroken run of letters and digits': ('/tmp/work/' + 'a1' * 14, ('a1a1a1',)),
+        'an escape': ('/tmp/work/a\x1b[31mb', ('\x1b', '[31m')),
+        'a carriage return': ('/tmp/work/a\rb', ('\r',)),
+        'a line feed': ('/tmp/work/a\nb', ('\n',)),
+        'a name longer than the display limit': ('/tmp/' + '/'.join(['abcdefghij'] * 25), ('abcdefghij',)),
+    }
+
+    def recorded(self, goal='discover'):
+        from intune_iac import readiness
+        return readiness.NO_CHECK_RECORDED % goal
+
+    def test_a_rejected_directory_is_never_in_the_command_and_the_note_says_once_that_it_is_not_shown(self):
+        from intune_iac import readiness
+        for label, (directory, forbidden) in self.REJECTED.items():
+            with self.subTest(label):
+                note = readiness.screen_note(self.recorded(), directory)
+                self.assertIn('run: intune-iac start DIRECTORY --goal discover --check-signin azure (' + self.NOT_SHOWN, note)
+                self.assertEqual(note.count('not shown'), 1)
+                self.assertTrue(note.startswith('No sign-in check was run. To look for an existing Azure sign-in, run: '))
+                self.assertTrue(note.endswith('it runs az account list --output json and nothing else).'))
+                for fragment in forbidden:
+                    self.assertNotIn(fragment, note)
+
+    def test_every_rejection_reads_the_same_so_the_screen_does_not_say_which_rule_applied(self):
+        from intune_iac import readiness
+        notes = {readiness.screen_note(self.recorded(), directory) for directory, _ in self.REJECTED.values()}
+        self.assertEqual(len(notes), 1, notes)
+
+    def test_an_ordinary_directory_prints_exactly_as_before(self):
+        from intune_iac import readiness
+        for directory in ('/tmp/work/context dir', '/home/someone/estate', 'C:\\work\\estate dir', '/tmp/x.y/z', '/tmp/' + 'a' * 23,
+                          '/tmp/Bearer', '/tmp/ghp'):
+            note = readiness.screen_note(self.recorded(), directory)
+            self.assertEqual(note, GarbledSentenceTests('sentence').sentence('discover', directory), directory)
+            self.assertNotIn('not shown', note)
+        # no directory at all (a survey that names none): the command without one, as the first round printed it
+        self.assertEqual(readiness.screen_note(self.recorded()), GarbledSentenceTests('sentence').sentence('discover'))
+
+    def test_the_catalog_and_the_start_screen_print_the_placeholder_for_a_credential_shaped_directory(self):
+        import shutil
+        import tempfile
+        from pathlib import Path
+        from intune_iac import catalog as module, entry
+        from plugin_tests.test_start_goal import ROOT, goal_block, run_cli
+        with tempfile.TemporaryDirectory() as temp:
+            directory = Path(temp) / 'ghp_abc1234'
+            directory.mkdir()
+            shutil.copyfile(ROOT / 'examples/context.json', directory / 'context.json')
+            rows = goal_rows(tc.text_of(module.build(entry.survey(directory), doctor=tc.doctor(), goal='discover'), 120), 'discover')
+            self.assertIn('run: intune-iac start DIRECTORY --goal discover --check-signin azure (' + self.NOT_SHOWN, rows['blocked'])
+            self.assertNotIn('ghp_', rows['blocked'])
+            _, block = goal_block(run_cli(str(directory), '--goal', 'discover', width=120)[1])
+            start = next(i for i, line in enumerate(block) if line.startswith('  Integration and service: '))
+            stop = next(i for i, line in enumerate(block) if line.startswith('  Exceptional secret input: '))
+            row = flat(block[start:stop])
+            self.assertIn('run: intune-iac start DIRECTORY --goal discover --check-signin azure (' + self.NOT_SHOWN, row)
+            self.assertNotIn('ghp_', row)
+
+    def test_a_directory_named_with_an_escape_gets_the_same_placeholder_end_to_end(self):
+        import shutil
+        import tempfile
+        from pathlib import Path
+        from intune_iac import catalog as module, entry
+        from plugin_tests.test_start_goal import ROOT
+        with tempfile.TemporaryDirectory() as temp:
+            directory = Path(temp) / 'odd\x1b[31mname'
+            try:
+                directory.mkdir()
+            except OSError:
+                self.skipTest('this file system refuses a control byte in a name')
+            shutil.copyfile(ROOT / 'examples/context.json', directory / 'context.json')
+            rows = goal_rows(tc.text_of(module.build(entry.survey(directory), doctor=tc.doctor(), goal='discover'), 120), 'discover')
+            self.assertIn('run: intune-iac start DIRECTORY --goal discover --check-signin azure (' + self.NOT_SHOWN, rows['blocked'])
+            self.assertNotIn('\x1b', rows['blocked'])
+
+
 if __name__ == '__main__':
     unittest.main()
