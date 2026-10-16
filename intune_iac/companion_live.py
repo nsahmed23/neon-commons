@@ -87,6 +87,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if self.command != 'HEAD':
             self.wfile.write(body)
 
+    def _send_protected(self, companion, body, kind, csp=DEFAULT_CSP):
+        """The one place token-protected content leaves. The source may have been slow, so whether stopping has begun is
+        asked again here, at the moment of writing; if it has, the answer is the refusal of an unknown path and no content."""
+        if not companion.begin_write():
+            return self._send(404, b'Not found.\n')
+        try:
+            return self._send(200, body, kind, csp)
+        finally:
+            companion.end_write()
+
     def send_error(self, code, message=None, explain=None):
         """The parser's own refusals (a malformed request line, an unsupported version, a line or header too long) get the
         same headers as every other response, a fixed body, and nothing of the request or of this Python."""
@@ -127,11 +137,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
         try:
             if parts[2] == SNAPSHOT_NAME:
                 body = json.dumps(companion.snapshot_source(), sort_keys=True, separators=(',', ':')).encode('utf-8')
-                return self._send(200, body, 'application/json')
+                return self._send_protected(companion, body, 'application/json')
             companion.touch()
             page = companion.page_source(companion.live)
             policy = self._page_policy(page)
-            return self._send(200, page.encode('utf-8'), 'text/html; charset=utf-8', policy)
+            return self._send_protected(companion, page.encode('utf-8'), 'text/html; charset=utf-8', policy)
         except AppError:
             return self._send(503, b'The object can no longer be read.\n')
         except Exception:
@@ -199,6 +209,7 @@ class LiveCompanion:
         self._close_error = None   # why the last attempt failed; meaningful in close_failed only
         self._close_note = None    # a close problem that was recovered from (diagnostic only, never the end reason)
         self._serving_stopped = False
+        self._writers = 0          # handlers admitted to write a protected response, until they have finished
         self._thread = None
         self._watchdog = None
 
@@ -250,6 +261,26 @@ class LiveCompanion:
             self.stop()
         else:
             threading.Thread(target=self._end_quietly, args=(reason,), daemon=True).start()
+
+    def begin_write(self):
+        """Admit a handler to write protected content: refused once stopping has begun; otherwise it is counted, in the same
+        step, so that stop() can wait for it."""
+        with self._lock:
+            if self._state != 'running':
+                return False
+            self._writers += 1
+            return True
+
+    def end_write(self):
+        with self._changed:
+            self._writers -= 1
+            self._changed.notify_all()
+
+    def _drain_writers(self):
+        """Wait, bounded, for the handlers already writing; raises (no end is reported) if one is still writing after that."""
+        with self._changed:
+            if not self._changed.wait_for(lambda: self._writers == 0, STOP_WAIT_SECONDS):
+                raise AppError('companion_live_writer_timeout', 'A response was still being written when the listener stopped.')
 
     @property
     def close_note(self):
@@ -340,6 +371,7 @@ class LiveCompanion:
         problem = self._close_listener()
         if not self._listener_closed():
             raise problem or AppError('companion_live_close_failed', 'The listening socket is still open.')
+        self._drain_writers()
         return problem
 
     def stop(self):

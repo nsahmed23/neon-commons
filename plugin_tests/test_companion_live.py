@@ -867,6 +867,85 @@ class StopTests(Fixture):
         with self.assertRaises(KeyboardInterrupt):
             live.wait(poll=0.01)
 
+    def check_a_source_held_across_stop(self, path, source):
+        live = self.start()
+        entered, release = threading.Event(), threading.Event()
+        real = getattr(live, source)
+
+        def held(*arguments):
+            entered.set()
+            release.wait(10)
+            return real(*arguments)
+        setattr(live, source, held)
+        self.addCleanup(release.set)
+        client, outcome = self.run_in_thread(lambda: self.request(path))
+        self.assertTrue(entered.wait(5), 'the request passed the token check and is inside its source')
+        live.stop()
+        self.assertEqual(live.wait_step(), 'stopped')
+        release.set()
+        client.join(5)
+        self.assertEqual([kind for kind, _ in outcome], ['returned'])
+        status, _, body = outcome[0][1]
+        self.assertEqual(status, 404, 'protected content was sent after stopping began')
+        self.assertEqual(body, b'Not found.\n')
+
+    def test_a_page_request_blocked_in_its_source_when_stopping_begins_never_gets_content(self):
+        self.check_a_source_held_across_stop('', 'page_source')
+
+    def test_a_snapshot_request_blocked_in_its_source_when_stopping_begins_never_gets_content(self):
+        self.check_a_source_held_across_stop('snapshot', 'snapshot_source')
+
+    def hold_a_writer(self):
+        """Hold a page request inside its response write, after it was admitted. Returns (entered, release, client, outcome)."""
+        from intune_iac import companion_live
+        entered, release = threading.Event(), threading.Event()
+        real = companion_live.Handler._send
+
+        def held(handler, status, *arguments, **keywords):
+            if status == 200:
+                entered.set()
+                release.wait(10)
+            return real(handler, status, *arguments, **keywords)
+        patch = mock.patch.object(companion_live.Handler, '_send', held)
+        patch.start()
+        self.addCleanup(patch.stop)
+        self.addCleanup(release.set)
+        client, outcome = self.run_in_thread(lambda: self.request(''))
+        self.assertTrue(entered.wait(5), 'the request was admitted and is writing')
+        return entered, release, client, outcome
+
+    def test_the_end_is_not_reported_while_an_admitted_writer_is_still_writing(self):
+        live = self.start()
+        _, release, client, outcome = self.hold_a_writer()
+        stopper, stopper_outcome = self.run_in_thread(live.stop)
+        stopper.join(0.3)
+        self.assertTrue(stopper.is_alive(), 'stop() returned while a response was still being written')
+        self.assertFalse(self.port_accepts(live), 'the listener is closed first, then the writers are awaited')
+        self.assertIsNone(live.wait_step(), 'an end was reported while a writer was still writing')
+        release.set()
+        stopper.join(5)
+        client.join(5)
+        self.assertEqual(stopper_outcome, [('returned', None)])
+        self.assertEqual(outcome[0][1][0], 200, 'a writer admitted before stopping began finishes its response')
+        self.assertEqual(live.wait_step(), 'stopped')
+
+    def test_a_writer_past_the_bound_makes_stop_raise_without_reporting_an_end(self):
+        from intune_iac import companion_live
+        from intune_iac.io import AppError
+        live = self.start()
+        _, release, client, _ = self.hold_a_writer()
+        with mock.patch.object(companion_live, 'STOP_WAIT_SECONDS', 0.2):
+            with self.assertRaises(AppError) as caught:
+                live.stop()
+            self.assertEqual(caught.exception.code, 'companion_live_writer_timeout')
+            with self.assertRaises(AppError) as waiting:
+                live.wait_step()
+            self.assertEqual(waiting.exception.code, 'companion_live_close_failed')
+        release.set()
+        client.join(5)
+        live.stop()
+        self.assertEqual(live.wait_step(), 'stopped')
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500
