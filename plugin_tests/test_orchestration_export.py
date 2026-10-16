@@ -72,6 +72,28 @@ class ExportAdapterTests(unittest.TestCase):
         a = dict(event(first_seq, 'dispatch.queued', 'T-1', kind='advisor'), event_id='ev-a')
         return a, dict(a, seq=copy_seq, data={'kind': 'other'})
 
+    def test_a_sequence_claimed_by_a_line_that_did_not_parse_is_still_contested_by_the_conflict(self):
+        first = dict(event(5, 'dispatch.queued', 'T-1', kind='advisor'), event_id='ev-a', wall_utc='not a time')
+        second = dict(event(6, 'dispatch.queued', 'T-1', kind='advisor'), event_id='ev-a')
+        b = dict(event(5, 'dispatch.queued', 'T-2', kind='advisor'), event_id='ev-b')
+        write_export(self.dir, [first, second, b], header=header_for([first, b]))
+        result = read(self.dir)
+        self.assertEqual(result['events'], [])
+        self.assertEqual(len(self.faults(result, 'event_conflict')), 1)
+        self.assertEqual(len(self.faults(result, 'seq_reused')), 1)
+
+    def test_a_third_differing_copy_contests_its_sequence_and_event_conflict_is_reported_once(self):
+        a = dict(event(5, 'dispatch.queued', 'T-1', kind='advisor'), event_id='ev-a')
+        second = dict(a, seq=6, data={'kind': 'repair'})
+        third = dict(a, seq=7, data={'kind': 'advisor', 'adopted': True})
+        holder = dict(event(7, 'dispatch.queued', 'T-2', kind='advisor'), event_id='ev-h')
+        later = dict(event(7, 'dispatch.queued', 'T-3', kind='advisor'), event_id='ev-l')
+        write_export(self.dir, [a, holder, second, third, later], header=header_for([a, holder, later]))
+        result = read(self.dir)
+        self.assertEqual(result['events'], [])
+        self.assertEqual(len(self.faults(result, 'event_conflict')), 1)
+        self.assertEqual(len(self.faults(result, 'seq_reused')), 2)  # ev-h evicted by the third copy, ev-l refused
+
     def test_a_conflicted_id_keeps_its_sequence_claimed_so_a_later_id_on_it_is_not_folded(self):
         a, a_copy = self.conflicted()
         b = dict(event(5, 'dispatch.queued', 'T-2', kind='advisor'), event_id='ev-b')

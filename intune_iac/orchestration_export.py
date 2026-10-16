@@ -14,6 +14,7 @@ sequence number, is shown as a fault and neither copy is kept: a source that con
 """
 from __future__ import annotations
 
+import collections
 import hashlib
 import json
 import os
@@ -134,6 +135,7 @@ def read_export(directory, roots=()):
     seen = {}        # event id -> digest of the first body seen
     records = {}     # event id -> accepted record
     by_seq = {}      # sequence -> event id that holds it
+    claimed_by = collections.defaultdict(set)  # event id -> every sequence a line with that id named
     conflicted, contested, duplicates, rejected, lines = set(), set(), 0, 0, 0
     last_seq = 0
     with open_regular(events_path) as handle:
@@ -160,23 +162,28 @@ def read_export(directory, roots=()):
                 faults.append({'code': fault.code, 'line': number, 'detail': fault.detail})
                 continue
             last_seq = max(last_seq, seq)
+            # Every sequence an id names is recorded as soon as its key is read, whether or not the body parses, so a
+            # later conflict contests all of them.
+            claimed_by[event_id].add(seq)
             if event_id in seen:
                 if seen[event_id] == digest:
                     duplicates += 1
-                elif event_id not in conflicted:
+                    continue
+                records.pop(event_id, None)
+                if event_id not in conflicted:
                     conflicted.add(event_id)
-                    old = records.pop(event_id, None)
                     faults.append({'code': 'event_conflict', 'line': number, 'event_id': event_id,
                                    'detail': 'the same event id appears with different bodies'})
-                    # Neither copy is kept, but both sequences stay claimed: another id on either is not folded.
-                    for claimed in {seq} | ({old['seq']} if old else set()):
-                        contested.add(claimed)
-                        other = by_seq.pop(claimed, None)
-                        if other is not None and other != event_id:  # its own entry is just released
-                            records.pop(other, None)
-                            faults.append({'code': 'seq_reused', 'line': number, 'event_id': event_id,
-                                           'detail': 'event %s and event %s claim sequence %d; neither is kept'
-                                                     % (escape_text(other), escape_text(event_id), claimed)})
+                # No copy is kept, but every sequence the id named stays claimed: another id on any of them is not
+                # folded, and one already holding it is dropped.
+                for claimed in sorted(claimed_by[event_id]):
+                    contested.add(claimed)
+                    other = by_seq.pop(claimed, None)
+                    if other is not None and other != event_id:  # its own entry is just released
+                        records.pop(other, None)
+                        faults.append({'code': 'seq_reused', 'line': number, 'event_id': event_id,
+                                       'detail': 'event %s and event %s claim sequence %d; neither is kept'
+                                                 % (escape_text(other), escape_text(event_id), claimed)})
                 continue
             seen[event_id] = digest
             try:
