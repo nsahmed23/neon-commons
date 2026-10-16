@@ -310,15 +310,19 @@ class StateWordsTests(Base):
         lines = self.lines('full')
         text = flat(lines)
         self.assertEqual(text.count('discovered = '), 1)
-        legend = next(i for i, line in enumerate(lines) if line.strip().startswith('Words used above: '))
+        legend = next(i for i, line in enumerate(lines) if line.strip().startswith('Legend: '))
         last_project = max(i for i, line in enumerate(lines) if line.strip().startswith('Resume'))
         self.assertTrue(last_project < legend < lines.index('NEXT ACTION'), (last_project, legend))
         legend_text = flat(lines[legend:lines.index('NEXT ACTION')])
-        for word in ('discovered = ', 'usable here = ', 'no live connection = ', 'synthetic only = ', 'not qualified = '):
+        for word in ('discovered = ', 'usable here = ', 'no live connection = ', 'source-asserted = ', 'synthetic only = ',
+                     'not qualified = '):
             self.assertIn(word, legend_text)
+        # every word it defines is a word the project rows use
+        for word in ('discovered', 'usable here', 'no live connection', 'source-asserted', 'synthetic only', 'not qualified'):
+            self.assertIn(word, flat(lines[:legend]), word)
 
     def test_no_projects_no_legend(self):
-        self.assertNotIn('Words used above', flat(self.lines('offline')))
+        self.assertNotIn('Legend: ', flat(self.lines('offline')))
 
     def test_authentication_is_not_checked_as_the_goal_rows_say_not_a_flat_negative(self):
         text = flat(self.lines('full'))

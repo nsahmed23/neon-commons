@@ -435,9 +435,10 @@ STATE_WORDS = {OFFLINE: PRODUCT_CONNECTION_WORDS, 'source_asserted_not_authentic
 # way, through screen_words.
 SCREEN_WORDS = {PRODUCT_CONNECTION_WORDS: 'this product has no live connection (authentication not checked)',
                 STATE_WORDS['source_asserted_not_authenticated']: 'source-asserted, authentication not checked'}
-STATE_LEGEND = ('Words used above: discovered = found in this directory; usable here = the product can open it offline from here; '
-                'no live connection = this product holds none, so authentication is not checked; synthetic only = modeled data, '
-                'not a live tenant; not qualified = no record qualifies it for live use.')
+STATE_LEGEND = ('Legend: discovered = found in this directory; usable here = the product can use it from here, offline; '
+                'no live connection = this product holds none, so authentication is not checked; source-asserted = the file '
+                'names the tenant and nothing checks it; synthetic only = modeled data, not a live tenant; not qualified = no '
+                'record qualifies it for live use.')
 
 
 def screen_words(words):
