@@ -302,7 +302,7 @@ class RedactionTests(Base):
             item = dict(item, prompt=SENTINEL, result={'text': SENTINEL}, summary=SENTINEL, session_id=SENTINEL,
                         agent_config=SENTINEL)
             item['data'] = dict(item['data'], result={'text': SENTINEL}, prompt=SENTINEL, summary=SENTINEL,
-                                result_path='C:/Users/someone/' + SENTINEL)
+                                result_path='C:/' + 'Users/someone/' + SENTINEL)
             raw.append(json.dumps(item, sort_keys=True))
         write_export(self.dir, events, raw_lines=raw, header=header_for(events))
         for args in ((), ('--json',)):

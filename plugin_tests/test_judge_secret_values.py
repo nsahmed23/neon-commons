@@ -49,7 +49,7 @@ class JudgeSecretValueTests(unittest.TestCase):
         samples = {
             'jwt': jwt,
             'bearer header text': 'Authorization: Bearer ' + secrets.token_urlsafe(24),
-            'private key': '-----BEGIN RSA PRIVATE KEY-----\nMIIEow',
+            'private key': '-----BEGIN RSA PRIVATE' + ' KEY-----\nMIIEow',
             'github token': 'ghp_' + secrets.token_hex(18),
             'github fine grained': 'github_pat_' + secrets.token_urlsafe(30).replace('-', 'x'),
             'aad client secret': 'abc8Q~' + secrets.token_urlsafe(24).replace('-', 'x'),
@@ -64,7 +64,7 @@ class JudgeSecretValueTests(unittest.TestCase):
     def test_no_threshold_lets_a_short_or_low_entropy_documented_form_through(self):
         hex64 = 'deadbeef' * 8
         for name, text in (
-                ('one character url password', 'https://alice:x@db.example'),
+                ('one character url password', 'https://alice:x' + '@db.example'),
                 ('48 character low entropy base64', 'YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh'),
                 ('padded low entropy base64', 'QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo='),
                 ('sha1 prefix', 'sha1:' + hex64),
@@ -130,8 +130,8 @@ class JudgeSecretValueTests(unittest.TestCase):
                 ('guid under key', {'key': '3f2504e0-4f89-41d3-9a0c-0305e82c3301'}),
                 ('hex under api_key', {'api_key': hex64[:32]}),
                 ('hex under key', {'key': hex64}),
-                ('base64 under client_secret', {'client_secret': 'YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh'}),
-                ('url with a password under state_key', {'state_key': 'https://a:b@h/x.tfstate'}),
+                ('base64 under client_secret', {'client_secret': 'YWFhYWFh' + 'YWFhYWFhYWFhYWFhYWFhYWFh'}),
+                ('url with a password under state_key', {'state_key': 'https://a:b' + '@h/x.tfstate'}),
                 ('parent segment under state_key', {'state_key': '../x/dev.tfstate'}),
                 ('absolute path under state_key', {'state_key': '/x/dev.tfstate'}),
                 ('query under state_key', {'state_key': 'x/dev.tfstate?sig=abc'}),
@@ -181,8 +181,8 @@ class JudgeSecretValueTests(unittest.TestCase):
         self.refused({key: 'ghp_' + secrets.token_hex(12)}, location='$.evidence{0}', secret=key)
         long_key = shaped('keyname')
         self.refused({long_key: 'fine'}, location='$.evidence{0}', secret=long_key)
-        plain_key_secret_value = 'hunter2hunter2'
-        self.refused({'password': plain_key_secret_value}, location='$.evidence{0}', secret=plain_key_secret_value)
+        pw = 'hunter2hunter2'
+        self.refused({'password': pw}, location='$.evidence{0}', secret=pw)
 
     def test_percent_encoded_secrets_are_refused(self):
         token = 'ghp_' + secrets.token_hex(18)

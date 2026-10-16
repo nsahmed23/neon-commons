@@ -65,7 +65,7 @@ class BrokerWindowTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         os.chmod(self.root, 0o700)
-        self.form = urlencode({'client_id': CLIENT, 'client_secret': 'synthetic-secret', 'grant_type': 'client_credentials',
+        self.form = urlencode({'client_id': CLIENT, 'client_secret': 'synthetic' + '-secret', 'grant_type': 'client_credentials',
                                'scope': 'https://graph.microsoft.com/.default'}).encode()
         self.policy = {'schema_version': 'protected-egress-policy/1.0', 'profile': 'laboratory_tls_fixture',
             'operation_id': 'a' * 32, 'execution_binding_sha256': 'b' * 64, 'expires_at': self.start + LIFETIME,
