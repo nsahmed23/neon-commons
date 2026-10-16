@@ -22,7 +22,7 @@ The pins were verified using remote tag resolution and independent shallow clone
 4. Run the actual synthetic CLI, repository and Linux terminal qualification scripts.
 5. Build runtime/source ZIPs from the explicitly reviewed file inventory into a fresh directory outside the checkout.
 6. Verify archive receipt hashes, ZIP paths/types/duplicates/CRC, exact member hash coverage, and shared runtime/source bytes before extracting into a new directory.
-7. Run the full verifier against the extracted source and `doctor` against the extracted runtime, then rebuild and compare both ZIPs byte for byte.
+7. Run the full verifier against the extracted source and `doctor` against the extracted runtime, then run the extracted source's builder with `--check-only` and compare the runtime and source content digests it reports with the `content_sha256` in each original archive's `BUILD-IDENTITY.json`. That shows the source archive holds everything the runtime archive was made from. The ZIPs are not rebuilt: their identity records name the commit and the build time, and the builder makes archives only from a known, clean Git checkout.
 8. Upload only candidate archives and named verification directories, including available failure evidence, for seven days. Hidden files and overwrite are disabled.
 
 The job has only `contents: read`. No cloud secrets, OIDC token permission, login action, provider execution, tenant capture, import, apply, deploy environment, pull-request comment or release publication is configured. Checkout/setup may use GitHub's ephemeral platform token for repository/runtime retrieval under that read-only permission; it is not exported as a shell credential, and checkout persistence is disabled. The artifact action uses the platform's artifact service. These platform transfers are not a cloud deployment.
@@ -44,7 +44,7 @@ For the first authorized GitHub run, retain the commit SHA, run URL, selected ac
 | Wheel hash, inventory or metadata mismatch | Stop installation. Inspect the selected distribution and upstream source, then make a separately reviewed lock change if justified. Do not delete the hash gate or substitute unhashed installation. |
 | Test/CLI/PTY failure | Preserve the failing receipt and logs, reproduce against the exact revision, repair the cause and rerun all affected gates. Do not reclassify a skip or expected failure as complete qualification. |
 | Archive/path/member hash mismatch | Preserve the candidate and receipt for investigation. Rebuild from a reviewed clean revision into a fresh directory; never overwrite a mismatching candidate in place. |
-| Extracted tests or byte-identical rebuild fail | Treat the package as unreleasable. Check inventory completeness, missing fixtures/dependencies and generated files before changing expected outputs. |
+| Extracted tests or the content-digest comparison fail | Treat the package as unreleasable. A differing digest means the source archive does not hold what the archive was made from: check inventory completeness, missing fixtures/dependencies and generated files before changing expected outputs. |
 | Artifact upload fails | The job remains failed. Preserve available workflow logs and rerun after resolving the artifact-service or policy issue; do not infer a release from local test success alone. |
 | Interrupted or cancelled validation | It grants no release status. Start a fresh run for the intended revision; no tenant/state reconciliation is needed because this workflow performs no tenant/provider operations. |
 

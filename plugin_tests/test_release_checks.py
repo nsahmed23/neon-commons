@@ -181,6 +181,13 @@ class CiStepTests(unittest.TestCase):
                 for text in (kind, recorded, computed):
                     self.assertIn(text, result.stderr + result.stdout)
 
+    def test_the_ci_handoff_describes_the_comparison_and_no_longer_a_byte_for_byte_rebuild(self):
+        text = squashed((base.ROOT / 'docs/CI.md').read_text(encoding='utf-8'))
+        for phrase in ('`--check-only`', 'content digests', '`content_sha256`', '`BUILD-IDENTITY.json`'):
+            self.assertIn(phrase, text)
+        for gone in ('byte for byte', 'byte-identical'):
+            self.assertNotIn(gone, text)
+
     def test_a_check_that_reports_no_digest_or_a_missing_archive_fails_instead_of_passing(self):
         self.assertNotEqual(self.compare(self.ci_root(reported={'status': 'PASS'})).returncode, 0)
         root = self.ci_root()
