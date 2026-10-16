@@ -5,6 +5,7 @@ task, attempt, incarnation, wall_utc, evidence and data. The header is computed 
 overrides it, so a test states only what it wants to differ.
 """
 import datetime
+import hashlib
 import json
 from pathlib import Path
 
@@ -14,13 +15,23 @@ RUNNER_A = 'a1a1a1a1a1a1'
 RUNNER_B = 'b2b2b2b2b2b2'
 
 
+def eid(token):
+    """A valid event id (32 lower-case hex, the length of the loop uuid4().hex ids) for a readable token."""
+    return hashlib.sha256(token.encode()).hexdigest()[:32]
+
+
+def attempt_id(token):
+    """A valid attempt id (32 lower-case hex, as attempt.py writes) for a readable token."""
+    return hashlib.sha256(('attempt:' + token).encode()).hexdigest()[:32]
+
+
 def wall(seq):
     stamp = BASE + datetime.timedelta(minutes=seq)
     return stamp.isoformat(timespec='milliseconds').replace('+00:00', 'Z')
 
 
 def event(seq, event_type, task=None, *, attempt=None, incarnation=RUNNER_A, role='runner', evidence=(), **data):
-    return {'seq': seq, 'event_id': 'ev-%d' % seq, 'event_type': event_type, 'role': role, 'task': task,
+    return {'seq': seq, 'event_id': eid('ev-%d' % seq), 'event_type': event_type, 'role': role, 'task': task,
             'attempt': attempt, 'incarnation': incarnation, 'wall_utc': wall(seq), 'evidence': list(evidence),
             'data': data}
 

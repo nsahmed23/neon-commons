@@ -11,7 +11,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from plugin_tests.orchestration_fixtures import RUNNER_B, event, header_for, lifecycle, wall, write_export
+from plugin_tests.orchestration_fixtures import RUNNER_B, attempt_id, eid, event, header_for, lifecycle, wall, write_export
 
 ROOT = Path(__file__).resolve().parents[1]
 CLI = ROOT / 'scripts/intune-iac.py'
@@ -118,7 +118,7 @@ class TerminalOrderTests(Base):
 
 
 class AttemptTests(Base):
-    A, B = 'A1', 'B1'
+    A, B = attempt_id('A1'), attempt_id('B1')
 
     def two_attempts(self):
         return [event(1, 'dispatch.queued', 'T-1', kind='advisor'),
@@ -132,7 +132,7 @@ class AttemptTests(Base):
         late = self.row(self.two_attempts() + [event(5, 'dispatch.completed', 'T-1', attempt=self.A)])
         self.assertEqual((late['state'], late['state_words']), ('started', 'started, no news since ' + wall(4)))
         self.assertEqual(late['no_news_since'], wall(4))
-        self.assertIn('attempt A1 recorded dispatch.completed after attempt B1 started: not applied to the current attempt',
+        self.assertIn('attempt %s recorded dispatch.completed after attempt %s started: not applied to the current attempt' % (self.A, self.B),
                       late['words'])
         self.assertNotIn('completed, unverified', late['state_words'])
 
@@ -140,14 +140,14 @@ class AttemptTests(Base):
         events = self.two_attempts() + [event(5, 'dispatch.completed', 'T-1')]
         row = self.row(events)
         self.assertEqual((row['state'], row['state_words']), ('started', 'started, no news since ' + wall(4)))
-        self.assertIn('dispatch.completed recorded without an attempt after attempt B1 started: not attributed',
+        self.assertIn('dispatch.completed recorded without an attempt after attempt %s started: not attributed' % self.B,
                       row['words'])
         self.assertEqual((row['last_event_type'], row['last_seq']), ('dispatch.completed', 5))
 
     def test_a_late_result_without_an_attempt_after_a_second_attempt_started_is_not_attributed(self):
         row = self.row(self.two_attempts() + [event(5, 'advisor.late_result', 'T-1', role='controller')])
         self.assertFalse(row['late_result'])
-        self.assertIn('advisor.late_result recorded without an attempt after attempt B1 started: not attributed',
+        self.assertIn('advisor.late_result recorded without an attempt after attempt %s started: not attributed' % self.B,
                       row['words'])
 
     def test_with_one_explicit_attempt_an_event_without_an_attempt_applies_to_it(self):
@@ -187,7 +187,7 @@ class AttemptTests(Base):
         for kind in ('dispatch.cancelled', 'dispatch.completed'):
             row = self.row(events + [event(5, kind, 'T-1', cleanup_confirmed=True)])
             self.assertEqual((row['state'], row['state_words']), ('started', 'started, no news since ' + wall(4)), kind)
-            self.assertIn('%s recorded without an attempt after attempt B1 started: not attributed' % kind, row['words'])
+            self.assertIn('%s recorded without an attempt after attempt %s started: not attributed' % (kind, self.B), row['words'])
 
 
 class VerificationTests(Base):
@@ -227,13 +227,13 @@ class VerificationTests(Base):
         self.assertIn('1 verification records, none attached to a task', text)
 
     def test_a_corrected_pass_no_longer_reads_verified(self):
-        events = self.done() + [self.verification(4), event(5, 'verification.corrected', 'T-1', corrects='ev-4')]
+        events = self.done() + [self.verification(4), event(5, 'verification.corrected', 'T-1', corrects=eid('ev-4'))]
         row = self.row(events)
         self.assertEqual((row['state'], row['state_words']), ('completed', 'completed, unverified'))
 
     def test_a_correction_of_a_record_the_export_does_not_hold_is_shown_not_dropped(self):
-        model, text = self.view(self.done() + [event(4, 'verification.corrected', None, corrects='ev-999')])
-        self.assertIn('correction at sequence 4 names verification ev-999, which this export does not hold', text)
+        model, text = self.view(self.done() + [event(4, 'verification.corrected', None, corrects=eid('ev-999'))])
+        self.assertIn('correction at sequence 4 names verification %s, which this export does not hold' % eid('ev-999'), text)
         self.assertEqual(model['tasks'][0]['state'], 'completed')
 
     def test_verification_does_not_apply_before_the_task_completed(self):
@@ -242,25 +242,25 @@ class VerificationTests(Base):
 
     def test_a_late_completion_in_a_superseded_attempt_is_not_verified_by_the_current_tree(self):
         events = [event(1, 'dispatch.queued', 'T-1', kind='repair'),
-                  event(2, 'dispatch.started', 'T-1', attempt='A1', adopted=False),
-                  event(3, 'dispatch.started', 'T-1', attempt='A2', adopted=False),
-                  event(4, 'dispatch.completed', 'T-1', attempt='A1', tree=TREE_X), self.verification(5)]
+                  event(2, 'dispatch.started', 'T-1', attempt=attempt_id('A1'), adopted=False),
+                  event(3, 'dispatch.started', 'T-1', attempt=attempt_id('A2'), adopted=False),
+                  event(4, 'dispatch.completed', 'T-1', attempt=attempt_id('A1'), tree=TREE_X), self.verification(5)]
         self.assertEqual(self.row(events)['state'], 'started')
 
     def test_a_tree_from_an_unattributed_repair_report_does_not_verify_the_current_attempt(self):
         events = [event(1, 'dispatch.queued', 'T-1', kind='repair'),
-                  event(2, 'dispatch.started', 'T-1', attempt='A1', adopted=False),
-                  event(3, 'dispatch.started', 'T-1', attempt='A2', adopted=False),
+                  event(2, 'dispatch.started', 'T-1', attempt=attempt_id('A1'), adopted=False),
+                  event(3, 'dispatch.started', 'T-1', attempt=attempt_id('A2'), adopted=False),
                   event(4, 'repair.reported', 'T-1', tree=TREE_X),
-                  event(5, 'dispatch.completed', 'T-1', attempt='A2', tree=None), self.verification(6)]
+                  event(5, 'dispatch.completed', 'T-1', attempt=attempt_id('A2'), tree=None), self.verification(6)]
         row = self.row(events)
         self.assertEqual((row['state'], row['state_words']), ('completed', 'completed, unverified'))
-        self.assertIn('repair.reported recorded without an attempt after attempt A2 started: not attributed', row['words'])
+        self.assertIn('repair.reported recorded without an attempt after attempt %s started: not attributed' % attempt_id('A2'), row['words'])
 
     def test_an_unattributed_claim_event_does_not_move_the_current_attempts_no_news_clock(self):
         events = [event(1, 'dispatch.queued', 'T-1', kind='repair'),
-                  event(2, 'dispatch.started', 'T-1', attempt='A1', adopted=False),
-                  event(3, 'dispatch.started', 'T-1', attempt='A2', adopted=False),
+                  event(2, 'dispatch.started', 'T-1', attempt=attempt_id('A1'), adopted=False),
+                  event(3, 'dispatch.started', 'T-1', attempt=attempt_id('A2'), adopted=False),
                   event(5, 'claim.released', 'T-1')]
         row = self.row(events)
         self.assertEqual(row['state_words'], 'started, no news since ' + wall(3))
@@ -277,19 +277,19 @@ class VerificationTests(Base):
 
 class UnopenedAttemptTests(Base):
     def test_an_unknown_attempt_id_on_a_claim_event_opens_nothing(self):
-        events = lifecycle('T-1', terminal='dispatch.completed') + [event(4, 'claim.released', 'T-1', attempt='A1')]
+        events = lifecycle('T-1', terminal='dispatch.completed') + [event(4, 'claim.released', 'T-1', attempt=attempt_id('A1'))]
         row = self.row(events)
         self.assertEqual((row['state'], row['state_words']), ('completed', 'completed, unverified'))
-        self.assertIn('claim.released names attempt A1, which no started record opened: not attributed', row['words'])
+        self.assertIn('claim.released names attempt %s, which no started record opened: not attributed' % attempt_id('A1'), row['words'])
 
     def test_an_unknown_attempt_id_opens_a_new_attempt_only_for_queued_or_started(self):
         events = [event(1, 'dispatch.queued', 'T-1', kind='advisor'),
-                  event(2, 'dispatch.started', 'T-1', attempt='A1', adopted=False),
-                  event(3, 'dispatch.failed', 'T-1', attempt='A1', reason='x'),
-                  event(4, 'dispatch.completed', 'T-1', attempt='A9')]
+                  event(2, 'dispatch.started', 'T-1', attempt=attempt_id('A1'), adopted=False),
+                  event(3, 'dispatch.failed', 'T-1', attempt=attempt_id('A1'), reason='x'),
+                  event(4, 'dispatch.completed', 'T-1', attempt=attempt_id('A9'))]
         row = self.row(events)
         self.assertEqual(row['state'], 'failed')
-        self.assertIn('dispatch.completed names attempt A9, which no started record opened: not attributed', row['words'])
+        self.assertIn('dispatch.completed names attempt %s, which no started record opened: not attributed' % attempt_id('A9'), row['words'])
 
 
 class StartedAfterTerminalTests(Base):
@@ -399,7 +399,7 @@ class RedactionTests(Base):
         for kind, fields in contract.DATA_FIELDS.items():
             for name, how in fields.items():
                 self.assertIn(how if isinstance(how, str) else type(how).__name__,
-                              (contract.FLAG, contract.IDENT, contract.REASON, 'frozenset', 'Pattern'), (kind, name))
+                              (contract.FLAG, contract.REASON, 'frozenset', 'Pattern'), (kind, name))
 
     def test_a_verification_field_that_carries_a_path_or_a_name_is_a_contract_fault(self):
         good = {'outcome': 'pass', 'requirement': 'REQ-12', 'gate': 'temporal', 'commit': 'f' * 40, 'tree': 'a' * 40}
@@ -407,7 +407,7 @@ class RedactionTests(Base):
         self.assertEqual(model['faults'], [])
         hostile = {'outcome': ['nsahm', 'label:C:\\Users\\Some One', 'ok\x1b[2J'],
                    'requirement': ['nsahm', 'REQ-12 label:C:\\Users\\Alice', '\\\\?\\C:\\Users\\Bob'],
-                   'gate': ['C:\\Users\\Some One\\gate', '../../etc/passwd', 'Gate With Space'],
+                   'gate': ['nsahm', 'C:\\Users\\Some One\\gate', '../../etc/passwd', 'Gate With Space'],
                    'commit': ['nsahm', 'C:\\Users\\x', 'F' * 40],
                    'tree': ['nsahm', '\\\\?\\C:\\Users\\Some One', 'a' * 65]}
         for field, values in hostile.items():
@@ -422,6 +422,41 @@ class RedactionTests(Base):
                                      event(2, terminal, 'T-1', tree='label:C:\\Users\\Some One')])
             self.assertEqual([f['code'] for f in model['faults']], ['invalid_field'], terminal)
             self.assertNotIn('Some One', text + json.dumps(model))
+
+    def test_an_event_id_or_attempt_must_be_lower_case_hex_of_the_loops_length(self):
+        # event ids: uuid4().hex (32, model.py:140) or a sha256 det_id (64, model.py:86); attempts: uuid4().hex (32)
+        for good in ('a' * 32, 'b' * 64):
+            self.assertEqual(self.view([dict(event(1, 'dispatch.queued', 'T-1', kind='advisor'), event_id=good)])[0]['faults'], [])
+        self.assertEqual(self.view([event(1, 'dispatch.queued', 'T-1', kind='advisor', attempt='c' * 32)])[0]['faults'], [])
+        for bad in ('nsahm', 'ev-1', 'A' * 32, 'a' * 31, 'a' * 33, 'a' * 63, 'a' * 65, 'C:\\Users\\x'):
+            model, text = self.view([dict(event(1, 'dispatch.queued', 'T-1', kind='advisor'), event_id=bad)])
+            self.assertEqual(model['tasks'], [], bad)
+            self.assertEqual([f['code'] for f in model['faults']], ['invalid_field'], bad)
+            self.assertNotIn(bad, text + json.dumps(model))
+        for bad in ('nsahm', 'A1', 'a' * 31, 'a' * 33, 'A' * 32):
+            model, text = self.view([event(1, 'dispatch.queued', 'T-1', kind='advisor', attempt=bad)])
+            self.assertEqual(model['tasks'], [], bad)
+            self.assertEqual([f['code'] for f in model['faults']], ['invalid_field'], bad)
+            self.assertNotIn(bad, text + json.dumps(model))
+
+    def test_a_correction_must_name_event_ids_in_the_loop_format(self):
+        for field in ('corrects', 'replaced_by'):
+            model, text = self.view([event(1, 'verification.corrected', None, role='verifier', **{field: 'nsahm'})])
+            self.assertEqual([f['code'] for f in model['faults']], ['invalid_field'], field)
+            self.assertNotIn('nsahm', text + json.dumps(model))
+
+    def test_a_gate_outside_the_loops_gate_set_is_a_contract_fault_that_does_not_show_it(self):
+        good = {'outcome': 'pass', 'requirement': 'REQ-12', 'commit': 'f' * 40, 'tree': 'a' * 40}
+        from intune_iac.orchestration_contract import GATES
+        self.assertTrue({'aggregate-regression', 'temporal', 'journey-28', 'frame-review'} <= GATES)
+        for gate in sorted(GATES):
+            model, _ = self.view([event(1, 'verification.completed', None, role='verifier', gate=gate, **good)])
+            self.assertEqual(model['faults'], [], gate)
+        for gate in ('nsahm', 'alice-gate', 'journey-9999', 'Temporal'):
+            model, text = self.view([event(1, 'verification.completed', None, role='verifier', gate=gate, **good)])
+            self.assertEqual([f['code'] for f in model['faults']], ['invalid_field'], gate)
+            self.assertIn('unknown gate (not shown)', text)
+            self.assertNotIn(gate, text + json.dumps(model))
 
     def test_a_dispatch_kind_outside_the_loops_closed_list_is_a_contract_fault(self):
         for kind in ('dispatch.queued', 'dispatch.refused'):

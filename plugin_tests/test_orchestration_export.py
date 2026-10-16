@@ -6,7 +6,7 @@ import unittest
 from unittest import mock
 from pathlib import Path
 
-from plugin_tests.orchestration_fixtures import (DIGEST, event, header_for, lifecycle, write_export)
+from plugin_tests.orchestration_fixtures import (DIGEST, eid, event, header_for, lifecycle, write_export)
 
 SENTINEL = 'SENTINEL-NEVER-SHOWN'
 ESC = '\x1b[2J\x1b]0;owned\x07'
@@ -70,13 +70,13 @@ class ExportAdapterTests(unittest.TestCase):
         self.assertEqual(len(result['events']), 2)
 
     def conflicted(self, first_seq=5, copy_seq=5):
-        a = dict(event(first_seq, 'dispatch.queued', 'T-1', kind='advisor'), event_id='ev-a')
+        a = dict(event(first_seq, 'dispatch.queued', 'T-1', kind='advisor'), event_id=eid('ev-a'))
         return a, dict(a, seq=copy_seq, data={'kind': 'other'})
 
     def test_a_sequence_claimed_by_a_line_that_did_not_parse_is_still_contested_by_the_conflict(self):
-        first = dict(event(5, 'dispatch.queued', 'T-1', kind='advisor'), event_id='ev-a', wall_utc='not a time')
-        second = dict(event(6, 'dispatch.queued', 'T-1', kind='advisor'), event_id='ev-a')
-        b = dict(event(5, 'dispatch.queued', 'T-2', kind='advisor'), event_id='ev-b')
+        first = dict(event(5, 'dispatch.queued', 'T-1', kind='advisor'), event_id=eid('ev-a'), wall_utc='not a time')
+        second = dict(event(6, 'dispatch.queued', 'T-1', kind='advisor'), event_id=eid('ev-a'))
+        b = dict(event(5, 'dispatch.queued', 'T-2', kind='advisor'), event_id=eid('ev-b'))
         write_export(self.dir, [first, second, b], header=header_for([first, b]))
         result = read(self.dir)
         self.assertEqual(result['events'], [])
@@ -84,11 +84,11 @@ class ExportAdapterTests(unittest.TestCase):
         self.assertEqual(len(self.faults(result, 'seq_reused')), 1)
 
     def test_a_third_differing_copy_contests_its_sequence_and_event_conflict_is_reported_once(self):
-        a = dict(event(5, 'dispatch.queued', 'T-1', kind='advisor'), event_id='ev-a')
+        a = dict(event(5, 'dispatch.queued', 'T-1', kind='advisor'), event_id=eid('ev-a'))
         second = dict(a, seq=6, data={'kind': 'repair'})
         third = dict(a, seq=7, data={'kind': 'advisor', 'adopted': True})
-        holder = dict(event(7, 'dispatch.queued', 'T-2', kind='advisor'), event_id='ev-h')
-        later = dict(event(7, 'dispatch.queued', 'T-3', kind='advisor'), event_id='ev-l')
+        holder = dict(event(7, 'dispatch.queued', 'T-2', kind='advisor'), event_id=eid('ev-h'))
+        later = dict(event(7, 'dispatch.queued', 'T-3', kind='advisor'), event_id=eid('ev-l'))
         write_export(self.dir, [a, holder, second, third, later], header=header_for([a, holder, later]))
         result = read(self.dir)
         self.assertEqual(result['events'], [])
@@ -97,7 +97,7 @@ class ExportAdapterTests(unittest.TestCase):
 
     def test_a_conflicted_id_keeps_its_sequence_claimed_so_a_later_id_on_it_is_not_folded(self):
         a, a_copy = self.conflicted()
-        b = dict(event(5, 'dispatch.queued', 'T-2', kind='advisor'), event_id='ev-b')
+        b = dict(event(5, 'dispatch.queued', 'T-2', kind='advisor'), event_id=eid('ev-b'))
         write_export(self.dir, [a, a_copy, b], header=header_for([a, b]))
         result = read(self.dir)
         self.assertEqual(result['events'], [])
@@ -106,8 +106,8 @@ class ExportAdapterTests(unittest.TestCase):
 
     def test_a_conflicting_copy_on_another_sequence_contests_both_and_drops_the_id_already_holding_it(self):
         a, a_copy = self.conflicted(first_seq=5, copy_seq=6)
-        c = dict(event(6, 'dispatch.queued', 'T-3', kind='advisor'), event_id='ev-c')
-        d = dict(event(5, 'dispatch.queued', 'T-4', kind='advisor'), event_id='ev-d')
+        c = dict(event(6, 'dispatch.queued', 'T-3', kind='advisor'), event_id=eid('ev-c'))
+        d = dict(event(5, 'dispatch.queued', 'T-4', kind='advisor'), event_id=eid('ev-d'))
         write_export(self.dir, [a, c, a_copy, d], header=header_for([a, c, d]))
         result = read(self.dir)
         self.assertEqual(result['events'], [])
@@ -117,7 +117,7 @@ class ExportAdapterTests(unittest.TestCase):
     def test_many_conflicts_are_read_in_time_that_does_not_grow_with_the_square_of_the_events(self):
         import time
         count = 20000
-        lines = [json.dumps(dict(event(n, 'dispatch.queued', 'T-1', kind=kind), event_id='e%d' % n))
+        lines = [json.dumps(dict(event(n, 'dispatch.queued', 'T-1', kind=kind), event_id=eid('e%d' % n)))
                  for kind in ('advisor', 'other') for n in range(1, count + 1)]
         write_export(self.dir, [], raw_lines=lines, header=header_for([]))
         started = time.monotonic()
@@ -159,8 +159,8 @@ class ExportAdapterTests(unittest.TestCase):
         result = read(self.dir)
         conflict = self.faults(result, 'event_conflict')
         self.assertEqual(len(conflict), 1)
-        self.assertEqual(conflict[0]['event_id'], 'ev-2')
-        self.assertNotIn('ev-2', [e['event_id'] for e in result['events']])
+        self.assertEqual(conflict[0]['event_id'], eid('ev-2'))
+        self.assertNotIn(eid('ev-2'), [e['event_id'] for e in result['events']])
         self.assertEqual(result['check']['state'], 'ok')  # the id is still one of the header's two events
 
     def test_a_difference_outside_the_allowlist_still_makes_the_bodies_different(self):
@@ -171,21 +171,21 @@ class ExportAdapterTests(unittest.TestCase):
 
     def test_two_event_ids_on_one_sequence_are_a_contract_fault(self):
         events = lifecycle('T-1')
-        other = dict(events[1], event_id='ev-other')
+        other = dict(events[1], event_id=eid('ev-other'))
         write_export(self.dir, events, extra_lines=[json.dumps(other, sort_keys=True)], header=header_for(events))
         result = read(self.dir)
         self.assertEqual(len(self.faults(result, 'seq_reused')), 1)
-        self.assertEqual([e['event_id'] for e in result['events']].count('ev-other'), 0)
+        self.assertEqual([e['event_id'] for e in result['events']].count(eid('ev-other')), 0)
 
     def test_a_third_claimant_of_a_contested_sequence_is_not_kept(self):
         events = lifecycle('T-1')
-        first = dict(events[1], event_id='x1')
-        third = dict(events[1], event_id='x2', task='T-9')
+        first = dict(events[1], event_id=eid('x1'))
+        third = dict(events[1], event_id=eid('x2'), task='T-9')
         write_export(self.dir, events, extra_lines=[json.dumps(first, sort_keys=True), json.dumps(third, sort_keys=True)],
                      header=header_for(events))
         result = read(self.dir)
         ids = [e['event_id'] for e in result['events']]
-        self.assertEqual(ids, ['ev-1'])
+        self.assertEqual(ids, [eid('ev-1')])
         self.assertEqual(len(self.faults(result, 'seq_reused')), 2)
         self.assertNotIn('T-9', [e['task'] for e in result['events']])
 

@@ -39,14 +39,23 @@ DISPATCH_KINDS = frozenset(('advisor', 'repair'))
 _TASK = re.compile(r'T-[0-9a-f]{1,32}')
 _INCARNATION = re.compile(r'[0-9a-f]{1,32}')
 ATTESTED = 'controller attested'
-# Verification fields. outcome: loop/verify.py:266. requirement: the loop's REQ-nn ids. gate: a lower-case gate name from
-# the loop's contract (aggregate-regression, temporal). commit and tree: git object names in hex.
+# Ids in the loop's formats. An event id is uuid4().hex (32, loop/model.py:140) or a sha256 det_id (64, model.py:86);
+# an attempt id is uuid4().hex (32, attempt.py:73 and loop/ingest.py attempt_id); lower-case hex only.
+_EVENT_ID = re.compile(r'[0-9a-f]{32}|[0-9a-f]{64}')
+_ATTEMPT = re.compile(r'[0-9a-f]{32}')
+_ROLE = re.compile(r'[a-z]{1,16}')
+# Verification fields. outcome: loop/verify.py:266. requirement: the loop's REQ-nn ids. commit and tree: git object
+# names in hex. gate: a closed set. The gates of the loop's contract (contracts/intune-acceptance.json, REQ-12:
+# aggregate-regression, temporal, journey-28, frame-review) and the further gate names found in the loop's own real
+# export (plugin_tests/fixtures/orchestration/real-export: journey-13, -29, -30, -31 and work-order-verification),
+# because verify-record takes the gate name as an argument and the loop has recorded those. Any other name is a fault.
 VERIFICATION_OUTCOMES = frozenset(('pass', 'fail', 'blocked', 'incomplete'))
+GATES = frozenset(('aggregate-regression', 'temporal', 'journey-28', 'frame-review', 'journey-13', 'journey-29',
+                   'journey-30', 'journey-31', 'work-order-verification'))
 _REQUIREMENT = re.compile(r'REQ-[0-9A-Za-z._-]{1,32}')
-_GATE = re.compile(r'[a-z0-9][a-z0-9_-]{0,47}')
 _GIT_HEX = re.compile(r'[0-9a-f]{7,64}')
 
-FLAG, IDENT, REASON = 'flag', 'ident', 'reason'
+FLAG, REASON = 'flag', 'reason'
 # The only `data` fields shown, by event type, with the type each must have. A REASON is free text from the loop
 # (it can hold agent configuration, a user name or a path): it is never carried, only the fact that one was recorded
 # (and whether it was the controller's attestation, the one value the view reads).
@@ -60,12 +69,11 @@ DATA_FIELDS = {
     'dispatch.cancelled': {'cleanup_confirmed': FLAG, 'reason': REASON},
     'dispatch.completed': {'tree': _GIT_HEX},
     'repair.reported': {'tree': _GIT_HEX},
-    'verification.completed': {'outcome': VERIFICATION_OUTCOMES, 'requirement': _REQUIREMENT, 'gate': _GATE,
+    'verification.completed': {'outcome': VERIFICATION_OUTCOMES, 'requirement': _REQUIREMENT, 'gate': GATES,
                                'commit': _GIT_HEX, 'tree': _GIT_HEX},
-    'verification.corrected': {'corrects': IDENT, 'replaced_by': IDENT},
+    'verification.corrected': {'corrects': _EVENT_ID, 'replaced_by': _EVENT_ID},
 }
 
-_IDENT = re.compile(r'[A-Za-z0-9][A-Za-z0-9._:+@-]{0,127}')
 _STAMP = re.compile(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,6})?Z')
 _HEX64 = re.compile(r'[0-9a-f]{64}')
 _UNSAFE = frozenset(('Cc', 'Cf', 'Cs', 'Co', 'Cn', 'Zl', 'Zp'))
@@ -191,7 +199,7 @@ def _bad(field):
     return ContractFault('invalid_field', field)
 
 
-def ident(raw, field, required=False, grammar=_IDENT, allowed=None):
+def ident(raw, field, grammar, required=False, allowed=None):
     """A string that matches `grammar` (and is in `allowed` when given), or ContractFault naming only the field."""
     value = raw.get(field)
     if value is None and not required:
@@ -215,8 +223,6 @@ def _data(kind, raw):
             if value is not None and not isinstance(value, bool):
                 raise _bad('data.' + name)
             out[name] = value is True
-        elif how == IDENT:
-            out[name] = ident(data, name)
         elif how == REASON:
             if value is not None and not isinstance(value, str):
                 raise _bad('data.' + name)
@@ -224,6 +230,8 @@ def _data(kind, raw):
         else:  # a closed list (frozenset) or a grammar (compiled pattern); any other value is a contract fault
             if value is not None and not (isinstance(value, str) and (
                     value in how if isinstance(how, frozenset) else how.fullmatch(value))):
+                if name == 'gate':
+                    raise ContractFault('invalid_field', 'data.gate: unknown gate (not shown)')
                 raise _bad('data.' + name)
             out[name] = value
     return out
@@ -258,7 +266,7 @@ def event_key(raw):
     seq = raw.get('seq')
     if not (isinstance(seq, int) and not isinstance(seq, bool) and seq >= 1):
         raise _bad('seq')
-    return ident(raw, 'event_id', required=True), seq
+    return ident(raw, 'event_id', _EVENT_ID, required=True), seq
 
 
 def parse_event(raw, roots=()):
@@ -272,8 +280,8 @@ def parse_event(raw, roots=()):
         raise _bad('wall_utc')
     evidence, rejected = _evidence(raw, roots)
     record = {'seq': seq, 'event_id': event_id, 'event_type': kind,
-              'role': ident(raw, 'role', required=True, allowed=ROLES), 'task': ident(raw, 'task', grammar=_TASK),
-              'attempt': ident(raw, 'attempt'), 'incarnation': ident(raw, 'incarnation', grammar=_INCARNATION),
+              'role': ident(raw, 'role', _ROLE, required=True, allowed=ROLES), 'task': ident(raw, 'task', _TASK),
+              'attempt': ident(raw, 'attempt', _ATTEMPT), 'incarnation': ident(raw, 'incarnation', _INCARNATION),
               'wall_utc': stamp,
               'evidence': evidence, 'data': _data(kind, raw)}
     return record, rejected
