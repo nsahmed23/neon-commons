@@ -381,7 +381,7 @@ def _judged(store, floor, payload, request_sha256, deadline):
             row = _open_row(db, store, payload, request_sha256)
             view, lost = _view(reading, row)
             issued = payload.get('issued_at')
-            legacy = (row is None and cutoff > 0 and type(issued) in (int, float) and issued < cutoff)
+            legacy = (row is None and cutoff > 0 and type(issued) in (int, float) and issued <= cutoff)
             lost = lost or legacy
             state = judge(view, payload['expires_at'], deadline,
                           latched(db, store.table, store.domain, payload, request_sha256))

@@ -206,10 +206,11 @@ time that never goes backward, never on a bare wall-clock reading
   migration cutoff in its own database (table `<store>_cutoff`, one row, refused by triggers if updated or deleted),
   committed once at the store's first judgment under the boot session and before the recorded time is touched. A store with
   a history (a recorded time of any schema, or any expiry or open record) gets that judgment's effective time; a store with
-  none gets 0. An artifact that names an issue time before the cutoff and has no open row is held exactly like one from a
-  lost session: until the host clock reads at or after its expiry, or until it is prepared anew (issued after the cutoff).
-  Removing `clock.json` does not remove the cutoff. Artifacts that name no issue time (the broker's policy window) are not
-  judged against it.
+  none gets 0. An artifact issued at or before the cutoff that has no open row is held exactly like one from a lost
+  session: until the host clock reads at or after its expiry, or until it is prepared anew; fresh preparation must be issued
+  after the cutoff. Removing `clock.json` afterwards does not remove the cutoff. Limit: if a store's only legacy clock file is
+  deleted before its first judgment under this code, nothing distinguishes the store from a new one, so its cutoff is 0 and
+  nothing is held. Artifacts that name no issue time (the broker's policy window) are not judged against the cutoff.
 - **A recorded forward blip.** The floor carries the largest time any check recorded plus the boot time since. A wall
   clock that jumped forward and was recorded therefore holds for the rest of the boot, and restarting does not clear it:
   correct the host clock, prepare the approval anew, or start a new boot of the host (for example `wsl --shutdown`).

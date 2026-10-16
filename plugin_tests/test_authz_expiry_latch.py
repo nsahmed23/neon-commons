@@ -118,6 +118,19 @@ class ReceiptExpiryLatchTests(unittest.TestCase):
         self.assertEqual(len(rows(self.authority, 'SELECT * FROM expired_v2')), 1)
         self.assertEqual(self.consumed(), [])
 
+    def test_a_receipt_issued_exactly_at_the_migration_cutoff_is_held(self):
+        record = self.root / 'authority' / 'clock.json'
+        write_json(record, {'schema_version': 'intune-clock-floor/1', 'high_water': self.start + 50})
+        self.restart()
+        self.clocks.wall = self.start + 60  # the wall was set back to T60; the first judgment makes the cutoff T60
+        signed = self.receipt(issued_at=self.start + 60, expires_at=self.start + 100)
+        self.assertEqual(self.refused(lambda: self.authorize(signed)).code, 'clock_moved_backward')
+        self.assertEqual(self.consumed(), [])
+        self.assertEqual(rows(self.authority, 'SELECT * FROM executions'), [])
+        self.restart()
+        self.assertEqual(self.refused(lambda: self.authorize(signed)).code, 'clock_moved_backward')
+        self.assertEqual(self.consumed(), [])
+
     def test_the_expiry_is_recorded_in_the_authority_store_and_latches_without_the_clock_record(self):
         self.clocks.elapse(LIFETIME + 1)
         self.refused(lambda: self.authorize(self.signed))

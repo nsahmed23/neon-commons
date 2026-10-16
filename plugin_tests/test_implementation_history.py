@@ -254,6 +254,20 @@ CUTOFF_WORKER_FILES = {
     'validity.py': 'b58ea8a6c73e14542d86243a34668b89a9b7432e9fe105136b9522dc3925a341',
     'clock.py': '49bd3d46c5ffcc554cbcc157a70a27504046807b940836844d16069b79e0e4c8',
 }
+CUTOFF2_LABEL = 'migration-cutoff-boundary'
+CUTOFF2_WORKER_FILES = {
+    'protected_worker.py': '191c0c7549c8fcd1b9cfa2ff43311bdc23282f9e3d357602268a113f170d5299',
+    'protected.py': '186ee85bc5228f71360477442207bf4bb0591ca2338e6b38dd3177b368412e14',
+    'provider_execution.py': '653e4191156444fd05a0937c8c3a5f5a6c6097fa07e9cb5f34a1278cdb2a7731',
+    'approval_authority.py': '97d13b0d57b7679b50425c44f2d14562324070f4dff9b2807d591db0ef1a4960',
+    'provider_journey.py': 'dfba89eaf20dfa42c423fcecc2f8fea6bf75d9f2e50ee24d05996307efa9c371',
+    'azure_backend.py': '83c6079140bc1740d0ac8d2d4773a07faa2046de93f4b84a79cd23712e597eab',
+    'execution.py': 'd77a3c1519621bcc04c74034d4cfb55c4e0b5fadde74e50980c36b1d520feadd',
+    'io.py': '8ae9ba7696521e4c608f39ba90bedb98d2a9f2bdd614d279a001c793c2b17fe4',
+    'native_pins.py': '0047f15debc49c0e2e7660521b22fed4568eb93015c2e2fef107ba62635a9cbc',
+    'validity.py': '695df1d0c14273da219f67b1787e68029ce6e5939be2dc02955b7d2145f99525',
+    'clock.py': '49bd3d46c5ffcc554cbcc157a70a27504046807b940836844d16069b79e0e4c8',
+}
 
 class InventoryPinTests(unittest.TestCase):
     """Appending an entry is a deliberate release act that updates these literals; nothing else may change."""
@@ -296,7 +310,8 @@ class InventoryPinTests(unittest.TestCase):
              {'label': AUTHZ_C_LABEL, 'files': AUTHZ_C_WORKER_FILES},
              {'label': AUTHZ_C2_LABEL, 'files': AUTHZ_C2_WORKER_FILES},
              {'label': BOOT_LABEL, 'files': BOOT_WORKER_FILES},
-             {'label': CUTOFF_LABEL, 'files': CUTOFF_WORKER_FILES}])
+             {'label': CUTOFF_LABEL, 'files': CUTOFF_WORKER_FILES},
+             {'label': CUTOFF2_LABEL, 'files': CUTOFF2_WORKER_FILES}])
 
     def test_each_entry_names_only_its_own_component_set(self):
         # An entry carries the file set of its own release: the earlier set until clock.py was bound, the current set

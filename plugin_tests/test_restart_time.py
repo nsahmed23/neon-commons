@@ -247,6 +247,17 @@ class MigrationTests(StoreFixture):
         self.assertEqual(self.refused(lambda: self.enter(self.issued(START + 40))).code, 'toy_expired')
         self.assertEqual(len(self.rows('SELECT * FROM latched_v2')), 1)
 
+    def test_an_artifact_issued_exactly_at_the_cutoff_is_held(self):
+        self.legacy_store(START + 50)  # old code judged it open at T50 and left only the mark
+        self.clocks.wall = START + 60  # the wall was set back to T60; this first judgment makes the cutoff T60
+        artifact = self.issued(START + 60, expires_at=START + 100)  # issued at the cutoff second: it may have been judged earlier
+        error = self.refused(lambda: self.enter(artifact))
+        self.assertEqual(error.code, 'clock_moved_backward')
+        self.assertEqual(self.cutoff(), [(START + 60,)])
+        self.assertEqual(self.rows("SELECT name FROM sqlite_master WHERE name = 'latched_open'"), [])
+        self.restart()
+        self.assertEqual(self.refused(lambda: self.enter(artifact)).code, 'clock_moved_backward')
+
     def test_an_artifact_prepared_anew_after_the_cutoff_is_judged_normally(self):
         self.legacy_store()
         self.clocks.wall = START + 60
