@@ -299,6 +299,41 @@ class StandInCommandSegmentTests(unittest.TestCase):
         ("echo 'D\\'IRECTORY", False),         # single quotes end at the second quote: D\ then IRECTORY
     )
 
+    # Round 8: the $ class. (text, does bash read the token DIRECTORY in it, with no variable set). Worked by hand.
+    DOLLARS = (
+        ('echo DIREC$""TORY', True),             # $"..." is a double-quoted string: empty
+        ('echo DIREC$\'\'TORY', True),            # $'..' likewise
+        ('echo DIREC$xTORY', False),              # $xTORY is one name (greedy): unset, so DIREC
+        ('echo DIREC${x}TORY', True),             # ${x} is empty
+        ('echo D${x-IRECTORY}', True),            # ${x-w} is w when x is unset
+        ('echo D${x+IRECTORY}', False),           # ${x+w} is empty when x is unset
+        ('echo DIREC$@TORY', True),
+        ('echo DIREC$*TORY', True),
+        ('echo DIREC$1TORY', True),               # $1 is one digit: empty
+        ('echo DIREC$!TORY', True),
+        ('echo "DIREC$xTORY"', False),
+        ('echo "DIREC${x}TORY"', True),
+        ('echo "DIREC$""TORY"', False),            # inside double quotes $" is a literal $ then the quote ends: DIREC$ and TORY
+        ("echo 'DIREC$xTORY'", False),             # single quotes keep the $
+        ('echo DIREC\\$""TORY', False),           # \\$ is a literal $: DIREC$TORY
+        ('echo "DIREC\\$x"', False),
+        ('echo $', False),
+        ('echo D$ IRECTORY', False),
+    )
+    SUBSTITUTIONS = (
+        ('echo $(date)', True), ('echo `date`', True), ('echo "$(date)"', True), ('echo "`date`"', True),
+        ("echo '$(date)'", False), ("echo '`date`'", False), ('echo \\`date', False), ('echo \\$(date)', False),
+        ('echo $((1+1))', True),
+    )
+
+    def test_dollar_constructs_are_read_as_the_shell_reads_them(self):
+        from intune_iac import readiness
+        generic = 'this step names the directory, which cannot be shown here'
+        for text, names_it in self.DOLLARS + self.SUBSTITUTIONS:
+            with self.subTest(text=text):
+                said = readiness.without_stand_in(text)
+                self.assertEqual(said, generic if names_it else text)
+
     def test_an_unquoted_backslash_newline_is_removed_as_the_shell_removes_it(self):
         """Round 7: outside quotes the shell drops a backslash followed by a newline, so DIREC, backslash, newline, TORY is DIRECTORY."""
         from intune_iac import readiness

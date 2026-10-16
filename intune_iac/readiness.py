@@ -479,11 +479,15 @@ def without_stand_in(step):
     that no stand-in survives in any spelling (quoted, escaped, spaced, reordered). A line is first cut at the shell's operators
     (; && || |, outside quotes) and each part is read as its own command; a part that needs no change is kept as it was.
 
-    The lines are the product's own recorded steps, a closed grammar: the readiness rows' notes and next actions in this module
-    (readiness.py) and the catalog's own sentences (catalog.py), not arbitrary shell text. So the rule fails closed: after the
-    commands are replaced, any part that still holds the token DIRECTORY once read approximately as the shell reads it (quotes,
-    backslashes and the $ of $'..' removed, blanks one space) is replaced whole by words, whatever it is. A part without the token
-    keeps its bytes. Encodings beyond the producer grammar, such as hex escapes inside $'..' in a tampered record, are out of scope."""
+    The grammar (final). The lines are the product's own recorded steps, a closed grammar: the readiness rows' notes and next
+    actions in this module (readiness.py) and the catalog's own sentences (catalog.py), not arbitrary shell text. So the rule fails
+    closed: after the commands are replaced, any part that still holds the token DIRECTORY once read as the shell reads it in a
+    clean environment (_shell_flatten: quoting, backslashes, $"..", $'..', empty expansions, ${NAME-word} defaults, blanks one
+    space) is replaced whole by words, whatever it is; so is any part with a command substitution, $( or a backtick outside single
+    quotes. A part without the token keeps its bytes. Outside the grammar, and not read: redirections, comments, globbing,
+    variables that are set when the line is copied, the values of $$ and $- (read as empty, which only replaces more), and
+    encodings in a tampered record such as hex escapes inside $'..'. The test_shell_differential module checks this reading
+    against bash over about a hundred thousand strings."""
     if not step:
         return step
     out, changed = [], False
@@ -500,13 +504,18 @@ def without_stand_in(step):
 NO_NAME_WORDS = 'this step names the directory, which cannot be shown here'
 
 
-def _shell_flatten(text):
+def _shell_flatten(text, found=None):
     """The text as the shell reads its words, approximately: quotes removed and blanks outside quotes one space. Single quotes
     keep every backslash; double quotes keep a backslash unless it escapes $, a backtick, " , \\ or a newline; outside quotes a
     backslash escapes the next character. Inside $'..' (ANSI-C) every backslash is dropped, the closed side of the approximation.
-    A quote that never closes runs to the end of the text."""
-    out, i, quote = [], 0, None
-    while i < len(text):
+    A quote that never closes runs to the end of the text.
+
+    Expansions are read for a clean environment, where no variable is set: $"..." is a double-quoted string (the $ is dropped, as
+    for $'..'); $NAME (greedy), ${...}, the specials $0 to $9 $@ $* $# $? $- $$ $! are empty, except that ${NAME-word} and
+    ${NAME=word} (also with a colon) are the word, which is what bash gives for an unset NAME. A command substitution, $( or a
+    backtick outside single quotes, cannot be read: when found is a list, True is appended to it and the caller fails closed."""
+    out, i, quote, n = [], 0, None, len(text)
+    while i < n:
         char = text[i]
         if quote == "'":
             if char == "'":
@@ -516,27 +525,45 @@ def _shell_flatten(text):
         elif quote == '$':          # $'..'
             if char == "'":
                 quote = None
+            elif char == '\\' and text[i + 1:i + 2] in ("'", '\\', '"'):
+                i += 1                  # \' \\ \" are the character itself (so \' does not end the quote)
+                out.append(text[i])
             elif char != '\\':
                 out.append(char)
         elif quote == '"':
             if char == '"':
                 quote = None
-            elif char == '\\' and i + 1 < len(text) and text[i + 1] in '$`"\\\n':
+            elif char == '\\' and i + 1 < n and text[i + 1] in '$`"\\\n':
                 i += 1
                 out.append(text[i] if text[i] != '\n' else '')
+            elif char == '`':
+                _note_substitution(found)
+            elif char == '$' and text[i + 1:i + 2] not in ("'", '"'):
+                value, i = _expansion(text, i, found)
+                out.append(value)
+                continue
             else:
                 out.append(char)
         elif char == '\\':
             i += 1
-            if i < len(text) and text[i] != '\n':      # backslash-newline is a line continuation: both vanish
+            if i < n and text[i] != '\n':      # backslash-newline is a line continuation: both vanish
                 out.append(text[i])
         elif char == "'":
             quote = "'"
         elif char == '"':
             quote = '"'
+        elif char == '`':
+            _note_substitution(found)
         elif char == '$' and text[i + 1:i + 2] == "'":
             quote = '$'
             i += 1
+        elif char == '$' and text[i + 1:i + 2] == '"':
+            quote = '"'
+            i += 1
+        elif char == '$':
+            value, i = _expansion(text, i, found)
+            out.append(value)
+            continue
         elif char in ' \t':
             if not out or out[-1] != ' ':
                 out.append(' ')
@@ -546,11 +573,65 @@ def _shell_flatten(text):
     return ''.join(out)
 
 
+def _note_substitution(found):
+    if found is not None:
+        found.append(True)
+
+
+def _expansion(text, i, found):
+    """(the value, the index after it) of the $ at text[i], outside single and ANSI-C quotes, in a clean environment (see
+    _shell_flatten). A $ that begins nothing is itself."""
+    import re
+    following = text[i + 1:i + 2]
+    if following == '(':
+        _note_substitution(found)
+        return '$', i + 1
+    if following == '{':
+        close = _matching_brace(text, i + 2)
+        if close is None:
+            return '', len(text)
+        parts = re.fullmatch(r'([A-Za-z_][A-Za-z0-9_]*|[0-9]+|[@*#?$!-])(:?)([-=+?])(.*)', text[i + 2:close], re.S)
+        value = _shell_flatten(parts.group(4), found) if parts and parts.group(3) in '-=' else ''
+        return value, close + 1
+    name = re.compile(r'[A-Za-z_][A-Za-z0-9_]*').match(text, i + 1)
+    if name:
+        return '', name.end()
+    if following and following in '@*#?$!-0123456789':
+        return '', i + 2
+    return '$', i + 1
+
+
+def _matching_brace(text, start):
+    """The index of the } that closes a ${ whose content begins at start, or None. Quotes, escapes and nested ${ are skipped."""
+    depth, k, n = 1, start, len(text)
+    while k < n:
+        char = text[k]
+        if char == '\\':
+            k += 2
+            continue
+        if char in '\'"':
+            k = text.find(char, k + 1)
+            while char == '"' and k > 0 and text[k - 1] == '\\' and k != -1:
+                k = text.find(char, k + 1)
+            if k == -1:
+                return None
+        elif char == '$' and text[k + 1:k + 2] == '{':
+            depth += 1
+            k += 1
+        elif char == '}':
+            depth -= 1
+            if depth == 0:
+                return k
+        k += 1
+    return None
+
+
 def _fail_closed(part):
     """The part, or words when it still holds the stand-in token as the shell would read it (see without_stand_in)."""
     import re
-    flat = _shell_flatten(part)
-    if not re.search(r'(?<![A-Za-z0-9_])DIRECTORY(?![A-Za-z0-9_])', flat):
+    substitutions = []
+    flat = _shell_flatten(part, substitutions)
+    if not substitutions and not re.search(r'(?<![A-Za-z0-9_])DIRECTORY(?![A-Za-z0-9_])', flat):
         return part
     command = re.search(r'intune-iac ?(%s)\b' % '|'.join(DIRECTORY_COMMANDS), flat)
     return IN_WORDS % command.group(1) if command else NO_NAME_WORDS
