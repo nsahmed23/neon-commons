@@ -7,6 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from intune_iac.io import readable_time
 from plugin_tests.orchestration_fixtures import (RUNNER_A, RUNNER_B, event, lifecycle, wall, write_export)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -146,7 +147,7 @@ class ViewTests(unittest.TestCase):
         self.assertEqual(sorted(by_task), ['T-1', 'T-2'])
         self.assertIn('completed, unverified', by_task['T-1'])
         self.assertIn('last dispatch.completed seq 3', by_task['T-1'])
-        self.assertIn('started, no news since ' + wall(11), by_task['T-2'])
+        self.assertIn('started, no news since ' + readable_time(wall(11)), by_task['T-2'])
         self.assertIn('repair', by_task['T-2'])
         self.assertIn('adoptions 0', by_task['T-2'])
 
@@ -156,7 +157,7 @@ class ViewTests(unittest.TestCase):
         model, text = self.view(events[:2], export={'header': header_for(events)})
         self.assertIn('truncated or changed', text)
         self.assertIn('MISMATCH', text)
-        self.assertIn('started, no news since ' + wall(2), text)
+        self.assertIn('started, no news since ' + readable_time(wall(2)), text)
         self.assertEqual(model['source']['check']['state'], 'mismatch')
 
     def test_a_missing_header_says_so_in_plain_words(self):
@@ -352,9 +353,30 @@ class ReadableTests(unittest.TestCase):
             self.assertIn('read-only', lines[0])
         self.assertEqual(self.lines(None)[-1], 'This view is read-only: it cannot dispatch, approve or cancel anything.')
 
+    def test_times_read_as_the_workbench_writes_them_and_json_keeps_the_exact_value(self):
+        write_export(self.dir, busy_events() + lifecycle('T-1003', start=20))
+        text = '\n'.join(self.lines(None))
+        self.assertIn('exported ' + readable_time(wall(500)), text)
+        self.assertIn('no news since ' + readable_time(wall(21)), text)
+        self.assertIsNone(re.search(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d', text), text)
+        model = self.model()
+        self.assertEqual(model['source']['header']['exported_utc'], wall(500))
+        self.assertIn(wall(21), json.dumps(model))
+
     def run_cli(self, *args):
         return subprocess.run([sys.executable, str(CLI), 'engineering', *map(str, args)], text=True,
                               capture_output=True, cwd='/tmp')
+
+    def test_json_from_the_command_keeps_the_exact_times(self):
+        document = json.loads(self.run_cli('--records', self.dir, '--json').stdout)
+        self.assertEqual(document['source']['header']['exported_utc'], wall(500))
+
+    def test_the_not_configured_sentence_says_loopctl_export_is_typed_in_a_shell(self):
+        result = self.run_cli()
+        text = ' '.join(result.stdout.split())
+        self.assertIn('`loopctl export` (a command typed in a shell)', text)
+        self.assertEqual([line for line in result.stdout.splitlines() if len(line) > 80], [])
+        self.assertEqual(json.loads(self.run_cli('--json').stdout)['engineering'], 'not_configured')
 
     def test_piped_output_is_wrapped_to_80_columns(self):
         result = self.run_cli('--records', self.dir)

@@ -15,12 +15,13 @@ import os
 import re
 import sys
 
-from .io import AppError
+from .io import AppError, readable_time
 from .orchestration_contract import RECORD_CONTRACT, InvalidRoot, escape_text, normalize_roots
 from .orchestration_export import ExportUnreadable, iter_lines, open_regular, read_export
 from .orchestration_reducer import reduce_events
 
-NOT_CONFIGURED = ('Engineering records are not configured: pass --records DIR, a directory written by `loopctl export`. '
+NOT_CONFIGURED = ('Engineering records are not configured: pass --records DIR, a directory written by '
+                  '`loopctl export` (a command typed in a shell). '
                   'Nothing is shown here; the rest of the product works as before.')
 READ_ONLY_STATEMENT = 'This view is read-only: it cannot dispatch, approve or cancel anything.'
 MAX_LOG_BYTES =64 * 1024 * 1024
@@ -28,6 +29,7 @@ MAX_FAULTS_SHOWN = 20
 PIPED_WIDTH = 80  # the width when the output is not a terminal
 NARROW_BELOW = 72  # under this width every task field gets its own line
 HANG = '    '
+_STAMP = re.compile(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,6})?Z')
 _GLUE = re.compile(r'\d+[,;:.)]*|\d\d:\d\d:\d\d[,;:.)]*|UTC[,;:.)]*')  # a number, or a time zone, never starts a line apart from its word
 
 
@@ -92,7 +94,12 @@ def _task_fields(row):
              'last %s seq %d' % (row['last_event_type'], row['last_seq']),
              'adoptions %d%s' % (row['adoptions'], incarnation),
              '%s%s' % (reason, 'evidence recorded inside a configured root' if row['evidence_recorded'] else 'evidence none')]
-    return escape_text(' | '.join(parts), 600).split(' | ')
+    return _readable_times(escape_text(' | '.join(parts), 600)).split(' | ')
+
+
+def _readable_times(text):
+    """Recorded times (ISO 8601, UTC, ending in Z) as the workbench writes them; the exact values stay in --json."""
+    return _STAMP.sub(lambda match: readable_time(match.group(0)), text)
 
 
 def _wrap_words(text, width, indent, prefix=None):
@@ -183,7 +190,7 @@ def render_lines(view, width=None):
     out = _plain_lines(view, width, placed)
     wrapped = []
     for index, line in enumerate(out):
-        wrapped += [line] if index in placed else _wrap_line(line, width)
+        wrapped += [line] if index in placed else _wrap_line(_readable_times(line), width)
     return wrapped
 
 
