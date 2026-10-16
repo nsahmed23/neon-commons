@@ -86,22 +86,33 @@ def table_open_sql(table):
             'process TEXT NOT NULL, PRIMARY KEY(domain,issuer,nonce,operation_id,request_sha256))')
 
 
-def cutoff_table(table):
-    return table + '_cutoff'
+# Every authorization family's base expiry table, one per validity.Store construction in the package. History for the migration
+# cutoff is any row in one of these (or its _v2 or _open table); a new family must be added here
+# (plugin_tests/test_validity_registry.py fails otherwise).
+FAMILIES = (
+    'expired',            # approval_authority.py: the approval authority's store
+    'adoption_expired',   # worker_adoption.py: adoption and recovery-plan approvals (_EXPIRED_TABLE)
+    'service_expired',    # worker_service.py: service approvals (_EXPIRED_TABLE)
+    'recovery_expired',   # worker_service.py: lease, committed-state, adoption and plan recovery (RECOVERY_EXPIRED_TABLE)
+    'successor_expired',  # worker_successor.py: successor transfers (EXPIRED_TABLE)
+    'broker_window',      # worker_broker.py: the broker's policy window
+)
+CUTOFF_TABLE = 'validity_cutoff'
+_CUTOFF_COLUMNS = ['id', 'cutoff', 'written_wall', 'boot_id']
 
 
-def table_cutoff_sql(table):
-    """The migration cutoff table: at most one row, written once, never updated or deleted (triggers refuse both). It lives in
-    the store's own database, so removing the recorded-time file cannot erase it."""
-    table_sql(table)
-    return ('CREATE TABLE IF NOT EXISTS ' + cutoff_table(table) + ' (id INTEGER PRIMARY KEY CHECK (id = 1), cutoff REAL NOT NULL, '
+def cutoff_sql():
+    """The canonical migration cutoff table: one database-level row, written once, never updated or deleted (triggers refuse
+    both). Every family in the database reads this row. It lives in the store's own database, so removing the recorded-time
+    file cannot erase it."""
+    return ('CREATE TABLE IF NOT EXISTS ' + CUTOFF_TABLE + ' (id INTEGER PRIMARY KEY CHECK (id = 1), cutoff REAL NOT NULL, '
             'written_wall REAL NOT NULL, boot_id TEXT)')
 
 
-def _freeze_cutoff(db, table):
+def _freeze_cutoff(db):
     for action in ('UPDATE', 'DELETE'):
-        db.execute('CREATE TRIGGER IF NOT EXISTS ' + cutoff_table(table) + '_no_' + action.lower() + ' BEFORE ' + action + ' ON ' +
-                   cutoff_table(table) + " BEGIN SELECT RAISE(ABORT, 'the migration cutoff is never changed'); END")
+        db.execute('CREATE TRIGGER IF NOT EXISTS ' + CUTOFF_TABLE + '_no_' + action.lower() + ' BEFORE ' + action + ' ON ' +
+                   CUTOFF_TABLE + " BEGIN SELECT RAISE(ABORT, 'the migration cutoff is never changed'); END")
 
 
 def _has(db, table):
@@ -331,71 +342,62 @@ def _view(reading, row):
     return view, False
 
 
-def _sibling_cutoff(db, table):
-    """The (cutoff, written_wall, boot_id) of the earliest-written cutoff table of another family in this database, or None.
-    Names come from the database, so each is checked against the table-name rule before it is placed in a statement."""
-    found = []
-    for (name,) in db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '%!_cutoff' ESCAPE '!'").fetchall():
-        if name == cutoff_table(table) or not _TABLE.fullmatch(name):
-            continue
-        row = db.execute('SELECT cutoff, written_wall, boot_id FROM ' + name + ' WHERE id = 1').fetchone()
-        if row is not None:
-            found.append(row)
-    return min(found, key=lambda row: row[1]) if found else None
+def _quoted(name):
+    return '"' + name.replace('"', '""') + '"'
 
 
-_V1_COLUMNS = ['issuer', 'nonce', 'operation_id', 'request_sha256', 'expires_at', 'judged_at', 'wall']
+def _tables(db):
+    return [name for (name,) in db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite!_%' "
+                                           "ESCAPE '!'").fetchall()]
 
 
-def _database_history(db):
-    """Whether any family in this database has authorization history: a row in a version 2 expiry table, an open-judgment
-    table, or a version 1 expiry table (recognised by its exact columns). The cutoff is one value per database, so its first
-    initialization looks at every family's tables, not only the one being judged: a family with no history that is judged
-    first must not hide another family's legacy rows behind a zero cutoff."""
-    for (name,) in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
-        if not _TABLE.fullmatch(name) or name.endswith('_cutoff'):
-            continue
-        if not name.endswith(('_v2', '_open')):
-            if [column[1] for column in db.execute('PRAGMA table_info(' + name + ')').fetchall()] != _V1_COLUMNS:
-                continue
-        if db.execute('SELECT 1 FROM ' + name).fetchone():
-            return True
-    return False
+def _is_cutoff_table(db, name):
+    """A cutoff table of the per-family code that this one replaced: its exact column list. Such a table is a record of a
+    migration moment, not authorization history."""
+    return [column[1] for column in db.execute('PRAGMA table_info(' + _quoted(name) + ')').fetchall()] == _CUTOFF_COLUMNS
+
+
+def _first_cutoff(db, floor, wall):
+    """The canonical cutoff's first value, computed once under the locks: the earliest non-zero cutoff an older per-family
+    table recorded (the earliest migration moment this database has seen); otherwise the migration time now when the store
+    has any history, which is a recorded time or any row, whatever its columns, in a registered family's base, version 2 or
+    open table (FAMILIES: nothing outside the registry counts, so registry rows such as jobs and ownership, which every live
+    store has before its first judgment, are not history); otherwise 0."""
+    recorded = floor.record()
+    existing = set(_tables(db))
+    earlier = []
+    for name in existing:
+        if name != CUTOFF_TABLE and _is_cutoff_table(db, name):
+            earlier += [row[0] for row in db.execute('SELECT cutoff FROM ' + _quoted(name)).fetchall() if row[0] > 0]
+    populated = any(
+        name in existing and db.execute('SELECT 1 FROM ' + _quoted(name) + ' LIMIT 1').fetchone()
+        for family in FAMILIES for name in (family, v2_table(family), open_table(family)))
+    if earlier:
+        return float(min(earlier))
+    if recorded is None and not populated:
+        return 0.0
+    carried = floor.carried(recorded)
+    return float(max(v for v in (wall, None if recorded is None else recorded['high_water'], carried) if v is not None))
 
 
 def _ensure_cutoff(store, floor, wall):
-    """Write the store's migration cutoff if it has none: once, at its first judgment under the boot session, in a transaction
-    of its own that commits before the recorded time is touched. A refusal that follows cannot roll it back, and a failed first
-    attempt cannot make the store look as if it had a history, because the clock record is still as the old code left it. A
-    store that has a history (a recorded time, however old its schema, or any expiry or open record) gets its effective time
-    now: an artifact issued before it that has no open row was judged, if at all, by code that kept no record, and is held. A
-    store with no history gets 0: nothing in it can predate the records."""
+    """Write the database's canonical migration cutoff if it has none: once, at the first judgment of any family under the boot
+    session, in a transaction of its own that commits before the recorded time is touched. A refusal that follows cannot roll
+    it back, and a failed first attempt cannot make the store look as if it had a history, because the clock record is still as
+    the old code left it. An artifact issued at or before the cutoff that has no open row was judged, if at all, by code that
+    kept no record, and is held."""
     with store.connect() as db:
-        if _has(db, cutoff_table(store.table)) and db.execute('SELECT 1 FROM ' + cutoff_table(store.table)).fetchone():
+        if _has(db, CUTOFF_TABLE) and db.execute('SELECT 1 FROM ' + CUTOFF_TABLE).fetchone():
             return
         db.execute('BEGIN IMMEDIATE')
-        db.execute(table_cutoff_sql(store.table))
-        _freeze_cutoff(db, store.table)
-        if db.execute('SELECT 1 FROM ' + cutoff_table(store.table)).fetchone():
+        db.execute(cutoff_sql())
+        _freeze_cutoff(db)
+        if db.execute('SELECT 1 FROM ' + CUTOFF_TABLE).fetchone():
             db.execute('COMMIT')
             return
-        sibling = _sibling_cutoff(db, store.table)
-        if sibling is not None:
-            # The cutoff is one value per database: the migration moment of the store, written at the first judgment of any
-            # family. A family judged for the first time later inherits it; its own first judgment is not a migration.
-            db.execute('INSERT INTO ' + cutoff_table(store.table) + ' VALUES (1, ?, ?, ?)', sibling)
-            db.execute('COMMIT')
-            _sync(store.root)
-            return
-        recorded = floor.record()
-        history = recorded is not None or _database_history(db)
-        value = 0.0
-        if history:
-            carried = floor.carried(recorded)
-            value = float(max(v for v in (wall, None if recorded is None else recorded['high_water'], carried) if v is not None))
+        value = _first_cutoff(db, floor, wall)
         session = clock.session()
-        db.execute('INSERT INTO ' + cutoff_table(store.table) + ' VALUES (1, ?, ?, ?)',
-                   (value, wall, None if session is None else session['boot_id']))
+        db.execute('INSERT INTO ' + CUTOFF_TABLE + ' VALUES (1, ?, ?, ?)', (value, wall, None if session is None else session['boot_id']))
         db.execute('COMMIT')
         _sync(store.root)
 
@@ -414,9 +416,7 @@ def _judged(store, floor, payload, request_sha256, deadline):
                 db.execute('SELECT 1 FROM ' + store.table + ' LIMIT 0')  # the store made its table; a missing one is an error
             db.execute(table_v2_sql(store.table))
             db.execute(table_open_sql(store.table))
-            db.execute(table_cutoff_sql(store.table))
-            _freeze_cutoff(db, store.table)
-            cutoff = db.execute('SELECT cutoff FROM ' + cutoff_table(store.table) + ' WHERE id = 1').fetchone()[0]
+            cutoff = db.execute('SELECT cutoff FROM ' + CUTOFF_TABLE + ' WHERE id = 1').fetchone()[0]
             row = _open_row(db, store, payload, request_sha256)
             view, lost = _view(reading, row)
             issued = payload.get('issued_at')

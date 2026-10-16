@@ -66,6 +66,11 @@ class StoreFixture(Session):
         self.database = self.base / 'toy.sqlite3'
         self.payload = {'issuer': 'issuer-1', 'nonce': 'a' * 32, 'operation_id': 'operation-1',
                         'expires_at': START + LIFETIME}
+        # The toy families are registered for the test, as a real family is registered in validity.FAMILIES: the migration
+        # cutoff counts a row in a registered family's table as history, and nothing else.
+        patcher = patch.object(validity, 'FAMILIES', tuple(validity.FAMILIES) + ('latched', 'second', 'second_cutoff', 'f' * 64))
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     @contextmanager
     def connect(self):
@@ -235,7 +240,7 @@ class MigrationTests(StoreFixture):
         return dict(self.payload, issued_at=at, **changes)
 
     def cutoff(self):
-        return self.rows('SELECT cutoff FROM latched_cutoff')
+        return self.rows('SELECT cutoff FROM validity_cutoff')
 
     def test_a_pre_migration_approval_cannot_reopen_after_a_restart_with_the_wall_set_back(self):
         self.legacy_store()  # old code judged it open at T50 and left only the mark
@@ -287,7 +292,7 @@ class MigrationTests(StoreFixture):
         self.enter(self.issued(START + 70, nonce='b' * 32))
         self.assertEqual(self.cutoff(), first)
         with self.connect() as db:
-            for statement in ('UPDATE latched_cutoff SET cutoff = 0', 'DELETE FROM latched_cutoff'):
+            for statement in ('UPDATE validity_cutoff SET cutoff = 0', 'DELETE FROM validity_cutoff'):
                 with self.assertRaises(sqlite3.DatabaseError):
                     db.execute(statement)
         self.assertEqual(self.cutoff(), first)
@@ -346,7 +351,7 @@ class MigrationTests(StoreFixture):
         self.clocks.elapse(10)
         # a second family is judged for the first time later, with an approval issued after the first judgment
         self.other_family(self.issued(START + 55, nonce='c' * 32, operation_id='operation-3'))
-        self.assertEqual(self.rows('SELECT cutoff FROM second_cutoff'), [(0.0,)])
+        self.assertEqual(self.rows('SELECT cutoff FROM validity_cutoff'), [(0.0,)])
 
     def test_a_family_with_no_history_judged_first_does_not_hide_another_familys_legacy_rows(self):
         # Another family's pre-upgrade (version 1) rows are in the database, and there is no recorded time. A family with
@@ -365,6 +370,87 @@ class MigrationTests(StoreFixture):
                 db.execute('COMMIT')
         self.assertEqual(raised.exception.code, 'clock_moved_backward')
         self.assertIn(LOST_WORDS, raised.exception.message)
+
+    # The canonical cutoff: one database-level row. Any populated table counts as history; nothing is recognised by name or
+    # column. Older per-family cutoff rows are read once, to carry the earliest non-zero value, and are never authoritative.
+    OLD_CUTOFF_SQL = ('CREATE TABLE %s (id INTEGER PRIMARY KEY CHECK (id = 1), cutoff REAL NOT NULL, '
+                      'written_wall REAL NOT NULL, boot_id TEXT)')
+
+    def old_cutoff(self, table, value):
+        with self.connect() as db:
+            db.execute(self.OLD_CUTOFF_SQL % table)
+            db.execute('INSERT INTO ' + table + ' VALUES (1, ?, ?, NULL)', (value, START))
+
+    def held_in(self, table, nonce='z', issued=40):
+        store = validity.Store(self.base, self.connect, table, fail, create=True, domain=table)
+        with self.assertRaises(AppError) as raised:
+            with validity.critical(store, self.issued(START + issued, nonce=nonce, operation_id='operation-9'), 'q',
+                                   expired_code='toy_expired') as db:
+                db.execute('COMMIT')
+        self.assertEqual(raised.exception.code, 'clock_moved_backward')
+        self.assertIn(LOST_WORDS, raised.exception.message)
+
+    def test_a_store_left_by_the_per_family_code_with_a_zero_cutoff_still_holds_another_familys_legacy_rows(self):
+        self.old_cutoff('latched_cutoff', 0.0)  # family A was judged first, with no history: 0
+        with self.connect() as db:
+            db.execute(validity.table_sql('second'))  # family B has a legacy row and no cutoff of its own
+            db.execute("INSERT INTO second VALUES ('issuer-1', 'old', 'operation-8', 'q', ?, ?, ?)", (START + 100, START + 50, START + 50))
+        self.clocks.wall = START + 60
+        self.held_in('second')
+        self.assertEqual(self.cutoff(), [(START + 60,)])
+
+    def test_history_in_a_table_with_a_renamed_nonessential_column_still_counts(self):
+        with self.connect() as db:
+            db.execute('CREATE TABLE second (issuer TEXT NOT NULL, nonce TEXT NOT NULL, operation_id TEXT NOT NULL, '
+                       'request_sha256 TEXT NOT NULL, expires_at INTEGER NOT NULL, judged_at INTEGER NOT NULL, walls INTEGER NOT NULL)')
+            db.execute("INSERT INTO second VALUES ('issuer-1', 'old', 'operation-8', 'q', ?, ?, ?)", (START + 100, START + 50, START + 50))
+        self.clocks.wall = START + 60
+        self.held_in('second')
+        self.assertEqual(self.cutoff(), [(START + 60,)])
+
+    def test_history_in_a_family_whose_base_name_ends_in_cutoff_still_counts(self):
+        with self.connect() as db:
+            db.execute(validity.table_sql('second_cutoff'))
+            db.execute("INSERT INTO second_cutoff VALUES ('issuer-1', 'old', 'operation-8', 'q', ?, ?, ?)", (START + 100, START + 50, START + 50))
+        self.clocks.wall = START + 60
+        self.held_in('second_cutoff')
+        self.assertEqual(self.cutoff(), [(START + 60,)])
+
+    def test_history_in_the_open_table_of_a_maximum_length_family_name_still_counts(self):
+        name = 'f' * 64
+        with self.connect() as db:
+            db.execute(validity.table_open_sql(name))
+            db.execute('INSERT INTO ' + validity.open_table(name) + " VALUES ('d', 'issuer-1', 'old', 'operation-8', 'q', ?, NULL, NULL, NULL, ?, ?, ?, 'p')",
+                       (START + 100, START + 50, START + 50, START + 50))
+        self.clocks.wall = START + 60
+        self.held_in(name)
+        self.assertEqual(self.cutoff(), [(START + 60,)])
+
+    def test_registry_rows_of_a_fresh_store_are_not_history_so_the_first_approval_is_current(self):
+        # A live service or adoption store has registry rows (jobs, ownership, ...) before its first approval is judged. They
+        # are not authorization history: only a registered family's expiry or open table (or a recorded time) is.
+        with self.connect() as db:
+            db.execute('CREATE TABLE jobs (id TEXT, status TEXT)')
+            db.execute("INSERT INTO jobs VALUES ('job-1', 'prepared')")
+            db.execute('CREATE TABLE ownership (scope TEXT, job TEXT)')
+            db.execute("INSERT INTO ownership VALUES ('scope', 'job-1')")
+        self.clocks.wall = START + 60
+        self.enter(self.issued(START + 40))  # issued before the first judgment, as every approval is
+        self.assertEqual(self.cutoff(), [(0.0,)])
+
+    def test_an_empty_database_gets_a_zero_cutoff_and_a_new_approval_is_current(self):
+        self.clocks.wall = START + 60
+        self.enter(self.issued(START + 40))
+        self.assertEqual(self.cutoff(), [(0.0,)])
+
+    def test_the_earliest_non_zero_cutoff_of_the_per_family_code_is_kept(self):
+        self.old_cutoff('latched_cutoff', START + 30.0)
+        self.old_cutoff('second_cutoff', START + 20.0)
+        self.old_cutoff('third_cutoff', 0.0)
+        self.clocks.wall = START + 60
+        self.refused(lambda: self.enter(self.issued(START + 15, nonce='b' * 32)))  # issued before the kept cutoff: held
+        self.assertEqual(self.cutoff(), [(START + 20.0,)])
+        self.enter(self.issued(START + 25, nonce='c' * 32, operation_id='operation-3'))  # issued after the kept cutoff (START+20), before the later one (START+30): current
 
     def test_an_artifact_without_an_issue_time_is_judged_normally(self):
         self.legacy_store()
