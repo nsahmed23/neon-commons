@@ -38,6 +38,26 @@ GUARDED_RANGES = ((0x00, 0x1f), (0x7f, 0x9f), (0x061c, 0x061c), (0x200b, 0x200f)
                   (0x2066, 0x2069), (0xfeff, 0xfeff))
 NEIGHBOURS = (0x20, 0x7e, 0xa0, 0xad, 0x061b, 0x061d, 0x200a, 0x2010, 0x202f, 0x205f, 0x2065, 0x206a, 0xfefe, 0xff00)
 OLD_NAME = 'Privacy pilot 7'
+# Line-ending rule: the guard joins rows with one LF. Where the platform newline is CRLF (Windows) print() may write CRLF between
+# rows; that pair is the row separator and is allowed nowhere else.
+CRLF_SEPARATOR = os.name == 'nt'
+
+
+def filesystem_accepts(base, text):
+    """Whether a file whose name holds `text` can be created under `base` (decided by trying, not by platform)."""
+    probe = Path(base) / ('probe-' + text)
+    try:
+        probe.write_text('x')
+        probe.unlink()
+        return True
+    except (OSError, ValueError):
+        return False
+
+
+def fixture_name_text(base, text):
+    """The text for file and directory names: the hostile value where the filesystem takes it, otherwise its printable part.
+    Recorded values inside files always keep the whole hostile value."""
+    return text if filesystem_accepts(base, text) else ''.join(ch for ch in text if ch.isprintable())
 
 
 def forbidden_in(data):
@@ -48,6 +68,9 @@ def forbidden_in(data):
         text, found = data.decode('utf-8'), []
     except UnicodeDecodeError:
         text, found = data.decode('utf-8', 'replace'), ['INVALID_UTF8']
+    if CRLF_SEPARATOR:
+        # On Windows print() writes the platform newline between rows. That pair is structural; any other CR is not.
+        text = text.replace('\r\n', '\n')
     return sorted(found + ['U+%04X' % ord(ch) for ch in set(FORBIDDEN.findall(text))])
 
 
@@ -85,14 +108,15 @@ class Fixture:
 
     def run(self, *argv, stdin=''):
         return subprocess.run([sys.executable, '-B', str(CLI), *map(str, argv)], input=stdin.encode(), capture_output=True,
-                              cwd='/tmp', timeout=60, env=self.env)
+                              cwd=str(self.base), timeout=60, env=self.env)
 
     def _directory(self):
-        self.work = self.base / ('dir-' + self.text)
+        name = fixture_name_text(self.base, self.text)
+        self.work = self.base / ('dir-' + name)
         self.work.mkdir()
-        (self.work / ('file-' + self.text + '.json')).write_text(json.dumps({'name': self.text}))
-        (self.work / ('note-' + self.text + '.txt')).write_text(self.text)
-        (self.work / ('sub-' + self.text)).mkdir()
+        (self.work / ('file-' + name + '.json')).write_text(json.dumps({'name': self.text}))
+        (self.work / ('note-' + name + '.txt')).write_bytes(self.text.encode('utf-8'))  # bytes: no newline translation
+        (self.work / ('sub-' + name)).mkdir()
 
     def _engineering(self):
         self.records = self.base / 'records'
@@ -171,6 +195,54 @@ def text_commands(parser):
 
 
 TEXT_COMMANDS = {'start', 'catalog', 'engineering', 'simulate', 'signin status', 'signin collect', 'workbench workflow'}
+
+
+class PortabilityTests(unittest.TestCase):
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.base = Path(temporary.name)
+
+    def test_a_command_runs_in_the_fixtures_own_temporary_directory(self):
+        fixture = Fixture.__new__(Fixture)
+        fixture.base, fixture.env = self.base, {}
+        with mock.patch.object(subprocess, 'run') as run:
+            fixture.run('doctor')
+        self.assertEqual(run.call_args.kwargs['cwd'], str(self.base))
+
+    def test_hostile_names_are_used_only_where_the_filesystem_accepts_them(self):
+        accepted = filesystem_accepts(self.base, HOSTILE)
+        name = fixture_name_text(self.base, HOSTILE)
+        self.assertEqual(name == HOSTILE, accepted)
+        self.assertEqual(fixture_name_text(self.base, CLEAN), CLEAN)
+        # whatever the filesystem refuses, the name part that remains must be creatable
+        self.assertTrue(filesystem_accepts(self.base, name))
+        with mock.patch.object(sys.modules[__name__], 'filesystem_accepts', lambda base, text: text == CLEAN):
+            self.assertTrue(fixture_name_text(self.base, HOSTILE).isprintable())
+
+    def test_recorded_values_keep_the_hostile_controls_whatever_the_names_do(self):
+        fixture = Fixture.__new__(Fixture)
+        fixture.text, fixture.base = HOSTILE, self.base
+        with mock.patch.object(sys.modules[__name__], 'filesystem_accepts', lambda base, text: False):
+            fixture._directory()
+        recorded = json.loads(next(fixture.work.glob('file-*.json')).read_text())
+        self.assertEqual(recorded, {'name': HOSTILE})
+        self.assertEqual(next(fixture.work.glob('note-*.txt')).read_bytes(), HOSTILE.encode('utf-8'))
+        self.assertTrue(fixture.work.name.isprintable())
+
+    def test_rows_are_joined_by_one_lf_and_never_by_the_platform_newline(self):
+        self.assertEqual(cli.text_guard_rows(['a', 'b' + chr(13) + chr(10) + 'c', 'd']), 'a\nb\\r\\nc\nd')
+        self.assertNotIn('\r', cli.text_guard_rows(['a', 'b' + chr(13), 'c']))
+
+    def test_a_crlf_is_the_row_separator_on_windows_only_and_never_inside_a_row(self):
+        module = sys.modules[__name__]
+        with mock.patch.object(module, 'CRLF_SEPARATOR', True, create=True):
+            self.assertEqual(forbidden_in(b'one\r\ntwo\r\n'), [])
+            self.assertEqual(forbidden_in(b'one\rtwo\r\n'), ['U+000D'])
+            self.assertEqual(forbidden_in(b'one\r\r\ntwo'), ['U+000D'])
+        with mock.patch.object(module, 'CRLF_SEPARATOR', False, create=True):
+            self.assertEqual(forbidden_in(b'one\r\ntwo'), ['U+000D'])
+            self.assertEqual(forbidden_in(b'one\ntwo\n'), [])
 
 
 class ByteCheckTests(unittest.TestCase):
