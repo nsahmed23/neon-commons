@@ -1,15 +1,16 @@
 """`intune-iac engineering`: the engineering orchestration records as plain, read-only text (or JSON).
 
 It reads a directory written by `loopctl export`, checks the header against what it read, folds the events by task
-(orchestration_reducer) and prints the source header, any contract faults and one line per task. It confers no
-dispatch, approval or cancellation authority and writes nothing. With no records path it says so and exits 0, and the
-rest of the product works as before.
+(orchestration_reducer) and prints the source header, any contract faults and one line per task, then one line that
+counts the tasks by state and the read-only statement. It confers no dispatch, approval or cancellation authority and
+writes nothing. With no records path it says so and exits 0, and the rest of the product works as before.
 
 The optional controller log is not a state source: its lines are free text without task ids or terminal events. It is
 only counted, so a view of the loop alone never looks like the whole of the project's activity.
 """
 from __future__ import annotations
 
+import collections
 import json
 import os
 import re
@@ -29,6 +30,11 @@ MAX_FAULTS_SHOWN = 20
 PIPED_WIDTH = 80  # the width when the output is not a terminal
 NARROW_BELOW = 72  # under this width every task field gets its own line
 HANG = '    '
+# The fold's states with the closed words the closing summary uses for them, in the order a task moves through them.
+# "completed" keeps its qualifier: the records show a result that passed the schema, not one that anything verified.
+STATE_WORDS = {'queued': 'queued', 'started': 'started', 'cancel_pending': 'cancellation pending',
+               'completed': 'completed, unverified', 'verified': 'verified', 'failed': 'failed',
+               'cancelled': 'cancelled', 'unknown': 'unknown', 'blocked': 'blocked'}
 _STAMP = re.compile(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,6})?Z')
 _GLUE = re.compile(r'\d+[,;:.)]*|\d\d:\d\d:\d\d[,;:.)]*|UTC[,;:.)]*')  # a number, or a time zone, never starts a line apart from its word
 
@@ -104,14 +110,20 @@ def _readable_times(text):
 
 def _wrap_words(text, width, indent, prefix=None):
     """Lines of at most width columns, broken only at spaces. A number, a time and its zone stay with the word
-    before them. A word wider than the line stays whole (the terminal then has no choice). The first line starts
-    with prefix when given (kept as it is), the others with indent."""
+    before them. A parenthetical that fits on a line of its own stays whole, so a line breaks before its opening
+    parenthesis and not inside it. A word wider than the line stays whole (the terminal then has no choice). The
+    first line starts with prefix when given (kept as it is), the others with indent."""
     units = []
     for word in text.split():
         if units and (_GLUE.fullmatch(word) or units[-1].count('`') % 2):  # also a quoted command stays whole
             units[-1] += ' ' + word
         else:
             units.append(word)
+    return _pack(_keep_parentheticals(units, width, indent), width, indent, prefix)
+
+
+def _pack(units, width, indent, prefix=None):
+    """The units, each kept whole, joined with spaces into lines of at most width columns where a unit allows it."""
     lines, current, lead = [], '', indent if prefix is None else prefix
     for unit in units:
         candidate = current + ' ' + unit if current else unit
@@ -122,6 +134,47 @@ def _wrap_words(text, width, indent, prefix=None):
             current = candidate
     lines.append(lead + current)
     return lines
+
+
+def _open_after(depth, text):
+    """The parenthesis depth after the text, which starts at the given depth; a stray ) never goes below none."""
+    for char in text:
+        if char == '(':
+            depth += 1
+        elif char == ')' and depth:
+            depth -= 1
+    return depth
+
+
+def _closing_unit(units, start, level):
+    """The index of the first unit, from start on, after which no more than `level` parentheses are open (level 0 closes
+    the outermost one the unit at start opens); None when no unit does."""
+    depth, index = _open_after(0, units[start]), start
+    while depth > level and index + 1 < len(units):
+        index += 1
+        depth = _open_after(depth, units[index])
+    return index if depth <= level else None
+
+
+def _keep_parentheticals(units, width, indent):
+    """The units with each parenthetical joined into one, from the unit that opens it to the unit that closes it, when
+    the whole fits on a continuation line (the outermost that does, when a unit opens several). One that never closes,
+    or is wider than that, flows at its spaces."""
+    kept, index = [], 0
+    while index < len(units):
+        end = None
+        for level in range(_open_after(0, units[index])):
+            closing = _closing_unit(units, index, level)
+            if closing is not None and len(indent) + len(' '.join(units[index:closing + 1])) <= width:
+                end = closing
+                break
+        if end is None:
+            kept.append(units[index])
+            index += 1
+        else:
+            kept.append(' '.join(units[index:end + 1]))
+            index = end + 1
+    return kept
 
 
 def _task_lines(row, width):
@@ -183,9 +236,33 @@ def _verification_lines(counts):
     return []
 
 
+def _summary_lines(tasks, width):
+    """The closing line: how many of the tasks listed above are in each state, counted from the same rows and worded from
+    STATE_WORDS, a closed table, so no record can put its own words in it. It sits just above the read-only statement
+    because a small terminal shows the end of the output; its entries break only between themselves, so a count stays
+    with its state."""
+    counts = collections.Counter(row['state'] for row in tasks)
+    entries = ['%d %s' % (counts[state], word) for state, word in STATE_WORDS.items() if counts[state]]
+    # A state the table lacks (the fold gained one) is still counted, under its own name.
+    entries += ['%d %s' % (count, escape_text(str(state).replace('_', ' '), 40))
+                for state, count in counts.items() if state not in STATE_WORDS]
+    label = 'Task states (%d):' % len(tasks)
+    if not entries:
+        return [label + ' none']
+    pieces = [label] + [entry + ';' for entry in entries[:-1]] + entries[-1:]
+    if width is None:
+        return [' '.join(pieces)]
+    units = []
+    for piece in pieces:
+        words = piece.split()
+        # An entry wider than a line of its own gives up its unity, but its count still stays with its first word.
+        units += [piece] if len('  ' + piece) <= width else [' '.join(words[:2])] + words[2:]
+    return _pack(units, width, '  ', '')
+
+
 def render_lines(view, width=None):
-    """The text view. With a width every line is broken at spaces (task lines at their field boundaries); with None
-    every line stays whole."""
+    """The text view. With a width every line is broken at spaces (task lines at their field boundaries, the summary
+    between its entries, a parenthetical kept whole when it fits); with None every line stays whole."""
     placed = set()  # indexes of lines that are already laid out to the width
     out = _plain_lines(view, width, placed)
     wrapped = []
@@ -230,7 +307,11 @@ def _plain_lines(view, width, placed):
                    'no line is matched to a task)%s' % (
                        log['only_in_controller_log'], log['dispatch_lines'], log['loop_tasks'],
                        '; %d unreadable lines' % log['unreadable_lines'] if log['unreadable_lines'] else ''))
-    # Said once, on the last line, because a small terminal shows the end of the output, not its start.
+    # A small terminal shows the end of the output, not its start, so the end carries the essentials: the tasks counted by
+    # state, then the read-only statement, said once, on the last line.
+    start = len(out)
+    out += _summary_lines(tasks, width)
+    placed.update(range(start, len(out)))
     out.append(READ_ONLY_STATEMENT)
     return out
 
