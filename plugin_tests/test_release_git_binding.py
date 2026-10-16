@@ -114,5 +114,78 @@ class CleanStateTests(GitCase):
                 self.assertTrue(all(item['allowed'] for item in report['sensitive_content']['findings']))
 
 
+class CapturedStateTests(GitCase):
+    """Item 2: the allowance file is read once, as one of the captured files, and the binding lists the commit that was captured."""
+
+    def committed_with_allowance(self):
+        repo = hard.GitFixture(self)
+        (repo.root / ALLOWANCE).write_text('# reviewed allowances\n')
+        (repo.root / 'release-source-files.txt').write_text(f'README.md\nNOTES.md\n{ALLOWANCE}\nrelease-source-files.txt\n')
+        repo.commit('the reviewed inventory lists an allowance file')
+        return repo
+
+    def reading(self, replacement):
+        """A source_reader that records the reads of the allowance file and answers every read after the first with `replacement`."""
+        original, reads = builder.source_reader, []
+
+        @contextlib.contextmanager
+        def reader():
+            with original() as read:
+                def counted(name):
+                    data = read(name)
+                    if name == ALLOWANCE:
+                        reads.append(name)
+                        if len(reads) > 1:
+                            return replacement
+                    return data
+                yield counted
+        return reader, reads
+
+    def test_the_allowance_is_read_once_and_the_archive_holds_the_bytes_that_were_checked(self):
+        repo = self.committed_with_allowance()
+        reader, reads = self.reading(b'# replaced for a moment and put back\n')
+        try:
+            with patch.object(builder, 'source_reader', reader):
+                receipt = repo.build()
+        except ValueError as refused:
+            self.fail(f'a second read of the allowance file changed what was checked: {refused}')
+        self.assertEqual(reads, [ALLOWANCE], 'the allowance file was read more than once')
+        archived = repo.member(ALLOWANCE)
+        self.assertEqual(archived, b'# reviewed allowances\n')
+        self.assertEqual(receipt['sensitive_content']['allowance_file_sha256'], base.sha256(archived))
+
+    def test_an_allowance_file_that_the_inventory_does_not_list_is_refused(self):
+        repo = hard.GitFixture(self)
+        (repo.root / ALLOWANCE).write_text('# reviewed allowances\n')
+        repo.commit('an allowance file the inventory does not list')
+        message = self.refusal(repo)
+        self.assertIn(ALLOWANCE, message)
+        self.assertIn('inventory', message)
+        self.assertNothingMade(repo)
+
+    def test_the_binding_lists_the_commit_that_was_captured_and_not_head(self):
+        repo = hard.GitFixture(self)
+        captured, original = repo.git('rev-parse', 'HEAD'), builder.bind_to_commit
+
+        def moved_first(snapshot, state):
+            (repo.root / 'README.md').write_text('a later commit changes this file\n')
+            repo.commit('a later commit, made after the final reading of the checkout')
+            return original(snapshot, state)
+
+        try:
+            with patch.object(builder, 'bind_to_commit', moved_first):
+                repo.build()
+        except ValueError as refused:
+            self.fail(f'the binding looked at HEAD instead of the captured commit: {refused}')
+        record = repo.identity()
+        self.assertEqual((record['commit'], record['dirty']), (captured, False))
+        self.assertEqual(repo.member('README.md'), b'Reviewed project documentation\n')
+
+    def test_only_a_full_lowercase_object_name_is_listed(self):
+        for commit in ('HEAD', 'main', '--help', 'A' * 40, 'a' * 39, ''):
+            with self.subTest(commit), self.assertRaises(ValueError):
+                builder.bind_to_commit({}, {'commit': commit})
+
+
 if __name__ == '__main__':
     unittest.main()

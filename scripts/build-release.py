@@ -81,10 +81,14 @@ def bind_to_commit(snapshot, state):
     the build dirty even when git's own status shows nothing (assume-unchanged, skip-worktree). With no commit (a tree outside
     a checkout) there is nothing to bind to and the identity names none.
     """
-    if state['commit'] is None:
+    commit = state['commit']
+    if commit is None:
         return []
+    # The commit that was captured, never the symbolic HEAD, which can move between the last reading of the checkout and this one.
+    if not isinstance(commit, str) or re.fullmatch(r'[0-9a-f]{40}', commit) is None:
+        raise ValueError('The commit the identity names is not a full object name.')
     try:
-        listing = subprocess.run(['git', '-C', str(ROOT), 'ls-tree', '-r', '-z', 'HEAD'], capture_output=True, timeout=120,
+        listing = subprocess.run(['git', '-C', str(ROOT), 'ls-tree', '-r', '-z', commit], capture_output=True, timeout=120,
                                  env=git_environment())
     except (OSError, subprocess.SubprocessError):
         raise ValueError('The commit the identity names cannot be listed.')
@@ -433,13 +437,17 @@ def main():
         if not set(runtime).issubset(source):
             raise ValueError('Runtime members must be included in the reviewed source inventory.')
         snapshot = {name: inventory_bytes if name == SOURCE_INVENTORY else read(name) for name in source}
-        allowance_bytes = read(ALLOWANCE_FILE) if allowed(ROOT / ALLOWANCE_FILE) else None
+    # The reviewed allowance file is one of the captured files and is never read a second time: the bytes that are archived, bound to
+    # the commit, parsed and named in the receipt are the same bytes. A file that exists but is not in the inventory is refused.
+    if ALLOWANCE_FILE not in snapshot and allowed(ROOT / ALLOWANCE_FILE):
+        raise ValueError(f'{ALLOWANCE_FILE} exists but is not in the reviewed inventory ({SOURCE_INVENTORY}): list it there, so that the '
+                         'reviewed file is the one that is archived and bound to the commit, or remove it.')
+    allowance_bytes = snapshot.get(ALLOWANCE_FILE)
     after = git_state(detail=True)
     if before != after:
         raise ValueError('The checkout changed while the snapshot was read (its commit, tree or tracked modifications); '
                          'build again from a checkout that is not being edited.')
-    # The reviewed allowance file is part of what is bound to the commit: an unreviewed one would review nothing.
-    differing = bind_to_commit(snapshot if allowance_bytes is None else dict(snapshot, **{ALLOWANCE_FILE: allowance_bytes}), after)
+    differing = bind_to_commit(snapshot, after)
     state = {key: after[key] for key in ('commit', 'tree', 'dirty')}
     if differing:
         state['dirty'] = True

@@ -691,10 +691,12 @@ class GitBindingTests(unittest.TestCase):
         repo = GitFixture(self)
         (repo.root / 'docs').mkdir()
         (repo.root / 'docs/found.txt').write_bytes(SHAPES['jwt']())
-        (repo.root / 'release-source-files.txt').write_text('README.md\nNOTES.md\ndocs/found.txt\nrelease-source-files.txt\n')
-        repo.commit('add a file with a JWT-shaped value')
         (repo.root / 'release-sensitive-allow.txt').write_text(
             f'docs/found.txt | {sha256((repo.root / "docs/found.txt").read_bytes())} | jwt | a made-up value used by a test\n')
+        (repo.root / '.git/info/exclude').write_text('release-sensitive-allow.txt\n')       # so the allowance file is never committed
+        (repo.root / 'release-source-files.txt').write_text(
+            'README.md\nNOTES.md\ndocs/found.txt\nrelease-sensitive-allow.txt\nrelease-source-files.txt\n')
+        repo.commit('add a file with a JWT-shaped value')
         with patch.object(builder, 'host_identity', create=True, return_value=(FAKE_HOME, 'fixture-user')):
             try:
                 repo.build()
@@ -732,9 +734,10 @@ class SensitiveFixture:
             (root / name).parent.mkdir(parents=True, exist_ok=True)
             (root / name).write_bytes(data)
             names.append(name)
-        (root / 'release-source-files.txt').write_text('\n'.join(names + ['release-source-files.txt']) + '\n')
         if allowance is not None:
             (root / 'release-sensitive-allow.txt').write_text(allowance)
+            names.append('release-sensitive-allow.txt')       # the reviewed file is one of the captured, archived files
+        (root / 'release-source-files.txt').write_text('\n'.join(names + ['release-source-files.txt']) + '\n')
         self.root = root
 
     def build(self):
