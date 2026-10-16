@@ -38,20 +38,61 @@ you unpack anything:
 sha256sum Intune_IaC_Plugin_0.9.0.zip
 ```
 
-The two values must be identical. Then unpack the archive and check every file inside it against the archive's own
-`SHA256SUMS` list:
+The two values must be identical. Still before you unpack anything, compare the archive's complete list of files with
+the archive's own `SHA256SUMS` list. One command does it and does not unpack the archive. It stops with exit status 1
+and a message when the archive holds a file that `SHA256SUMS` does not list, lacks a file that it lists, holds a file
+whose content differs from its line, has more than one top folder, repeats a name or holds an unsafe name or a link;
+otherwise it prints `SHA256SUMS verified` and exits with status 0:
 
 ```sh
-python3 -m zipfile -e Intune_IaC_Plugin_0.9.0.zip .
+python3 -I -c '
+import hashlib, sys, zipfile
+z = zipfile.ZipFile(sys.argv[1])
+infos = [i for i in z.infolist() if not i.is_dir()]
+names = [i.filename for i in infos]
+bad = []
+if len({n.split("/")[0] for n in names}) != 1 or any("/" not in n for n in names):
+    bad.append("the archive must hold exactly one top folder")
+if len(set(names)) != len(names):
+    bad.append("a member name appears twice")
+bad += ["unsafe member name: " + n for n in names if n.startswith("/") or "\\" in n or ".." in n.split("/")]
+bad += ["symbolic link member: " + i.filename for i in infos if (i.external_attr >> 16) & 0o170000 == 0o120000]
+top = (names[0].split("/")[0] + "/") if names else ""
+sums = {}
+if top + "SHA256SUMS" in names:
+    for line in z.read(top + "SHA256SUMS").decode("utf-8").splitlines():
+        digest, _, name = line.partition("  ")
+        sums[name] = digest
+else:
+    bad.append("the archive has no SHA256SUMS")
+members = {n[len(top):] for n in names if n.startswith(top)} - {"SHA256SUMS"}
+bad += ["not listed in SHA256SUMS: " + n for n in sorted(members - set(sums))]
+bad += ["listed in SHA256SUMS but absent from the archive: " + n for n in sorted(set(sums) - members)]
+bad += ["differs from its SHA256SUMS line: " + n for n in sorted(members & set(sums))
+        if hashlib.sha256(z.read(top + n)).hexdigest() != sums[n]]
+if bad:
+    sys.exit("REFUSED:\n  " + "\n  ".join(bad[:25]))
+print("SHA256SUMS verified: %d files, each listed and matching, none unlisted" % len(members))
+' Intune_IaC_Plugin_0.9.0.zip
+```
+
+Then unpack the archive and check the unpacked files against the same list. This second command checks every file the
+list names and nothing else; it does not look for a file the list does not name, which is why the command above comes
+first:
+
+```sh
+python3 -I -m zipfile -e Intune_IaC_Plugin_0.9.0.zip .
 cd intune-iac
 sha256sum --check --quiet SHA256SUMS
 ```
 
 `--quiet` prints nothing when every file matches and exits with status 0; any mismatch is printed and the exit
 status is not 0. The list includes `BUILD-IDENTITY.json`, the small record that names this build (version, commit,
-tree, build time and a content digest); `doctor` prints it later, so a change to it is caught here too. These checks
-show that the files are the ones the build produced. They do not show who built them: trust comes from getting the
-digest from the person who shared the build, over a different route than the archive.
+tree, build time and a content digest); `doctor` prints it later, so a change to it is caught here too. `doctor`
+also names any file under the unpacked folder that the list does not name, except what the guide itself creates (the
+`.venv` and `demo` folders at the top of the unpacked folder) and `__pycache__` folders, which its `build` block lists as
+not counted. These checks show that the files are the ones the build produced. They do not show who built them: trust
+comes from getting the digest from the person who shared the build, over a different route than the archive.
 
 ## Install
 
@@ -436,9 +477,11 @@ environment's interpreter, or check you are using `.venv/bin/python`. `host_capa
 the host could support, each with a status, and says nothing about whether the pinned tools are present.
 `executables` says whether `atmos`, `tofu`, `pwsh`, `codex` and `claude` were found on the search path. The `build`
 block says which build this is. Its `status` is one of: `identified` (every file the archive listed is present and
-unchanged), `modified` (the files named in `modified_files` differ from the build, so what you are running is not
+unchanged, and no other file is present), `modified` (the files named in `modified_files` differ from the build, or the
+files named in `unlisted_files` are present although the archive did not list them, so what you are running is not
 the build named above), `inconsistent` (the file list no longer matches the identity record), `unreadable`, or
-`not_a_release_build` (a source checkout, which has no build identity).
+`not_a_release_build` (a source checkout, which has no build identity). `unlisted_not_counted` lists what the look for
+unlisted files skips: the `.venv` and `demo` folders at the top, and `__pycache__` folders.
 
 **Exit status.** 0 is a successful local result; `start`, `catalog` and `engineering` are reports and end with 0
 whatever they find. 2 means blocked, partial or unavailable (read the printed reason), and is also what a usage error

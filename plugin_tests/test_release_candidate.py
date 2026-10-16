@@ -694,7 +694,7 @@ class CleanInstallScriptTests(unittest.TestCase):
         path = self.rewritten(lambda members: members.update({'intune-iac/extra.txt': b'not listed\n'}))
         result = self.run_script(path, self.wheels, self.base / 'work')
         self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
-        self.assertIn('does not list', result.stderr)
+        self.assertIn('not listed in SHA256SUMS: extra.txt', result.stderr)
 
     def test_a_verified_archive_that_is_not_the_runtime_is_refused_before_any_install(self):
         result = self.run_script(self.archive, self.wheels, self.base / 'work')
@@ -765,7 +765,7 @@ with open(os.environ['FAKE_PIP_LOG'], 'a') as log:
 FAKE_INTERPRETER = '''#!/bin/sh
 # FAKE_ENV_LOG, when a test sets it, receives each call's arguments, HOME and Python-related variables.
 if [ -n "${FAKE_ENV_LOG:-}" ]; then
-    { echo "args: $*"; echo "HOME=$HOME"; env | grep -E '^(PYTHON[A-Z_0-9]+|PIP_[A-Z_0-9]+|VIRTUAL_ENV)=' | sort; echo "--"; } >> "$FAKE_ENV_LOG"
+    { printf 'args: %s\\n' "$(echo "$*" | tr '\\n' ' ')"; echo "HOME=$HOME"; env | grep -E '^(PYTHON[A-Z_0-9]+|PIP_[A-Z_0-9]+|VIRTUAL_ENV)=' | sort; echo "--"; } >> "$FAKE_ENV_LOG"
 fi
 # The script runs its helper interpreters isolated (-I); the stand-in skips that flag when it looks at the rest.
 isolated=

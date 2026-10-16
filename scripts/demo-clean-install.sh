@@ -49,6 +49,40 @@ for name in $(compgen -e); do
 done
 export PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONSAFEPATH=1 PIP_CONFIG_FILE=/dev/null PIP_DISABLE_PIP_VERSION_CHECK=1
 
+# The one check of an archive's complete member set against its own SHA256SUMS, made on the archive before anything is
+# unpacked. It is the command the guide shows under "Check the download", word for word (a test compares the two): it refuses
+# a member that is not listed, a listed member that is absent, a member whose content differs, and an archive with more than
+# one top folder, a repeated or unsafe name, or a link.
+VERIFY_ARCHIVE='
+import hashlib, sys, zipfile
+z = zipfile.ZipFile(sys.argv[1])
+infos = [i for i in z.infolist() if not i.is_dir()]
+names = [i.filename for i in infos]
+bad = []
+if len({n.split("/")[0] for n in names}) != 1 or any("/" not in n for n in names):
+    bad.append("the archive must hold exactly one top folder")
+if len(set(names)) != len(names):
+    bad.append("a member name appears twice")
+bad += ["unsafe member name: " + n for n in names if n.startswith("/") or "\\" in n or ".." in n.split("/")]
+bad += ["symbolic link member: " + i.filename for i in infos if (i.external_attr >> 16) & 0o170000 == 0o120000]
+top = (names[0].split("/")[0] + "/") if names else ""
+sums = {}
+if top + "SHA256SUMS" in names:
+    for line in z.read(top + "SHA256SUMS").decode("utf-8").splitlines():
+        digest, _, name = line.partition("  ")
+        sums[name] = digest
+else:
+    bad.append("the archive has no SHA256SUMS")
+members = {n[len(top):] for n in names if n.startswith(top)} - {"SHA256SUMS"}
+bad += ["not listed in SHA256SUMS: " + n for n in sorted(members - set(sums))]
+bad += ["listed in SHA256SUMS but absent from the archive: " + n for n in sorted(set(sums) - members)]
+bad += ["differs from its SHA256SUMS line: " + n for n in sorted(members & set(sums))
+        if hashlib.sha256(z.read(top + n)).hexdigest() != sums[n]]
+if bad:
+    sys.exit("REFUSED:\n  " + "\n  ".join(bad[:25]))
+print("SHA256SUMS verified: %d files, each listed and matching, none unlisted" % len(members))
+'
+
 say() { printf '%s\n' "$*"; }
 refuse() { code=$1; shift; say "REFUSED: $*" >&2; exit "$code"; }
 usage() { say "Usage: $0 [--pip-wheel PATH --pip-wheel-sha256 HEX] ARCHIVE WHEEL_FOLDER WORK_FOLDER EXPECTED_ARCHIVE_SHA256" >&2; exit 64; }
@@ -195,6 +229,11 @@ if [ "$archive_sha256" != "$EXPECTED" ]; then
     refuse 3 "the archive digest does not match EXPECTED_ARCHIVE_SHA256 ($EXPECTED)."
 fi
 
+# The archive's member set is checked against its SHA256SUMS before anything is unpacked or created.
+members=$("$PYTHON" -I -c "$VERIFY_ARCHIVE" "$STAGED_ARCHIVE" 2>&1) \
+    || refuse 3 "the archive's files do not match its SHA256SUMS: $members"
+say "$members"
+
 mkdir -p -m 700 "$WORK" || refuse 64 "cannot create WORK_FOLDER."
 WORK=$(cd "$WORK" && pwd -P)
 mkdir -m 700 "$WORK/extract" "$WORK/logs" "$WORK/home"
@@ -213,8 +252,8 @@ PRODUCT="$WORK/extract/$roots"
     || refuse 3 "a file does not match the archive's SHA256SUMS (see $WORK/logs/00-sha256sums.txt)."
 listed=$(cd "$PRODUCT" && awk '{print $2}' SHA256SUMS | sort)
 present=$(cd "$PRODUCT" && find . -type f ! -name SHA256SUMS | sed 's|^\./||' | sort)
-[ "$listed" = "$present" ] || refuse 3 "the archive holds files that SHA256SUMS does not list, or lacks listed ones."
-say "SHA256SUMS verified: every file matches and none is unlisted."
+[ "$listed" = "$present" ] || refuse 3 "the unpacked folder holds files that SHA256SUMS does not list, or lacks listed ones."
+say "The unpacked files were checked against SHA256SUMS again: every file matches and none is unlisted."
 
 [ -f "$PRODUCT/scripts/intune-iac.py" ] && [ -f "$PRODUCT/requirements-runtime-linux-x86_64-cp312.lock" ] \
     || refuse 3 "this is not a runtime archive of the product."

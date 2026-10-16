@@ -2,7 +2,7 @@
 
 `scripts/build-release.py` writes BUILD-IDENTITY.json into every archive it produces. `doctor` prints the report
 below so that a person who reports a problem can name the exact build. The report is read-only: it hashes the files
-the archive's own SHA256SUMS lists and changes nothing.
+the archive's own SHA256SUMS lists, looks for files under the unpacked folder that it does not list, and changes nothing.
 
 A checkout has no identity record; that is reported as such, never guessed from the surrounding folder.
 """
@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 from pathlib import Path
 
@@ -22,6 +23,12 @@ MAX_RECORD_BYTES = 64 * 1024
 MAX_LISTING_BYTES = 8 * 1024 * 1024
 MAX_LISTED_FILES = 20000
 MAX_NAMED_FILES = 20
+MAX_WALKED_FILES = 200000
+# What the unlisted-file look does not count, named in every report so nobody has to guess: the two folders the candidate guide
+# itself creates at the top of the unpacked folder (the environment and the demonstration folder), and bytecode caches.
+NOT_COUNTED_AT_TOP = ('.venv', 'demo')
+NOT_COUNTED_ANYWHERE = ('__pycache__',)
+NOT_COUNTED = ['.venv (the top-level folder)', 'demo (the top-level folder)', '__pycache__ folders (bytecode caches)']
 _LINE = re.compile(r'^([0-9a-f]{64})  (\S[^\n]*)$')
 _GIT_ID = re.compile(r'^[0-9a-f]{40}$')
 _KINDS = ('runtime', 'source')
@@ -89,6 +96,32 @@ def _modified(root, digests):
     return names
 
 
+def _unlisted(root, digests):
+    """Paths under `root` that the listing does not name, sorted. A link is an entry and is not followed; the folders in
+    NOT_COUNTED are skipped. The walk stops after MAX_WALKED_FILES files, so a huge tree cannot make `doctor` hang."""
+    names, walked = [], 0
+    for folder, dirs, files in os.walk(root, followlinks=False):
+        here = Path(folder)
+        top = here == root
+        kept = []
+        for name in sorted(dirs):
+            if (top and name in NOT_COUNTED_AT_TOP) or name in NOT_COUNTED_ANYWHERE:
+                continue
+            if (here / name).is_symlink():
+                files.append(name)
+            else:
+                kept.append(name)
+        dirs[:] = kept
+        for name in files:
+            walked += 1
+            relative = (here / name).relative_to(root).as_posix()
+            if relative not in digests and relative != LISTING_FILE:
+                names.append(relative)
+        if walked > MAX_WALKED_FILES:
+            break
+    return sorted(names)
+
+
 def report(root=None):
     """The build identity of the copy at `root` (default: the copy this module belongs to), as plain data."""
     root = Path(PACKAGE_ROOT if root is None else root)
@@ -108,10 +141,19 @@ def report(root=None):
                               'the copy was changed after the build or assembled from different builds.'),
                     **{key: record[key] for key in ('archive_kind', 'product_version', 'commit', 'tree', 'built_at')})
     modified = _modified(root, digests)
-    return {'status': 'modified' if modified else 'identified', 'archive_kind': record['archive_kind'],
+    unlisted = _unlisted(root, digests)
+    if modified:
+        note = 'Listed files are missing or differ from the build; this is not the build named above.'
+    elif unlisted:
+        note = ('Files that ' + LISTING_FILE + ' does not list are present; this is not the build named above. '
+                'Not counted: ' + ', '.join(NOT_COUNTED) + '.')
+    else:
+        note = ('Every file listed in ' + LISTING_FILE + ' is present and unchanged, and no other file is present. '
+                'Not counted: ' + ', '.join(NOT_COUNTED) + '.')
+    return {'status': 'modified' if modified or unlisted else 'identified', 'archive_kind': record['archive_kind'],
             'product_version': record['product_version'], 'commit': record['commit'], 'tree': record['tree'],
             'dirty': record['dirty'], 'built_at': record['built_at'], 'file_count': record['file_count'],
             'content_sha256': record['content_sha256'], 'companion': record['companion'],
             'modified_files': modified[:MAX_NAMED_FILES], 'modified_count': len(modified),
-            'note': ('Every file listed in ' + LISTING_FILE + ' is present and unchanged.' if not modified else
-                     'Listed files are missing or differ from the build; this is not the build named above.')}
+            'unlisted_files': unlisted[:MAX_NAMED_FILES], 'unlisted_count': len(unlisted),
+            'unlisted_not_counted': list(NOT_COUNTED), 'note': note}

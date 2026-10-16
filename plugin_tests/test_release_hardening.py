@@ -10,8 +10,10 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import warnings
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
 from plugin_tests import test_release_candidate as base
 
@@ -135,6 +137,10 @@ class ScriptCase(unittest.TestCase):
         return (sorted(p.name for p in self.base.iterdir()), sorted(p.name for p in self.outside.iterdir()),
                 sorted(p.name for p in self.tmp.iterdir()))
 
+    def forget_earlier_runs(self):
+        for path in (self.log, self.pip_log):
+            path.unlink(missing_ok=True)
+
     def calls(self):
         return ((self.log.read_text().splitlines() if self.log.exists() else []),
                 (self.pip_log.read_text().splitlines() if self.pip_log.exists() else []))
@@ -200,10 +206,6 @@ class StagingTests(ScriptCase):
 
     def another_wheel(self, name='other.whl'):
         return self.make_wheel(self.base / name, main=base.FAKE_PIP_MAIN.replace("'wheel-pip '", "'SWAPPED-wheel-pip '"))
-
-    def forget_earlier_runs(self):
-        for path in (self.log, self.pip_log):
-            path.unlink(missing_ok=True)
 
     def test_what_runs_is_the_copy_made_before_any_check_whatever_happens_to_the_named_files(self):
         for mode in ('rename', 'overwrite', 'delete'):
@@ -371,6 +373,205 @@ class IsolationTests(ScriptCase):
                     self.assertTrue(rest.startswith(' -B '), 'the guide runs the product with -B: ' + rest)
                 else:
                     self.assertTrue(rest.startswith(' -I'), 'started without -I: ' + interpreter + rest)
+
+
+class MemberSetTests(ScriptCase):
+    """Item 4: one command compares an archive's complete member set with its SHA256SUMS before anything is unpacked, and the
+    guide and the script run the same text."""
+
+    def guide_command(self):
+        section = guide_section('Check the download')
+        match = re.search(r"python3 -I -c '\n(.*?)\n' Intune_IaC_Plugin_0\.9\.0\.zip", section, re.S)
+        if not match:
+            self.fail('the guide shows no member check before it unpacks')
+        return match.group(1).strip()
+
+    def script_command(self):
+        match = re.search(r"^VERIFY_ARCHIVE='\n(.*?)\n'$", DEMO.read_text(), re.S | re.M)
+        if not match:
+            self.fail('the script holds no member check')
+        return match.group(1).strip()
+
+    def variant(self, change, name='variant.zip'):
+        """A copy of the stand-in runtime archive after `change(members)` edited its {name: bytes} mapping."""
+        with zipfile.ZipFile(self.archive) as source:
+            members = {info.filename: source.read(info) for info in source.infolist()}
+        change(members)
+        path = self.base / name
+        with zipfile.ZipFile(path, 'w') as out:
+            for member, data in members.items():
+                out.writestr(member, data)
+        return path
+
+    def verify(self, archive):
+        return subprocess.run([sys.executable, '-I', '-c', self.guide_command(), str(archive)], cwd=self.outside,
+                              capture_output=True, text=True, timeout=60, stdin=subprocess.DEVNULL)
+
+    def mismatches(self):
+        """Each way an archive's member set can differ from its SHA256SUMS: the change, and the text the refusal must hold."""
+        def add_extra(members): members['intune-iac/extra.py'] = b'print(1)\n'
+        def drop_listed(members): del members['intune-iac/scripts/verify-dependencies.py']
+        def list_absent(members): members['intune-iac/SHA256SUMS'] += ('0' * 64 + '  docs/absent.md\n').encode()
+        def edit(members): members['intune-iac/scripts/verify-dependencies.py'] = b'print("changed")\n'
+        return {'a file that is not listed': (add_extra, 'not listed in SHA256SUMS: extra.py'),
+                'a listed file that is absent': (drop_listed,
+                                                 'listed in SHA256SUMS but absent from the archive: scripts/verify-dependencies.py'),
+                'a line for a file that was never there': (list_absent,
+                                                           'listed in SHA256SUMS but absent from the archive: docs/absent.md'),
+                'a member whose content differs': (edit, 'differs from its SHA256SUMS line: scripts/verify-dependencies.py')}
+
+    def test_the_guide_and_the_script_run_the_same_command(self):
+        self.assertEqual(self.guide_command(), self.script_command())
+        self.assertNotIn("'", self.script_command(), 'a quote would end the shell text the command sits in')
+
+    def test_the_command_accepts_a_complete_archive_and_names_each_way_a_member_set_can_differ(self):
+        good = self.verify(self.archive)
+        self.assertEqual(good.returncode, 0, good.stdout + good.stderr)
+        self.assertIn('SHA256SUMS verified: 3 files', good.stdout)
+        for name, (change, text) in self.mismatches().items():
+            with self.subTest(name):
+                result = self.verify(self.variant(change))
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn(text, result.stderr)
+                self.assertNotIn('SHA256SUMS verified', result.stdout)
+
+    def test_the_command_refuses_other_shapes_of_archive(self):
+        def second_top(members): members['other/file.txt'] = b'x'
+        def unsafe(members): members['intune-iac/../evil.txt'] = b'x'
+        def no_sums(members): del members['intune-iac/SHA256SUMS']
+        cases = {'two top folders': (second_top, 'exactly one top folder'), 'an unsafe name': (unsafe, 'unsafe member name'),
+                 'no SHA256SUMS': (no_sums, 'no SHA256SUMS')}
+        for name, (change, text) in cases.items():
+            with self.subTest(name):
+                result = self.verify(self.variant(change))
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn(text, result.stderr)
+        link = self.base / 'link.zip'
+        with zipfile.ZipFile(self.archive) as source, zipfile.ZipFile(link, 'w') as out:
+            for info in source.infolist():
+                out.writestr(info, source.read(info))
+            entry = zipfile.ZipInfo('intune-iac/linked')
+            entry.external_attr = 0o120777 << 16
+            out.writestr(entry, 'README.md')
+        twice = self.base / 'twice.zip'
+        with zipfile.ZipFile(self.archive) as source, zipfile.ZipFile(twice, 'w') as out, warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            for info in source.infolist():
+                out.writestr(info, source.read(info))
+            out.writestr('intune-iac/scripts/intune-iac.py', 'print("second copy")\n')
+        for name, path, text in (('a link member', link, 'symbolic link member'), ('a repeated name', twice, 'appears twice')):
+            with self.subTest(name):
+                result = self.verify(path)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                self.assertIn(text, result.stderr)
+
+    def test_the_command_only_reads_the_archive(self):
+        self.verify(self.variant(self.mismatches()['a file that is not listed'][0]))
+        self.verify(self.archive)
+        self.assertEqual(sorted(p.name for p in self.outside.iterdir()), [], 'the command ran in this folder and wrote nothing')
+
+    def test_the_script_refuses_each_mismatch_before_it_creates_or_unpacks_anything(self):
+        for number, (name, (change, text)) in enumerate(self.mismatches().items()):
+            with self.subTest(name):
+                variant = self.variant(change, name=f'variant-{number}.zip')
+                work = f'work-{number}'
+                self.forget_earlier_runs()
+                before = self.listing()
+                result = self.run_script('--pip-wheel', self.pip_wheel, '--pip-wheel-sha256', self.wheel_digest(), variant,
+                                         self.wheels, self.base / work, sha256(variant.read_bytes()))
+                self.assertRefusedBeforeAnything(result, before, status=3, work=work)
+                self.assertIn(text, result.stderr)
+
+    def test_the_guide_runs_the_member_check_before_it_unpacks_and_describes_each_command_as_it_is(self):
+        section = guide_section('Check the download')
+        self.assertIn("python3 -I -c '", section)
+        self.assertIn('python3 -I -m zipfile -e', section)
+        self.assertLess(section.index("python3 -I -c '"), section.index('python3 -I -m zipfile -e'))
+        text = squashed(section)
+        for phrase in ('does not unpack the archive', 'lacks a file that it lists', 'checks every file the list names and nothing else',
+                       'does not look for a file the list does not name',
+                       '`doctor` also names any file under the unpacked folder that the list does not name'):
+            self.assertIn(phrase, text)
+        self.assertNotIn('check every file inside it', text)
+
+
+class UnlistedFileTests(unittest.TestCase):
+    """Item 4: `doctor` names files under the unpacked folder that SHA256SUMS does not list, and does not say `identified`
+    while there are any. It does not count the folders the guide creates at the top of the unpacked folder, or bytecode caches,
+    and it says so."""
+
+    def setUp(self):
+        self.fixture = base.FixtureBuild(self)
+        self.fixture.build()
+        self.installed = self.fixture.extract('runtime')
+
+    def report(self):
+        from intune_iac import build_identity
+        return build_identity.report(self.installed)
+
+    def put(self, name, text='x\n'):
+        path = self.installed / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+
+    def test_an_intact_copy_is_identified_and_the_report_names_what_it_does_not_count(self):
+        value = self.report()
+        self.assertEqual(value['status'], 'identified')
+        self.assertEqual(value.get('unlisted_files'), [])
+        self.assertEqual(value.get('unlisted_count'), 0)
+        counted_not = ' '.join(value.get('unlisted_not_counted', []))
+        for name in ('.venv', 'demo', '__pycache__'):
+            self.assertIn(name, counted_not)
+
+    def test_a_file_the_list_does_not_name_is_reported_and_the_copy_is_not_identified(self):
+        self.put('extra.py')
+        self.put('docs/extra.md')
+        value = self.report()
+        self.assertNotEqual(value['status'], 'identified')
+        self.assertEqual(value.get('unlisted_files'), ['docs/extra.md', 'extra.py'])
+        self.assertEqual(value.get('unlisted_count'), 2)
+        self.assertIn('not list', value['note'])
+
+    def test_what_the_guide_creates_and_bytecode_caches_are_not_counted(self):
+        self.put('.venv/lib/site.py')
+        self.put('demo/journey.json')
+        self.put('demo/store/db/entry.txt')
+        self.put('docs/__pycache__/x.cpython-312.pyc')
+        value = self.report()
+        self.assertEqual(value['status'], 'identified')
+        self.assertEqual(value.get('unlisted_files'), [])
+
+    def test_the_same_names_deeper_in_the_tree_are_counted(self):
+        self.put('docs/demo/notes.txt')
+        self.put('docs/.venv/lib.py')
+        self.put('.venv-copy/x')
+        value = self.report()
+        self.assertNotEqual(value['status'], 'identified')
+        self.assertEqual(value.get('unlisted_files'), ['.venv-copy/x', 'docs/.venv/lib.py', 'docs/demo/notes.txt'])
+
+    def test_a_link_is_an_unlisted_entry_and_is_not_followed(self):
+        outside = self.fixture.parent / 'outside-folder'
+        outside.mkdir()
+        (outside / 'secret.txt').write_text('x')
+        os.symlink(outside, self.installed / 'linked-folder')
+        os.symlink(outside / 'secret.txt', self.installed / 'linked-file')
+        value = self.report()
+        self.assertNotEqual(value['status'], 'identified')
+        self.assertEqual(value.get('unlisted_files'), ['linked-file', 'linked-folder'])
+
+    def test_a_listed_file_that_changed_is_still_reported_as_modified(self):
+        (self.installed / 'README.md').write_text('edited\n')
+        value = self.report()
+        self.assertEqual((value['status'], value['modified_files']), ('modified', ['README.md']))
+        self.assertEqual(value.get('unlisted_files'), [])
+
+    def test_doctor_carries_the_same_report(self):
+        from intune_iac import build_identity, cli
+        self.put('extra.py')
+        with patch.object(build_identity, 'PACKAGE_ROOT', self.installed):
+            value = cli.doctor()
+        self.assertNotEqual(value['build']['status'], 'identified')
+        self.assertEqual(value['build'].get('unlisted_files'), ['extra.py'])
 
 
 class GuideDigestTests(unittest.TestCase):
