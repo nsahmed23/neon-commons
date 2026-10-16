@@ -514,7 +514,17 @@ def exit_code(result):
     return 0
 
 
+def _lf_only():
+    # The CLI emits LF only, on both streams, on every platform: a Windows text stream would turn each LF into CRLF, and a CRLF at
+    # the byte level cannot be told from one a value injected. Streams that cannot be reconfigured (a test's StringIO) already hold
+    # what was written.
+    for stream in (sys.stdout,sys.stderr):
+        reconfigure=getattr(stream,'reconfigure',None)
+        if reconfigure is not None:reconfigure(newline='\n')
+
+
 def main(argv=None):
+    _lf_only()
     args=parser().parse_args(argv)
     try:
         if args.command=='mcp':

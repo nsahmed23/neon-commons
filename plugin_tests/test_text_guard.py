@@ -54,9 +54,7 @@ FORBIDDEN = _forbidden_pattern()
 # Characters next to the guarded categories that must pass unchanged: spaces, ordinary letters and punctuation, unassigned points.
 NEIGHBOURS = (0x20, 0x7e, 0xa0, 0x061b, 0x061d, 0x200a, 0x2010, 0x202f, 0x205f, 0x2065, 0xfefe, 0xff00, 0x41, 0x39, 0x2e, 0xe9, 0x4e2d)
 OLD_NAME = 'Privacy pilot 7'
-# Line-ending rule: the guard joins rows with one LF. Where the platform newline is CRLF (Windows) print() may write CRLF between
-# rows; that pair is the row separator and is allowed nowhere else.
-CRLF_SEPARATOR = os.name == 'nt'
+# Line-ending rule: the CLI writes LF only, on both streams, on every platform. A CR is a finding wherever it is.
 
 
 def filesystem_accepts(base, text):
@@ -84,9 +82,7 @@ def forbidden_in(data):
         text, found = data.decode('utf-8'), []
     except UnicodeDecodeError:
         text, found = data.decode('utf-8', 'replace'), ['INVALID_UTF8']
-    if CRLF_SEPARATOR:
-        # On Windows print() writes the platform newline between rows. That pair is structural; any other CR is not.
-        text = text.replace('\r\n', '\n')
+    # No CR is allowed, alone or before an LF: the CLI writes LF only, so a CRLF cannot be told from an injected one.
     return sorted(found + ['U+%04X' % ord(ch) for ch in set(FORBIDDEN.findall(text))])
 
 
@@ -250,15 +246,46 @@ class PortabilityTests(unittest.TestCase):
         self.assertEqual(cli.text_guard_rows(['a', 'b' + chr(13) + chr(10) + 'c', 'd']), 'a\nb\\r\\nc\nd')
         self.assertNotIn('\r', cli.text_guard_rows(['a', 'b' + chr(13), 'c']))
 
-    def test_a_crlf_is_the_row_separator_on_windows_only_and_never_inside_a_row(self):
-        module = sys.modules[__name__]
-        with mock.patch.object(module, 'CRLF_SEPARATOR', True, create=True):
-            self.assertEqual(forbidden_in(b'one\r\ntwo\r\n'), [])
-            self.assertEqual(forbidden_in(b'one\rtwo\r\n'), ['U+000D'])
-            self.assertEqual(forbidden_in(b'one\r\r\ntwo'), ['U+000D'])
-        with mock.patch.object(module, 'CRLF_SEPARATOR', False, create=True):
-            self.assertEqual(forbidden_in(b'one\r\ntwo'), ['U+000D'])
-            self.assertEqual(forbidden_in(b'one\ntwo\n'), [])
+    def test_a_cr_alone_or_before_lf_is_a_finding_on_every_platform(self):
+        for data in (b'one\rtwo', b'one\r\ntwo\r\n', b'Policy\r\nINJECTED', b'one\r\r\ntwo'):
+            with self.subTest(data=data):
+                self.assertEqual(forbidden_in(data), ['U+000D'])
+        self.assertEqual(forbidden_in(b'one\ntwo\n'), [])
+
+    def test_the_streams_are_written_with_lf_only_even_where_the_platform_translates_newlines(self):
+        """A Windows text stream turns each LF into CRLF; the CLI reconfigures both streams so it does not."""
+        from intune_iac.io import AppError
+        for label, argv, patched, result in (
+                ('stdout', ['catalog', '.'], [('intune_iac.catalog.catalog_lines', ['one', 'two', 'three'])], {}),
+                ('stderr', ['catalog', '.'], [], AppError('invalid_request', 'Request failed.'))):
+            raw_out, raw_err = io.BytesIO(), io.BytesIO()
+            out = io.TextIOWrapper(raw_out, encoding='utf-8', newline='\r\n', write_through=True)
+            err = io.TextIOWrapper(raw_err, encoding='utf-8', newline='\r\n', write_through=True)
+            with self.subTest(stream=label), contextlib.ExitStack() as stack:
+                if isinstance(result, Exception):
+                    stack.enter_context(mock.patch.object(cli, 'execute', side_effect=result))
+                else:
+                    stack.enter_context(mock.patch.object(cli, 'execute', return_value=result))
+                for target, value in patched:
+                    stack.enter_context(mock.patch(target, return_value=value))
+                stack.enter_context(mock.patch.object(sys, 'stdout', out))
+                stack.enter_context(mock.patch.object(sys, 'stderr', err))
+                cli.main(argv)
+            out.flush(), err.flush()
+            written = raw_out.getvalue() + raw_err.getvalue()
+            self.assertTrue(written.strip(), label)
+            self.assertNotIn(b'\r', written, label)
+            self.assertEqual(forbidden_in(written), [], label)
+
+    def test_a_real_run_writes_no_cr_byte_to_either_stream(self):
+        fixture = Fixture.__new__(Fixture)
+        fixture.base, fixture.env = self.base, dict(os.environ, PYTHONDONTWRITEBYTECODE='1')
+        for argv in (['catalog', self.base], ['plan', 'review', '--input', self.base / 'absent.json']):
+            with self.subTest(argv=argv[0]):
+                done = fixture.run(*argv)
+                self.assertTrue(done.stdout.strip() or done.stderr.strip())
+                self.assertNotIn(b'\r', done.stdout)
+                self.assertNotIn(b'\r', done.stderr)
 
 
 class ByteCheckTests(unittest.TestCase):
