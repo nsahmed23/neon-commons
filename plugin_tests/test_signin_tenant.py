@@ -111,7 +111,7 @@ class EvaluateTests(unittest.TestCase):
         facts = azure((TENANT_A, poison, True, 'active'))
         value = signin_facts.evaluate(facts, TENANT_A)
         self.assertNotIn(poison, json.dumps(value))
-        self.assertEqual(value['status'], 'credential_shaped_name')  # PKG-SETUP-5C finding 4
+        self.assertEqual(value['status'], 'unknown')
 
 
 class ReadinessRowTests(unittest.TestCase):

@@ -366,7 +366,7 @@ NOT_ACCESS = ('A signed-in account does not establish Graph, Intune or state-sto
 ACCESS_UNKNOWN = {'graph_access': 'unknown', 'intune_access': 'unknown', 'state_storage_access': 'unknown'}
 # Verdicts after which the row is blocked on the sign-in itself (missing), and those that replace its next action.
 SIGNIN_BLOCKS = ('wrong_tenant', 'not_signed_in', 'expired', 'subscription_expired')
-SIGNIN_STEPS = SIGNIN_BLOCKS + ('several_accounts', 'two_defaults', 'account_mismatch', 'credential_shaped_name', 'unknown')
+SIGNIN_STEPS = SIGNIN_BLOCKS + ('several_accounts', 'account_mismatch', 'unknown')
 
 
 def _single_tenant(f):

@@ -1,0 +1,33 @@
+{
+ "exit": 0,
+ "output": {
+  "access": {
+   "graph": "unknown",
+   "intune": "unknown",
+   "state_storage": "unknown"
+  },
+  "account_given": false,
+  "commands_run": {
+   "github": "gh auth status --json hosts"
+  },
+  "github": {
+   "message": "Signed in to github.com as an account whose name is not shown here (it is longer than this display allows, or shaped like a credential).",
+   "next_step": "To see the login name, run gh auth status yourself.",
+   "provider": "github",
+   "signed_in": [
+    {
+     "account": "<not shown>",
+     "active": true,
+     "host": "github.com",
+     "listing_state": "success"
+    }
+   ],
+   "status": "signed_in",
+   "tenant_wanted": null,
+   "usable": false
+  },
+  "note": "A signed-in account does not establish Graph, Intune or state-storage access; those stay unknown until a read actually succeeds.",
+  "status": "reported",
+  "tenant": null
+ }
+}

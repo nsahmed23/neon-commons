@@ -286,8 +286,7 @@ class DefaultAccountTests(Base):  # decision 5
         for account in (None, 'alex@example.test'):
             (self.fakes.directory / 'calls.log').unlink(missing_ok=True)
             result = self.collect(account=account)
-            # Changed in PKG-SETUP-5C: two entries marked as the default are two_defaults, not several_accounts.
-            self.assertEqual((result['status'], result['signin']['status']), ('blocked', 'two_defaults'))
+            self.assertEqual((result['status'], result['signin']['status']), ('blocked', 'several_accounts'))
             self.assertIn('default', result['signin']['message'])
             self.assertEqual(self.fakes.calls(), [LISTING])
         self.assertEqual(self.collectors(), [])

@@ -36,9 +36,7 @@ class HiddenNameTests(Base):
         verdict = verdict_for(self.fakes, LONG_UPN)
         self.assertEqual((verdict['status'], verdict['usable']), ('signed_in', True))
         self.assertIn(NOT_SHOWN_TEXT, verdict['message'])
-        # Changed in PKG-SETUP-5C: the one reason that matched, not an alternative a usable name cannot have.
-        self.assertIn('(it is longer than this display allows)', verdict['message'])
-        self.assertNotIn('shaped like a credential', verdict['message'])
+        self.assertIn('longer than this display allows, or shaped like a credential', verdict['message'])
         self.assertIn('az account show --query user.name -o tsv', verdict['next_step'])
         self.assertIn('--account NAME', verdict['next_step'])
         self.assertNotIn('alexander', json.dumps(verdict))
@@ -82,7 +80,7 @@ class HiddenNameTests(Base):
     def test_sol_split_input_is_hidden_and_blocked_by_the_unbroken_run_rule(self):
         # Its last label is 24 letters with no separator, so the run rule matches: not shown, and blocked.
         verdict = verdict_for(self.fakes, SOL_SPLIT)
-        self.assertEqual((verdict['status'], verdict['usable']), ('credential_shaped_name', False))  # PKG-SETUP-5C finding 4
+        self.assertEqual((verdict['status'], verdict['usable']), ('unknown', False))
         self.assertNotIn('abcdefghij', json.dumps(verdict))
 
     def test_the_same_split_with_every_run_under_24_is_hidden_and_usable(self):
@@ -99,7 +97,7 @@ class HiddenNameTests(Base):
         for name in names:
             for account in (None, name):
                 verdict = verdict_for(self.fakes, name, account=account)
-                self.assertEqual((verdict['status'], verdict['usable']), ('credential_shaped_name', False), name)
+                self.assertEqual((verdict['status'], verdict['usable']), ('unknown', False), name)
                 self.assertIn('credential', verdict['message'])
                 self.assertNotIn(name, json.dumps(verdict))
                 self.assertEqual(signin.detect_azure(deadline=5)['accounts'][0]['account'], signin_facts.NOT_SHOWN, name)
@@ -107,7 +105,7 @@ class HiddenNameTests(Base):
     def test_a_blocked_signature_runs_no_token_command(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user='ghp_abc1234')))
         result = self.collect()
-        self.assertEqual((result['status'], result['signin']['status']), ('blocked', 'credential_shaped_name'))
+        self.assertEqual((result['status'], result['signin']['status']), ('blocked', 'unknown'))
         self.assertEqual(self.fakes.calls(), [LISTING])
 
     def test_two_hidden_accounts_are_still_ambiguous_unless_the_default_is_confirmed(self):
@@ -155,7 +153,9 @@ class SurrogateTests(Base):
         with mock.patch('intune_iac.signin_facts.hmac.compare_digest', wraps=hmac.compare_digest) as spy:
             self.assertTrue(signin_facts.evaluate(facts, TENANT_A, LONG_UPN)['usable'])
             self.assertFalse(signin_facts.evaluate(facts, TENANT_A, OTHER_UPN)['usable'])
-        self.assertEqual(spy.call_count, 2)
+        # Two evaluations, each judged twice (the former form and the readable form, PKG-SETUP-5C round 2): every comparison is
+        # still the constant-time one, and no other comparison is made.
+        self.assertEqual(spy.call_count, 4)
 
 
 class ArgumentTests(Base):
@@ -193,10 +193,10 @@ class GithubHiddenLoginTests(Base):
         self.assertIn('gh auth status', verdict['next_step'])
         self.assertNotIn('alexander', json.dumps(verdict))
 
-    def test_a_credential_shaped_login_is_blocked_and_not_shown(self):
+    def test_a_credential_shaped_login_is_unknown_and_not_shown(self):
         self.fakes.answer('gh', 'auth', 'status', out=github_hosts(('github.com', 'ghp_abc1234', 'success', True)))
         verdict = signin_facts.evaluate(signin.detect_github(deadline=5))
-        self.assertEqual(verdict['status'], 'credential_shaped_name')
+        self.assertEqual(verdict['status'], 'unknown')
         self.assertNotIn('ghp_', json.dumps(verdict))
 
 
