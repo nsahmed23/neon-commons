@@ -123,6 +123,31 @@ class HiddenNameTests(Base):
         self.assertNotIn(LONG_UPN, json.dumps(verdict))
 
 
+class SurrogateTests(Base):
+    def test_an_escaped_lone_surrogate_account_is_a_malformed_answer_not_a_crash(self):
+        for name in ('\ud800', 'ok.name@contoso.onmicrosoft.com\udfff'):
+            self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user=name)))
+            facts = signin.detect_azure(deadline=5)
+            self.assertEqual((facts['state'], facts['reason']), ('unknown', 'malformed_answer'), repr(name))
+            self.assertEqual(facts['accounts'], [])
+
+    def test_an_escaped_lone_surrogate_github_login_is_a_malformed_answer_not_a_crash(self):
+        for name in ('\ud800', 'octo\udc00user'):
+            self.fakes.answer('gh', 'auth', 'status', out=github_hosts(('github.com', name, 'success', True)))
+            facts = signin.detect_github(deadline=5)
+            self.assertEqual((facts['state'], facts['reason']), ('unknown', 'malformed_answer'), repr(name))
+
+    def test_the_digest_comparison_is_constant_time(self):
+        import hmac
+        from unittest import mock
+        self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user=LONG_UPN)))
+        facts = signin.detect_azure(deadline=5)
+        with mock.patch('intune_iac.signin_facts.hmac.compare_digest', wraps=hmac.compare_digest) as spy:
+            self.assertTrue(signin_facts.evaluate(facts, TENANT_A, LONG_UPN)['usable'])
+            self.assertFalse(signin_facts.evaluate(facts, TENANT_A, OTHER_UPN)['usable'])
+        self.assertEqual(spy.call_count, 2)
+
+
 class ArgumentTests(Base):
     def run_cli(self, *argv):
         out, err = io.StringIO(), io.StringIO()

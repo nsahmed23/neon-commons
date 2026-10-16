@@ -11,6 +11,7 @@ States: signed_in, not_signed_in, expired, unknown. The reason is a short code, 
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import re
 
@@ -111,6 +112,15 @@ def shown_name(value):
     return NOT_SHOWN
 
 
+def _strict_utf8(text):
+    """True when the text encodes as strict UTF-8 (an escaped lone surrogate in the CLI's JSON does not)."""
+    try:
+        text.encode('utf-8')
+    except UnicodeEncodeError:
+        return False
+    return True
+
+
 def hidden_internals(raw):
     """The private fields kept beside a hidden name: its digest and whether it carries a credential signature."""
     return {'digest': name_digest(raw), 'signature': credential_signature(raw)}
@@ -164,7 +174,8 @@ def parse_azure(text):
         raw_name = user.get('name') if isinstance(user, dict) else None
         raw_cloud = entry.get('cloudName') if isinstance(entry, dict) else None
         state = entry.get('state') if isinstance(entry, dict) else None
-        if not (tenant and isinstance(raw_name, str) and raw_name and isinstance(raw_cloud, str) and raw_cloud):
+        if not (tenant and isinstance(raw_name, str) and raw_name and isinstance(raw_cloud, str) and raw_cloud
+                and _strict_utf8(raw_name)):
             return _facts('azure', 'unknown', reason='malformed_answer')
         # A value that cannot be displayed safely stays in the list as NOT_SHOWN; the raw value is used only to tell entries apart.
         name, cloud = shown_name(raw_name), shown_cloud(raw_cloud)
@@ -216,7 +227,8 @@ def parse_github(text, code, error_text):
         for entry in entries:
             raw_login = entry.get('login') if isinstance(entry, dict) else None
             state = entry.get('state') if isinstance(entry, dict) else None
-            if not isinstance(raw_login, str) or not raw_login or state not in ('success', 'error', 'timeout'):
+            if (not isinstance(raw_login, str) or not raw_login or not _strict_utf8(raw_login)
+                    or state not in ('success', 'error', 'timeout')):
                 return _facts('github', 'unknown', reason='malformed_answer')
             item = {'host': shown_host(host), 'account': shown_name(raw_login), 'active': entry.get('active') is True,
                     'session': SESSION_ACTIVE if state == 'success' else SESSION_EXPIRED}
@@ -268,7 +280,7 @@ def _matches(entry, account):
         return True
     if entry['account'] != NOT_SHOWN:
         return entry['account'] == account
-    return entry.get('digest') is not None and entry['digest'] == name_digest(account)
+    return entry.get('digest') is not None and hmac.compare_digest(entry['digest'], name_digest(account))
 
 
 def _signature(entry):
