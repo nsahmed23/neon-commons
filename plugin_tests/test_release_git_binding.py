@@ -462,6 +462,24 @@ class IdentityRecordTests(ArchivePairCase):
                 self.edit_record(repo, archive, {'companion': None})
                 self.refused(repo, f'The {kind} {IDENTITY} has no companion naming the {other} archive.')
 
+    def test_the_companion_digest_links_are_required_and_not_optional(self):
+        """The builder always writes runtime.companion.content_sha256 and source.companion.archive_sha256. A record without the key is
+        refused naming it, also when both are gone and every digest list and the receipt were made to match (the receipt is unsigned):
+        otherwise the pair would carry no binding between its two archives."""
+        content, archive_digest, kind_key = 'companion.content_sha256', 'companion.archive_sha256', 'companion.archive_kind'
+        cases = {'the runtime record without its source content digest': ([(RUNTIME, content)], 'runtime', content),
+                 'the source record without its runtime archive digest': ([(SOURCE, archive_digest)], 'source', archive_digest),
+                 'both digests removed together': ([(RUNTIME, content), (SOURCE, archive_digest)], 'runtime', content),
+                 'the runtime companion without the kind': ([(RUNTIME, kind_key)], 'runtime', kind_key),
+                 'the source companion without the kind': ([(SOURCE, kind_key)], 'source', kind_key)}
+        for name, (removals, kind, path) in cases.items():
+            with self.subTest(name):
+                repo = self.build()
+                self.assertIsNone(self.check(repo, 'untouched'), 'the untouched pair must pass, or this proves nothing')
+                for archive, key in removals:
+                    self.edit_record(repo, archive, {key: None})
+                self.refused(repo, f'The {kind} {IDENTITY} field {path} is missing.')
+
     def test_a_record_that_does_not_describe_its_own_archive_is_refused(self):
         for kind, archive, other in (('runtime', RUNTIME, 'source'), ('source', SOURCE, 'runtime')):
             for label, field, change in (('archive_kind', 'archive_kind', lambda count: other),

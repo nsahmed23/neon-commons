@@ -59,6 +59,10 @@ LISTING = 'SHA256SUMS'
 # The fields that name the build: the runtime and the source record of one build hold the same value for each.
 SHARED_FIELDS = ('built_at', 'commit', 'dirty', 'product_version', 'schema_version', 'tree')
 OTHER = {'runtime': 'source', 'source': 'runtime'}
+# Besides the other archive's kind, each companion must carry the one digest the builder always writes there: the runtime record
+# names the source's content digest (the source ZIP does not exist yet when the runtime record is written), the source record names
+# the runtime ZIP's own digest. They are required: the receipt is unsigned, so a pair whose records dropped both has no binding.
+LINKS = {'runtime': 'content_sha256', 'source': 'archive_sha256'}
 
 
 def _record(kind, files):
@@ -85,8 +89,8 @@ def _content(files):
 def check_identity_records(archives):
     """Refuse, naming the field, unless the two identity records belong together. `archives` maps 'runtime' and 'source' to
     {'files': the verified members, 'sha256': the archive file's digest}. In this order: both archives hold a record; the fields that
-    name the build agree; each record's companion names the other archive as it is (its kind, and its archive and content digests where
-    the companion carries them); each record describes its own archive (kind, member count, content digest)."""
+    name the build agree; each record's companion names the other archive as it is (its kind and the digest in LINKS, both required, and
+    any other digest it carries); each record describes its own archive (kind, member count, content digest)."""
     records = {kind: _record(kind, archive['files']) for kind, archive in archives.items()}
     content = {kind: _content(archive['files']) for kind, archive in archives.items()}
     for field in SHARED_FIELDS:
@@ -97,11 +101,12 @@ def check_identity_records(archives):
         companion = records[kind].get('companion')
         if not isinstance(companion, dict):
             raise ValueError(f'The {kind} {IDENTITY} has no companion naming the {other} archive.')
-        named = {'archive_kind': other}
-        named.update({key: value for key, value in (('archive_sha256', archives[other]['sha256']),
-                                                    ('content_sha256', content[other][1])) if key in companion})
+        named = {'archive_kind': other, 'archive_sha256': archives[other]['sha256'], 'content_sha256': content[other][1]}
+        for key in ('archive_kind', LINKS[kind]):
+            if key not in companion:
+                raise ValueError(f'The {kind} {IDENTITY} field companion.{key} is missing.')
         for key, value in named.items():
-            if companion.get(key) != value:
+            if key in companion and companion[key] != value:
                 raise ValueError(f'The {kind} {IDENTITY} field companion.{key} does not name the {other} archive.')
     for kind, record in records.items():
         for field, value in (('archive_kind', kind), ('file_count', content[kind][0]), ('content_sha256', content[kind][1])):
@@ -136,7 +141,7 @@ def check_release(directory, output):
             raise ValueError('Archive differs from its build receipt.')
         if len(files) != row.get('files') or len(files) - 1 != row.get('listed_hashes'):
             raise ValueError('Archive count differs from its build receipt.')
-        snapshots[expected[name]] = files; digests[expected[name]] = row['sha256']
+        snapshots[expected[name]] = files; digests[expected[name]] = hashlib.sha256(data).hexdigest()
         reports.append({'archive': name, 'files': len(files), 'listed_hashes': len(files) - 1})
     runtime = snapshots['intune-iac']; source = snapshots['intune-iac-source']
     # Each archive's SHA256SUMS lists its own members and its BUILD-IDENTITY.json describes that archive (its kind and its companion),
