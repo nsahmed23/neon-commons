@@ -386,10 +386,10 @@ class OneBandFormTests(unittest.TestCase):
             text = text_of(hazard_rows({}, [self.UNKNOWN, self.STALE], width))
             self.assertIn('+1 more finding (2 Inspector)', text, width)
 
-    def test_the_inspector_and_a_typed_command_keep_their_own_forms(self):
+    def test_the_inspector_and_a_typed_command_read_the_same_way(self):
         from intune_iac.workbench_screens import hazard_rows
-        self.assertIn('+1 more finding in NEEDS ATTENTION', text_of(hazard_rows({}, [self.UNKNOWN, self.STALE], 120, here=True)))
-        self.assertIn('+1 more', text_of(hazard_rows({}, [self.UNKNOWN, self.STALE], 120, routes=False)))
+        self.assertIn('+1 more finding (2 Inspector)', text_of(hazard_rows({}, [self.UNKNOWN, self.STALE], 120, here=True)))  # run 12 L-more
+        self.assertIn('+1 more finding (2 Inspector)', text_of(hazard_rows({}, [self.UNKNOWN, self.STALE], 120, routes=False)))
 
 
 class LostResponseOnceTests(unittest.TestCase):

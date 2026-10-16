@@ -468,3 +468,25 @@ class RunningStripTests(unittest.TestCase):
         from intune_iac.workbench_screens import HAZARD_STATES
         self.assertIn('executing', HAZARD_STATES['OPERATION'])
         self.assertNotIn('reconciling', HAZARD_STATES['OPERATION'])  # a read; it never replays the change
+
+
+class OneHiddenFindingMarkerTests(unittest.TestCase):
+    """Item 8, L-more (frames 34, 37, 54, 55): the marker for hidden findings reads one way on every surface, in the form
+    that names the surface: `+N more finding(s) (2 Inspector)`."""
+    SIGNALS = [
+        {'area': 'operations', 'code': 'operation_outcome_unknown', 'observed': 'x', 'next_step': 'y', 'evidence': {}},
+        {'area': 'freshness', 'code': 'observation_stale', 'observed': 'x', 'next_step': 'y', 'evidence': {}},
+        {'area': 'repository', 'code': 'repository_stale', 'observed': 'x', 'next_step': 'y', 'evidence': {}}]
+
+    def rows(self, count, **kw):
+        from intune_iac.workbench_screens import hazard_rows
+        return ' '.join(' '.join(hazard_rows({}, self.SIGNALS[:count], 140, **kw)).split())
+
+    def test_every_surface_and_mode_uses_the_same_wording(self):
+        for kw in ({}, {'here': True}, {'routes': False}, {'here': True, 'routes': False}, {'listed': True}):
+            self.assertIn('+1 more finding (2 Inspector)', self.rows(2, **kw), kw)
+            self.assertIn('+2 more findings (2 Inspector)', self.rows(3, **kw), kw)
+            self.assertNotIn('NEEDS ATTENTION', self.rows(2, **kw), kw)
+
+    def test_no_marker_without_other_findings(self):
+        self.assertNotIn('more finding', self.rows(1))

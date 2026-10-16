@@ -512,7 +512,7 @@ class ReviewFixTests(unittest.TestCase):
 
     def test_the_count_says_where_the_other_findings_are(self):
         from intune_iac.workbench_screens import hazard_rows
-        self.assertIn('+1 more finding in NEEDS ATTENTION', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 120, here=True)))  # run 8 item 13: where, not "below"
+        self.assertIn('+1 more finding (2 Inspector)', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 120, here=True)))  # run 12 L-more: one wording on every surface
         # Run 8 item 15 kept the longest form of the hazard, so the count changed its wording with the width ("+1 more: 2"
         # at 120, "+1 more: 2 Inspector" at 140). Run 9 (frames 54 and 56): one form per fact, at every width.
         self.assertIn('+1 more finding (2 Inspector)', ' '.join(hazard_rows({}, [UNKNOWN, STALE], 120)))

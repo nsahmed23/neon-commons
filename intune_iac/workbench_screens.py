@@ -402,29 +402,28 @@ def _in_list(form, entry):
     return form
 
 
-def hazard_rows(facts, signals, width, *, routes=True, here=False, listed=False, repository_here=False):
+def hazard_rows(facts, signals, width, *, routes=True, here=False, listed=False, repository_here=False, surface=True):
     """The band: the primary hazard with its response, in the longest wording that fits, and the count of other
     findings and any re-read that failed, beside it or on a row of their own so neither is cut. A window too narrow
     for the shortest wording gets it wrapped with the response kept whole. [] when nothing is recorded.
 
     listed: the actions list is open, where a is not a key; the response names its entry in the list instead.
-    repository_here: surface 9 is drawn, which is where the band's 9 would point, so the band does not point at it."""
+    repository_here: surface 9 is drawn, which is where the band's 9 would point, so the band does not point at it.
+    surface: the count names the surface that lists the other findings; False only below the minimum window, where no
+    surface can be shown (the constrained frame)."""
     primary, others = _band_primary(facts, signals)
     if primary is None:
         return []
     # routes=False where no key can be taken (below the minimum, or while a command is typed): the band names the
-    # response without its key, and the count names no surface. here: the Inspector, which lists them below.
+    # response without its key.
     reread = (['not re-read after %s: 2 re-reads' % facts['unverified']]
               if facts.get('unverified') and primary.get('code') != 'conditions_not_reread' else [])
-    # here: the Inspector lists the others under NEEDS ATTENTION, so the count names that section (not "below", which a
-    # reader takes for the scrolled part of the screen).
-    # One fact reads in one form at every width (run 9, frames 54 and 56): "+N more findings (2 Inspector)" names the
-    # surface by its number, the one the tab line above shows and Help explains. Where the Inspector itself lists them it
-    # says where, and while a command is typed no key can be taken, so the count names no surface.
-    # The count names what it counts (findings) and, where a key can be taken, where they are listed.
+    # One fact reads in one form on every surface and in every mode (run 12, frames 34, 37, 54, 55): "+N more findings
+    # (2 Inspector)" names the surface by its number, the one the tab line above shows and Help explains. It is a name,
+    # not a key press, so it stands while a command is typed and on the Inspector itself, which lists them under NEEDS
+    # ATTENTION. (here is kept for callers; the wording no longer differs by it.)
     more = '+%d more %s' % (others, 'finding' if others == 1 else 'findings')
-    counts = ([[more]] if not routes else [[more + ' in NEEDS ATTENTION']] if here else
-              [[more + ' (2 Inspector)']]) if others else [[]]
+    counts = [[more + (' (2 Inspector)' if surface else '')]] if others else [[]]
     forms = _band_forms(primary, facts.get('identity_prefixes'))
     if repository_here:
         forms = [re.sub(r'\. 9: repository(?:, |$)', lambda found: '. ' if found.group(0).endswith(' ') else '.',
@@ -510,7 +509,7 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
                                                    if selected and str(value) in HAZARD_STATES[label]
                                                    and str(value) in SHORT_STATES and str(value) in STRIP_DEFINITIONS]
     groups = {'header': [header], 'strip': _pack(items, width), 'prompt': [prompt], 'keys': [keys] if keys else [],
-              'band': hazard_rows(facts, facts.get('signals') or [], width, routes=False) if selected else [],
+              'band': hazard_rows(facts, facts.get('signals') or [], width, routes=False, surface=False) if selected else [],
               'legend': strip_key_rows([STRIP_DEFINITIONS[key] for key in dict.fromkeys(shown)], width)}
     budget, kept = height, {}
     for name in ('band', 'header', 'prompt', 'strip', 'keys', 'legend'):

@@ -501,11 +501,11 @@ class MoreFindingsTests(unittest.TestCase):
         self.assertIn('+1 more finding (2 Inspector)', self.band(1))
         self.assertIn('+2 more findings (2 Inspector)', self.band(2))
 
-    def test_in_the_inspector_it_names_the_section_and_while_typing_no_surface(self):
-        self.assertIn('+1 more finding in NEEDS ATTENTION', self.band(1, here=True))
+    def test_in_the_inspector_and_while_typing_it_reads_the_same(self):
+        # Run 12 L-more: one wording on every surface; it names the surface and is not a key to press.
+        self.assertIn('+1 more finding (2 Inspector)', self.band(1, here=True))
         typing = self.band(1, routes=False)
-        self.assertIn('+1 more finding', typing)
-        self.assertNotIn('Inspector', typing)
+        self.assertIn('+1 more finding (2 Inspector)', typing)
         self.assertNotIn(': 2', typing)
 
     def test_the_noun_survives_every_width(self):
