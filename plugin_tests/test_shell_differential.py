@@ -16,7 +16,8 @@ import subprocess
 import unittest
 
 ALPHABET = ['D', 'I', 'R', 'E', 'C', 'T', 'O', 'Y', 'x', '-', "'", '"', '\\', '\n', ' ', '\t', '\r', '$', '{', '}']
-NOISE = ["'", '"', '\\', '\n', ' ', '\t', '\r', '$""', "$''", '${x}', '$x', '$', '${x-', '}', '$@', '$1']
+NOISE = ["'", '"', '\\', '\n', ' ', '\t', '\r', '$""', "$''", '${x}', '$x', '$', '${x-', '}', '$@', '$1',
+         '$?', '$#', '$0', '${0-', '${x:=', '${x=', '${x:?', '${x?', '${x:=}', '${x=}']
 TOKEN = re.compile(r'(?<![A-Za-z0-9_])DIRECTORY(?![A-Za-z0-9_])')
 # One bash process (env -i, no rc files, $0 empty). Each input is read up to a NUL from stdin; eval runs it with globbing off; the
 # handler records the words of every command bash could not find (all of them: no name in the alphabet is a command); the status
@@ -33,9 +34,23 @@ while IFS= read -r -d '' s; do
   printf 'S%s\0' "$?"
 done
 """
-# The values of $$ and $- are not empty in bash (a process id, the option letters), and the net reads them as empty, which can only
-# make it replace more. A string with one of them may be replaced without bash reading the token; nothing else may differ.
+# The declared conservative classes (precision is not asked of a string in one of them; safety always is):
+# - special parameters ($0-$9 $@ $* $# $? $- $$ $! and their brace forms): their values at copy time are digits, the shell's name
+#   or option letters, none of which can spell DIRECTORY, and the net reads them as empty (or as their default word), which can
+#   only replace more;
+# - assignment expansions (${NAME=w} ${NAME:=w} ${NAME?w} ${NAME:?w}): they carry state, so the net does not model them and any
+#   part holding one is replaced;
+# - strings bash fails on (an unclosed quote or brace, a bad substitution): the net must still be safe on them;
+# - comments (a # at the start of a word makes bash drop the rest; the grammar has no comments, the net reads the rest);
+# - CONSERVATIVE is the $$ and $- part of the first class, reported separately.
+SPECIAL = re.compile(r'\$[0-9@*#?$!-]|\$\{[0-9@*#?$!-]')
+ASSIGNMENT = re.compile(r'\$\{[A-Za-z_0-9@*#?$!-]*:?[=?]')
 CONSERVATIVE = re.compile(r'\$[$-]|\$\{[$-]')
+# Targeted inputs: the special parameters and the assignment expansions alone, and one that carries state across words.
+TARGETED = ['DIREC$?TORY', 'DIREC$#TORY', 'DIREC$0TORY', 'DIREC$1TORY', 'DIREC$9TORY', '${0-DIRECTORY}', '${0:-DIRECTORY}',
+            '${?-DIRECTORY}', 'X ${x:=DIREC} ${x}TORY', 'X ${x=DIREC} ${x}TORY', 'X ${x:?DIRECTORY}', 'X ${x?DIRECTORY}',
+            'D${x:=IRECTORY}', 'D${x=IRECTORY}', '${x:=DIRECTORY}', '${x=DIRECTORY}', 'X "${x:=DIREC}${x}TORY"',
+            'DIREC${x:=}TORY', '${x:=DIREC}${x}TORY', 'X ${y:=DIR} ${y}ECTORY']
 
 
 def bash_available():
@@ -52,6 +67,11 @@ def bash_available():
 
 def strings():
     generator = random.Random(20261017)
+    for text in TARGETED:
+        yield text
+        for noise in NOISE:               # each targeted input behind and inside noise
+            yield noise + text
+            yield text[:4] + noise + text[4:]
     for _ in range(50000):
         yield ''.join(generator.choice(ALPHABET) for _ in range(generator.randint(1, 8)))
     for _ in range(3000):
@@ -89,33 +109,46 @@ def ask_bash(bash, inputs):
 
 @unittest.skipUnless(bash_available(), 'no working bash and env on this host: the differential test needs the real shell to ask')
 class NetAgainstBashTests(unittest.TestCase):
-    def test_the_net_replaces_a_part_exactly_when_bash_reads_the_token(self):
+    def test_safety_and_precision_of_the_net_against_bash(self):
+        """Safety, exact, for every string: whenever bash's words hold DIRECTORY the net replaces the part. Precision, for every
+        string outside the declared conservative classes: the net replaces only when bash reads DIRECTORY."""
         from intune_iac import readiness
         inputs = list(strings())
         results = ask_bash(bash_available(), inputs)
         self.assertEqual(len(results), len(inputs))
-        mismatches, failed, positives, dollar_positives, conservative = [], 0, 0, 0, 0
+        safety, precision = [], []
+        count = dict(positives=0, dollar_positives=0, failed=0, special=0, assignment=0, comment=0, dollar_dash=0, conservative_replaced=0)
         for text, (words, error) in zip(inputs, results):
             replaced = readiness._fail_closed(text) != text
-            if error:
-                failed += 1
-                if TOKEN.search(readiness._shell_flatten(text)) and not replaced:
-                    mismatches.append((text, 'bash failed, token after flattening, not replaced'))
-                continue
             named = bool(TOKEN.search(' '.join(words)))
-            positives += named
-            dollar_positives += named and '$' in text
-            if replaced and not named and CONSERVATIVE.search(text):
-                conservative += 1
+            count['positives'] += named
+            count['dollar_positives'] += named and '$' in text
+            if named and not replaced:
+                safety.append((text, 'bash words %r, not replaced' % (words,)))
+            if error:
+                count['failed'] += 1
+                if TOKEN.search(readiness._shell_flatten(text)) and not replaced:
+                    safety.append((text, 'bash failed, token after flattening, not replaced'))
+                continue
+            special, assignment = bool(SPECIAL.search(text)), bool(ASSIGNMENT.search(text))
+            comment = '#' in text          # the targeted $# noise can leave a # at the start of a word, where bash begins a comment
+            count['special'] += special
+            count['assignment'] += assignment
+            count['comment'] += comment
+            count['dollar_dash'] += bool(CONSERVATIVE.search(text))
+            if special or assignment or comment:
+                count['conservative_replaced'] += replaced and not named
                 continue
             if replaced != named:
-                mismatches.append((text, 'bash words %r, replaced %r' % (words, replaced)))
-        type(self).compared = (len(inputs), failed, positives, dollar_positives, conservative, len(mismatches))
-        self.assertGreater(positives, 1000, 'the comparison must see bash read the token often, or it proves nothing')
-        self.assertGreater(dollar_positives, 200, 'and often through a $ construct')
-        self.assertEqual(mismatches[:20], [], 'compared %d strings' % len(inputs))
-        print('differential: %d strings, %d bash failures, %d read as DIRECTORY, %d of them through $, %d conservative, '
-              '%d mismatches' % type(self).compared)
+                precision.append((text, 'bash words %r, replaced %r' % (words, replaced)))
+        type(self).compared = (len(inputs), count, len(safety), len(precision))
+        self.assertGreater(count['positives'], 1000, 'the comparison must see bash read the token often, or it proves nothing')
+        self.assertGreater(count['dollar_positives'], 200, 'and often through a $ construct')
+        for name in ('failed', 'special', 'assignment', 'dollar_dash', 'conservative_replaced'):
+            self.assertGreater(count[name], 20, 'the %s class is exercised' % name)
+        self.assertEqual(safety[:20], [], 'safety: a stand-in bash reads would be kept')
+        self.assertEqual(precision[:20], [], 'precision outside the declared classes')
+        print('differential: %d strings; %s; safety violations %d; precision mismatches %d' % type(self).compared)
 
 
 if __name__ == '__main__':

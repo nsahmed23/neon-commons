@@ -324,6 +324,12 @@ class StandInCommandSegmentTests(unittest.TestCase):
         ('echo $(date)', True), ('echo `date`', True), ('echo "$(date)"', True), ('echo "`date`"', True),
         ("echo '$(date)'", False), ("echo '`date`'", False), ('echo \\`date', False), ('echo \\$(date)', False),
         ('echo $((1+1))', True),
+        # Round 9: an assignment expansion carries state to later words, so any part holding one fails closed, with or without
+        # the token in sight; the forms that carry no state (-, :-, +, :+) and single-quoted text are read as before.
+        ('echo ${x:=DIREC} ${x}TORY', True), ('echo ${x=DIREC} ${x}TORY', True), ('echo ${x:=a}', True), ('echo ${x=a}', True),
+        ('echo ${x?a}', True), ('echo ${x:?a}', True), ('echo "${x:=a}"', True), ("echo '${x:=a}'", False),
+        ('echo ${x-a}', False), ('echo ${x:-a}', False), ('echo ${x+a}', False), ('echo ${x:+a}', False),
+        ('echo \\${x:=a}', False),
     )
 
     def test_dollar_constructs_are_read_as_the_shell_reads_them(self):
