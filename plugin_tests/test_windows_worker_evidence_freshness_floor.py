@@ -6,6 +6,7 @@ import contextlib
 import json
 import sqlite3
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -16,8 +17,14 @@ from intune_iac import worker_evidence as contract
 from intune_iac.io import AppError, canonical, digest
 from plugin_tests.test_windows_storage_r4 import CANONICAL, ROOT
 from plugin_tests.test_windows_workbench_r4 import FilesystemAPI
-from plugin_tests.test_worker_evidence_freshness_floor import (OK, REJECT, T, TENANT, Shape, aging, expiring, make_policy, make_request,
+from plugin_tests.test_worker_evidence_freshness_floor import (make_envelope, OK, REJECT, T, TENANT, Shape, aging, expiring, make_policy, make_request,
                                                                restart, stand_ins, wall)
+
+
+def ticking_wall(value):
+    """The wall at `value` now, advancing with real time (a frozen wall during a 5 s busy wait is a backward step)."""
+    start = time.monotonic()
+    return patch.object(time, 'time', side_effect=lambda: float(value) + (time.monotonic() - start))
 
 
 class WindowsStoreReaderTests(Shape, unittest.TestCase):
@@ -144,9 +151,13 @@ class WindowsStoreReaderTests(Shape, unittest.TestCase):
     def test_a_busy_write_lock_is_unrecorded_for_an_admissible_read(self):
         self.publish(aging(self.req))
         self.hold_write_lock()
-        with wall(T + 70), self.assertRaises(AppError) as raised:  # beyond the 60 s step: the mark must be recorded
+        with ticking_wall(T + 70), self.assertRaises(AppError) as raised:  # beyond the 60 s step: the mark must be recorded
             self.read()
         self.assertEqual(raised.exception.code, 'worker_evidence_clock_unrecorded')
+
+    def read_historical(self):
+        with wall(T + 10):
+            return self.read(historical=True)
 
     def root_names(self):
         return sorted(self.api.names(CANONICAL + '\\received'))
@@ -298,8 +309,10 @@ class WindowsStoreReaderTests(Shape, unittest.TestCase):
         with self.with_a_time_dependent_judgment(T + 30), wall(T + 40):
             self.assertFalse(self.read()['baseline_admissible'])
         clock.reset_process_anchor()  # a restart
-        with self.with_a_time_dependent_judgment(T + 30), wall(T + 10):  # the wall stepped back before the transition
-            self.assertFalse(self.read()['baseline_admissible'])
+        with self.with_a_time_dependent_judgment(T + 30), wall(T + 10), self.assertRaises(AppError) as held:
+            self.read()  # the wall stepped back before the transition: judged at the mark, so the earlier admission cannot return
+        self.assertEqual(held.exception.code, 'worker_evidence_clock_moved_backward')
+        self.assertFalse(self.read_historical()['baseline_admissible'])
 
     def test_an_unchanged_judgment_inside_the_step_is_not_recorded(self):
         self.publish(aging(self.req))
@@ -308,6 +321,63 @@ class WindowsStoreReaderTests(Shape, unittest.TestCase):
             self.assertTrue(self.read()['baseline_admissible'])
         self.assertEqual(self.root_names(), before)
         self.assertEqual(self.mark(), T + 1)
+
+
+    def put_and_ingest(self, request, envelope, at):
+        """Ingest under fresh file names (the native fixture never overwrites an input file)."""
+        self.puts = getattr(self, 'puts', 0) + 1
+        names = ('request-%d.json' % self.puts, 'envelope-%d.json' % self.puts)
+        storage._create_file(self.input, names[0], canonical(request), self.api)
+        storage._create_file(self.input, names[1], canonical(envelope), self.api)
+        with wall(at):
+            return receiver._ingest(self.store, self.input + '\\' + names[1], self.input + '\\' + names[0],
+                                    self.input + '\\trust.json', self.input + '\\pin.json', self.scratch, self.api)
+
+    def store_a_and_b(self):
+        """The reviewer's input: mark 100 (T+100), envelope A read unchanged at T+160 (not recorded), B expiring at T+130."""
+        self.b_request = make_request(self.policy, '8' * 32)
+        self.put_and_ingest(self.b_request, make_envelope(self.b_request, issued_at=T, expires_at=T + 130, read_at=T - 5), T + 1)
+        self.put_and_ingest(self.req, make_envelope(self.req, issued_at=T, expires_at=T + 500, read_at=T - 5), T + 100)
+
+    def read_b(self, at):
+        with wall(at):
+            return receiver._reopen(self.store, digest(self.b_request), self.input + '\\trust.json', self.input + '\\pin.json',
+                                    self.scratch, self.api)
+
+    def test_current_admission_is_held_while_the_wall_is_behind_the_recorded_time(self):
+        self.store_a_and_b()
+        self.assertEqual(self.mark(), T + 100)
+        with wall(T + 160):  # an unchanged judgment inside the step: not recorded
+            self.assertTrue(self.read()['baseline_admissible'])
+        self.assertEqual(self.mark(), T + 100)
+        clock.reset_process_anchor()  # a restart, the wall far behind the mark
+        names = self.root_names()
+        with self.assertRaises(AppError) as held:
+            self.read_b(T - 1000)
+        self.assertEqual(held.exception.code, 'worker_evidence_clock_moved_backward')
+        self.assertEqual(self.mark(), T + 100)  # a held read records nothing
+        self.assertEqual(self.root_names(), names)
+        self.assertTrue(self.read_b(T + 99)['baseline_admissible'])  # within the tolerance of the mark: admitted
+
+    def test_an_expired_envelope_read_while_the_wall_is_behind_is_still_expired(self):
+        c = make_request(self.policy, '9' * 32)
+        self.put_and_ingest(c, make_envelope(c, issued_at=T, expires_at=T + 10, read_at=T - 5), T + 1)
+        self.store_a_and_b()  # the mark becomes T+100
+        clock.reset_process_anchor()
+        with wall(T - 1000), self.assertRaises(AppError) as closed:
+            receiver._reopen(self.store, digest(c), self.input + '\\trust.json', self.input + '\\pin.json', self.scratch, self.api)
+        self.assertEqual(closed.exception.code, 'worker_evidence_expired')  # a closed window still wins over the hold
+        with self.assertRaises(AppError) as held:  # while a still-open envelope is held
+            self.read_b(T - 1000)
+        self.assertEqual(held.exception.code, 'worker_evidence_clock_moved_backward')
+
+    def test_ingest_is_held_while_the_wall_is_behind(self):
+        self.store_a_and_b()
+        clock.reset_process_anchor()
+        d = make_request(self.policy, 'a' * 32)
+        with self.assertRaises(AppError) as held:
+            self.put_and_ingest(d, make_envelope(d, issued_at=T, expires_at=T + 400, read_at=T - 5), T - 1000)
+        self.assertEqual(held.exception.code, 'worker_evidence_clock_moved_backward')
 
 
 class QualificationScriptTests(unittest.TestCase):

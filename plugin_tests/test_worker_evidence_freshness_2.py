@@ -43,6 +43,11 @@ class ViewFallbackTests(unittest.TestCase):
         self.assertEqual(calls, [False, True])
         self.assertFalse(result['baseline_admissible'])
 
+    def test_a_backward_wall_hold_falls_back_to_the_historical_read(self):
+        result, calls = self.read_with('worker_evidence_clock_moved_backward')
+        self.assertEqual(calls, [False, True])
+        self.assertFalse(result['baseline_admissible'])
+
     def test_an_unrelated_refusal_still_propagates(self):
         with self.assertRaises(AppError) as raised:
             self.read_with('worker_evidence_signature_invalid')

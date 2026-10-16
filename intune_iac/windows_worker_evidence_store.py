@@ -52,11 +52,27 @@ def _mark(db):
     return value['high_water']
 
 
-def _effective(store,mark,*,anchor=True):
-    """max(wall, durable mark, the process monotonic carry of the wall): the process floor is the secondary floor."""
-    wall=time.time()
-    if not anchor:return max(int(wall),mark)
-    return max(int(wall),mark,int(clock._process_floor('worker-evidence-store:'+str(store.root),wall)))
+def _reading(store,mark,*,anchor=True):
+    """(effective time, wall): effective is max(wall, durable mark, the process monotonic carry of the wall; the process floor is
+    the secondary floor, left alone when anchor is False)."""
+    wall=time.time();seconds=int(wall)
+    if not anchor:return max(seconds,mark),seconds
+    return max(seconds,mark,int(clock._process_floor('worker-evidence-store:'+str(store.root),wall))),seconds
+
+
+def _effective(store,mark,*,anchor=True):return _reading(store,mark,anchor=anchor)[0]
+
+
+def _behind(now,wall):
+    """The wall is earlier than the effective time by more than clock.TOLERANCE_SECONDS: a backward step, so the true time
+    cannot be established and a current admission is held (clock.py's rule for its own floor)."""
+    return wall<now-clock.TOLERANCE_SECONDS
+
+
+def _hold():
+    raise AppError('worker_evidence_clock_moved_backward','The system clock reads earlier than the time this evidence store has '
+        'already recorded, so current admission cannot be established. Wait until the system clock passes the recorded time, or '
+        'correct the clock; historical inspection remains available.')
 
 
 def _peek(store):
@@ -75,18 +91,22 @@ def _judge(store,db,decide,apply):
     recorded=True
     try:
         db.execute('BEGIN IMMEDIATE')
-        now=_effective(store,_mark(db))
-        db.execute('INSERT INTO metadata VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',(CLOCK,canonical({'high_water':now}).decode()))
+        mark=_mark(db);now,wall=_reading(store,mark)
+        if now>mark:  # a held or unchanged read records nothing
+            db.execute('INSERT INTO metadata VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',(CLOCK,canonical({'high_water':now}).decode()))
     except BaseException as error:
         if isinstance(error,(KeyboardInterrupt,SystemExit)):raise
         recorded=False
-        try:now=_effective(store,_mark(db))  # a read is allowed beside another writer
+        try:now,wall=_reading(store,_mark(db))  # a read is allowed beside another writer
         except BaseException as reading:
             if isinstance(reading,(KeyboardInterrupt,SystemExit)):raise
-            now=_effective(store,0)
+            now,wall=_reading(store,0)
     pending=verified=None
     try:verified=decide(now)
     except AppError as error:pending=error
+    if pending is None and _behind(now,wall):
+        try:_hold()  # a refusal at the effective time (above) still wins; only an admission is held
+        except AppError as error:pending=error
     if recorded and pending is None:
         try:apply(db,verified)
         except AppError as error:pending=error
@@ -234,11 +254,12 @@ def _reopen(store,request_sha256,trust_path,pin_path,scratch,api,*,historical=Fa
                     with store._connection() as db:
                         _validate_schema(db);db.execute('BEGIN')
                         try:
-                            mark=_mark(db);now=_effective(store,mark)
+                            mark=_mark(db);now,wall=_reading(store,mark)
                             try:verified=decide(now)
                             except AppError as refusal:
                                 if refusal.code not in ('worker_evidence_expired','worker_evidence_stale_snapshot') or mark>=now:raise
                                 write=True  # a closure the mark does not yet cover: record it
+                            if not write and _behind(now,wall):_hold()  # nothing is recorded by a held read
                             if not write and now-mark>MARK_STEP:write=True
                             if not write and now>mark and _judgment(decide,mark)!=verified.result():
                                 write=True  # a transition: recorded at its first observation, never left to a later read

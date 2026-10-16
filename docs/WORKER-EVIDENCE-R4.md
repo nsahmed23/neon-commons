@@ -78,8 +78,9 @@ restart. `assemble` checks its output with the same historical read. For current
 
 The native Windows store batches its clock-mark writes: a current `reopen` records the mark only for a closed window, for a
 judgment that differs from the one at the stored mark, or for an observed time more than 60 seconds ahead of it (see
-`WINDOWS-WORKER-EVIDENCE-R4.md`). No observed judgment is ever reversed; after a wall-clock step back, a transition not yet
-observed can be observed up to 60 seconds of real time later than with a mark written on every read.
+`WINDOWS-WORKER-EVIDENCE-R4.md`). While the wall is behind the recorded time current admission is held; after the wall passes
+it, a transition not yet recorded can be observed at most 60 seconds plus the clock tolerance of real time later than with a
+mark written on every read. No observed judgment is ever reversed.
 
 `ingest` first retains exact bounded incoming envelope and request bytes in a NEW
 private attempt directory, including invalid JSON/signatures. It distinguishes

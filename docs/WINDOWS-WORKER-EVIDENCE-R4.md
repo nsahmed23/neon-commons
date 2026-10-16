@@ -111,12 +111,16 @@ the contradiction is retained with a non-admissible evidence class.
 Current `reopen` and the evidence views read the store's durable clock mark first and open a write connection (which leaves
 two permanent root receipts) only to record something: a closed window the mark does not yet cover, a successful judgment at
 the observed time that differs in any field from the judgment at the stored mark (a transition), or an observed time more than
-60 seconds ahead of the mark. The mark, the decision and the receipt check are one read transaction. The time-dependent parts
-of a judgment are exactly the two terminal refusals (`worker_evidence_expired`, `worker_evidence_stale_snapshot`) and the
-earliest-time check (an envelope issued more than the skew ahead of `now` is refused); no field of a successful result depends
-on the time. Limit: no judgment that was observed and recorded is ever reversed. After a wall-clock step back, a transition
-that had not yet been observed can be observed up to 60 seconds of real time later than it would with a mark written on every
-read.
+60 seconds ahead of the mark. The mark, the decision and the receipt check are one read transaction. The time-dependent checks of a judgment are the two terminal
+refusals (`worker_evidence_expired`, `worker_evidence_stale_snapshot`), the earliest-time check (an envelope issued more than the
+skew ahead of `now` is refused) and the timestamp range check on `now`; no field of a successful result depends on the time.
+
+While the wall clock reads earlier than the recorded time (the mark or this process's floor) by more than the clock tolerance
+(2 seconds), current admission, on `reopen` and on `ingest`, is held with `worker_evidence_clock_moved_backward` (wait until the
+system clock passes the recorded time, or correct the clock; `--historical` reads stay available). A refusal at the effective
+time is still returned as it is, so a closed window still wins, and a held read records nothing. After the wall passes the
+recorded time again, a transition not yet recorded can be observed at most 60 seconds plus the tolerance of real time later than
+with a mark written on every read. No observed judgment is ever reversed.
 
 ## Backup and restoration of received history
 
