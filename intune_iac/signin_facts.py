@@ -53,6 +53,7 @@ def shown(value, pattern=NAME):
 
 
 NOT_SHOWN = '<not shown>'
+PUBLIC_CLOUD = 'AzureCloud'
 KNOWN_CLOUDS = frozenset({'AzureCloud', 'AzureChinaCloud', 'AzureUSGovernment', 'AzureGermanCloud'})
 _UPN = re.compile(r'[A-Za-z0-9][A-Za-z0-9._+-]{0,63}@[A-Za-z0-9][A-Za-z0-9-]{0,62}(?:\.[A-Za-z0-9][A-Za-z0-9-]{0,62}){1,4}')
 _PLAIN_HOST = re.compile(r'[a-z0-9][a-z0-9-]{0,23}(?:\.[a-z0-9][a-z0-9-]{0,23}){0,4}', re.I)
@@ -404,6 +405,15 @@ def evaluate(facts, tenant=None, account=None):
                         'Signed in to tenant %s as %s.' % (default['tenant'], HIDDEN_NAME if default['account'] == NOT_SHOWN
                                                            else default['account']),
                         'Run az account list --output json yourself to see the sign-in.', tenant, signed_in=active)
+    if default['cloud'] != PUBLIC_CLOUD:
+        # This build's collector reads the public Graph endpoint and the token is requested for the public Graph resource, so a
+        # sovereign-cloud sign-in is refused by cloud rather than judged usable.
+        return _verdict('azure', 'unknown', 'The Azure CLI is signed in to %s in the %s cloud; this build collects only from the '
+                        'public Azure cloud (%s), so that sign-in is not used.' % (
+                            'tenant %s as %s' % (default['tenant'], HIDDEN_NAME if default['account'] == NOT_SHOWN
+                                                 else default['account']), default['cloud'], PUBLIC_CLOUD),
+                        'Switch the Azure CLI to the public cloud with: az cloud set --name %s; then sign in to the tenant the '
+                        'context names: %s; then run this command again.' % (PUBLIC_CLOUD, login), tenant, signed_in=active)
     if len(names) > 1 and not (account is not None and _matches(default, account)):
         listing = '; '.join('%s%s' % (_who(a), ' (the CLI uses this one)' if a is default else '') for a in active)
         tail = '' if account is None else ' The account you named is not the one the CLI uses by default.'
