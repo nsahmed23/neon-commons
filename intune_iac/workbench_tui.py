@@ -1103,7 +1103,7 @@ class Workspace:
             from .workbench_screens import review_lines
             rows.extend(review_lines(value, width))
         elif is_collection_run(value):
-            rows.extend(collection_result_lines(value, width))
+            rows.extend(collection_result_lines(value, width, tab=self.tab))
         elif value.get('status') == 'selection_cleared':
             rows.append('[SELECTION CLEARED]')
             rows.extend(word_wrap('No policy is selected. Press 1 for Estate and Enter on a policy to select it; nothing was '

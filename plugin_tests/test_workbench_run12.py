@@ -561,3 +561,26 @@ class JournalLastRecordedTests(unittest.TestCase):
         text = self.row()
         self.assertIn('dddddddd succeeded verified; journal last recorded 2026-10-16 01:16:31 UTC', text)
         self.assertNotIn('; last recorded', text)
+
+
+class CollectionNextOnTheInspectorTests(unittest.TestCase):
+    """Item 8, L-next2 (frames 24, 43, 46): the collection result's Next named key 2 while the screen was already 2; on
+    the Inspector it says what pressing 2 again does."""
+    RUN = {'run_id': 2, 'status': 'complete', 'object_count': 1, 'coverage': 'complete', 'observed_at': '2026-10-16T01:16:37Z'}
+
+    def next_of(self, tab, value=None):
+        from intune_iac.workbench_screens import collection_result_lines
+        text = ' '.join(' '.join(collection_result_lines(value or self.RUN, 120, tab=tab)).split())
+        return text[text.index('Next:'):]
+
+    def test_on_the_inspector_it_says_what_pressing_2_again_does(self):
+        self.assertEqual(self.next_of(1), 'Next: press 2 again to read this policy with this observation; this screen shows '
+                                          'the collection result.')
+
+    def test_elsewhere_the_step_is_unchanged(self):
+        for tab in (0, 3, 4, None):
+            self.assertEqual(self.next_of(tab), 'Next: 2 reads this policy again with this observation.')
+
+    def test_an_incomplete_run_is_unchanged_everywhere(self):
+        incomplete = dict(self.RUN, status='partial')
+        self.assertEqual(self.next_of(1, incomplete), self.next_of(0, incomplete))

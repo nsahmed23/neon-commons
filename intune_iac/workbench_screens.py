@@ -1215,8 +1215,11 @@ AREA_STATE_WORDS = {'not_recorded': '(no intent recorded)', 'not_imported': '(no
                     'partly_checked': '(partly read)', 'unavailable': '(could not be read)'}
 
 
-def collection_result_lines(value, width):
-    """What a collection run recorded: the run, what it read and when, its effect, and the next step."""
+def collection_result_lines(value, width, tab=None):
+    """What a collection run recorded: the run, what it read and when, its effect, and the next step.
+
+    tab: the surface drawn (0-based; 1 is the Inspector). On the Inspector the Next does not name key 2 as if it led
+    elsewhere (run 12, frames 24, 43, 46)."""
     count = value.get('object_count')
     head = 'Run %s: %s' % (value.get('run_id'), _as_words(value.get('status') or 'status not recorded'))
     if isinstance(count, int):
@@ -1228,7 +1231,9 @@ def collection_result_lines(value, width):
     if value.get('error_code'):
         lines += word_wrap('Error: %s' % value['error_code'], width)
     lines += word_wrap('Effect: recorded collection run %s; no policy was changed.' % value.get('run_id'), width)
-    lines += word_wrap('Next: 2 reads this policy again with this observation.' if value.get('status') == 'complete'
+    reread = ('Next: press 2 again to read this policy with this observation; this screen shows the collection result.'
+              if tab == 1 else 'Next: 2 reads this policy again with this observation.')
+    lines += word_wrap(reread if value.get('status') == 'complete'
                        else 'Next: the earlier observation is kept; collect again (a: actions), and i shows what '
                             'was not read.', width)
     return lines
