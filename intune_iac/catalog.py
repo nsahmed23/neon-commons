@@ -278,7 +278,8 @@ def _state_lines(goal, width):
     lines += row('authenticated', text)
     lines += row('operation-ready', _ready_words(goal))
     if blocked['state'] == 'blocked':
-        text = '%s. %s Next action: %s' % (_blocked_words(goal), blocked['missing'] or '', blocked['next_action'])
+        text = '%s. %s Next action: %s' % (_blocked_words(goal), readiness_model.screen_note(blocked['missing'] or ''),
+                                          blocked['next_action'])
     else:
         text = _blocked_words(goal)
     lines += row('blocked', text)

@@ -394,7 +394,7 @@ class StartGoalTests(unittest.TestCase):
         from intune_iac.cli import doctor
         from intune_iac.entry import survey
         from intune_iac.host_capabilities import report
-        from intune_iac.readiness import readiness
+        from intune_iac.readiness import readiness, screen_note
         from plugin_tests.test_readiness import ReadinessTests
         extractor = ReadinessTests('printed_commands')
         for fixture in self.dirs:
@@ -403,6 +403,9 @@ class StartGoalTests(unittest.TestCase):
                 expected = []
                 for row in model['operations'][goal]['rows']:
                     if row['needed']:
+                        # The screen says each recorded note through screen_note (PKG-CATALOG-5, item 4); a note may hold a command.
+                        for note in row['missing']:
+                            expected += extractor.printed_commands(screen_note(note))
                         expected += extractor.printed_commands(row['next_action'])
                 for width in (50, 120):
                     _, block = goal_block(self.goal(fixture, goal, width=width))

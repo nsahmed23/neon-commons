@@ -361,6 +361,21 @@ def _iac_target_row(operation, f):
 
 NO_SIGN_IN_ROUTE = ('The product has no route yet for device-code or browser sign-in, OIDC, managed identity or '
                     'per-operation scopes.')
+# The note the model records when no sign-in check was run. The JSON forms (start --json, catalog --json) carry it as recorded, so
+# it is frozen; a screen says it through screen_note instead, in two sentences with the command on its own rows.
+NO_CHECK_RECORDED = ('No verified sign-in, and no sign-in check was run: start with --goal %s --check-signin azure looks '
+                     'for an existing Azure sign-in (it runs az account list --output json and nothing else).')
+NO_CHECK_SCREEN = ('No sign-in check was run. To look for an existing Azure sign-in, run: %s start --goal %s --check-signin azure '
+                   '(it runs az account list --output json and nothing else).')
+
+
+def screen_note(note):
+    """A recorded note as a screen says it: the recorded no-sign-in-check note in two grammatical sentences, the command on its
+    own rows (a screen puts every printed command there); any other note as it is."""
+    for operation in OPERATIONS:
+        if note == NO_CHECK_RECORDED % operation:
+            return NO_CHECK_SCREEN % (PROGRAM, operation)
+    return note
 NOT_ACCESS = ('A signed-in account does not establish Graph, Intune or state-storage access; those stay unknown until a read '
               'actually succeeds.')
 ACCESS_UNKNOWN = {'graph_access': 'unknown', 'intune_access': 'unknown', 'state_storage_access': 'unknown'}
@@ -429,8 +444,7 @@ def _service_row(operation, f):
         detected.update(ACCESS_UNKNOWN)
         missing.append(NOT_ACCESS)
     else:
-        missing.append('No verified sign-in, and no sign-in check was run: start with --goal %s --check-signin azure looks '
-                       'for an existing Azure sign-in (it runs az account list --output json and nothing else).' % operation)
+        missing.append(NO_CHECK_RECORDED % operation)
     if 'source_asserted_not_authenticated' in evidence:
         missing.append('The tenant is asserted by a file; nothing checks it against a sign-in.')
     missing.append(NO_SIGN_IN_ROUTE)

@@ -187,5 +187,74 @@ class AvailableRowTests(Base):
                       goal_rows(self.lines('full', 'change'), 'change')['available'])
 
 
+class GarbledSentenceTests(Base):
+    """Item 4: a recorded sentence that read "no sign-in check was run: start with --goal discover ... looks for" becomes two
+    sentences with the command on its own rows."""
+
+    def sentence(self, goal):
+        return ('No sign-in check was run. To look for an existing Azure sign-in, run: intune-iac start --goal %s --check-signin '
+                'azure (it runs az account list --output json and nothing else).' % goal)
+
+    def test_the_catalog_says_it_in_two_sentences_with_the_command_on_its_own_rows(self):
+        for width in (120, 100):
+            # a context names the tenant, so the blocked row shows the sign-in note first (an empty directory shows the tenant note)
+            lines = self.lines('context', 'discover', width=width)
+            self.assertIn(self.sentence('discover'), flat(lines), width)
+            self.assertNotIn('start with --goal', flat(lines))
+            self.assertNotIn('was run:', flat(lines))
+            rows = [line.strip() for line in lines]
+            self.assertIn('intune-iac start --goal discover --check-signin azure', rows, width)
+
+    def test_the_start_screen_says_it_the_same_way_for_every_goal_that_needs_a_sign_in(self):
+        from plugin_tests.test_start_goal import goal_block, run_cli
+        for goal in ('discover', 'adopt', 'change'):
+            for width in (60, 100, 120):
+                code, text = run_cli(str(self.dirs['offline']), '--goal', goal, width=width)
+                self.assertEqual(code, 0)
+                _, block = goal_block(text)
+                self.assertIn(self.sentence(goal), flat(block), (goal, width))
+                self.assertNotIn('start with --goal', flat(block))
+                # on its own rows: a command wider than the pane breaks between arguments, each row but the last ending in a backslash
+                from plugin_tests.test_start_goal import StartGoalTests
+                commands = [line.strip() for line in StartGoalTests('logical_lines').logical_lines(block)]
+                self.assertIn('intune-iac start --goal %s --check-signin azure' % goal, commands, (goal, width))
+
+    def test_the_command_it_prints_is_one_the_product_parser_accepts(self):
+        import contextlib
+        import io
+        from intune_iac import cli
+        from plugin_tests.test_readiness import ReadinessTests
+        from plugin_tests.test_start_goal import StartGoalTests, goal_block, run_cli
+        extractor = ReadinessTests('printed_commands')
+        parser = cli.parser()
+        for goal in ('discover', 'adopt', 'change'):
+            for width in (50, 72, 120):
+                _, block = goal_block(run_cli(str(self.dirs['offline']), '--goal', goal, width=width)[1])
+                commands = [tokens for line in StartGoalTests('logical_lines').logical_lines(block)
+                            for tokens in extractor.printed_commands(line)]
+                wanted = ['start', '--goal', goal, '--check-signin', 'azure']
+                self.assertIn(wanted, commands, (goal, width))
+                with contextlib.redirect_stderr(io.StringIO()):
+                    args = parser.parse_args(wanted)
+                self.assertEqual((args.command, args.goal, args.check_signin), ('start', goal, 'azure'))
+
+    def test_the_recorded_note_is_unchanged_because_the_json_form_is_frozen(self):
+        from intune_iac import readiness
+        model = readiness.readiness(tc.survey(), tc.tr.host_report(), tc.doctor())
+        for goal in ('discover', 'adopt', 'change'):
+            row = next(row for row in model['operations'][goal]['rows'] if row['id'] == 'integration_service')
+            recorded = readiness.NO_CHECK_RECORDED % goal
+            self.assertIn(recorded, row['missing'])
+            self.assertEqual(readiness.screen_note(recorded), self.sentence(goal))
+        self.assertEqual(readiness.screen_note('Any other note stays as it is.'), 'Any other note stays as it is.')
+
+    def test_after_a_sign_in_check_the_note_is_not_there(self):
+        from intune_iac import readiness
+        from plugin_tests.test_signin_not_permission import GOOD
+        value = tc.catalog(tc.tr.context_item(tenant=GOOD['accounts'][0]['tenant']), signin={'azure': GOOD}, goal='discover')
+        self.assertNotIn('No sign-in check was run', flat(tc.text_of(value, 120)))
+        self.assertNotIn(readiness.NO_CHECK_RECORDED % 'discover', flat(tc.text_of(value, 120)))
+
+
 if __name__ == '__main__':
     unittest.main()
