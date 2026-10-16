@@ -185,12 +185,12 @@ class CollectTests(unittest.TestCase):
                 code = cli.main(list(argv))
             return code, out.getvalue(), err.getvalue()
 
-        code, out, _ = run('signin', 'collect', '--tenant', TENANT_A, '--policy', POLICY, '--output', self.output)
+        code, out, _ = run('signin', 'collect', '--tenant', TENANT_A, '--policy', POLICY, '--output', self.output, '--json')
         self.assertEqual(code, 0)
         self.assertEqual(json.loads(out)['status'], 'collected')
         self.assertNotIn(self.token, out)
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(tenant=TENANT_B)))
-        code, out, _ = run('signin', 'collect', '--tenant', TENANT_A, '--policy', POLICY, '--output', self.output)
+        code, out, _ = run('signin', 'collect', '--tenant', TENANT_A, '--policy', POLICY, '--output', self.output, '--json')
         self.assertEqual(code, 2)
         self.assertEqual(json.loads(out)['signin']['status'], 'wrong_tenant')
 

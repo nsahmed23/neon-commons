@@ -304,7 +304,7 @@ def _ready_for(tenant, github):
             'read is attempted.' % (tenant, ' and the GitHub CLI is signed in' if github else ''))
 
 
-def obtain_token(tenant, account=None, deadline=DEFAULT_DEADLINE):
+def obtain_token(tenant, account=None, deadline=DEFAULT_DEADLINE, notes=None):
     """A short-lived Graph read token for the context's tenant through the Azure CLI, after the listing says it is usable.
 
     The listing runs first; an expired, wrong-tenant or ambiguous sign-in raises SigninBlocked and no token command starts.
@@ -312,6 +312,9 @@ def obtain_token(tenant, account=None, deadline=DEFAULT_DEADLINE):
     remaining lifetime must be greater than zero and at most MAX_TOKEN_LIFETIME. A monotonic deadline is armed at receipt
     (Token.valid_until), so a later wall-clock step back never extends the lifetime. The token is returned to the caller and
     goes nowhere else here. The CLI's own error text is never copied into an error or a verdict.
+
+    notes, when given, is the text route's own scratch dictionary: a refusal for an unbound token records in it which cause
+    applied (binding). It is never part of a verdict, a report or the JSON.
     """
     if signin_facts.shown(tenant, signin_facts.GUID) is None:
         raise AppError('signin_tenant_invalid', 'The tenant must be a GUID.')
@@ -344,6 +347,8 @@ def obtain_token(tenant, account=None, deadline=DEFAULT_DEADLINE):
         raise SigninBlocked(signin_facts.refused('account_mismatch', tenant))
     if binding is not True:
         # No evidence is not a successful binding: a token that names no account is refused, with its own code.
+        if notes is not None:
+            notes['binding'] = _binding_kind(token)
         raise SigninBlocked(signin_facts.refused('account_binding_unavailable', tenant))
     return token
 
@@ -358,6 +363,28 @@ def _unverified_claims(token):
         return payload if isinstance(payload, dict) else {}
     except (ValueError, TypeError, UnicodeError, RecursionError):
         return {}
+
+
+def _binding_kind(token):
+    """Why a token names no account, for the text view only: opaque (not a JWT with readable claims), no_claim (a JWT without
+    the upn, unique_name or appid claim) or unusable_claim (such a claim is present but is not a usable account name). Returns a
+    closed word, never any part of the token."""
+    claims = _unverified_claims(token)
+    if not claims:
+        return 'no_claim' if _is_jwt_payload(token) else 'opaque'
+    named = [claims.get(key) for key in ('upn', 'unique_name', 'appid')]
+    return 'unusable_claim' if any(isinstance(value, str) and value for value in named) else 'no_claim'
+
+
+def _is_jwt_payload(token):
+    """True when the token is three parts whose middle part decodes to a JSON object (possibly an empty one)."""
+    try:
+        parts = token.split('.')
+        if len(parts) != 3 or len(token) > 16384:
+            return False
+        return isinstance(json.loads(base64.urlsafe_b64decode(parts[1] + '=' * (-len(parts[1]) % 4))), dict)
+    except (ValueError, TypeError, UnicodeError, RecursionError):
+        return False
 
 
 def _expires_on(value):
@@ -560,7 +587,7 @@ def check_new_output(destination):
         os.close(parent_fd)
 
 
-def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, collect_deadline=COLLECT_DEADLINE):
+def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, collect_deadline=COLLECT_DEADLINE, notes=None):
     """Collect with the reused sign-in: obtain a short-lived read token and hand it to the one collecting child.
 
     Order: the listing judges the sign-in (a block ends the call with no token command and no child); the token is obtained;
@@ -570,6 +597,8 @@ def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, col
     end at once. The token is never an argument, never in either environment, never written to a file, and never printed.
     The child's output is read under a ceiling, parsed against a strict schema and checked for the token (decoded, split or
     fragmented) before anything of it is shown.
+
+    notes goes to obtain_token only (the text route's scratch dictionary); the returned result is the same plain dict.
     """
     if signin_facts.shown(policy, signin_facts.GUID) is None:
         raise AppError('signin_policy_invalid', 'The policy must be a GUID.')
@@ -582,7 +611,7 @@ def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, col
             raise AppError('capture_identity_invalid', 'Capture requires nonzero tenant and policy UUIDs.')
     check_new_output(output)
     try:
-        token = obtain_token(tenant, account, deadline)
+        token = obtain_token(tenant, account, deadline, notes)
     except SigninBlocked as blocked:
         return {'status': 'blocked', 'signin': blocked.verdict, 'collector_started': False}
     watch = _Watch(token)
@@ -612,10 +641,30 @@ def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, col
             raise AppError('signin_collect_unavailable', 'The collecting command could not be started.') from None
     finally:
         os.close(read_end)
-    rerun = 'intune-iac signin collect --tenant %s --policy %s --output NEW_DIR (a folder that does not exist yet)%s' % (
-        tenant, policy, ' --account NAME (the account you named)' if account is not None else '')
+    rerun = rerun_command(tenant, policy, account is not None)
     return _collector_result(code, out, err, watch, output,
                              lambda child_exit, exact: _withheld(child_exit, output, existed, rerun, exact), rerun, tenant)
+
+
+def rerun_command(tenant, policy, account_given):
+    """The command that collects again: a new folder is needed, and the account is a placeholder (its name is never echoed)."""
+    return 'intune-iac signin collect --tenant %s --policy %s --output NEW_DIR (a folder that does not exist yet)%s' % (
+        tenant, policy, ' --account NAME (the account you named)' if account_given else '')
+
+
+def collect_view(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, collect_deadline=COLLECT_DEADLINE):
+    """The text-only route of `signin collect`: (the same result collect returns, a presentation beside it).
+
+    The presentation holds what only the text screen needs: the command that collects again, the output path, what is at it now
+    (observed once, after the run, and only when a collecting command started) and, for a binding refusal, which cause applied.
+    It is returned beside the result and never inside it, so it can reach no JSON, readiness or catalog.
+    """
+    notes = {}
+    result = collect(tenant, policy, output, account, deadline, collect_deadline, notes)
+    presentation = {'rerun': rerun_command(tenant, policy, account is not None), 'output': output, 'tenant': tenant,
+                    'binding': notes.get('binding'),
+                    'output_after': _observe(output) if result.get('collector_started') else None}
+    return result, presentation
 
 
 def _observe(output):

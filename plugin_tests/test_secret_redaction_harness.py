@@ -1134,7 +1134,7 @@ class RedactionHarness(unittest.TestCase):
         with patch('intune_iac.signin.collector_command', command):
             code, out, err, children = self.run_cli(
                 ['signin', 'collect', '--tenant', sf.TENANT_A, '--policy', '22222222-2222-4222-8222-222222222222',
-                 '--output', str(self.work / 'signin-out')], (token,), {'PATH': path}, pipe_delivery=token, expect=expect)
+                 '--output', str(self.work / 'signin-out'), '--json'], (token,), {'PATH': path}, pipe_delivery=token, expect=expect)
         return json.loads(out), children, json.loads(report.read_text())
 
     def test_signin_collect_withholds_an_escaped_or_split_token_from_the_collector_output(self):
@@ -1169,7 +1169,7 @@ class RedactionHarness(unittest.TestCase):
             path = fakes.path_entry() + os.pathsep + os.environ.get('PATH', '')
             code, out, err, children = self.run_cli(
                 ['signin', 'collect', '--tenant', sf.TENANT_A, '--policy', '22222222-2222-4222-8222-222222222222',
-                 '--output', str(self.work / 'blocked-out')], (token,), {'PATH': path}, expect=2)
+                 '--output', str(self.work / 'blocked-out'), '--json'], (token,), {'PATH': path}, expect=2)
             self.assertEqual(json.loads(out)['collector_started'], False)
             self.assertEqual(fakes.calls(), ['account list --output json'])
             self.assertEqual([c for c in children if c['argv'][0] == sys.executable], [])

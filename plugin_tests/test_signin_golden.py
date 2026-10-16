@@ -65,8 +65,8 @@ def run_case(name):
 
 
 def uses_json_flag(name):
-    """status keeps the flag it always had; collect gets it with the readable form (see the item 2 commit)."""
-    return CASES[name][1][1] == 'status'
+    """Every golden case is the JSON form: status has always had --json, and collect has it since the readable form (5D)."""
+    return True
 
 
 class GoldenTests(unittest.TestCase):

@@ -37,6 +37,8 @@ def main(argv):
                   'token_in_arguments': any(token in item for item in sys.argv), 'argument_count': len(sys.argv)}
         with open(rest[rest.index('--report') + 1], 'w') as handle:
             json.dump(report, handle)
+    if '--made-output' in rest:  # stand in for the real command, which creates its new output folder
+        os.mkdir(rest[rest.index('--made-output') + 1])
     if mode == 'fail':
         print(json.dumps({'status': 'error', 'error': {'code': 'collector_failed', 'message': 'x'}}), file=sys.stderr)
         return 3

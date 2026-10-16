@@ -264,6 +264,7 @@ def parser():
     collect_with.add_argument('--account',type=_account,help='The account to use when several are signed in; it must be the one the Azure CLI uses by default')
     collect_with.add_argument('--deadline',type=float,default=15.0,help='Seconds allowed for each az call (greater than zero, at most 60)')
     collect_with.add_argument('--collect-deadline',type=float,default=120.0,help='Seconds allowed for the collecting command (greater than zero, at most 600)')
+    collect_with.add_argument('--json',action='store_true',help='Print the result as JSON (for scripts) instead of the readable screen')
     provider=commands.add_parser('provider',help='Use an operator-admitted generated executor with external signed approval; network denied').add_subparsers(dest='provider_command',required=True)
     for operation in ('prepare','review','execute','reconcile','status','wizard'):
         command=provider.add_parser(operation)
@@ -411,6 +412,7 @@ def _signin_command(args,presentation=False):
     if args.signin_command=='collect':
         if not isinstance(args.collect_deadline,float) or not 0<args.collect_deadline<=600:
             raise AppError('signin_deadline_invalid','The collect deadline must be greater than zero and at most 600 seconds.')
+        if presentation:return signin.collect_view(args.tenant,args.policy,args.output,args.account,_deadline(args.deadline),args.collect_deadline)
         return signin.collect(args.tenant,args.policy,args.output,args.account,_deadline(args.deadline),args.collect_deadline)
     if presentation:return signin.status_view(args.tenant,args.account,args.provider,_deadline(args.deadline))
     return signin.status_report(args.tenant,args.account,args.provider,_deadline(args.deadline))
@@ -488,13 +490,14 @@ def main(argv=None):
             from .sim_cli import text_lines
             print('\n'.join(text_lines(args)));sys.stdout.flush()
             return 0
-        if args.command=='signin' and args.signin_command=='status' and not args.json:
-            # A person reads the sign-in status; --json keeps the data form for scripts. The exit code is the same either way.
-            # This is the only caller of the text route: the presentation comes back beside the report, never inside it.
-            from .signin_facts import status_lines
+        if args.command=='signin' and not args.json:
+            # A person reads the sign-in status or the collect result; --json keeps the data form for scripts. The exit code is the
+            # same either way. This is the only caller of the text routes: the presentation comes back beside the result, never inside it.
+            from .signin_facts import collect_lines, status_lines
             result,shown=_signin_command(args,presentation=True)
             code=exit_code(result)
-            print('\n'.join(status_lines(result,shutil.get_terminal_size((100,40)).columns,code,shown)));sys.stdout.flush()
+            render=collect_lines if args.signin_command=='collect' else status_lines
+            print('\n'.join(render(result,shutil.get_terminal_size((100,40)).columns,code,shown)));sys.stdout.flush()
             return code
         result=execute(args)
         if args.command=='catalog' and not args.json:

@@ -73,7 +73,7 @@ class PartialExitTests(RealCaptureBase):  # item 1
         out, err = io.StringIO(), io.StringIO()
         with patch('intune_iac.signin.collector_command', self.command), contextlib.redirect_stdout(out), \
                 contextlib.redirect_stderr(err):
-            code = cli.main(['signin', 'collect', '--tenant', TENANT_A, '--policy', POLICY, '--output', self.output])
+            code = cli.main(['signin', 'collect', '--tenant', TENANT_A, '--policy', POLICY, '--output', self.output, '--json'])
         self.assertEqual(code, 2)
         self.assertEqual(json.loads(out.getvalue())['status'], 'partial')
 

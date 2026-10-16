@@ -118,6 +118,9 @@ UNKNOWN_REASON_TEXT = 'it cannot be shown safely'
 # names were printed, whether two defaults or a credential signature decided it) are noted in a dictionary local to that one
 # evaluation. Only evaluate_with_presentation() turns them into a presentation, returned beside the verdict for the text view;
 # evaluate() drops them.
+# The two causes of account_binding_unavailable, said together in the canonical message; the text view of `signin collect` says
+# the one that applied (see collect_lines).
+BINDING_CAUSES = 'it is opaque, or carries none of the upn, unique_name or appid claims'
 HIDDEN_NAME = 'an account whose name is not shown here (it is longer than this display allows, or shaped like a credential)'
 FORMER_SIGNATURE = 'a token prefix or an unbroken run of 24 or more letters and digits'
 
@@ -541,8 +544,8 @@ def refused(status, tenant, answered=None):
                         'command again.' % login, tenant)
     if status == 'account_binding_unavailable':
         return _verdict('azure', 'account_binding_unavailable',
-                        'The token does not say which account it was issued for (it is opaque, or carries none of the upn, '
-                        'unique_name or appid claims), so it cannot be tied to the account that was judged. Nothing proceeds.',
+                        'The token does not say which account it was issued for (%s), so it cannot be tied to the account that '
+                        'was judged. Nothing proceeds.' % BINDING_CAUSES,
                         'Sign in again so that the Azure CLI issues a token that names its account: az login --tenant %s; then run '
                         'this command again. If it happens again, report it: a token that names no account cannot be used here.'
                         % wanted, tenant)
@@ -734,4 +737,132 @@ def status_lines(report, width, code, shown=None):
     lines.append('')
     lines += _wrap(ACCESS_UNKNOWN_LINE, width)
     lines += _wrap(('Exit code %s: %s %s' % (code, status, meaning)).strip(), width)
+    return lines
+
+
+# `signin collect`: the text screen -------------------------------------------------------------------------------------
+
+_BINDING_TEXT = {'opaque': 'the token is opaque, so it has no account claim to read',
+                 'no_claim': 'it carries none of the upn, unique_name or appid claims',
+                 'unusable_claim': 'its account claim is not a usable account name'}
+_AFTER_RUN = {'absent': 'not present after this run', 'directory': 'exists after this run',
+              'symlink': 'a symbolic link is there after this run', 'other': 'something that is not a directory is there after this run'}
+_FAILED_WHY = {'collector_failed': 'The collecting command failed and no more specific error code was reported.',
+               'collector_output_invalid': 'The collecting command finished, but its output was not a result this command accepts, '
+                                           'so none of it is shown.',
+               'collector_output_too_large': 'The collecting command printed more than this command reads, and was stopped.',
+               'cleanup_unconfirmed': 'The collecting command left a process running that could not be confirmed gone, so nothing '
+                                      'it produced is trusted.'}
+_COLLECT_EXIT_MEANING = '(0 means collected; 2 means partial or blocked; 3 means failed).'
+
+
+def _partial_reason(result):
+    """The one code the verdict line gives for a partial result: the credential problem, else a denied read, else the first reason."""
+    inner = result.get('result') or {}
+    coverage = inner.get('coverage') or []
+    if inner.get('credential_problem'):
+        return inner['credential_problem']
+    if any(item.get('coverage') == 'access_denied' for item in coverage):
+        return 'access_denied'
+    return next((item['reason'] for item in coverage if item.get('reason')), None)
+
+
+def _collect_verdict(result):
+    """(the word, the reason) of a collect result: COLLECTED, PARTIAL, FAILED or BLOCKED."""
+    status = result.get('status')
+    if status == 'collected':
+        return 'COLLECTED', None
+    if status == 'partial':
+        return 'PARTIAL', _partial_reason(result)
+    if status == 'failed':
+        return 'FAILED', result.get('error_code')
+    if status == 'blocked':
+        return 'BLOCKED', (result.get('signin') or {}).get('status')
+    return str(status).upper(), None
+
+
+def _collect_why(result, shown):
+    """The sentence under Why: for a block, the sign-in message with the one binding cause that applied; for a failure, its cause."""
+    if result.get('status') == 'blocked':
+        message = (result.get('signin') or {}).get('message') or ''
+        cause = _BINDING_TEXT.get(shown.get('binding'))
+        return message.replace(BINDING_CAUSES, cause, 1) if cause and BINDING_CAUSES in message else message
+    if result.get('status') != 'failed':
+        return ''
+    if result.get('error_code') == 'collector_output_withheld':
+        return result.get('message') or ''
+    code = result.get('error_code')
+    return _FAILED_WHY.get(code) or 'The collecting command failed with the code %s.' % code
+
+
+def _collect_steps(result, shown):
+    """The next steps, one sentence each and none of them joined to another: [] when nothing is left to do."""
+    status, rerun = result.get('status'), shown.get('rerun') or 'intune-iac signin collect'
+    again = 'To collect again, run: %s.' % rerun
+    if status == 'blocked':
+        return [(result.get('signin') or {}).get('next_step') or '']
+    if status == 'partial':
+        inner, steps = result.get('result') or {}, []
+        problem = inner.get('credential_problem')
+        if problem:
+            steps.append('The collecting command reported the token as %s; sign in again: az login --tenant %s.' % (
+                'belonging to a different tenant' if problem == 'token_wrong_tenant' else 'expired', shown.get('tenant')))
+        elif any(item.get('coverage') == 'access_denied' for item in inner.get('coverage') or []):
+            steps.append('The collecting command reported that a read was denied; ask your administrator whether the signed-in '
+                         'account may read these Intune objects.')
+        return steps + [again]
+    if status == 'failed' and result.get('error_code') == 'collector_output_withheld':
+        look = 'If you need to know what is at the output folder, look at it yourself (this command did not open it).'
+        if result.get('token_match') == 'full_token':
+            return ['Stop and report this: the collecting command printed the access token.', look,
+                    'Only after it is reported, to collect again, run: %s.' % rerun]
+        return [look, again]
+    if status == 'failed':
+        return [again]
+    return []
+
+
+def collect_lines(result, width, code, shown=None):
+    """The text screen for `signin collect`: the verdict line first (COLLECTED, PARTIAL, FAILED or BLOCKED with its reason), the
+    output folder and whether it exists after the run, the collecting command's exit, the coverage per section, the cause and
+    the next steps on their own rows, and what the exit code means. Pure: it reads the result's display fields and, from the text
+    route (signin.collect_view), the presentation (shown): the output path, what is at it now, the tenant, the command that
+    collects again and which binding cause applied. Nothing in it is a token or a name; the result holds none."""
+    shown = shown or {}
+    word, reason = _collect_verdict(result)
+    lines = ['COLLECT: %s' % (word if reason is None else '%s (%s)' % (word, _printable(reason)))]
+    inner = result.get('result') or {}
+    output = inner.get('output') or shown.get('output')
+    started = bool(result.get('collector_started'))
+    if output is not None:
+        after = shown.get('output_after') or result.get('output_kind_after')
+        where = _AFTER_RUN.get(after, 'not looked at') if started else 'no collecting command started, so nothing was written'
+        lines += _wrap('Output folder: %s (%s)' % (output, where), width)
+    if not started:
+        lines.append('Collecting command: not started')
+    elif result.get('child_exit') is None:
+        lines.append('Collecting command: stopped without an exit code')
+    else:
+        lines.append('Collecting command: exit %s' % _printable(result['child_exit']))
+    if inner.get('coverage'):
+        lines.append('Coverage:')
+        for item in inner['coverage']:
+            note = ' (%s)' % _printable(item['reason']) if item.get('reason') else ''
+            lines.append('    %s: %s%s' % (_printable(item['kind']), _printable(item['coverage']), note))
+    why = _collect_why(result, shown)
+    if why:
+        lines.append('Why:')
+        lines += _wrap(why, width, '    ', '    ')
+    if result.get('status') == 'partial':
+        lines.append('Note:')
+        lines += _wrap('This command did not open or remove the output folder and cannot say who created or changed anything in '
+                       'it; a new run needs a new folder.', width, '    ', '    ')
+    steps = [step for step in _collect_steps(result, shown) if step]
+    if steps:
+        lines.append('Next step:')
+        for number, step in enumerate(steps, 1):
+            prefix = '    %d. ' % number if len(steps) > 1 else '    '
+            lines += _wrap(step, width, prefix, ' ' * len(prefix))
+    lines.append('')
+    lines += _wrap('Exit code %s: %s %s' % (code, word.lower(), _COLLECT_EXIT_MEANING), width)
     return lines
