@@ -2664,8 +2664,11 @@ def history_event_lines(history, width, readback_above=False):
     return lines
 
 
-def delivery_lines(value, width, rules='ascii'):
+def delivery_lines(value, width, rules='ascii', band_has_next=False):
     """One operation's delivery stages in order, each with a marker, its state in words and its evidence.
+
+    band_has_next: the hazard band carries the screen's Next, so the closing step keeps its explanation and commands
+    without a second `Next:` label (run 12, frames 20 and 39).
 
     With box-drawing rules the stages hang from one connected spine, first to last; ASCII keeps the plain list.
     """
@@ -2716,7 +2719,7 @@ def delivery_lines(value, width, rules='ascii'):
         lines += word_wrap('(only the first %s imported runs for this policy were read)' % read.get('records_read'), width)
     if read.get('cited_revision') == 'unknown':
         lines += word_wrap('(runs for the cited revision cannot be matched: the context file changed since the proposal)', width)
-    lines += step_rows(value.get('next_action'), width, 'Next: ')
+    lines += step_rows(value.get('next_action'), width, '' if band_has_next else 'Next: ')
     lines += word_wrap(MARK_LEGEND, width)
     # Not "Evidence": that label is the last line's, which names the two layers of evidence (e and r).
     lines += word_wrap('Evidence class %s | %s | no cloud authority' % (

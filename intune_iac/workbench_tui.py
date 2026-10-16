@@ -1299,7 +1299,7 @@ class Workspace:
                 field('Input files written', ', '.join(shlex.quote(str(path)) for path in value['files_written']) or 'none')
         elif self.tab == 5 and value.get('schema_version') == 'workbench-delivery/1':
             from .workbench_screens import delivery_lines
-            rows.extend(delivery_lines(value, width, getattr(self, 'rules', 'ascii')))
+            rows.extend(delivery_lines(value, width, getattr(self, 'rules', 'ascii'), band_has_next=self._band_has_next()))
         elif self.tab == 5 and ('result' in value or 'operation_id' in value):
             result = value.get('result', value)
             from .workbench_screens import execution_effect_lines
@@ -1537,6 +1537,13 @@ class Workspace:
                                                        if self.facts.get('object_id') == self.selected else None,
                                                        band_names_refresh=refresh, band_has_next=bool(primary))
         return lines
+
+    def _band_has_next(self):
+        """Whether the hazard band above the body carries a Next for the selected policy."""
+        from .workbench_screens import _band_primary
+        known = self.facts if self.selected and self.facts.get('object_id') == self.selected else {}
+        primary, _ = _band_primary(known, known.get('signals') or [])
+        return bool(primary)
 
     def _on_change_path(self, value):
         """Whether the result shown is a step of a change: a repository status, a plan review, an execution result."""
