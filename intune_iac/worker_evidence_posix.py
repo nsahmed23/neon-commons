@@ -260,19 +260,20 @@ def ingest_raw(store_root,envelope_raw,request_raw,policy,verifier):
                     db.execute('CREATE TABLE IF NOT EXISTS heads(scope TEXT PRIMARY KEY,sequence INTEGER NOT NULL,event_sha256 TEXT NOT NULL)')
                     db.execute('CREATE TABLE IF NOT EXISTS received_session(request_sha256 TEXT PRIMARY KEY,boot_id TEXT,domain TEXT,boottime REAL,process TEXT NOT NULL)')
                     prior=db.execute('SELECT bundle_sha256,attempt FROM received WHERE request_sha256=?',(digest(req),)).fetchone()
+                    boot=clock.session()
+                    if prior is not None:
+                        # Continuity first: every prior receipt must pass it before replay, fork or conflict rules apply.
+                        stored=db.execute('SELECT boot_id,domain,boottime,process FROM received_session WHERE request_sha256=?',(digest(req),)).fetchone()
+                        if _session_lost(stored,boot):contract.fail('worker_evidence_clock_continuity_lost')
                     scope=binding['scope'];sequence=binding['sequence'];events=binding['event_sha256']
                     head=db.execute('SELECT sequence,event_sha256 FROM heads WHERE scope=?',(scope,)).fetchone()
                     contract.admit_received(binding,prior[0] if prior else None,dict(zip(('sequence','event_sha256'),head)) if head else None)
                     # The boot session that admitted a receipt is written once, with the receipt, and never replaced: an identical
                     # re-ingest in a later boot cannot make an old receipt current (a new collect and ingest is the recovery).
-                    boot=clock.session()
                     if prior is None:
                         db.execute('INSERT INTO received VALUES (?,?,?,?,?)',(digest(req),result['bundle_sha256'],result['received_byte_sha256'],result['request_byte_sha256'],attempt.name))
                         db.execute('INSERT INTO received_session VALUES (?,?,?,?,?)',(digest(req),None if boot is None else boot['boot_id'],
                             None if boot is None else boot['domain'],None if boot is None else boot['boottime'],clock.process_token()))
-                    else:
-                        stored=db.execute('SELECT boot_id,domain,boottime,process FROM received_session WHERE request_sha256=?',(digest(req),)).fetchone()
-                        if _session_lost(stored,boot):contract.fail('worker_evidence_clock_continuity_lost')
                     db.execute('INSERT INTO heads VALUES (?,?,?) ON CONFLICT(scope) DO UPDATE SET sequence=excluded.sequence,event_sha256=excluded.event_sha256',(scope,sequence,events))
                     db.execute('COMMIT')
             except (sqlite3.Error,OSError):

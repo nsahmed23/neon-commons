@@ -19,7 +19,7 @@ from intune_iac import worker_evidence as contract
 from intune_iac import workbench_evidence_views as views
 from intune_iac import worker_evidence_posix as host
 from intune_iac.io import AppError, digest
-from plugin_tests.test_worker_evidence_freshness_floor import OK, T, expiring, make_policy, make_request, restart, stand_ins, wall
+from plugin_tests.test_worker_evidence_freshness_floor import OK, T, aging, expiring, make_policy, make_request, restart, stand_ins, wall
 
 
 class ViewFallbackTests(unittest.TestCase):
@@ -148,6 +148,14 @@ class PosixBootContinuityTests(unittest.TestCase):
             with self.assertRaises(AppError) as still:
                 host.reopen(self.root, digest(self.req), self.policy, OK)
             self.assertEqual(still.exception.code, 'worker_evidence_clock_continuity_lost')
+
+    def test_continuity_is_checked_before_the_conflict_rule_on_a_re_ingest(self):
+        with patch.object(clock, 'session', return_value=self.OTHER_BOOT), wall(T + 5), self.assertRaises(AppError) as refused:
+            host.ingest(self.root, aging(self.req), self.req, self.policy, OK)  # request R again, a conflicting bundle Y
+        self.assertEqual(refused.exception.code, 'worker_evidence_clock_continuity_lost')
+        with wall(T + 5), self.assertRaises(AppError) as conflict:  # in the admitting boot the conflict rule applies
+            host.ingest(self.root, aging(self.req), self.req, self.policy, OK)
+        self.assertEqual(conflict.exception.code, 'worker_evidence_request_conflict')
 
     def test_an_identical_re_ingest_in_the_admitting_boot_stays_idempotent(self):
         before = self.session_rows()
