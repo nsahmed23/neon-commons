@@ -989,6 +989,7 @@ plugin_tests/test_release_artifact_completion.py
 plugin_tests/test_release_audit.py
 plugin_tests/test_release_candidate.py
 plugin_tests/test_release_checks.py
+plugin_tests/test_release_git_binding.py
 plugin_tests/test_release_hardening.py
 plugin_tests/test_release_transfer_r4.py
 plugin_tests/test_repository.py
