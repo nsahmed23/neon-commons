@@ -2,6 +2,9 @@
 and the sensitive-file control must refuse. The first module of this package, test_release_candidate, holds the earlier tests; this
 one starts where that one passed 1,000 lines and imports its stand-ins and helpers.
 """
+import contextlib
+import io
+import json
 import os
 import re
 import shlex
@@ -572,6 +575,148 @@ class UnlistedFileTests(unittest.TestCase):
             value = cli.doctor()
         self.assertNotEqual(value['build']['status'], 'identified')
         self.assertEqual(value['build'].get('unlisted_files'), ['extra.py'])
+
+
+builder = base.builder
+CLEAN_ENVIRONMENT = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
+
+
+class GitFixture:
+    """A real repository holding a tiny reviewed project: README.md, NOTES.md and an inventory naming both and itself."""
+
+    def __init__(self, case, nested=False):
+        temp = tempfile.TemporaryDirectory()
+        case.addCleanup(temp.cleanup)
+        self.parent = Path(temp.name)
+        self.root = self.parent / 'project'
+        self.root.mkdir()
+        self.output = self.parent / 'out'
+        for name, text in (('README.md', 'Reviewed project documentation\n'), ('NOTES.md', 'Source only notes\n'),
+                           ('release-source-files.txt', 'README.md\nNOTES.md\nrelease-source-files.txt\n')):
+            (self.root / name).write_text(text)
+        if not nested:
+            self.git('init', '-q', '-b', 'main')
+            self.commit('first')
+
+    def git(self, *args, cwd=None, root=None):
+        result = subprocess.run(['git', '-C', str(root or cwd or self.root), '-c', 'user.name=Release Tests',
+                                 '-c', 'user.email=release-tests', '-c', 'commit.gpgsign=false', *args],
+                                capture_output=True, text=True, env=dict(CLEAN_ENVIRONMENT, GIT_CONFIG_NOSYSTEM='1'), timeout=60)
+        if result.returncode != 0:
+            raise AssertionError('git ' + ' '.join(args) + ': ' + result.stderr)
+        return result.stdout.strip()
+
+    def commit(self, message):
+        self.git('add', '-A')
+        self.git('commit', '-q', '-m', message)
+
+    def build(self, *, runtime=('README.md',)):
+        with patch.object(builder, 'ROOT', self.root), patch.object(builder, 'runtime_files', return_value=list(runtime)), \
+                patch.object(builder, 'build_time', return_value=base.BUILT_AT), \
+                patch.object(sys, 'argv', ['build-release.py', '--output-dir', str(self.output)]), \
+                contextlib.redirect_stdout(io.StringIO()) as out:
+            builder.main()
+        return json.loads(out.getvalue())
+
+    def identity(self, kind='runtime'):
+        name = f'Intune_IaC_Plugin_{builder.__version__}' + ('' if kind == 'runtime' else '_Source') + '.zip'
+        prefix = 'intune-iac/' if kind == 'runtime' else 'intune-iac-source/'
+        with zipfile.ZipFile(self.output / name) as archive:
+            return json.loads(archive.read(prefix + 'BUILD-IDENTITY.json'))
+
+    def member(self, name, kind='source'):
+        archive_name = f'Intune_IaC_Plugin_{builder.__version__}' + ('' if kind == 'runtime' else '_Source') + '.zip'
+        prefix = 'intune-iac/' if kind == 'runtime' else 'intune-iac-source/'
+        with zipfile.ZipFile(self.output / archive_name) as archive:
+            return archive.read(prefix + name)
+
+
+class GitBindingTests(unittest.TestCase):
+    """Item 5: the identity describes the files the archive holds. A path in the inventory that is not in the commit is refused,
+    the checkout is read before and after the snapshot and must not have moved, and a captured file that differs from the
+    commit makes the build dirty whether or not git's own status says so."""
+
+    def setUp(self):
+        if not shutil.which('git'):
+            self.skipTest('git is not available here')
+        self.repo = GitFixture(self)
+
+    def test_a_clean_checkout_names_its_commit_and_tree_and_is_not_dirty(self):
+        self.repo.build()
+        record = self.repo.identity()
+        self.assertEqual(record['commit'], self.repo.git('rev-parse', 'HEAD'))
+        self.assertEqual(record['tree'], self.repo.git('rev-parse', 'HEAD^{tree}'))
+        self.assertIs(record['dirty'], False)
+
+    def test_an_edited_tracked_file_makes_the_build_dirty_and_the_archive_holds_the_edit(self):
+        (self.repo.root / 'README.md').write_text('edited after the commit\n')
+        self.repo.build()
+        for kind in ('runtime', 'source'):
+            self.assertIs(self.repo.identity(kind)['dirty'], True, kind)
+        self.assertEqual(self.repo.member('README.md'), b'edited after the commit\n')
+
+    def test_a_change_that_git_status_hides_still_makes_the_build_dirty(self):
+        self.repo.git('update-index', '--assume-unchanged', 'NOTES.md')
+        (self.repo.root / 'NOTES.md').write_text('changed, and hidden from git status\n')
+        self.assertEqual(self.repo.git('status', '--porcelain', '--untracked-files=no'), '', 'git status shows nothing')
+        self.repo.build()
+        self.assertIs(self.repo.identity('source')['dirty'], True)
+        self.assertEqual(self.repo.member('NOTES.md'), b'changed, and hidden from git status\n')
+
+    def test_an_inventoried_path_that_is_not_in_the_commit_is_refused(self):
+        def untracked(repo):
+            (repo.root / 'EXTRA.md').write_text('shipped but never committed\n')
+
+        def ignored(repo):
+            (repo.root / 'EXTRA.md').write_text('ignored\n')
+            (repo.root / '.git/info/exclude').write_text('EXTRA.md\n')
+
+        def added_but_not_committed(repo):
+            (repo.root / 'EXTRA.md').write_text('staged, not committed\n')
+            repo.git('add', 'EXTRA.md')
+
+        for name, prepare in {'untracked': untracked, 'ignored': ignored, 'added but not committed': added_but_not_committed}.items():
+            with self.subTest(name):
+                repo = GitFixture(self)
+                prepare(repo)
+                (repo.root / 'release-source-files.txt').write_text('README.md\nNOTES.md\nEXTRA.md\nrelease-source-files.txt\n')
+                with self.assertRaises(ValueError) as caught:
+                    repo.build()
+                self.assertIn('EXTRA.md', str(caught.exception))
+                self.assertIn('not committed', str(caught.exception))
+                self.assertFalse(repo.output.exists() and any(repo.output.iterdir()), 'no archive was written')
+
+    def test_a_checkout_that_moves_while_the_snapshot_is_read_aborts_the_build(self):
+        original = builder.source_files
+        moves = {'a new commit': lambda repo: repo.git('commit', '-q', '--allow-empty', '-m', 'moved'),
+                 'an edit of a tracked file': lambda repo: (repo.root / 'NOTES.md').write_text('edited mid-build\n')}
+        for name, move in moves.items():
+            with self.subTest(name):
+                repo = GitFixture(self)
+
+                def hooked(inventory_bytes=None, move=move, repo=repo):
+                    names = original(inventory_bytes)
+                    move(repo)
+                    return names
+
+                with patch.object(builder, 'source_files', hooked), self.assertRaises(ValueError) as caught:
+                    repo.build()
+                self.assertIn('changed while the snapshot was read', str(caught.exception))
+
+    def test_a_tree_inside_another_repository_names_no_commit(self):
+        nested = GitFixture(self, nested=True)
+        nested.git('init', '-q', '-b', 'main', root=nested.parent)       # the folder above the project is the repository
+        nested.git('add', '-A', root=nested.parent)
+        nested.git('commit', '-q', '-m', 'outer', root=nested.parent)
+        nested.build()
+        record = nested.identity()
+        self.assertEqual((record['commit'], record['tree'], record['dirty']), (None, None, None))
+
+    def test_a_tree_outside_any_checkout_names_no_commit(self):
+        outside = GitFixture(self, nested=True)
+        outside.build()
+        record = outside.identity()
+        self.assertEqual((record['commit'], record['tree'], record['dirty']), (None, None, None))
 
 
 class GuideDigestTests(unittest.TestCase):

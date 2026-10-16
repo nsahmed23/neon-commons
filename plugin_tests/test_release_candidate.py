@@ -53,6 +53,7 @@ class FixtureBuild:
         state = {'commit': COMMIT, 'tree': TREE, 'dirty': False} if state is None else state
         with patch.object(builder, 'ROOT', self.root), patch.object(builder, 'runtime_files', return_value=['README.md']), \
                 patch.object(builder, 'git_state', return_value=state), patch.object(builder, 'build_time', return_value=built_at), \
+                patch.object(builder, 'bind_to_commit', return_value=[]), \
                 patch.object(sys, 'argv', ['build-release.py', '--output-dir', str(self.output)]), \
                 contextlib.redirect_stdout(io.StringIO()) as out:
             builder.main()

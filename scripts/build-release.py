@@ -22,27 +22,67 @@ EXCLUDE={'.git','__pycache__','.venv','.intune-iac','.superpowers','dist','build
 SOURCE_INVENTORY = 'release-source-files.txt'
 
 
-def git_state():
+def git_environment():
+    """The environment git runs in: the caller's, without the GIT_* variables that could point it at another repository."""
+    return {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
+
+
+def git_state(detail=False):
     """The checkout's commit, tree and whether tracked files differ from them; nulls when that cannot be established.
 
     Only a checkout whose own top level is ROOT is described: a temporary tree that happens to sit inside another
-    repository must not take that repository's commit.
+    repository must not take that repository's commit. With detail=True the result also holds 'changes', git's own list of
+    tracked modifications, so that two readings can be compared for any movement and not only for a change of the flag.
     """
-    environment = {key: value for key, value in os.environ.items() if not key.startswith('GIT_')}
     def git(*args):
         try:
-            result = subprocess.run(['git', '-C', str(ROOT), *args], capture_output=True, text=True, timeout=60, env=environment)
+            result = subprocess.run(['git', '-C', str(ROOT), *args], capture_output=True, text=True, timeout=60, env=git_environment())
         except (OSError, subprocess.SubprocessError):
             return None
         return result.stdout.strip() if result.returncode == 0 else None
     unknown = {'commit': None, 'tree': None, 'dirty': None}
+    if detail:
+        unknown['changes'] = None
     top = git('rev-parse', '--show-toplevel')
     if top is None or Path(top).resolve() != ROOT.resolve():
         return unknown
     commit, tree, status = git('rev-parse', 'HEAD'), git('rev-parse', 'HEAD^{tree}'), git('status', '--porcelain', '--untracked-files=no')
     if not all(isinstance(value, str) and re.fullmatch(r'[0-9a-f]{40}', value) for value in (commit, tree)) or status is None:
         return unknown
-    return {'commit': commit, 'tree': tree, 'dirty': bool(status)}
+    state = {'commit': commit, 'tree': tree, 'dirty': bool(status)}
+    if detail:
+        state['changes'] = status
+    return state
+
+
+def bind_to_commit(snapshot, state):
+    """Hold the files the archives will contain to the commit the identity names; return the names that differ from it.
+
+    Every inventoried path must be in that commit. An untracked, ignored or newly added path would be shipped although the
+    commit the record names does not hold it, so it is refused. A captured file whose bytes differ from the commit's blob makes
+    the build dirty even when git's own status shows nothing (assume-unchanged, skip-worktree). With no commit (a tree outside
+    a checkout) there is nothing to bind to and the identity names none.
+    """
+    if state['commit'] is None:
+        return []
+    try:
+        listing = subprocess.run(['git', '-C', str(ROOT), 'ls-tree', '-r', '-z', 'HEAD'], capture_output=True, timeout=120,
+                                 env=git_environment())
+    except (OSError, subprocess.SubprocessError):
+        raise ValueError('The commit the identity names cannot be listed.')
+    if listing.returncode != 0:
+        raise ValueError('The commit the identity names cannot be listed.')
+    tracked = {}
+    for entry in listing.stdout.split(b'\0'):
+        if entry:
+            meta, _, path = entry.partition(b'\t')
+            _, kind, blob = meta.decode().split(' ')
+            tracked[path.decode('utf-8', 'surrogateescape')] = (kind, blob)
+    missing = [name for name in sorted(snapshot) if tracked.get(name, (None, None))[0] != 'blob']
+    if missing:
+        raise ValueError('Inventoried path is untracked, ignored or not committed: ' + ', '.join(missing[:20]))
+    return [name for name, data in sorted(snapshot.items())
+            if hashlib.sha1(b'blob %d\0' % len(data) + data, usedforsecurity=False).hexdigest() != tracked[name][1]]
 
 
 def build_time():
@@ -273,6 +313,8 @@ def main():
     for name in runtime:
         safe_name(name)
         if not allowed(ROOT/name):raise ValueError('Missing or unsafe required runtime member: '+name)
+    # The checkout is read before and after the snapshot and must not have moved; the identity then describes the files captured.
+    before = git_state(detail=True)
     with source_reader() as read:
         if not allowed(ROOT/SOURCE_INVENTORY):
             raise ValueError('A regular reviewed source inventory is required.')
@@ -281,6 +323,14 @@ def main():
         if not set(runtime).issubset(source):
             raise ValueError('Runtime members must be included in the reviewed source inventory.')
         snapshot = {name: inventory_bytes if name == SOURCE_INVENTORY else read(name) for name in source}
+    after = git_state(detail=True)
+    if before != after:
+        raise ValueError('The checkout changed while the snapshot was read (its commit, tree or tracked modifications); '
+                         'build again from a checkout that is not being edited.')
+    differing = bind_to_commit(snapshot, after)
+    state = {key: after[key] for key in ('commit', 'tree', 'dirty')}
+    if differing:
+        state['dirty'] = True
     if args.check_only:
         source_hashes={name:hashlib.sha256(data).hexdigest() for name,data in sorted(snapshot.items())}
         report={'status':'PASS','mode':'inventory_validation_only','version':__version__,
@@ -298,7 +348,7 @@ def main():
     if any(path.exists() or path.is_symlink() for path in targets):
         raise ValueError('Release outputs already exist; use a fresh output directory.')
     out.mkdir(parents=True,exist_ok=True)
-    build=dict(git_state(),built_at=build_time())
+    build=dict(state,built_at=build_time())
     def identity(kind,companion):
         return dict(build,archive_kind=kind,product_version=__version__,companion=companion)
     # Each archive names the other: the runtime archive by the source content digest (known before either is
