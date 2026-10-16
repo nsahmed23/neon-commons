@@ -256,5 +256,51 @@ class GarbledSentenceTests(Base):
         self.assertNotIn(readiness.NO_CHECK_RECORDED % 'discover', flat(tc.text_of(value, 120)))
 
 
+class ResumeBaseTests(Base):
+    """Item 5: the resume commands name paths relative to where `catalog` was run; the screen says so once, above them."""
+
+    SENTENCE = ('Resume commands are typed from the directory this catalog was run in; a path outside it is printed in full.')
+    PATH_FLAGS = ('--root', '--session', '--operation', '--repo', '--service-root', '--input', '--context')
+
+    def base(self):
+        from pathlib import Path
+        return Path(self.dirs['full']).parent
+
+    def test_the_directory_the_commands_are_typed_from_is_said_once_above_the_first_resume_command(self):
+        lines = self.lines('full', relative_to=str(self.base()))
+        text = flat(lines)
+        self.assertEqual(text.count(self.SENTENCE), 1)
+        heading = lines.index('SAVED PROJECTS')
+        first = next(i for i, line in enumerate(lines) if line.strip() == 'Resume:')
+        said = next(i for i, line in enumerate(lines) if line.strip().startswith('Resume commands are typed from'))
+        self.assertTrue(heading < said < first, (heading, said, first))
+
+    def test_what_it_says_is_true_of_the_commands_the_screen_prints(self):
+        import shlex
+        model = self.model('full', relative_to=str(self.base()))
+        checked = 0
+        for project in model['projects']:
+            if not project['command']:
+                continue
+            argv = shlex.split(project['command'])
+            for flag in self.PATH_FLAGS:
+                if flag in argv:
+                    value = argv[argv.index(flag) + 1]
+                    if value.isupper() or value.startswith('NEW_') or value in ('STORE', 'CONTEXT_JSON'):
+                        continue
+                    from pathlib import Path
+                    self.assertTrue(Path(value).is_absolute() or (self.base() / value).exists(), (flag, value))
+                    checked += 1
+        self.assertGreater(checked, 3)
+
+    def test_no_resume_command_no_sentence(self):
+        self.assertNotIn('Resume commands are typed from', flat(self.lines('offline')))
+        self.assertIn('Nothing recognized here yet.', flat(self.lines('offline')))
+
+    def test_a_narrow_pane_still_says_it_once(self):
+        for width in (60, 80):
+            self.assertEqual(flat(self.lines('full', width=width, relative_to=str(self.base()))).count(self.SENTENCE), 1, width)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -45,6 +45,7 @@ NOT_PERMISSION = 'A sign-in is not permission for any operation; access to Graph
 # live blocker it records for the missing cloud route.
 MODELED_ONLY = 'synthetic_local_process_only'
 NO_CLOUD_ROUTE = 'cloud_executor_unavailable'
+RESUME_BASE = 'Resume commands are typed from the directory this catalog was run in; a path outside it is printed in full.'
 
 
 def _available(manifest, goal):
@@ -324,6 +325,10 @@ def catalog_lines(value, width):
     lines.append('')
     lines.append('SAVED PROJECTS')
     if value['projects']:
+        if any(project['command'] for project in value['projects']):
+            # The paths in a resume command are written for the directory the catalog was run in (build's relative_to), and
+            # that directory is not in the data: say once, above the commands, where they are typed.
+            lines += _flow(RESUME_BASE, width, '  ', '  ')
         for project in value['projects']:
             lines += _flow('%s %s: %s | %s' % (project['label'], project['path'], project['summary'], project['state']),
                            width, '  ', '    ')
