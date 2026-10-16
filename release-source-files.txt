@@ -543,6 +543,7 @@ intune_iac/sim_result.py
 intune_iac/sim_settings.py
 intune_iac/synthetic.py
 intune_iac/system_map_projection.py
+intune_iac/system_map_screen.py
 intune_iac/target.py
 intune_iac/validity.py
 intune_iac/windows_capture.py
@@ -869,6 +870,12 @@ plugin_tests/fixtures/signin_golden/several_hidden_accounts.json
 plugin_tests/fixtures/signin_golden/two_default_rows_one_account.json
 plugin_tests/fixtures/signin_golden/two_defaults.json
 plugin_tests/fixtures/signin_golden/two_defaults_hidden_accounts.json
+plugin_tests/fixtures/system_map/absent_edges.json
+plugin_tests/fixtures/system_map/half_engine_pin.json
+plugin_tests/fixtures/system_map/recorded.json
+plugin_tests/fixtures/system_map/stale_link.json
+plugin_tests/fixtures/system_map/unknown_observation.json
+plugin_tests/fixtures/system_map/unsupported_schema.json
 plugin_tests/fixtures/worker_service_tls_client.c
 plugin_tests/orchestration_fixtures.py
 plugin_tests/signin_5b_common.py
@@ -1049,6 +1056,7 @@ plugin_tests/test_stateful_service_epoch.py
 plugin_tests/test_successor_expiry_latch.py
 plugin_tests/test_synthetic_completion.py
 plugin_tests/test_system_map_projection.py
+plugin_tests/test_system_map_screen.py
 plugin_tests/test_target.py
 plugin_tests/test_terminal_interrupt_r4.py
 plugin_tests/test_terminal_security_epoch.py
