@@ -498,7 +498,8 @@ def _pack(items, width):
     return lines
 
 
-def constrained_rows(tenant, selected, facts, mode_class, width, height, need, prompt, typing=False, layer='summary'):
+def constrained_rows(tenant, selected, facts, mode_class, width, height, need, prompt, typing=False, layer='summary',
+                     route=(None, None)):
     """The window below the minimum size: (lines, band_rows), never the body.
 
     When rows run out they are kept in this order: the primary hazard with its response, the evidence mode with the
@@ -536,8 +537,9 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
               'band': hazard_rows(facts, facts.get('signals') or [], width, routes=False, surface=False) if selected else [],
               'legend': strip_key_rows([STRIP_DEFINITIONS[key] for key in dict.fromkeys(shown)], width)}
     if layer == 'workflow':
-        # The one sentence, whole: what the map needs and the plain-text command that prints it anywhere.
-        groups['header'] = workflow_unavailable_lines(width)
+        # What the map needs, then the plain-text command that prints it anywhere on its own rows (route: the workspace's
+        # root and the selected policy, which the command names when it knows them).
+        groups['header'] = workflow_unavailable_lines(width, *route)
     budget, kept = height, {}
     for name in ('band', 'header', 'prompt', 'strip', 'keys', 'legend'):
         kept[name] = groups[name][:max(0, budget)]
@@ -2379,8 +2381,10 @@ def map_lines(graph, width, rules='ascii', focus=None, selected=None, prefixes=N
 # stage's detail below them is prose, and its length follows the records.
 WORKFLOW_MIN_SIZE = (60, 20)
 WORKFLOW_COMMAND = 'intune-iac workbench workflow --root ROOT --policy ID'
-WORKFLOW_NEEDS = 'The workflow map needs a larger window (at least %dx%d); %s prints it as plain text.' % (
-    WORKFLOW_MIN_SIZE + (WORKFLOW_COMMAND,))
+# The sentence ends before the command: a command is never printed inside a sentence (a screen puts every printed command on
+# its own rows), so what follows the colon is rows a person can copy whole.
+WORKFLOW_NEEDS = 'The workflow map needs a larger window (at least %dx%d). Plain text:' % WORKFLOW_MIN_SIZE
+WORKFLOW_UNAVAILABLE_CLOSE = 'Esc closes it; nothing else here has changed.'
 WORKFLOW_LABELS = {'observe': 'observe', 'adopt': 'adopt', 'intent': 'intent', 'propose': 'propose', 'review': 'review',
                    'approve_execute': 'approve, execute', 'readback': 'readback', 'reconcile': 'reconcile',
                    'record': 'record', 'observed_after': 'observed after', 'maintain': 'maintain'}
@@ -2410,9 +2414,33 @@ def workflow_fits(size):
     return size[0] >= WORKFLOW_MIN_SIZE[0] and size[1] >= WORKFLOW_MIN_SIZE[1]
 
 
-def workflow_unavailable_lines(width):
-    """What the workflow layer says where there is no map: that it needs a larger window, and the plain-text command."""
-    return word_wrap(WORKFLOW_NEEDS + ' Esc closes it; nothing else here has changed.', width)
+def workflow_command_rows(root, policy, width):
+    """The plain-text command, `intune-iac workbench workflow --root ROOT --policy ID`, as the rows to copy: root and policy
+    are the workspace's own (None where it has none, which prints the stand-ins ROOT and ID).
+
+    The root is the operand the catalog's path writer writes for a screen (entry.text_paths: shell-quoted, or DIRECTORY for a
+    name display_refused refuses), and the policy is quoted the same way unless it is refused (then ID). This function neither
+    decides what may be shown nor quotes by itself. A command wider than the row breaks between its arguments, every row but
+    the last ending in a backslash (entry._command_rows, as every screen writes a command); an operand that would not fit a
+    row alone is its stand-in, so every row fits and the command is whole."""
+    import shlex
+    from .entry import _command_rows, text_paths
+    from .readiness import display_refused
+    room = max(1, width - 4)                  # a continuation row is indented four cells
+    operand = text_paths(root, None)[3]() if root else None
+    if not operand or cell_width(operand) > room:
+        operand = 'ROOT'
+    named = shlex.quote(str(policy)) if policy and not display_refused(str(policy)) else None
+    if not named or cell_width(named) > room:
+        named = 'ID'
+    return _command_rows(['workbench', 'workflow', '--root', operand, '--policy', named], width, 0)
+
+
+def workflow_unavailable_lines(width, root=None, policy=None):
+    """What the workflow layer says where there is no map: that it needs a larger window, then the plain-text command on its
+    own rows (workflow_command_rows), then how to close the layer."""
+    return (word_wrap(WORKFLOW_NEEDS, width) + workflow_command_rows(root, policy, width)
+            + word_wrap(WORKFLOW_UNAVAILABLE_CLOSE, width))
 
 
 def workflow_legends():

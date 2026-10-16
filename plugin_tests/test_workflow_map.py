@@ -927,7 +927,8 @@ class WorkflowMapLinesTests(unittest.TestCase):
         for size in ((40, 12), (59, 24), (80, 19)):
             self.assertFalse(workflow_fits(size), size)
         for width in (36, 76):
-            text = ' '.join(' '.join(workflow_unavailable_lines(width)).split())
+            # A command too wide for a row breaks between its arguments with a trailing backslash; copied, it is one command.
+            text = ' '.join(' '.join(workflow_unavailable_lines(width)).replace(' \\', '').split())
             self.assertIn('needs a larger window', text)
             self.assertIn('intune-iac workbench workflow --root ROOT --policy ID', text)
             self.assertTrue(all(len(row) <= width for row in workflow_unavailable_lines(width)))
@@ -1141,9 +1142,12 @@ class LayerFrameTests(LayerFixture):
         self.prepare()
         for size in ((40, 12), (59, 24), (80, 19), (39, 11)):
             ws, frames = self.open_layer(size, 'ascii')
-            text = ' '.join(' '.join(self.plain(frames[-1])).split())
+            text = ' '.join(' '.join(self.plain(frames[-1])).replace(' \\', '').split())
             self.assertIn('needs a larger window', text, size)
-            self.assertIn('intune-iac workbench workflow --root ROOT --policy ID', text, size)
+            # The workspace knows its root and the selected policy, so the command names them (not the ROOT and ID stand-ins).
+            # (A row holds a policy id's 36 cells and the indent from 40 columns; narrower, the stand-in ID is printed.)
+            self.assertIn('intune-iac workbench workflow --root %s --policy %s' % (
+                self.store.root, OBJECT if size[0] >= 40 else 'ID'), text, size)
             self.assertNotIn('approve, execute', text, size)
             self.assertNotIn('[WORKFLOW]', text, size)
             for row in self.plain(frames[-1]):
@@ -2743,6 +2747,74 @@ class WorkflowPagingTests(LayerFixture):
         for label in ('observe', 'adopt', 'intent', 'propose', 'review', 'approve, execute', 'readback', 'reconcile', 'record',
                       'observed after', 'maintain'):
             self.assertTrue(any(label in row for row in seen), label)
+
+
+# ---- PKG-UXVIS-5b item 3: the plain-text command of the 40x12 layer is usable -------------------------------------------
+
+def command_block(rows):
+    """The rows of the printed command in a frame: from the row that starts it through the row that does not end in a
+    backslash, with the index of its first row. None when no row starts a command."""
+    rows = [row.rstrip() for row in rows]
+    start = next((index for index, row in enumerate(rows) if row.startswith('intune-iac workbench workflow')), None)
+    if start is None:
+        return None, None
+    end = start
+    while rows[end].endswith('\\') and end + 1 < len(rows):
+        end += 1
+    return start, rows[start:end + 1]
+
+
+class WorkflowRouteTests(unittest.TestCase):
+    def tokens(self, rows):
+        import shlex
+        return shlex.split(' '.join(row.rstrip('\\') for row in rows))
+
+    def test_the_command_names_the_real_root_and_policy_quoted_by_the_shared_path_writer(self):
+        from intune_iac.workbench_screens import workflow_command_rows
+        rows = workflow_command_rows('/tmp/a store', OBJECT, 76)
+        self.assertEqual(self.tokens(rows), ['intune-iac', 'workbench', 'workflow', '--root', '/tmp/a store', '--policy', OBJECT])
+        self.assertIn("'/tmp/a store'", ' '.join(rows))                     # quoted for the shell, once
+        for row in rows[:-1]:
+            self.assertTrue(row.endswith(' \\'), row)                        # every row but the last continues the command
+        self.assertFalse(rows[-1].endswith('\\'))
+
+    def test_a_root_the_display_rule_refuses_is_the_shared_placeholder_never_the_name(self):
+        from intune_iac.workbench_screens import workflow_command_rows
+        for root in ('/tmp/bad\x1bname', '/tmp/bad​name'):
+            rows = workflow_command_rows(root, OBJECT, 40)
+            self.assertEqual(self.tokens(rows)[4:6], ['DIRECTORY', '--policy'], root)
+            self.assertNotIn('bad', ' '.join(rows))
+
+    def test_without_a_root_or_a_policy_the_stand_ins_are_named_and_a_token_too_wide_for_a_row_is_one_too(self):
+        from intune_iac.workbench_screens import workflow_command_rows
+        self.assertEqual(self.tokens(workflow_command_rows(None, None, 40))[3:], ['--root', 'ROOT', '--policy', 'ID'])
+        rows = workflow_command_rows('/tmp/' + '/'.join(['dir'] * 12), OBJECT, 40)
+        self.assertEqual(self.tokens(rows)[3:], ['--root', 'ROOT', '--policy', OBJECT])
+        for width in (30, 36, 40, 60, 100):
+            for row in workflow_command_rows('/tmp/s', OBJECT, width):
+                self.assertLessEqual(len(row), width, (width, row))
+
+
+class WorkflowRouteFrameTests(LayerFixture):
+    def test_the_40x12_command_stands_on_its_own_rows_complete_with_the_real_root_and_policy(self):
+        import shlex
+        self.prepare()
+        for size in ((40, 12), (44, 14)):
+            ws, frames = self.open_layer(size, 'ascii')
+            rows = [row.rstrip() for row in self.plain(frames[-1])]
+            start, block = command_block(rows)
+            self.assertIsNotNone(start, (size, rows))
+            self.assertEqual(shlex.split(' '.join(row.rstrip('\\') for row in block)),
+                             ['intune-iac', 'workbench', 'workflow', '--root', str(self.store.root), '--policy', OBJECT], size)
+            for row in block:
+                self.assertLessEqual(len(row), size[0], (size, row))
+            # Never inside a sentence: the sentence before it ends, and nothing of prose follows it on its rows or after.
+            self.assertTrue(rows[start - 1].rstrip().endswith(':'), (size, rows[start - 1]))
+            self.assertNotIn('prints', ' '.join(rows))
+            allowed = set(shlex.split(' '.join(row.rstrip('\\') for row in block)))
+            for row in block:
+                self.assertTrue(set(shlex.split(row.rstrip('\\'))) <= allowed, (size, row))
+            self.assertIn('Esc closes it', ' '.join(' '.join(rows).split()), size)
 
 
 if __name__ == "__main__":
