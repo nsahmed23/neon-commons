@@ -23,8 +23,19 @@ JOURNAL_CHECKED = ('prepared', 'outcome_unknown', 'reconciled')
 UNAVAILABLE_STEPS = {'workbench_query_limit': 'too many records for one bounded read; the records themselves are intact.'}
 
 
-def _signal(area, code, observed, next_step, evidence=None):
-    return {'area': area, 'code': code, 'observed': observed, 'evidence': evidence or {}, 'next_step': next_step}
+# The visual screens (keys 9 and a) print a signal's next_step; the line terminal and the CLI print the signal and the
+# Inspector's next actions, where neither key exists (review 33). The command goes in its own field, so the visual band
+# keeps the key wording and the other surfaces name the pinned command (M-74 bans the unpinned form).
+LINE_COMMAND = ('In the line terminal or the CLI, where 9 and a are not keys, type '
+                'repository-refresh REVISION RESOLUTION_SHA256 (the resolution_sha256 that repository-status shows): '
+                'it pins the same difference.')
+
+
+def _signal(area, code, observed, next_step, evidence=None, line_command=None):
+    signal = {'area': area, 'code': code, 'observed': observed, 'evidence': evidence or {}, 'next_step': next_step}
+    if line_command is not None:
+        signal['line_command'] = line_command
+    return signal
 
 
 def _collection(observed):
@@ -324,7 +335,8 @@ def _repository(store, object_id):
                                    '%s %s' % (kind, ', '.join(sources.get(kind) or [])) for kind in ('changed', 'added', 'removed') if sources.get(kind)),
                                'Review the difference on the Repository surface (9), then choose Refresh the repository intent '
                                '(a: actions): it asks for the REVISION and pins the difference you reviewed.',
-                               dict(evidence, **{kind: sources.get(kind) or [] for kind in ('changed', 'added', 'removed')})))
+                               dict(evidence, **{kind: sources.get(kind) or [] for kind in ('changed', 'added', 'removed')}),
+                               line_command=LINE_COMMAND))
     elif freshness['status'] == 'unavailable':
         return [_signal('repository', 'repository_unavailable',
                         'The recorded repository cannot be resolved now: %s.' % freshness.get('reason', 'unknown'),
@@ -339,7 +351,7 @@ def _repository(store, object_id):
                                'Proposals and execution refuse this intent until the component consumes exactly this policy; '
                                'fix the component, then choose Refresh the repository intent (a: actions): it shows the '
                                'difference first, asks for the REVISION and pins the difference you reviewed.',
-                               dict(evidence, reasons=reasons)))
+                               dict(evidence, reasons=reasons), line_command=LINE_COMMAND))
     return signals, 'attention' if signals else 'clear'
 
 

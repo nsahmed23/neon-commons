@@ -313,7 +313,7 @@ def _attention(store, object_id):
         return {'status': 'unavailable', 'error_code': error.code, 'signals': [], 'checked': {}}
     partial = any(state in ('partly_checked', 'unavailable') for state in value['checked'].values())
     return {'status': 'attention' if value['signals'] else 'partly_checked' if partial else 'clear',
-            'signals': [{**{key: signal[key] for key in ('area', 'code', 'observed', 'next_step')},
+            'signals': [{**{key: signal[key] for key in ('area', 'code', 'observed', 'next_step', 'line_command') if key in signal},
                          'evidence': signal.get('evidence') if isinstance(signal.get('evidence'), dict) else {}}
                         for signal in value['signals']],
             'checked': value['checked'], 'newest_operation': value.get('newest_operation')}
@@ -359,7 +359,9 @@ def _next_actions(value, attention, service_available):
 
     Every step names a real command; preparing a change always ends in a review that needs the exact digest.
     """
-    steps = [{'source': signal['code'], 'step': signal['next_step']} for signal in attention.get('signals', [])]
+    # `line_command` names the command where the step's keys do not exist; the visual screens print only the next_step.
+    steps = [{'source': signal['code'], 'step': ' '.join(filter(None, (signal['next_step'], signal.get('line_command'))))}
+             for signal in attention.get('signals', [])]
     if attention.get('status') in ('unavailable', 'partly_checked'):
         # Whether anything needs attention is not established, so no change is offered yet.
         steps.insert(0, {'source': 'diagnostics_' + attention['status'], 'step': 'i shows what could not be read and why; '

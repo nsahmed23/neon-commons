@@ -175,6 +175,42 @@ class DiagnosticsEdgeTests(unittest.TestCase):
         self.assertIn('refuse', signal['next_step'])
         self.assertEqual(value['checked']['repository'], 'attention')
 
+    COMMAND = ('In the line terminal or the CLI, where 9 and a are not keys, type repository-refresh REVISION '
+               'RESOLUTION_SHA256 (the resolution_sha256 that repository-status shows)')
+
+    def test_the_stale_signal_names_the_pinned_command_beside_the_unchanged_key_wording(self):
+        self.import_intent()
+        self.edit_description('Edited in the repository.')
+        value, signals = self.view()
+        signal = signals['repository_stale']
+        self.assertIn('Refresh the repository intent (a: actions)', signal['next_step'])
+        self.assertNotIn('repository-refresh', signal['next_step'], 'the visual band keeps the key wording only')
+        self.assertIn(self.COMMAND, ' '.join(signal['line_command'].split()))
+
+    def test_the_inspector_next_actions_for_the_line_terminal_and_cli_name_the_command(self):
+        from intune_iac.workbench import _attention, _next_actions
+        self.import_intent()
+        self.edit_description('Edited in the repository.')
+        attention = _attention(self.store, OBJECT)
+        self.assertIn('line_command', attention['signals'][0])
+        step = next(item['step'] for item in _next_actions({}, attention, True) if item['source'] == 'repository_stale')
+        self.assertIn('Refresh the repository intent (a: actions)', step)
+        self.assertIn(self.COMMAND, ' '.join(step.split()))
+
+    def test_the_consumer_mismatch_signal_names_the_pinned_command_too(self):
+        import copy
+        from uuid import UUID
+        import yaml
+        document = yaml.safe_load((self.repo / repository_tests.STACK).read_text())
+        policies = document['components']['terraform']['intune-reference']['vars']['policies']
+        policies['p_' + UUID(TENANT).hex + '_' + 'd' * 32] = copy.deepcopy(policies[repository_tests.KEY])
+        (self.repo / repository_tests.STACK).write_text(yaml.safe_dump(document))
+        self.import_intent()
+        value, signals = self.view()
+        signal = signals['repository_consumer_mismatch']
+        self.assertIn('Refresh the repository intent (a: actions)', signal['next_step'])
+        self.assertIn(self.COMMAND, ' '.join(signal['line_command'].split()))
+
     def test_two_repository_scopes_are_reported_without_promising_that_an_import_resolves_them(self):
         import shutil
         from intune_iac import workbench_views as views
