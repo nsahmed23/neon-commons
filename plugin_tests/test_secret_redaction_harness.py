@@ -312,6 +312,7 @@ class RedactionHarness(unittest.TestCase):
         children, terminal, wire, inherited = [], [], [], []
         stdin_data, launches, deleted, unresolved = [], [], [], []
         child_stdin_fds = set()
+        uninspectable = []
         real_os_write = os.write
         allowed_routes = dict(bearer_ok)
         real_popen = subprocess.Popen
@@ -355,12 +356,20 @@ class RedactionHarness(unittest.TestCase):
             def __init__(self, args, *a, **k):
                 supplied = k.get('stdin')
                 if supplied is not None and supplied not in (subprocess.PIPE, subprocess.DEVNULL):
-                    # A file object (or descriptor number) given as stdin: read its content without moving its position.
+                    # A file object (or descriptor number) given as stdin: the child reads from the CURRENT offset to EOF.
+                    # Read the offset (lseek by 0 moves nothing), then pread from it to EOF in chunks, which never moves
+                    # the position. Anything that cannot be read completely fails the route.
                     try:
                         number = supplied if isinstance(supplied, int) else supplied.fileno()
-                        stdin_data.append(os.pread(number, 1 << 20, 0))
+                        offset = os.lseek(number, 0, os.SEEK_CUR)
+                        while True:
+                            chunk = os.pread(number, 1 << 20, offset)
+                            if not chunk:
+                                break
+                            stdin_data.append(chunk)
+                            offset += len(chunk)
                     except (OSError, AttributeError, ValueError):
-                        pass  # a pipe or a non-seekable object cannot be read ahead
+                        uninspectable.append(repr(type(supplied)))  # a pipe or non-seekable object
                 passed = list(k.get('pass_fds') or ())
                 children.append({'argv': [str(x) for x in args] if isinstance(args, (list, tuple)) else [str(args)],
                                  'env': dict(k.get('env') or os.environ), 'pass_fds': passed,
@@ -439,6 +448,7 @@ class RedactionHarness(unittest.TestCase):
         self.assert_clean(canaries, out.getvalue(), err.getvalue(), children)
         self.assertEqual(deleted, [], 'a file held a canary before it was removed')
         self.assertEqual(unresolved, [], 'a removal could not be resolved and so could not be inspected')
+        self.assertEqual(uninspectable, [], 'the input supplied as a child stdin could not be inspected completely')
         self.assertEqual(leaks.in_bytes(b''.join(stdin_data)), [], 'canary sent to a child process stdin')
         self.assertEqual([event for event, _ in launches if leaks.in_bytes(repr(_).encode())], [],
                          'canary in the arguments of a launch API')
@@ -791,6 +801,23 @@ class RedactionHarness(unittest.TestCase):
                 subprocess.run(['cat'], stdin=handle, stdout=subprocess.DEVNULL)
             return 0
 
+        def stdin_file_past_the_first_mebibyte(v):
+            with tempfile.TemporaryFile() as handle:
+                handle.write(b'.' * (1 << 20) + v.encode())
+                handle.seek(1 << 20)  # the child reads from here, not from offset 0
+                subprocess.run(['cat'], stdin=handle, stdout=subprocess.DEVNULL)
+            return 0
+
+        def stdin_pipe_that_cannot_be_inspected(v):
+            read_end, write_end = os.pipe()
+            try:
+                os.write(write_end, v.encode())
+                os.close(write_end)
+                subprocess.run(['cat'], stdin=read_end, stdout=subprocess.DEVNULL)
+            finally:
+                os.close(read_end)
+            return 0
+
         def system_call(v):
             # Deliberate: os.system is the launch API this plant exercises; the harness must catch it. Fixed command.
             os.system('true ' + v)
@@ -802,6 +829,10 @@ class RedactionHarness(unittest.TestCase):
 
         for name, entry, pattern in (('descriptor-level write to stdin', descriptor_write_to_stdin, 'child process stdin'),
                                      ('file object supplied as stdin', stdin_file_object, 'child process stdin'),
+                                     ('canary after the first MiB of a stdin file', stdin_file_past_the_first_mebibyte,
+                                      'child process stdin'),
+                                     ('stdin pipe that cannot be read ahead', stdin_pipe_that_cannot_be_inspected,
+                                      'could not be inspected completely'),
                                      ('communicate input', communicate_input, 'child process stdin'),
                                      ('stdin pipe write', stdin_pipe_write, 'child process stdin'),
                                      ('os.system with the canary', system_call, 'launch API'),
