@@ -528,7 +528,7 @@ def _shell_flatten(text):
                 out.append(char)
         elif char == '\\':
             i += 1
-            if i < len(text):
+            if i < len(text) and text[i] != '\n':      # backslash-newline is a line continuation: both vanish
                 out.append(text[i])
         elif char == "'":
             quote = "'"

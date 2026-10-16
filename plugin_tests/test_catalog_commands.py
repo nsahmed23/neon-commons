@@ -299,6 +299,18 @@ class StandInCommandSegmentTests(unittest.TestCase):
         ("echo 'D\\'IRECTORY", False),         # single quotes end at the second quote: D\ then IRECTORY
     )
 
+    def test_an_unquoted_backslash_newline_is_removed_as_the_shell_removes_it(self):
+        """Round 7: outside quotes the shell drops a backslash followed by a newline, so DIREC, backslash, newline, TORY is DIRECTORY."""
+        from intune_iac import readiness
+        generic = 'this step names the directory, which cannot be shown here'
+        self.assertEqual(readiness.without_stand_in('echo DIREC\\\nTORY'), generic)
+        self.assertEqual(readiness.without_stand_in('echo D\\\nIRE\\\nCTORY'), generic)
+        said = readiness.without_stand_in('Run: intune-iac start DIREC\\\nTORY --goal discover')
+        self.assertNotIn('DIREC', said)
+        self.assertIn('the start command with this directory (%s)' % CANNOT, said)
+        for text in ('echo DIREC\\\\\nTORY', 'echo "DIREC\\IRECTORY"', "echo 'DIREC\\\nTORY'"):   # a backslash pair, or quoted
+            self.assertEqual(readiness.without_stand_in(text), text, text)
+
     def test_the_net_reads_quoting_as_the_shell_does(self):
         from intune_iac import readiness
         for text, names_it in self.SHELL_READS:
