@@ -213,6 +213,40 @@ class VerdictCaveatsTests(Base):
         self.assertTrue(module.verdict_words(goal).endswith(self.CAVEATS))
 
 
+class JsonWordingTests(Base):
+    """PKG-CATALOG-6 item 4 (journey 33 run 2, review A finding F1): the --json strings said `(not authenticated)` where the text
+    says authentication was not checked, and `blocked.missing` kept the old garbled sentence. Keys and structure are unchanged."""
+
+    def test_a_project_state_reads_authentication_not_checked_as_the_text_does(self):
+        value = self.model('full')
+        self.assertTrue(value['projects'])
+        for project in value['projects']:
+            self.assertNotIn('not authenticated', project['state'], project['state'])
+            self.assertNotIn('(not authenticated)', project['state'])
+        self.assertTrue(any('(authentication not checked)' in project['state'] for project in value['projects']))
+        text = flat(self.lines('full'))
+        for project in value['projects']:
+            self.assertIn(project['state'], text)
+
+    def test_blocked_missing_is_the_two_sentences_the_text_says_not_the_garbled_one(self):
+        goal = self.model('context', 'discover')['integrations'][0]['goals'][0]
+        missing = goal['blocked']['missing']
+        self.assertNotIn('no sign-in check was run: start with', missing)
+        self.assertTrue(missing.startswith('No sign-in check was run. To look for an existing Azure sign-in, run: intune-iac start '),
+                        missing)
+        self.assertTrue(missing.endswith('--goal discover --check-signin azure (it runs az account list --output json and '
+                                         'nothing else).'), missing)
+        self.assertIn(missing, flat(self.lines('context', 'discover')).replace(' \\ ', ' '))
+
+    def test_the_keys_of_the_record_are_unchanged(self):
+        value = self.model('full')
+        self.assertEqual(sorted(value), ['cloud_authority', 'directory', 'execution_authorized', 'integrations',
+                                         'other_integrations', 'projects', 'schema_version', 'signin_checked'])
+        self.assertEqual(sorted(value['projects'][0]), ['command', 'kind', 'label', 'note', 'path', 'state', 'summary'])
+        self.assertEqual(sorted(value['integrations'][0]['goals'][0]['blocked']),
+                         ['missing', 'next_action', 'row', 'row_state', 'state'])
+
+
 class UnsupportedRowTests(Base):
     """PKG-CATALOG-6 item 2 (journey 33 run 2, review A finding F2): under `change`, `unsupported: nothing recorded as unsupported
     in this build.` sat beside `no cloud route exists`, and read as broad support. The row states the recorded gap where there is
@@ -453,11 +487,14 @@ class StateWordsTests(Base):
         self.assertIn('source-asserted, authentication not checked', text)
         self.assertIn('authenticated: not checked', text)  # the goal rows' own word
 
-    def test_the_recorded_words_stay_in_the_json_form(self):
+    def test_the_json_form_says_what_the_text_says(self):
+        # PKG-CATALOG-6 item 4: the JSON strings no longer keep the flat negative the text replaced (the frozen words live on in
+        # entry.STATE_WORDS, which start --json still records)
         model = self.model('full')
         states = ' '.join(project['state'] for project in model['projects'])
-        self.assertIn('this product has no live connection (not authenticated)', states)
-        self.assertIn('source-asserted, not authenticated', states)
+        self.assertIn('this product has no live connection (authentication not checked)', states)
+        self.assertIn('source-asserted, authentication not checked', states)
+        self.assertNotIn('not authenticated', states)
 
     def test_the_start_screen_uses_the_same_words(self):
         from plugin_tests.test_start_goal import run_cli

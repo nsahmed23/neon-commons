@@ -206,7 +206,7 @@ def projects(survey, relative_to=None, paths=None):
     for item in items:
         command, note = _resume(item, items, q)
         rows.append({'kind': item['kind'], 'label': entry.LABELS.get(item['kind'], item['kind']), 'path': item['path'],
-                     'summary': entry._summary(item), 'state': _state_words(item), 'command': command, 'note': note})
+                     'summary': entry._summary(item), 'state': entry.screen_words(_state_words(item)), 'command': command, 'note': note})
     return rows
 
 
@@ -238,7 +238,8 @@ def build(survey, doctor=None, signin=None, manifest=None, goal=None, relative_t
     from .entry import json_paths
     directory = survey.get('directory') if isinstance(survey, dict) else None
     # the JSON form writes the directory as it always has: in full, quoted for the shell (the JSON writer, with no relative_to)
-    flag = _signin_flag(json_paths(Path(directory), None)[1](directory) if directory else None, goal)
+    operand = json_paths(Path(directory), None)[1](directory) if directory else None
+    flag = _signin_flag(operand, goal)
     goals = [goal] if goal else list(readiness_model.OPERATIONS)
     integration = manifest['integration']
     record = {'id': integration['id'], 'label': integration['label'], 'product': integration['product'],
@@ -252,6 +253,11 @@ def build(survey, doctor=None, signin=None, manifest=None, goal=None, relative_t
                       'projects': projects(survey, relative_to) if isinstance(survey, dict) else [],
                       'execution_authorized': False, 'cloud_authority': False})
     result.text_build, result.text_placeholders = _text_build(result, survey, goal, relative_to)
+    # The JSON strings say what the text says (PKG-CATALOG-6 item 4). The text build was made from the recorded note above, so
+    # this comes after it: the recorded no-sign-in-check note becomes its two sentences, with the JSON form's own directory operand.
+    for item in record['goals']:
+        if item['blocked'].get('missing'):
+            item['blocked']['missing'] = readiness_model.screen_note(item['blocked']['missing'], operand)
     return result
 
 
