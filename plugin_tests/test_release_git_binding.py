@@ -21,7 +21,10 @@ def check_only(repo):
     """What `--check-only` prints for the repository: it may report a state that --output-dir refuses."""
     with patch.object(builder, 'ROOT', repo.root), patch.object(builder, 'runtime_files', return_value=['README.md']), \
             patch.object(sys, 'argv', ['build-release.py', '--check-only']), contextlib.redirect_stdout(io.StringIO()) as out:
-        builder.main()
+        try:
+            builder.main()
+        except ValueError as refused:
+            raise AssertionError(f'--check-only refused a tree it may report on: {refused}') from None
     return json.loads(out.getvalue())
 
 
