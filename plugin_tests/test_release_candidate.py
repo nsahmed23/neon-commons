@@ -763,6 +763,13 @@ with open(os.environ['FAKE_PIP_LOG'], 'a') as log:
 # says, creates the environment without pip (and puts a recording pip module in it when it was asked for one), and
 # hands everything else to the real interpreter.
 FAKE_INTERPRETER = '''#!/bin/sh
+# FAKE_ENV_LOG, when a test sets it, receives each call's arguments, HOME and Python-related variables.
+if [ -n "${FAKE_ENV_LOG:-}" ]; then
+    { echo "args: $*"; echo "HOME=$HOME"; env | grep -E '^(PYTHON[A-Z_0-9]+|PIP_[A-Z_0-9]+|VIRTUAL_ENV)=' | sort; echo "--"; } >> "$FAKE_ENV_LOG"
+fi
+# The script runs its helper interpreters isolated (-I); the stand-in skips that flag when it looks at the rest.
+isolated=
+if [ "$1" = -I ]; then isolated=-I; shift; fi
 case "$1" in
     -c)
         case "$2" in
@@ -772,8 +779,8 @@ case "$1" in
         if [ "$2" = venv ]; then
             echo "venv $*" >> "$FAKE_LOG"
             shift 2
-            if [ "$1" = --without-pip ]; then exec "$REAL_PYTHON" -m venv "$@"; fi
-            "$REAL_PYTHON" -m venv --without-pip "$@" || exit 1
+            if [ "$1" = --without-pip ]; then exec "$REAL_PYTHON" $isolated -m venv "$@"; fi
+            "$REAL_PYTHON" $isolated -m venv --without-pip "$@" || exit 1
             site=$("$1/bin/python" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])') || exit 1
             mkdir -p "$site/pip"
             : > "$site/pip/__init__.py"
@@ -783,9 +790,9 @@ case "$1" in
             exit 0
         fi ;;
 esac
-exec "$REAL_PYTHON" "$@"
+exec "$REAL_PYTHON" $isolated "$@"
 '''
-LOCK = 'requirements-runtime-linux-x86_64-cp312.lock'
+LOCK ='requirements-runtime-linux-x86_64-cp312.lock'
 
 
 class PipWheelInstallTests(unittest.TestCase):

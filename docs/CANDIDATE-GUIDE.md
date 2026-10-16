@@ -344,7 +344,9 @@ interactive workspace, which it replaces with the text variant of step 7), and p
 from a folder that is not inside a git checkout, and give it a work folder that does not exist yet. The script first
 copies the archive (and the wheel, below) into a private temporary folder that is removed when it ends, and checks and
 uses only those copies, so replacing a file after the script has started changes nothing. It refuses a file that is a
-symbolic link or is not a plain file.
+symbolic link or is not a plain file. Nothing of your own Python setup reaches it: before the first interpreter starts it
+removes every `PYTHON*` setting, every `PIP_*` setting and `VIRTUAL_ENV` from its environment, runs each interpreter
+isolated (`python -I`) and gives them a private home folder.
 
 The script refuses to run without the archive's sha256 as its last argument (exit status 64, nothing created). An
 archive carries its own `SHA256SUMS`, so an altered archive can agree with itself; only a digest that reached you by

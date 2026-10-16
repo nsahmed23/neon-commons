@@ -3,6 +3,7 @@ and the sensitive-file control must refuse. The first module of this package, te
 one starts where that one passed 1,000 lines and imports its stand-ins and helpers.
 """
 import os
+import re
 import shlex
 import shutil
 import subprocess
@@ -127,7 +128,7 @@ class ScriptCase(unittest.TestCase):
                        'FAKE_PIP_LOG': str(self.pip_log), 'TMPDIR': str(self.tmp)}
         environment.update(env or {})
         return subprocess.run(['bash', str(DEMO), *map(str, args)], cwd=cwd or self.outside, capture_output=True, text=True,
-                              env=environment, timeout=180)
+                              env=environment, timeout=180, stdin=subprocess.DEVNULL)
 
     def listing(self):
         """Everything the script could have left: the test folder, the folder it runs in and its temporary folder."""
@@ -284,6 +285,94 @@ class StagingTests(ScriptCase):
                 self.assertFalse(any(path.startswith(str(self.base / 'work')) for _, path in staged))
 
 
+# A stand-in pip whose log line says whether the interpreter that ran it was isolated (python -I).
+RECORDING_PIP_MAIN = '''import os, sys
+with open(os.environ['FAKE_PIP_LOG'], 'a') as log:
+    log.write('isolated=%d %s\\n' % (sys.flags.isolated, ' '.join(sys.argv)))
+'''
+# The only Python or pip settings the script itself hands to an interpreter.
+OWN_SETTINGS = {'PYTHONDONTWRITEBYTECODE=1', 'PYTHONSAFEPATH=1', 'PYTHONNOUSERSITE=1', 'PIP_CONFIG_FILE=/dev/null',
+                'PIP_DISABLE_PIP_VERSION_CHECK=1'}
+
+
+class IsolationTests(ScriptCase):
+    """Item 3: nothing from the caller's Python environment or home reaches an interpreter the script starts, from the first
+    one on. Until the work folder exists, the home is a private folder inside the staging folder."""
+
+    def hostile(self):
+        """A PYTHONPATH folder with a sitecustomize and a home with a usercustomize, each of which writes a marker if it runs."""
+        marker = self.base / 'MARKER'
+        folder = self.base / 'hostile'
+        folder.mkdir()
+        (folder / 'sitecustomize.py').write_text(f"open({str(marker)!r}, 'a').write('sitecustomize ran\\n')\n")
+        home = self.base / 'caller-home'
+        site = home / '.local/lib' / f'python{sys.version_info.major}.{sys.version_info.minor}' / 'site-packages'
+        site.mkdir(parents=True)
+        (site / 'usercustomize.py').write_text(f"open({str(marker)!r}, 'a').write('usercustomize ran\\n')\n")
+        return marker, folder, home
+
+    def test_caller_code_on_pythonpath_or_in_the_callers_home_never_runs_in_a_full_run_or_a_refused_one(self):
+        marker, folder, home = self.hostile()
+        not_pip = self.base / 'not-pip.whl'
+        with zipfile.ZipFile(not_pip, 'w') as archive:
+            archive.writestr('README', 'a zip that is not a pip wheel')
+        cases = {'a full run': (self.complete('work-full'), 0, 'RESULT: every step passed.'),
+                 'a run refused after the first interpreter started': (
+                     ['--pip-wheel', not_pip, '--pip-wheel-sha256', sha256(not_pip.read_bytes()), self.archive, self.wheels,
+                      self.base / 'work-refused', self.archive_digest()], 64, 'is not a pip wheel')}
+        for name, (arguments, status, text) in cases.items():
+            with self.subTest(name):
+                result = self.run_script(*arguments, env={'PYTHONPATH': str(folder), 'HOME': str(home)})
+                self.assertEqual(result.returncode, status, result.stdout + result.stderr)
+                self.assertIn(text, result.stdout + result.stderr)
+                self.assertFalse(marker.exists(), 'code of the caller ran in an interpreter the script started: '
+                                 + (marker.read_text() if marker.exists() else ''))
+
+    def test_no_python_or_pip_setting_of_the_callers_reaches_any_interpreter_and_the_home_is_private(self):
+        caller_home = self.base / 'caller-home'
+        caller_home.mkdir()
+        env_log = self.base / 'interpreters.log'
+        hostile = {'PYTHONPATH': str(self.base / 'elsewhere'), 'PYTHONHOME': str(self.base / 'no-such-python-home'),
+                   'PYTHONSTARTUP': '/dev/null', 'PYTHONUSERBASE': str(self.base / 'user-base'), 'PYTHONINSPECT': '1',
+                   'PYTHONWARNINGS': 'error', 'PYTHONSAFEPATH': '', 'VIRTUAL_ENV': str(self.base / 'venv-elsewhere'),
+                   'PIP_INDEX_URL': 'https://example.invalid/simple', 'PIP_REQUIRE_VIRTUALENV': '1',
+                   'PIP_CONFIG_FILE': str(self.base / 'pip.conf'), 'HOME': str(caller_home), 'FAKE_ENV_LOG': str(env_log)}
+        result = self.run_script(*self.complete('work-env'), env=hostile)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        records = [block.splitlines() for block in env_log.read_text().split('--\n') if block.strip()]
+        self.assertGreaterEqual(len(records), 4, 'the stand-in saw too few interpreter starts to prove anything')
+        work_home = str((self.base / 'work-env').resolve() / 'home')
+        for index, record in enumerate(records):
+            with self.subTest(call=record[0]):
+                self.assertTrue(record[0].startswith('args: -I '), 'an interpreter was started without -I: ' + record[0])
+                self.assertLessEqual(set(record[2:]), OWN_SETTINGS, 'the caller\'s settings reached an interpreter')
+                home = record[1].removeprefix('HOME=')
+                self.assertNotEqual(home, str(caller_home))
+                staged_home = re.fullmatch(re.escape(str(self.tmp)) + r'/intune-iac-stage\.\w+/home', home) is not None
+                self.assertTrue(staged_home or home == work_home, 'the home is neither private nor the work folder: ' + home)
+                if index == 0:
+                    self.assertTrue(staged_home, 'before the work folder exists the home is private to the staging folder')
+
+    def test_pip_runs_in_an_isolated_interpreter(self):
+        self.make_wheel(self.pip_wheel, main=RECORDING_PIP_MAIN)
+        result = self.run_script(*self.complete('work-pip'))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        lines = self.calls()[1]
+        self.assertEqual(len(lines), 2, lines)
+        self.assertTrue(all(line.startswith('isolated=1 ') for line in lines), lines)
+
+    def test_every_interpreter_the_script_names_is_started_isolated_except_the_product_itself(self):
+        text = DEMO.read_text()
+        starts = re.findall(r'("\$PYTHON"|\.venv/bin/python)( [^\n]*)', text)
+        self.assertGreaterEqual(len(starts), 7)
+        for interpreter, rest in starts:
+            with self.subTest(interpreter + rest[:50]):
+                if 'scripts/intune-iac.py' in rest:
+                    self.assertTrue(rest.startswith(' -B '), 'the guide runs the product with -B: ' + rest)
+                else:
+                    self.assertTrue(rest.startswith(' -I'), 'started without -I: ' + interpreter + rest)
+
+
 class GuideDigestTests(unittest.TestCase):
     """The guide shows only the forms the script accepts and says where a digest is to be taken from."""
 
@@ -312,7 +401,7 @@ class GuideDigestTests(unittest.TestCase):
     def test_the_guide_says_where_each_digest_comes_from_and_endorses_no_unchecked_run(self):
         section = squashed(guide_section('Check a clean install end to end'))
         for phrase in ('published release record', 'not from the line the script prints', 'refuses to run without',
-                       'private temporary folder', 'symbolic link'):
+                       'private temporary folder', 'symbolic link', 'isolated (`python -I`)'):
             self.assertIn(phrase, section)
         for endorsement in ('runs the wheel anyway', 'a fourth argument', 'optional'):
             self.assertNotIn(endorsement, section)

@@ -16,7 +16,9 @@
 # created. Take each digest from the published release record, not from this script's own printed line, which only echoes
 # the file it was given. A named file that is a link, or is not a plain file, is refused. The archive and the wheel are
 # copied once into a new folder that only this run can enter (under TMPDIR, or /tmp), and every check and every use reads
-# those copies, hashed again just before first use; the folder is removed when the script ends.
+# those copies, hashed again just before first use; the folder is removed when the script ends. No Python or pip setting of the
+# caller's (PYTHONPATH, PYTHONSTARTUP, PIP_*, VIRTUAL_ENV and the rest) reaches an interpreter the script starts: they are removed
+# before the first one starts, each helper interpreter runs with -I, and its home is a private folder.
 #
 # Many Debian and Ubuntu hosts ship CPython without ensurepip, so `python3 -m venv` fails there. Either install the
 # python3.12-venv package, or give --pip-wheel PATH (any pip wheel file, read in place): the virtual environment is
@@ -33,6 +35,19 @@
 set -u
 
 PYTHON=${PYTHON:-python3}
+
+# Isolation. Nothing of the caller's Python or pip setup reaches an interpreter this script starts: every PYTHON* variable (but
+# PYTHON itself, which only names the interpreter), every PIP_* variable and VIRTUAL_ENV are removed here, before the first
+# interpreter is started, and every helper interpreter below also runs with -I (isolated: it ignores PYTHON* variables and the
+# user site, and puts neither the script's folder nor the current folder on its module path). The few settings that follow are
+# the script's own. The home is the staging folder's until the work folder exists (see Staging), and the work folder's after.
+for name in $(compgen -e); do
+    case $name in
+        PYTHON) ;;
+        PYTHON*|PIP_*|VIRTUAL_ENV) unset "$name" ;;
+    esac
+done
+export PYTHONDONTWRITEBYTECODE=1 PYTHONNOUSERSITE=1 PYTHONSAFEPATH=1 PIP_CONFIG_FILE=/dev/null PIP_DISABLE_PIP_VERSION_CHECK=1
 
 say() { printf '%s\n' "$*"; }
 refuse() { code=$1; shift; say "REFUSED: $*" >&2; exit "$code"; }
@@ -134,6 +149,9 @@ STAGE=$(cd "$STAGE" && pwd -P)
 if [ ! -O "$STAGE" ] || [ "$(stat -c %a "$STAGE")" != 700 ]; then
     refuse 64 "the staging folder is not private to this run: $STAGE"
 fi
+# No interpreter reads the caller's home: it is this private folder until the work folder exists.
+mkdir -m 700 "$STAGE/home"
+export HOME="$STAGE/home"
 
 # stage_copy LABEL SOURCE DESTINATION: copy one input (a link is copied as a link, never followed) and refuse if what arrived is
 # not a plain file, which is what a swap for a link between the check above and this copy would leave.
@@ -164,7 +182,7 @@ if [ "$PIP_WHEEL_GIVEN" = yes ]; then
         refuse 64 "the pip wheel's sha256 does not match --pip-wheel-sha256 (expected $PIP_WHEEL_SHA256, actual $pip_sha256); nothing was created."
     fi
     # A pip wheel is a zip that holds the package's __main__.py, which is what `python PATH/pip` runs.
-    "$PYTHON" -c 'import sys, zipfile; sys.exit(0 if "pip/__main__.py" in zipfile.ZipFile(sys.argv[1]).namelist() else 1)' \
+    "$PYTHON" -I -c 'import sys, zipfile; sys.exit(0 if "pip/__main__.py" in zipfile.ZipFile(sys.argv[1]).namelist() else 1)' \
         "$PIP_WHEEL" 2>/dev/null || refuse 64 "the --pip-wheel file is not a pip wheel (no pip/__main__.py inside): $PIP_WHEEL_NAMED"
 fi
 
@@ -182,12 +200,10 @@ WORK=$(cd "$WORK" && pwd -P)
 mkdir -m 700 "$WORK/extract" "$WORK/logs" "$WORK/home"
 WHEELS=$(cd "$WHEELS" && pwd -P)
 
-# Nothing may come from the invoking user's environment or home.
-export HOME="$WORK/home" PYTHONDONTWRITEBYTECODE=1 PIP_CONFIG_FILE=/dev/null PIP_DISABLE_PIP_VERSION_CHECK=1
-unset PYTHONPATH PYTHONHOME VIRTUAL_ENV
+export HOME="$WORK/home"
 
 recheck archive "$STAGED_ARCHIVE" "$EXPECTED" 3
-"$PYTHON" -m zipfile -e "$STAGED_ARCHIVE" "$WORK/extract" >"$WORK/logs/00-extract.txt" 2>&1 \
+"$PYTHON" -I -m zipfile -e "$STAGED_ARCHIVE" "$WORK/extract" >"$WORK/logs/00-extract.txt" 2>&1 \
     || refuse 3 "the archive cannot be unpacked (see $WORK/logs/00-extract.txt)."
 roots=$(ls -A "$WORK/extract")
 [ "$(printf '%s\n' "$roots" | wc -l)" -eq 1 ] || refuse 3 "the archive does not have exactly one top folder."
@@ -242,15 +258,15 @@ summary() {
 if [ "$PIP_WHEEL_GIVEN" = yes ]; then
     record pip-wheel PASS "sha256 $pip_sha256 (matches --pip-wheel-sha256)"
     # The environment is made without pip, so only the venv module is needed, not ensurepip.
-    "$PYTHON" -c 'import venv' >/dev/null 2>&1 && ok=1 || ok=0
+    "$PYTHON" -I -c 'import venv' >/dev/null 2>&1 && ok=1 || ok=0
     missing="the venv module"
-    venv_command='"$PYTHON" -m venv --without-pip .venv'
-    pip_command='.venv/bin/python "$PIP_WHEEL/pip"'
+    venv_command='"$PYTHON" -I -m venv --without-pip .venv'
+    pip_command='.venv/bin/python -I "$PIP_WHEEL/pip"'
 else
-    "$PYTHON" -c 'import venv, ensurepip' >/dev/null 2>&1 && ok=1 || ok=0
+    "$PYTHON" -I -c 'import venv, ensurepip' >/dev/null 2>&1 && ok=1 || ok=0
     missing="the venv or ensurepip module"
-    venv_command='"$PYTHON" -m venv .venv'
-    pip_command='.venv/bin/python -m pip'
+    venv_command='"$PYTHON" -I -m venv .venv'
+    pip_command='.venv/bin/python -I -m pip'
 fi
 if [ "$ok" -eq 0 ]; then
     record environment FAIL "$PYTHON lacks $missing (on Debian or Ubuntu install python3.12-venv, or run this script again with --pip-wheel PATH to a pip wheel file)"
@@ -259,7 +275,7 @@ fi
 
 # The commands are single-quoted text that `step` evaluates, so a path is expanded where it is used and is never read as shell syntax.
 step venv "$venv_command" || summary
-step wheelhouse '"$PYTHON" scripts/verify-dependencies.py --wheelhouse "$WHEELS"' '"status": "verified"' || summary
+step wheelhouse '"$PYTHON" -I scripts/verify-dependencies.py --wheelhouse "$WHEELS"' '"status": "verified"' || summary
 # The staged wheel runs as code, so it is hashed again just before each run of it.
 before_pip() { if [ "$PIP_WHEEL_GIVEN" = yes ]; then recheck "pip wheel" "$PIP_WHEEL" "$PIP_WHEEL_SHA256" 64; fi; }
 before_pip
@@ -292,7 +308,7 @@ step synthetic-estate "intune-iac synthetic generate --output demo/estate --poli
 
 # What the build says it is, so the run names the exact files it exercised.
 build_line() {
-    .venv/bin/python -c 'import json, sys; b = json.load(sys.stdin)["build"]; print("build:", b["status"], b["product_version"], "commit", b["commit"], "content", b["content_sha256"])'
+    .venv/bin/python -I -c 'import json, sys; b = json.load(sys.stdin)["build"]; print("build:", b["status"], b["product_version"], "commit", b["commit"], "content", b["content_sha256"])'
 }
 step build-identity "intune-iac doctor | build_line" 'build: identified'
 tail -n 1 "$WORK/logs/$(printf '%02d' "$N")-build-identity.txt"
