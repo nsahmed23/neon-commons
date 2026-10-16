@@ -584,3 +584,32 @@ class CollectionNextOnTheInspectorTests(unittest.TestCase):
     def test_an_incomplete_run_is_unchanged_everywhere(self):
         incomplete = dict(self.RUN, status='partial')
         self.assertEqual(self.next_of(1, incomplete), self.next_of(0, incomplete))
+
+
+class ConsumerVerifiedWordsTests(unittest.TestCase):
+    """Item 8, L-verified (frames 07, 17, 30, 52, 75, 76, 78, 79, 82): `Consumer: verified` under a caller-asserted
+    revision says what was verified (workbench_repository.consumer_contract: the component's files, as read, consume
+    exactly this policy), not the revision."""
+    SAID = "verified (the component's files, as read, consume exactly this policy)"
+
+    def test_the_refresh_result_says_what_was_verified(self):
+        from intune_iac.workbench_screens import refresh_result_lines
+        value = {'artifact_id': 'a' * 64, 'created': True, 'data': {'source_revision': 'f' * 40, 'revision_content_verified': False,
+                                                                   'consumer': {'status': 'verified'}}}
+        text = ' '.join(' '.join(refresh_result_lines(value, 140)).split())
+        self.assertIn('Consumer: ' + self.SAID, text)
+        self.assertIn('caller asserted, not checked against the files', text)
+
+    def test_the_repository_status_says_it_in_the_same_words(self):
+        from intune_iac.workbench_screens import repository_lines
+        status = {'scope': {'stack': 's', 'component': 'c'}, 'revision_content_verified': False,
+                  'consumer': {'status': 'verified', 'reasons': []}, 'freshness': {'status': 'current'}}
+        text = ' '.join(' '.join(repository_lines(status, 140)).split())
+        self.assertIn('Consumer ' + self.SAID, text)
+
+    def test_other_consumer_states_are_unchanged(self):
+        from intune_iac.workbench_screens import refresh_result_lines, repository_lines
+        value = {'artifact_id': 'a' * 64, 'created': True, 'data': {'source_revision': 'f' * 40, 'consumer': {'status': 'mismatch'}}}
+        self.assertIn('Consumer: mismatch', ' '.join(refresh_result_lines(value, 140)))
+        status = {'scope': {}, 'consumer': {'status': 'mismatch', 'reasons': ['policy_key_identity']}, 'freshness': {'status': 'stale'}}
+        self.assertIn('Consumer mismatch: policy_key_identity', ' '.join(repository_lines(status, 140)))

@@ -1441,6 +1441,13 @@ BLOCK_WORDS = {'maintenance_observation_stale': 'the observation is not fresh',
                'workbench_fresh_output_required': 'no fresh operation directory'}
 
 
+def consumer_words(status):
+    """The consumer state as a screen says it. `verified` is what consumer_contract established: the component's files, as
+    read, consume exactly this policy. It says nothing of the revision, which is shown on its own row (run 12, L-verified)."""
+    words = _as_words(status)
+    return "verified (the component's files, as read, consume exactly this policy)" if status == 'verified' else words
+
+
 def refresh_result_lines(value, width, header=True):
     """A recorded repository intent and what the refresh established, read back: the new intent and, when the
     result says so, the previous intent kept as history. Nothing is said about effects the result does not carry."""
@@ -1454,7 +1461,7 @@ def refresh_result_lines(value, width, header=True):
     lines += word_wrap('Revision: %s (%s)' % (data.get('source_revision'), 'content verified' if
                        data.get('revision_content_verified') else 'caller asserted, not checked against the files'),
                        width)
-    lines += word_wrap('Consumer: ' + _as_words((data.get('consumer') or {}).get('status', 'not recorded')), width)
+    lines += word_wrap('Consumer: ' + consumer_words((data.get('consumer') or {}).get('status', 'not recorded')), width)
     previous = effects.get('previous_intent')
     if recorded and isinstance(previous, str) and previous != value.get('artifact_id'):
         lines += word_wrap('Previous intent %s is kept as history. Reviews prepared from it do not cover this intent; '
@@ -3445,10 +3452,11 @@ def repository_lines(status, width, prefixes=None, next_step=True):
                         ('Intent   ', short_id(intent, prefixes) if isinstance(intent, str) else 'unknown')):
         lines += word_wrap(label + str(text), width)
     reasons = consumer.get('reasons') or []
-    lines += word_wrap('Consumer ' + str(consumer.get('status', 'unknown')) + (': ' + ', '.join(map(str, reasons)) if reasons else ''), width)
+    lines += word_wrap('Consumer ' + (consumer_words('verified') if consumer.get('status') == 'verified' else str(consumer.get('status', 'unknown')))
+                       + (': ' + ', '.join(map(str, reasons)) if reasons else ''), width)
     now = (freshness.get('consumer') or {}).get('status')
     if now and now != consumer.get('status'):
-        lines += word_wrap('Consumer now ' + str(now), width)
+        lines += word_wrap('Consumer now ' + (consumer_words('verified') if now == 'verified' else str(now)), width)
     if state == 'stale':
         sources = freshness.get('sources') or {}
         lines.append('SOURCES')
