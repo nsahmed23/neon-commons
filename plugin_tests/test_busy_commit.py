@@ -66,6 +66,51 @@ def busy_after_open_commit(database, nth=1):
             state['reader'].__exit__(None, None, None)
 
 
+class _Recording:
+    """The transaction a section hands its caller, recording which statements failed busy (the caller's own commit)."""
+    def __init__(self, db, failures):
+        self._db, self._failures = db, failures
+
+    def execute(self, sql, *args):
+        try:
+            return self._db.execute(sql, *args)
+        except sqlite3.OperationalError:
+            self._failures.append(sql)
+            raise
+
+    def __getattr__(self, name):
+        return getattr(self._db, name)
+
+
+@contextmanager
+def busy_in_section(database, nth):
+    """Install the busy reader in the nth critical section entered, after that section has committed its open judgment and
+    handed the caller its transaction, so only the caller's own commit meets the reader. The section is counted, not the
+    commits made inside sections: the first judgment of a store also commits its migration cutoff, so counting commits
+    installs the reader a section early. Yields a record of the sections entered, the section the reader was installed in
+    and the caller's statements that failed busy."""
+    real = validity.critical
+    state = {'sections': 0, 'installed_in': None, 'failed': [], 'reader': None}
+
+    @contextmanager
+    def section(*args, **kwargs):
+        state['sections'] += 1
+        with real(*args, **kwargs) as db:
+            if state['sections'] != nth:
+                yield db
+                return
+            state['reader'] = reading(database)
+            state['reader'].__enter__()
+            state['installed_in'] = nth
+            yield _Recording(db, state['failed'])
+    try:
+        with patch.object(validity, 'critical', new=section):
+            yield state
+    finally:
+        if state['reader'] is not None:
+            state['reader'].__exit__(None, None, None)
+
+
 class Harness(unittest.TestCase):
     def test_a_reader_with_an_open_statement_makes_a_zero_timeout_commit_fail_busy_and_leaves_the_transaction_open(self):
         import tempfile
@@ -216,9 +261,13 @@ class AdoptionBusyTests(BusyAssertions, adoption_tests.AdoptionFixture):
         # observation before it has happened, and nothing is consumed, transcribed or dispatched.
         signed = self.receipt()
         self.clocks.wall = self.start + 10
-        with busy_after_open_commit(self.policy.database, nth=2):
+        with busy_in_section(self.policy.database, nth=2) as busy:
             error = self.refused(lambda: self.run_job(signed))
         self.assertEqual(error.code, 'service_store_unavailable')
+        # It is the consumption's own commit that met the reader: the reader was installed in the second section, after that
+        # section committed its open judgment, and the only statement that failed busy is the caller's COMMIT.
+        self.assertEqual((busy['sections'], busy['installed_in'], busy['failed']), (2, 2, ['COMMIT']))
+        self.assertEqual(self.rows('SELECT count(*) FROM adoption_expired_open'), [(1,)])
         self.assert_nothing_happened()
         self.assertEqual(self.observations, ['baseline'])  # only the read-only observation that precedes the commit
         self.assert_rolled_back(self.policy.root)
