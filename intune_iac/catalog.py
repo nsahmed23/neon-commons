@@ -62,7 +62,8 @@ NOT_PERMISSION = 'A sign-in is not permission for any operation; access to Graph
 # live blocker it records for the missing cloud route.
 MODELED_ONLY = 'synthetic_local_process_only'
 NO_CLOUD_ROUTE = 'cloud_executor_unavailable'
-RESUME_BASE = 'Resume commands are typed from the directory this catalog was run in; a path outside it is printed in full.'
+CLOUD_ROUTE_CLAUSE = '; no cloud route exists'
+RESUME_BASE ='Resume commands are typed from the directory this catalog was run in; a path outside it is printed in full.'
 
 
 def _available(manifest, goal):
@@ -366,8 +367,21 @@ def _modeled_only_words(goal):
         return ''
     words = ', against the modeled service only'
     if NO_CLOUD_ROUTE in goal['unsupported']['live_blockers']:
-        words += '; no cloud route exists'
+        words += CLOUD_ROUTE_CLAUSE
     return words
+
+
+def _unsupported_words(goal):
+    """The unsupported row: the operations the manifest does not list; else, for a goal that runs only against the modeled
+    service with the cloud executor recorded as unavailable (the records the available row reads), that a managed change to the
+    cloud has no route; else a sentence that says no gap is recorded for this goal alone and where the rest is, so that it cannot
+    be read as broad support."""
+    unsupported = goal['unsupported']
+    if unsupported['state'] == 'unsupported':
+        return 'yes: ' + ' '.join(unsupported['reasons'])
+    if _modeled_only_words(goal).endswith(CLOUD_ROUTE_CLAUSE):
+        return 'yes: a managed change to the cloud has no route (see blocked).'
+    return 'no gap is recorded for this goal alone; what a live run still lacks is in the live row.'
 
 
 def verdict_words(goal):
@@ -414,11 +428,7 @@ def _state_lines(goal, width):
     else:
         text = _blocked_words(goal)
     lines += row('blocked', text)
-    if unsupported['state'] == 'unsupported':
-        text = 'yes: ' + ' '.join(unsupported['reasons'])
-    else:
-        text = 'nothing recorded as unsupported in this build.'
-    lines += row('unsupported', text)
+    lines += row('unsupported', _unsupported_words(goal))
     # The live state and what a live run is blocked by are recorded for the product, not for this goal: their own row, so
     # that blocked stays about this goal here and unsupported about what the manifest does not list.
     lines += row('live', 'not run; recorded blockers for a live run: %s.' % ', '.join(

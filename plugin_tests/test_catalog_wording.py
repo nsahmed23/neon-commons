@@ -15,6 +15,9 @@ GOALS = ('inspect', 'discover', 'adopt', 'change')
 WIDTH = 120
 PANE = 39  # the visible rows of a 40-row pane: the shell prompt takes the last one
 ENTRY = re.compile(r'^  (inspect|discover|adopt|change):$')
+# The unsupported row (PKG-CATALOG-6 item 2): the recorded cloud gap of `change`, and the sentence for a goal with no recorded gap.
+CLOUD_GAP = 'yes: a managed change to the cloud has no route (see blocked).'
+NO_GAP = 'no gap is recorded for this goal alone; what a live run still lacks is in the live row.'
 # What the catalog says, for a directory it may not show, where the start screen prints the start command (PKG-CATALOG-6).
 HIDDEN_NOTE = ('run the start command with this directory, --goal discover and --check-signin azure '
                '(the directory cannot be shown here; it runs az account list')
@@ -149,7 +152,7 @@ class LiveRowTests(Base):
                         for name in ('available', 'configured', 'authenticated', 'operation-ready', 'blocked', 'unsupported'):
                             self.assertNotIn(blocker, rows[name], (name, blocker))
                     self.assertNotIn('Live', rows['unsupported'])
-                    self.assertEqual(rows['unsupported'], 'nothing recorded as unsupported in this build.')
+                    self.assertEqual(rows['unsupported'], CLOUD_GAP if goal == 'change' else NO_GAP)
 
     def test_unsupported_keeps_the_operations_the_manifest_does_not_list(self):
         from intune_iac import integration_manifest
@@ -171,6 +174,39 @@ class LiveRowTests(Base):
         for width in (60, 80):
             text = flat(self.lines('offline', width=width))
             self.assertEqual(text.count('recorded blockers for a live run:'), 4, width)
+
+
+class UnsupportedRowTests(Base):
+    """PKG-CATALOG-6 item 2 (journey 33 run 2, review A finding F2): under `change`, `unsupported: nothing recorded as unsupported
+    in this build.` sat beside `no cloud route exists`, and read as broad support. The row states the recorded gap where there is
+    one and otherwise a sentence that cannot be read as support, from the records the other rows read."""
+
+    def test_change_states_the_gap_the_available_and_blocked_rows_record(self):
+        for fixture in ('offline', 'full'):
+            rows = goal_rows(self.lines(fixture), 'change')
+            self.assertEqual(rows['unsupported'], CLOUD_GAP, fixture)
+            self.assertIn('no cloud route exists', rows['available'])
+            self.assertNotIn('nothing recorded', rows['unsupported'])
+
+    def test_a_goal_with_no_recorded_gap_does_not_read_as_broad_support(self):
+        for goal in ('inspect', 'discover', 'adopt'):
+            text = goal_rows(self.lines('offline'), goal)['unsupported']
+            self.assertEqual(text, NO_GAP, goal)
+            self.assertNotIn('nothing recorded as unsupported', text)
+            self.assertNotIn('in this build', text)
+
+    def test_the_gap_follows_the_records_the_available_row_reads(self):
+        from intune_iac import integration_manifest
+        manifest = copy.deepcopy(integration_manifest.load())
+        manifest['live_blockers'] = [item for item in manifest['live_blockers'] if item != 'cloud_executor_unavailable']
+        text = goal_rows(self.lines('offline', manifest=manifest), 'change')['unsupported']
+        self.assertEqual(text, NO_GAP)
+        self.assertNotIn('cloud', text)
+
+    def test_the_json_form_keeps_its_unsupported_record(self):
+        goals = {item['goal']: item for item in self.model('offline')['integrations'][0]['goals']}
+        self.assertEqual(goals['change']['unsupported']['state'], 'none_recorded')
+        self.assertEqual(goals['change']['unsupported']['reasons'], [])
 
 
 class AvailableRowTests(Base):
