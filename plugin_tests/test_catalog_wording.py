@@ -892,7 +892,9 @@ class TerminalSafetyTests(Base):
             _, data = self.raw_output(temp, 'start', str(folder))
             self.assertNotIn('DIRECTORY', data.decode('utf-8'))
 
-    def test_a_control_character_in_the_name_of_a_surveyed_file_is_shown_as_an_escape_not_sent(self):
+    def test_a_control_character_in_the_name_of_a_surveyed_file_is_never_sent_and_the_name_is_shown_as_PATH(self):
+        """Round 4 showed such a name as an escape in its row; round 5 writes it PATH in the rows as in the commands, so the
+        sentence that says PATH is a name not shown here is true of the whole screen (nothing of the name is printed)."""
         import shutil
         import tempfile
         from pathlib import Path
@@ -911,7 +913,10 @@ class TerminalSafetyTests(Base):
                     self.skipTest('this file system refuses that name')
                 for argv in (('catalog', str(folder)), ('start', str(folder))):
                     text = self.assert_no_control_byte(self.raw_output(temp, *argv)[1], argv)
-                    self.assertIn(shown, text, argv)
+                    self.assertNotIn(shown, text, argv)
+                    self.assertNotIn('port.json', text, argv)
+                    self.assertEqual(text.count('PATH is a path in this directory whose name is not shown here.'), 1, argv)
+                    self.assertRegex(text, r'Export\s+PATH[: ]', argv)
 
 
 class OperandRenderingTests(Base):
@@ -1083,22 +1088,38 @@ class OperandRenderingTests(Base):
             """The build without the strings that carry paths: every state and verdict stays."""
             value = copy.deepcopy(dict(value))
             for project in value['projects']:
-                project['command'] = None
+                project['command'] = project['path'] = None
             for goal in value['integrations'][0]['goals']:
                 goal['authenticated']['message'] = None
             return value
 
+        def surveyed(survey):
+            """The survey without the strings that carry paths: every item, state and note stays."""
+            survey = copy.deepcopy(dict(survey))
+            survey['next_actions'] = survey['skipped_links'] = None
+            for item in survey['items']:
+                item['path'] = None
+            return survey
+
+        import shutil
+        from pathlib import Path
+        from plugin_tests.test_start_goal import ROOT
         with tempfile.TemporaryDirectory() as temp:
-            folders = {'ordinary': self.estate_in(temp, 'estate dir'), 'refused': self.estate_in(temp, 'ghp_abc1234'),
+            named = Path(temp) / 'work'
+            named.mkdir()
+            shutil.copyfile(ROOT / 'examples/context.json', named / 'context.json')
+            shutil.copyfile(ROOT / 'examples/supported/input/export.json', named / 'ghp_abc1234.json')
+            folders = {'a refused item name': named, 'ordinary': self.estate_in(temp, 'estate dir'),
+                       'refused': self.estate_in(temp, 'ghp_abc1234'),
                        'accent': self.estate_in(temp, 'café')}
             for label, folder in folders.items():
                 survey = entry.survey(folder, relative_to=temp)
                 value = module.build(survey, doctor=tc.doctor(), relative_to=temp)
                 text = value.text_build
                 self.assertEqual(judged(value), judged(text), label)
-                self.assertEqual({k: v for k, v in survey.items() if k != 'next_actions'},
-                                 {k: v for k, v in survey.text_build.items() if k != 'next_actions'}, label)
+                self.assertEqual(surveyed(survey), surveyed(survey.text_build), label)
                 self.assertEqual(len(survey['next_actions']), len(survey.text_build['next_actions']), label)
+                self.assertEqual(len(survey['items']), len(survey.text_build['items']), label)
                 # the screen says the same states and verdicts as the data
                 lines = module.catalog_lines(value, 120)
                 for goal in value['integrations'][0]['goals']:
@@ -1107,6 +1128,90 @@ class OperandRenderingTests(Base):
                     self.assertTrue(rows['blocked'].startswith(module._blocked_words(goal)), (label, goal['goal']))
                     self.assertTrue(rows['authenticated'].startswith(goal['authenticated']['state'].replace('_', ' ')), (label, goal['goal']))
                     self.assertIn('    Verdict: ' + module.verdict_words(goal), lines)
+
+    def test_plain_data_that_crossed_a_json_boundary_prints_as_the_built_data_does_or_shows_less(self):
+        """A result that was written as JSON and read back is plain data: it has no text build. The screens then print the
+        recorded strings when the directory is shown and every word of a command passes the display rule; for a directory the
+        screen may not show they print no command (the operands are not at hand to write DIRECTORY plus the remainder)."""
+        import json
+        import tempfile
+        from intune_iac import catalog as module, entry
+        with tempfile.TemporaryDirectory() as temp:
+            for name, refused in (('estate dir', False), ("o'connor", False), ('ghp_abc1234', True), ('cafe' + chr(0x301), True)):
+                folder = self.estate_in(temp, name)
+                survey = entry.survey(folder, relative_to=temp)
+                value = module.build(survey, doctor=tc.doctor(), relative_to=temp)
+                plain_value, plain_survey = json.loads(json.dumps(value)), json.loads(json.dumps(survey))
+                self.assertIs(type(plain_value), dict)
+                self.assertIs(type(plain_survey), dict)
+                built = (module.catalog_lines(value, 120), entry.start_lines(survey, 120))
+                plain = (module.catalog_lines(plain_value, 120), entry.start_lines(plain_survey, 120))
+                if not refused:
+                    self.assertEqual(plain, built, name)
+                    continue
+                shown = '\n'.join(plain[0] + plain[1])
+                for fragment in ('ghp_', 'abc1234', 'cafe', '\\u0301', chr(0x301)):
+                    self.assertNotIn(fragment, shown, (name, fragment))
+                self.assertIn('intune-iac catalog DIRECTORY --check-signin azure', flat(plain[0]), name)
+                self.assertIn('Resume: no command (the command names a path whose name is not shown here)', flat(plain[0]), name)
+                self.assertIn('A next step names a path whose name is not shown here.', flat(plain[1]), name)
+
+    def test_plain_data_prints_no_command_with_an_operand_the_display_rule_refuses_even_in_a_shown_directory(self):
+        import json
+        import shutil
+        import tempfile
+        from pathlib import Path
+        from intune_iac import catalog as module, entry
+        from plugin_tests.test_start_goal import ROOT
+        with tempfile.TemporaryDirectory() as temp:
+            work = Path(temp) / 'work'
+            work.mkdir()
+            shutil.copyfile(ROOT / 'examples/context.json', work / 'context.json')
+            shutil.copyfile(ROOT / 'examples/supported/input/export.json', work / ('ex' + chr(0x301) + 'port.json'))
+            survey = entry.survey(work, relative_to=temp)
+            value = module.build(survey, doctor=tc.doctor(), relative_to=temp)
+            plain_value, plain_survey = json.loads(json.dumps(value)), json.loads(json.dumps(survey))
+            screens = {'catalog': module.catalog_lines(plain_value, 120), 'start': entry.start_lines(plain_survey, 120)}
+            for label, lines in screens.items():
+                for row in self.command_rows('\n'.join(lines)):
+                    self.assertNotIn(chr(0x301), row, (label, row))
+                    self.assertNotIn('\\u0301', row, (label, row))
+            self.assertIn('A next step names a path whose name is not shown here.', flat(screens['start']))
+            self.assertIn('Resume: no command (the command names a path whose name is not shown here)', flat(screens['catalog']))
+
+    def test_an_item_name_the_display_rule_refuses_is_the_placeholder_in_the_rows_as_in_the_commands(self):
+        """The sentence 'PATH is a path in this directory whose name is not shown here' must be true of the whole screen: the
+        FOUND and SAVED PROJECTS rows and the skipped links say PATH too, not only the commands."""
+        import json
+        import re
+        import shutil
+        import tempfile
+        from pathlib import Path
+        from intune_iac import catalog as module, entry
+        from plugin_tests.test_start_goal import ROOT
+        with tempfile.TemporaryDirectory() as temp:
+            work = Path(temp) / 'work'
+            work.mkdir()
+            shutil.copyfile(ROOT / 'examples/context.json', work / 'context.json')
+            shutil.copyfile(ROOT / 'examples/supported/input/export.json', work / 'ghp_abc1234.json')
+            screens = self.screens(temp, work)  # the real command line, raw stdout
+            for label, text in screens.items():
+                self.assertNotIn('ghp_', text, label)
+                self.assertNotIn('abc1234', text, label)
+            self.assertEqual(screens['catalog'].count(self.PATH_SAID), 1)
+            self.assertEqual(screens['start'].count(self.PATH_SAID), 1)
+            self.assertIn('Export PATH:', screens['catalog'])
+            self.assertTrue(re.search(r'Export\s+PATH\s+synthetic', screens['start']), screens['start'][:400])
+            # plain data (written as JSON and read back) prints the same rows
+            survey = entry.survey(work, relative_to=temp)
+            value = module.build(survey, doctor=tc.doctor(), relative_to=temp)
+            plain = '\n'.join(module.catalog_lines(json.loads(json.dumps(value)), 120) +
+                              entry.start_lines(json.loads(json.dumps(survey)), 120))
+            self.assertNotIn('ghp_', plain)
+            self.assertNotIn('abc1234', plain)
+            # the JSON forms keep the recorded name
+            self.assertIn('ghp_abc1234.json', json.dumps(value))
+            self.assertIn('ghp_abc1234.json', json.dumps(survey))
 
     def test_the_json_forms_keep_today_rendering_for_a_refused_directory(self):
         import tempfile

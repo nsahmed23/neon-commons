@@ -339,6 +339,23 @@ def text_paths(root, relative_to):
     return text, (lambda rel: shlex.quote(text(rel))), placeholders
 
 
+def screen_path(rel, placeholders):
+    """A surveyed path as a screen's sentence says it (a row of FOUND or SAVED PROJECTS, a skipped link): as recorded, or the
+    placeholder PATH when display_refused refuses it, so that a name a command shows as PATH is not shown in a sentence either."""
+    from .readiness import display_refused
+    if display_refused(rel):
+        placeholders.add(PATH_PLACEHOLDER)
+        return PATH_PLACEHOLDER
+    return rel
+
+
+def screen_survey(value, next_actions, placeholders):
+    """The survey as a screen prints it: the given next steps, and every surveyed path in its rows written by screen_path."""
+    return dict(value, next_actions=next_actions,
+                items=[dict(item, path=screen_path(item['path'], placeholders)) for item in value['items']],
+                skipped_links=[screen_path(link, placeholders) for link in value.get('skipped_links') or []])
+
+
 def _next_actions(items, root=None, relative_to=None, paths=None):
     """The next steps for what the survey found; paths is (show, q) from json_paths (the default) or text_paths."""
     show, q = paths if paths is not None else json_paths(root, relative_to)
@@ -455,7 +472,7 @@ def survey(directory, relative_to=None):
                      'truncated': truncated, 'execution_authorized': False, 'cloud_authority': False})
     # The same next steps, built from the same items and the same relative_to with the screen's path operands (text_paths).
     show, q, placeholders = text_paths(root, relative_to)
-    result.text_build = dict(result, next_actions=_next_actions(items, root, relative_to, (show, q)))
+    result.text_build = screen_survey(result, _next_actions(items, root, relative_to, (show, q)), placeholders)
     result.text_placeholders = frozenset(placeholders)
     return result
 
@@ -630,18 +647,36 @@ def _command_rows(tokens, width, indent):
     return rows + [row]
 
 
+def _step_words(text):
+    """Every word of a step as the display rule must see it: each argument of a command as the shell reads it (so that its
+    quoting hides nothing), and the words of the text around the commands (a name with an apostrophe in a sentence is not a
+    quote). None when a command's quoted argument never closes."""
+    words = []
+    for kind, part in _segments(text):
+        for token in part if kind == 'command' else _TOKEN.findall(part):
+            try:
+                words += shlex.split(token)
+            except ValueError:
+                if kind == 'command':
+                    return None
+                words.append(token)
+        if kind == 'text':
+            words += part.split()
+    return words
+
+
 def recorded_step_for_screen(text, hidden):
     """A recorded step that this module's builders did not write (plain data, for example a result that crossed a JSON
-    boundary) as a screen may show it: as it is only when the directory is shown and every word of it passes display_refused;
-    otherwise None, because the paths in it cannot be rewritten from their operands here."""
+    boundary) as a screen may show it: as it is only when the directory is shown and every word of it passes display_refused
+    (with and without the punctuation a sentence puts around a word); otherwise None, because the paths in it cannot be
+    rewritten from their operands here."""
     from .readiness import display_refused
-    if hidden:
+    words = None if hidden else _step_words(text)
+    if words is None:
         return None
-    try:
-        words = shlex.split(text)
-    except ValueError:
+    if any(display_refused(word) or display_refused(word.strip('()[].,;:')) for word in words):
         return None
-    return None if any(display_refused(word) for word in words) else text
+    return text
 
 
 UNSHOWN_STEP = 'A next step names a path whose name is not shown here.'
@@ -776,10 +811,12 @@ def start_lines(value, width, goal=None, goal_hint=False):
     # (plain data) has only the recorded steps, which are shown only when they name nothing the screen may not show.
     built = getattr(value, 'text_build', None)
     if built is not None:
-        actions, placeholders = built['next_actions'], value.text_placeholders
+        value, placeholders = built, value.text_placeholders
     else:
-        actions = [recorded_step_for_screen(action, hidden) or UNSHOWN_STEP for action in value['next_actions']]
-        placeholders = frozenset()
+        placeholders = set()
+        value = screen_survey(value, [recorded_step_for_screen(action, hidden) or UNSHOWN_STEP for action in value['next_actions']],
+                              placeholders)
+    actions = value['next_actions']
     lines += word_wrap('%s | offline (no live connection) | synthetic evidence stays labelled synthetic' % (
         'DIRECTORY' if hidden else value['directory']), width)
     if hidden:

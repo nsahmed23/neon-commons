@@ -202,6 +202,13 @@ def projects(survey, relative_to=None, paths=None):
     return rows
 
 
+def _signin_flag(directory, goal, operand=shlex.quote):
+    """The words that name the directory (and the goal) in the sign-in check command. operand writes the directory as a command
+    argument: shlex.quote for the JSON form, a screen's own writer (DIRECTORY for a directory it may not show) for the text build."""
+    where = operand(directory) + ' ' if directory else ''
+    return where + ('' if goal is None else '--goal %s ' % goal)
+
+
 def build(survey, doctor=None, signin=None, manifest=None, goal=None, relative_to=None):
     """The catalog as plain data. `survey` is entry.survey's result; `doctor` the doctor result (default: the offline
     one that looks up no executable); `signin` the detect result when the engineer asked for the check; `relative_to` the
@@ -211,8 +218,7 @@ def build(survey, doctor=None, signin=None, manifest=None, goal=None, relative_t
         from . import cli
         doctor = cli.doctor(executables=False)
     model = readiness_model.readiness(survey, doctor.get('host_capabilities'), doctor, signin=signin)
-    where = shlex.quote(survey['directory']) + ' ' if isinstance(survey, dict) and survey.get('directory') else ''
-    flag = where + ('' if goal is None else '--goal %s ' % goal)
+    flag = _signin_flag(survey.get('directory') if isinstance(survey, dict) else None, goal)
     goals = [goal] if goal else list(readiness_model.OPERATIONS)
     integration = manifest['integration']
     record = {'id': integration['id'], 'label': integration['label'], 'product': integration['product'],
@@ -250,15 +256,12 @@ def _text_build(result, survey, goal, relative_to):
     show, q, placeholders = entry.text_paths(root, relative_to)
     for row, written in zip(data['projects'], projects(survey, relative_to, paths=(show, q))):
         row['command'] = written['command']
+        row['path'] = entry.screen_path(row['path'], placeholders)
     directory = survey.get('directory')
-    where = ''
-    if directory:
-        if readiness_model.display_refused(directory):
-            where = entry.DIRECTORY_PLACEHOLDER + ' '
-            placeholders.add(entry.DIRECTORY_PLACEHOLDER)
-        else:
-            where = shlex.quote(directory) + ' '
-    flag = where + ('' if goal is None else '--goal %s ' % goal)
+    hidden = bool(directory) and readiness_model.display_refused(directory)
+    if hidden:
+        placeholders.add(entry.DIRECTORY_PLACEHOLDER)
+    flag = _signin_flag(directory, goal, lambda value: entry.DIRECTORY_PLACEHOLDER if hidden else shlex.quote(value))
     for item in data['integrations'][0]['goals']:
         if item['authenticated']['state'] == 'not_checked':
             item['authenticated']['message'] = SIGNIN_CHECK % flag
@@ -274,17 +277,19 @@ def _plain_text_build(value):
     data = copy.deepcopy(dict(value))
     directory = data.get('directory')
     hidden = readiness_model.display_refused(directory)
+    placeholders = set()
     for row in data.get('projects') or []:
+        row['path'] = entry.screen_path(row['path'], placeholders)
         if row['command'] and entry.recorded_step_for_screen(row['command'], hidden) is None:
             row['command'] = None
             row['note'] = 'the command names a path whose name is not shown here'
     goals = data['integrations'][0]['goals']
     if hidden:
-        flag = entry.DIRECTORY_PLACEHOLDER + ' ' + ('--goal %s ' % goals[0]['goal'] if len(goals) == 1 else '')
+        flag = _signin_flag(directory, goals[0]['goal'] if len(goals) == 1 else None, lambda value: entry.DIRECTORY_PLACEHOLDER)
         for item in goals:
             if item['authenticated']['state'] == 'not_checked':
                 item['authenticated']['message'] = SIGNIN_CHECK % flag
-    return data, frozenset()
+    return data, frozenset(placeholders)
 
 
 # -- text ----------------------------------------------------------------------------------------------------------
