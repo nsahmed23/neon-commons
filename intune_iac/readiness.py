@@ -56,6 +56,24 @@ KNOWN_EVIDENCE = ('no_live_connection', 'source_asserted_not_authenticated', 'mo
 IDENTITY_KINDS = ('context', 'export', 'store', 'modeled_service')
 NOT_NEEDED = 'Not needed for this operation.'
 NO_ACTION = 'No action needed.'
+# What each placeholder in a printed step stands for. The meaning goes in a legend in brackets after the command, never inside it:
+# a command is read up to its first opening bracket (start's screen and its tests do), so a bracket inside would cut it in two.
+PLACEHOLDER_MEANINGS = {
+    'TENANT_ID': 'the tenant id the context names',
+    'POLICY': 'the policy id, a GUID',
+    'NEW_DIR': 'a folder that does not exist yet',
+    'TOKEN_VARIABLE_NAME': 'the name of the environment variable that holds your read token',
+    'TARGET_JSON': 'the path of your target JSON file',
+    'FD': 'a file descriptor number your shell has open on the secret',
+}
+
+
+def with_legend(command, note=''):
+    """The command followed by one bracket: what each placeholder in it stands for (in order of appearance), then the note."""
+    found = sorted((match.start(), name) for name in PLACEHOLDER_MEANINGS
+                   for match in [re.search(r'(?<![A-Z_])%s(?![A-Z_])' % name, command)] if match)
+    parts = ['%s is %s' % (name, PLACEHOLDER_MEANINGS[name]) for _, name in found] + ([note] if note else [])
+    return '%s (%s)' % (command, '; '.join(parts)) if parts else command
 
 NOT_ESTABLISHED = (
     'Working-directory access is not probed by the product.',
@@ -427,11 +445,11 @@ def _service_row(operation, f):
     # Only a single, displayed tenant is filled into a command; any ambiguity keeps the placeholder (no silent pick).
     tenant = single or 'TENANT_ID'
     if operation == 'discover':
-        action = ('%s capture --tenant %s --policy POLICY --output NEW_DIR --token-env TOKEN_VARIABLE_NAME (reads the named '
-                  'variable; one of the explicit-token routes, target collect is another)' % (PROGRAM, tenant))
+        action = with_legend('%s capture --tenant %s --policy POLICY --output NEW_DIR --token-env TOKEN_VARIABLE_NAME'
+                             % (PROGRAM, tenant), 'reads the named variable; one of the explicit-token routes, target collect is another')
     else:
-        action = ('%s target authenticate --input TARGET_JSON --provider-secret-fd FD --backend-secret-fd FD (read-only identity '
-                  'binding with a client secret, Unix hosts only)' % PROGRAM)
+        action = with_legend('%s target authenticate --input TARGET_JSON --provider-secret-fd FD --backend-secret-fd FD' % PROGRAM,
+                             'read-only identity binding with a client secret, Unix hosts only')
     role = 'administrator'
     if absent:
         action = ('Provide a bounded context JSON (tenant, cloud, stack and component; examples/context.json shows the shape), '
@@ -447,9 +465,9 @@ def _service_row(operation, f):
     azure = verdicts.get('azure')
     if azure and single and azure['usable'] and operation == 'discover':
         # Offered, never run: the engineer asks for it. Usable means only that the sign-in is in the right tenant.
-        action = ('%s signin collect --tenant %s --policy POLICY --output NEW_DIR (the Azure CLI gives a short-lived read token '
-                  'to the collecting command on an inherited file descriptor; whether it can read is known only after it does)'
-                  % (PROGRAM, single))
+        action = with_legend('%s signin collect --tenant %s --policy POLICY --output NEW_DIR' % (PROGRAM, single),
+                             'the Azure CLI gives a short-lived read token to the collecting command on an inherited file '
+                             'descriptor; whether it can read is known only after it does')
         role = 'engineer'
     if azure and single and azure['status'] in SIGNIN_STEPS:
         # The sign-in itself is the blocker, so its exact next step comes first. The row is never ready, whatever the sign-in.
@@ -463,9 +481,9 @@ def _backend_row(operation, f):
     missing = ['Subscription, storage account, container and state key are in none of the inputs; the product reads them only '
                'from a target JSON the caller writes.',
                'State-backend principal access and locking are probed only inside target authenticate, not by this check.']
-    action = ('Write the backend declaration into the target JSON and run: %s target authenticate --input TARGET_JSON '
-              '--provider-secret-fd FD --backend-secret-fd FD; the product does not yet discover the backend from approved '
-              'configuration.' % PROGRAM)
+    action = ('Write the backend declaration into the target JSON and run: %s; the product does not yet discover the backend '
+              'from approved configuration.'
+              % with_legend('%s target authenticate --input TARGET_JSON --provider-secret-fd FD --backend-secret-fd FD' % PROGRAM))
     return _row(operation, 'backend', 'Backend', 'unknown', {}, missing, action, 'administrator')
 
 
@@ -489,13 +507,16 @@ def _secret_row(operation, f):
                'There is no insecure-storage detection, expiry, renewal or revocation display, and no secure-reference adapter '
                '(for example 1Password) yet.']
     if operation == 'discover':
-        action = ('Provide the read token only to this one command: %s capture --tenant TENANT_ID --policy POLICY --output NEW_DIR '
-                  '--token-env TOKEN_VARIABLE_NAME (through the environment variable that flag names, from your approved secret '
-                  'manager; never on a command line, because the flag takes the name, not the value).' % PROGRAM)
+        # Only a single, displayed tenant is filled into a command (as in the integration row); otherwise the marked placeholder.
+        tenant = _single_tenant(f) or 'TENANT_ID'
+        action = ('Provide the read token only to this one command: %s.'
+                  % with_legend('%s capture --tenant %s --policy POLICY --output NEW_DIR --token-env TOKEN_VARIABLE_NAME'
+                                % (PROGRAM, tenant), 'through the environment variable that flag names, from your approved secret '
+                                'manager; never on a command line, because the flag takes the name, not the value'))
     else:
-        action = ('Use the inherited file-descriptor route: %s target authenticate --input TARGET_JSON --provider-secret-fd FD '
-                  '--backend-secret-fd FD (a secret is never accepted as an argument); there is no secure-reference route yet.'
-                  % PROGRAM)
+        action = ('Use the inherited file-descriptor route: %s; there is no secure-reference route yet.'
+                  % with_legend('%s target authenticate --input TARGET_JSON --provider-secret-fd FD --backend-secret-fd FD'
+                                % PROGRAM, 'a secret is never accepted as an argument'))
     return _row(operation, 'secret_input', 'Exceptional secret input', 'unknown', {}, missing, action, 'administrator')
 
 
