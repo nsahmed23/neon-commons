@@ -330,6 +330,19 @@ def _view(reading, row):
     return view, False
 
 
+def _sibling_cutoff(db, table):
+    """The (cutoff, written_wall, boot_id) of the earliest-written cutoff table of another family in this database, or None.
+    Names come from the database, so each is checked against the table-name rule before it is placed in a statement."""
+    found = []
+    for (name,) in db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '%!_cutoff' ESCAPE '!'").fetchall():
+        if name == cutoff_table(table) or not _TABLE.fullmatch(name):
+            continue
+        row = db.execute('SELECT cutoff, written_wall, boot_id FROM ' + name + ' WHERE id = 1').fetchone()
+        if row is not None:
+            found.append(row)
+    return min(found, key=lambda row: row[1]) if found else None
+
+
 def _ensure_cutoff(store, floor, wall):
     """Write the store's migration cutoff if it has none: once, at its first judgment under the boot session, in a transaction
     of its own that commits before the recorded time is touched. A refusal that follows cannot roll it back, and a failed first
@@ -345,6 +358,14 @@ def _ensure_cutoff(store, floor, wall):
         _freeze_cutoff(db, store.table)
         if db.execute('SELECT 1 FROM ' + cutoff_table(store.table)).fetchone():
             db.execute('COMMIT')
+            return
+        sibling = _sibling_cutoff(db, store.table)
+        if sibling is not None:
+            # The cutoff is one value per database: the migration moment of the store, written at the first judgment of any
+            # family. A family judged for the first time later inherits it; its own first judgment is not a migration.
+            db.execute('INSERT INTO ' + cutoff_table(store.table) + ' VALUES (1, ?, ?, ?)', sibling)
+            db.execute('COMMIT')
+            _sync(store.root)
             return
         recorded = floor.record()
         history = recorded is not None or any(

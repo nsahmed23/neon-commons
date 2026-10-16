@@ -329,6 +329,20 @@ class MigrationTests(StoreFixture):
         self.clocks.elapse(10)
         self.enter(self.issued(START + 20))
 
+    def other_family(self, payload):
+        store = validity.Store(self.base, self.connect, 'second', fail, create=True, domain='second-family')
+        with validity.critical(store, payload, 'r' * 64, expired_code='toy_expired') as db:
+            db.execute('COMMIT')
+
+    def test_the_cutoff_is_store_wide_so_a_family_judged_later_inherits_the_stores_migration_moment(self):
+        self.clocks.wall = START + 50
+        self.enter(self.issued(START + 40))  # one family is judged first in a new store: nothing before it is legacy
+        self.assertEqual(self.cutoff(), [(0.0,)])
+        self.clocks.elapse(10)
+        # a second family is judged for the first time later, with an approval issued after the first judgment
+        self.other_family(self.issued(START + 55, nonce='c' * 32, operation_id='operation-3'))
+        self.assertEqual(self.rows('SELECT cutoff FROM second_cutoff'), [(0.0,)])
+
     def test_an_artifact_without_an_issue_time_is_judged_normally(self):
         self.legacy_store()
         self.clocks.wall = START + 60
