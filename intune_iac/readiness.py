@@ -79,8 +79,8 @@ def with_legend(command, note=''):
 # What the capture command does with the token, read from capture.py: it sends it to the host of capture.GRAPH_ROOT in GET requests
 # and writes what it read into the one new folder it is given. The legend a step records says only that it reads the named variable
 # (that wording is part of the JSON forms and stays); a screen adds this sentence after the step.
-CAPTURE_CONTACT = ('capture sends the token to %s in GET requests only (it reads, and changes nothing in the tenant) and writes '
-                   'what it reads into NEW_DIR.')
+CAPTURE_CONTACT = ('The capture command sends the token to %s in GET requests only (it reads, and changes nothing in the tenant) '
+                   'and writes what it reads into NEW_DIR.')
 
 
 def capture_contact(text):
@@ -393,6 +393,8 @@ def screen_note(note):
         if note == NO_CHECK_RECORDED % operation:
             return NO_CHECK_SCREEN % (PROGRAM, operation)
     return note
+
+
 NOT_ACCESS = ('A signed-in account does not establish Graph, Intune or state-storage access; those stay unknown until a read '
               'actually succeeds.')
 ACCESS_UNKNOWN = {'graph_access': 'unknown', 'intune_access': 'unknown', 'state_storage_access': 'unknown'}

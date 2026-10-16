@@ -356,8 +356,8 @@ class CaptureContactTests(Base):
     TOKEN = 'FAKE-TOKEN-' + 'x9Z' * 8
     TENANT = '11111111-1111-4111-8111-111111111111'
     POLICY = '22222222-2222-4222-8222-222222222222'
-    SENTENCE = ('capture sends the token to graph.microsoft.com in GET requests only (it reads, and changes nothing in the '
-                'tenant) and writes what it reads into NEW_DIR.')
+    SENTENCE = ('The capture command sends the token to graph.microsoft.com in GET requests only (it reads, and changes nothing '
+                'in the tenant) and writes what it reads into NEW_DIR.')
 
     @unittest.skipUnless(os.name == 'posix', 'capture persists through directory descriptors (POSIX)')
     def test_what_the_screen_says_is_what_capture_does(self):
@@ -405,6 +405,8 @@ class CaptureContactTests(Base):
             self.assertEqual(flat(lines).count(self.SENTENCE), 2, fixture)
             rows = goal_rows(lines, 'discover')
             self.assertTrue(rows['blocked'].endswith(self.SENTENCE), rows['blocked'])
+            # a sentence of its own: the step's closing bracket is followed by a full stop before it begins
+            self.assertIn('is another). ' + self.SENTENCE, rows['blocked'])
             entry = next_action_entries(lines)['discover']
             self.assertTrue(flat(entry).endswith(self.SENTENCE), flat(entry))
             # the legend of the command comes first, the sentence follows it

@@ -10,7 +10,12 @@ apart, because a fresh engineer must be able to tell them apart:
                      "not checked". A sign-in is never permission for an operation.
     operation-ready  the readiness model's status for the goal is ready
     blocked          the first prerequisite the readiness model reports as not ready, with its next action
-    unsupported      an operation the manifest does not list, plus the live blockers and live status as recorded
+    unsupported      an operation the manifest does not list
+
+The screen adds a seventh row, `live`: the live status and the live blockers as recorded. They belong to the product, not to the
+goal, so they stay apart from blocked (this goal, here) and unsupported (what the manifest does not list); the JSON form keeps
+them under `unsupported`. The JSON form is a frozen compatibility form (test_catalog_json_golden): the screen's own wording,
+such as the verdict beside each next action, lives in catalog_lines only.
 
 An object kind shows a qualification word only where the manifest's level record establishes it; otherwise it reads
 "unknown (no record establishes it)". Nothing is inferred from a family name, and nothing the manifest does not hold is
@@ -281,7 +286,10 @@ def _state_lines(goal, width):
     if blocked['state'] == 'blocked':
         text = '%s. %s Next action: %s' % (_blocked_words(goal), readiness_model.screen_note(blocked['missing'] or ''),
                                           blocked['next_action'])
-        text = (text + ' ' + readiness_model.capture_contact(blocked['next_action'])).strip()
+        contact = readiness_model.capture_contact(blocked['next_action'])
+        if contact:
+            # The step ends in the closing bracket of its legend (no full stop): end that sentence before the next begins.
+            text += ('' if text.endswith('.') else '.') + ' ' + contact
     else:
         text = _blocked_words(goal)
     lines += row('blocked', text)
