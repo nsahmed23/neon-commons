@@ -125,7 +125,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
         companion = self.server.companion
         if companion.expired():
             # An expired listener is gone: it neither answers nor starts a new window.
-            companion.end('idle', wait=False)
+            try:
+                companion.end('idle', wait=False)
+            except Exception:
+                pass      # the stop or its failure is recorded by the listener; this request is refused either way
             return self._send(404, b'Not found.\n')
         if self.headers.get('Host') not in companion.allowed_hosts:
             return self._send(421, b'Misdirected request.\n')
@@ -165,6 +168,11 @@ class BoundedServer(http.server.ThreadingHTTPServer):
         super().__init__(address, handler)
         self._slots = threading.BoundedSemaphore(limit)
 
+    def stop_serving(self):
+        """Ask serve_forever() to leave at its next poll, without waiting for it as shutdown() does (which cannot be
+        bounded, and may not even be startable). This sets the flag shutdown() sets; the serve thread then ends."""
+        self._BaseServer__shutdown_request = True
+
     def process_request(self, request, client_address):
         if not self._slots.acquire(blocking=False):
             try:
@@ -194,15 +202,78 @@ def as_close_failure(failure):
     return shown
 
 
+def _add_class_note(error, other):
+    """Name another failure on `error` by class only (never an address, a token or a message)."""
+    note = '%s%s' % (_ALSO, type(other).__name__)
+    if error is not other and note not in getattr(error, '__notes__', ()):
+        error.add_note(note)
+
+
+def _class_notes(error):
+    """The failure classes named by sanitized notes on `error` and on every failure in its cause chain."""
+    names, seen = [], set()
+    while error is not None and id(error) not in seen and len(seen) < 8:
+        seen.add(id(error))
+        for note in getattr(error, '__notes__', ()):
+            if note.startswith(_ALSO) and note[len(_ALSO):] not in names:
+                names.append(note[len(_ALSO):])
+        error = error.__cause__
+    return names
+
+
 def note_cleanup_failure(primary, failure):
     """Attach a cleanup failure to the error that is already escaping, so the engineer still gets that error. The note
-    carries the code and the class only: never an address, a token or a message."""
+    carries the code and the class only: never an address, a token or a message. Every class the report names, in its own
+    notes or in those of the failures it is chained from, travels with it."""
     shown = as_close_failure(failure)
     cause = shown.__cause__ or shown
-    # A report that delivered several failures names the later ones by class in its own notes; carry them all.
-    also = ''.join('; also %s' % note[len(_ALSO):] for note in getattr(shown, '__notes__', ()) if note.startswith(_ALSO))
+    also = ''.join('; also %s' % name for name in _class_notes(shown))
     primary.add_note('Cleanup also failed: %s (%s%s). The listener may still be bound until this process exits.'
                      % (shown.code, type(cause).__name__, also))
+
+
+class _Attempt:
+    """The failures of one stop attempt and the single rule that decides which of them is primary.
+
+    Every step of the attempt runs guarded, so that one failure cannot skip the steps after it; this records what each
+    step raised. resolve() then picks the primary once, at the end, knowing whether the socket is closed:
+    an interrupt (a non-Exception BaseException) is always primary; otherwise the primary is the failure that leaves the
+    requested outcome unreached (the first close failure while the socket is open; the writer drain timeout when it is
+    closed); every other failure becomes a class note on the primary. With no primary, the first recovered failure is the
+    diagnostic, with the others noted on it."""
+
+    def __init__(self):
+        self.failures = []       # (error, kind): kind is 'close' (shutdown, close, verification) or 'drain'
+
+    def guard(self, kind, step, *arguments):
+        try:
+            return step(*arguments)
+        except BaseException as error:
+            self.failures.append((error, kind))
+            return None
+
+    def add(self, errors, kind='close'):
+        self.failures.extend((error, kind) for error in errors)
+
+    def resolve(self, closed):
+        failures = list(self.failures)
+        if not closed and not any(kind == 'close' for _, kind in failures):
+            failures.append((AppError('companion_live_close_failed', 'The listening socket is still open.'), 'close'))
+        errors = [error for error, _ in failures]
+        interrupts = [error for error in errors if not isinstance(error, Exception)]
+        if interrupts:
+            primary = interrupts[0]
+        else:
+            blocking = [error for error, kind in failures if kind == 'drain' or not closed]
+            primary = blocking[0] if blocking else None
+        others = [error for error in errors if error is not primary]
+        if primary is not None:
+            for other in others:
+                _add_class_note(primary, other)
+            return primary, None
+        for other in others[1:]:
+            _add_class_note(others[0], other)
+        return None, (others[0] if others else None)
 
 
 class LiveCompanion:
@@ -242,15 +313,15 @@ class LiveCompanion:
         self._watchdog = None
 
     def start(self):
-        server = BoundedServer((LOOPBACK, 0), Handler)
-        server.companion = self
-        self.server = server
-        self.port = server.server_address[1]
-        self.base = '/%s/' % self.token
-        self.address = 'http://%s:%d%s' % (LOOPBACK, self.port, self.base)
-        self.allowed_hosts = {'%s:%d' % (LOOPBACK, self.port), 'localhost:%d' % self.port}
-        self.last_page = monotonic()
+        server = BoundedServer((LOOPBACK, 0), Handler)      # if binding fails, nothing is bound and nothing to clean up
         try:
+            server.companion = self
+            self.server = server
+            self.port = server.server_address[1]
+            self.base = '/%s/' % self.token
+            self.address = 'http://%s:%d%s' % (LOOPBACK, self.port, self.base)
+            self.allowed_hosts = {'%s:%d' % (LOOPBACK, self.port), 'localhost:%d' % self.port}
+            self.last_page = monotonic()
             self._thread = threading.Thread(target=server.serve_forever, kwargs={'poll_interval': 0.05}, daemon=True)
             self._thread.start()
             self._watchdog = threading.Thread(target=self._watch, daemon=True)
@@ -261,25 +332,22 @@ class LiveCompanion:
         return self
 
     def _abort_start(self, failure):
-        """The listener is bound but never reached its caller, so nothing else would ever close it: close the port, stop and
-        boundedly join whichever thread did start, and note any cleanup failure on the original startup failure."""
+        """The listener is bound but never reached its caller, so nothing else would ever close it. It runs the same cleanup
+        as a stop (no protected write is admitted once it is stopping), notes every cleanup failure on the original startup
+        failure, and settles closed only when closure is verified; otherwise close_failed, which a later stop() retries."""
+        with self._lock:
+            self._state = 'stopping'
+            self._generation += 1
+            mine = self._generation
         self._stop.set()
-        try:
-            if self._thread is not None and self._thread.ident is not None:      # the serve loop is running
-                if not self._bounded_shutdown():
-                    self._raw_close(wake=True)
-            self._close_listener()
-            if not self._listener_closed():
-                raise AppError('companion_live_close_failed', 'The listening socket is still open.')
-        except BaseException as cleanup:
-            note_cleanup_failure(failure, cleanup)
-        if self._watchdog is not None and self._watchdog.ident is None:
-            self._watchdog = None                                                # never started: nothing to join
-        elif self._watchdog is not None:
-            self._watchdog.join(STOP_WAIT_SECONDS)
-        with self._changed:
-            self._state = 'closed'          # this object never ran; a later stop() has nothing left to do
-            self._changed.notify_all()
+        primary, diagnostic = self._cleanup(join_watchdog=True)
+        for cleanup_failure in (primary, diagnostic):
+            if cleanup_failure is not None:
+                note_cleanup_failure(failure, cleanup_failure)
+        if primary is None:
+            self._settle(mine, 'closed', note=diagnostic)
+        else:
+            self._settle(mine, 'failed', primary)
 
     def touch(self):
         with self._lock:
@@ -303,7 +371,7 @@ class LiveCompanion:
                 self.ended = reason
 
     def _stop_in_background(self):
-        """Stop from a thread nobody waits on. A failure is not raised into it: it is kept (see _publish) until the next
+        """Stop from a thread nobody waits on. A failure is not raised into it: it is kept (see _settle) until the next
         caller of wait(), wait_step() or stop() claims it, even if that caller's own retry then closes or fails."""
         try:
             self._run_stop(background=True)
@@ -316,8 +384,13 @@ class LiveCompanion:
         self._record_reason(reason)
         if wait:
             self.stop()
-        else:
+            return
+        try:
             threading.Thread(target=self._stop_in_background, daemon=True).start()
+        except BaseException:
+            # No thread could be started to do it. The stop is bounded, so this thread does it: a recorded reason is never
+            # left with a listener still running. A failure is queued by the stop itself, for the next caller.
+            self._stop_in_background()
 
     def begin_write(self):
         """Admit a handler to write protected content: refused once stopping has begun; otherwise it is counted, in the same
@@ -370,19 +443,10 @@ class LiveCompanion:
                 if error is self._close_error:
                     raise self._close_failure(error) from error
                 raise
-        with self._lock:
-            # One critical section: the state, the claim and the consumed mark cannot be separated by another thread.
-            state, error, reason = self._state, self._close_error, self.ended or 'stopped'
-            claimed = self._claim_locked()
-            consumed = self._consumed
-        if claimed:
-            raise self._delivery(claimed)
-        if state == 'close_failed':
-            if consumed:
-                # The failure behind this state has been given to a caller: say only that the close is unsettled.
-                raise AppError('companion_live_close_unsettled', 'The listener has not been closed; stop() retries the close.')
-            raise self._close_failure(error)
-        return reason if state == 'closed' else None
+        failure, reason = self._settle(None, 'observe')
+        if failure is not None:
+            raise failure
+        return reason
 
     def wait(self, poll=0.2):
         """Block until the listener ends, and say why: 'idle' or 'stopped'."""
@@ -394,31 +458,25 @@ class LiveCompanion:
                 self._changed.wait_for(self._settled, poll)
 
     def _raw_close(self, wake=False):
-        """Close the raw listening socket, guarded; returns the error if that failed. wake=True first shuts it down, which
-        also ends a connection backlog and wakes a thread still waiting on it, so the port refuses at once."""
+        """Close the raw listening socket, guarded; returns every failure met (none when it closed). wake=True first shuts
+        it down, which also ends a connection backlog and wakes a thread still waiting on it, so the port refuses at once;
+        an interrupt there does not stop the close from being attempted."""
         sock = getattr(self.server, 'socket', None)
         if sock is None:
-            return None
-        interrupted = None
+            return []
+        failures = []
         if wake:
             try:
                 sock.shutdown(socket.SHUT_RDWR)
             except OSError:
                 pass
             except BaseException as error:
-                interrupted = error     # the close below is still attempted
+                failures.append(error)
         try:
             sock.close()
         except BaseException as error:
-            # An interrupt too: the caller decides, so that no earlier error is lost with it. An interrupt from the wake-up
-            # stays the primary failure over an ordinary close failure, which is named on it by class.
-            if interrupted is not None:
-                if isinstance(error, Exception):
-                    interrupted.add_note('The close also failed: %s' % type(error).__name__)
-                    return interrupted
-                error.add_note('The wake-up shutdown was also interrupted: %s' % type(interrupted).__name__)
-            return error
-        return interrupted
+            failures.append(error)
+        return failures
 
     def _listener_closed(self):
         """Closure is judged by the socket itself: a closed socket has no descriptor."""
@@ -426,31 +484,6 @@ class LiveCompanion:
             return self.server.socket.fileno() == -1
         except Exception:
             return False
-
-    def _close_listener(self):
-        """Close the listening socket: server_close(), then the raw socket if that left it open. Returns the problem met on
-        the way, if any (a diagnostic once the socket is closed). When both fail, the raw close's class is kept as a note on
-        the first error (class only: no address, no token). An interrupt in server_close() still gets the raw close first."""
-        problem = None
-        try:
-            self.server.server_close()
-        except BaseException as error:
-            problem = error
-        raw_problem = None if self._listener_closed() else self._raw_close()
-        if raw_problem is not None:
-            if problem is None:
-                problem = raw_problem
-            elif isinstance(raw_problem, Exception):
-                note = 'The raw close also failed: %s' % type(raw_problem).__name__
-                if note not in getattr(problem, '__notes__', ()):
-                    problem.add_note(note)
-            else:
-                # An interrupt during the raw close propagates; it carries the class of the first error so that is kept.
-                raw_problem.add_note('The first close error was: %s' % type(problem).__name__)
-                problem = raw_problem
-        if problem is not None and not isinstance(problem, Exception):
-            raise problem
-        return problem
 
     def _bounded_shutdown(self):
         """server.shutdown() waits for the serve loop to leave, and nothing bounds that, so it runs in a helper thread and
@@ -474,69 +507,41 @@ class LiveCompanion:
         self._thread.join(bound)
         return True
 
-    def _shut_down_and_close(self):
-        """What the one stopper does, in order, every step bounded. Raises if the port could not be closed; returns the
-        recovered problem, if any."""
-        if self.server is None:
-            return None
-        forced = None
-        if self._thread is not None and not self._serving_stopped:
-            if self._bounded_shutdown():
+    def _join_watchdog(self):
+        watchdog = self._watchdog
+        if watchdog is None:
+            return
+        if watchdog.ident is None:
+            self._watchdog = None            # it never started: nothing to join
+        elif watchdog is not threading.current_thread():
+            watchdog.join(STOP_WAIT_SECONDS)
+
+    def _cleanup(self, join_watchdog=False):
+        """The one cleanup sequence, used by every stop attempt and by the failed-start path. Each step is separately
+        guarded and the raw close and the closure check always run, whatever an earlier step raised. Returns
+        (primary, diagnostic) as _Attempt.resolve() decides them; it does not raise."""
+        attempt = _Attempt()
+        server = self.server
+        if server is None:
+            return None, None
+        thread = self._thread
+        if thread is not None and thread.ident is not None and not self._serving_stopped:
+            if attempt.guard('close', self._bounded_shutdown) is True:
                 self._serving_stopped = True
-            else:
-                forced = self._raw_close(wake=True)
-                if forced is not None and not isinstance(forced, Exception):
-                    raise forced
+            else:                              # wedged, or it could not even be started: end the serve loop from here
+                attempt.guard('close', server.stop_serving)
+                attempt.add(self._raw_close(wake=True))
+                attempt.guard('close', thread.join, STOP_WAIT_SECONDS)
                 self._serving_stopped = self._listener_closed()
-        try:
-            problem = self._close_listener()
-        except BaseException as later:
-            # An interrupt from the close propagates, carrying the class of the forced close failure it would have hidden.
-            if forced is not None:
-                self._note_once(later, 'The earlier forced close had failed: %s' % type(forced).__name__)
-            raise
-        if forced is not None:
-            # The failure of the forced close is kept even if the close then worked: it is the diagnostic. A later
-            # problem is named on it by class.
-            if problem is not None:
-                self._note_once(forced, 'A later close attempt also failed: %s' % type(problem).__name__)
-            problem = forced
+        attempt.guard('close', server.server_close)
         if not self._listener_closed():
-            raise problem or AppError('companion_live_close_failed', 'The listening socket is still open.')
-        try:
-            self._drain_writers()
-        except BaseException as later:
-            if problem is None:
-                raise
-            # The earlier diagnostic is not discarded by what failed after it: an ordinary later failure is named on it
-            # (it stays the primary, as in the ordering above); an interrupt propagates and carries its class.
-            if isinstance(later, Exception):
-                self._note_once(problem, 'A later close step also failed: %s' % type(later).__name__)
-                raise problem
-            self._note_once(later, 'An earlier close diagnostic was: %s' % type(problem).__name__)
-            raise
-        return problem
-
-    @staticmethod
-    def _note_once(error, note):
-        if note not in getattr(error, '__notes__', ()):
-            error.add_note(note)
-
-    def _publish(self, generation, state, error=None, note=None, background=False):
-        """Record the outcome of a stop attempt, unless a newer attempt has taken over: a late finish never overwrites the
-        state. Its failure is still recorded when it was a background attempt, because no caller is there to receive it."""
-        with self._changed:
-            if background and error is not None:
-                self._undelivered.append(error)
-            if self._generation != generation:
-                return False
-            self._state, self._close_error = state, error
-            if state == 'closed':
-                self._close_note = note
-            else:
-                self._consumed = False
-            self._changed.notify_all()
-            return True
+            attempt.add(self._raw_close())
+        closed = self._listener_closed()
+        if join_watchdog:
+            attempt.guard('close', self._join_watchdog)
+        if closed:
+            attempt.guard('drain', self._drain_writers)
+        return attempt.resolve(closed)
 
     def _claim_locked(self):
         """Take every failure nobody has been given yet (the caller holds the lock); a failure that arrives later waits for
@@ -547,18 +552,68 @@ class LiveCompanion:
             self._consumed = True
         return claimed
 
-    def _claim(self):
-        with self._lock:
-            return self._claim_locked()
-
     def _delivery(self, claimed, own=None):
-        """One error for a caller: chained from the earliest failure, naming by class every later one and the caller's own
-        (no address, no token)."""
+        """One error for a caller: chained from the earliest failure, naming by class every later one and the caller's own,
+        and carrying the class notes of every constituent failure (no address, no token)."""
+        constituents = claimed + ([own] if own is not None else [])
         report = AppError('companion_live_close_failed', 'The listener could not be closed: %s' % type(claimed[0]).__name__)
         report.__cause__ = claimed[0]
-        for later in claimed[1:] + ([own] if own is not None else []):
-            report.add_note('%s%s' % (_ALSO, type(later).__name__))
+        for later in constituents[1:]:
+            _add_class_note(report, later)
+        for constituent in constituents:
+            for name in _class_notes(constituent):
+                note = '%s%s' % (_ALSO, name)
+                if note not in getattr(report, '__notes__', ()):
+                    report.add_note(note)
         return report
+
+    def _settle(self, generation, kind, error=None, note=None, background=False, role=None):
+        """The one place that publishes state, queues a background failure, claims undelivered failures and marks them
+        consumed. Everything happens in one critical section, from the current state. Returns (failure, reason): the
+        exception this caller must raise (or None), and the end reason once the state is closed.
+
+        kind 'closed'   an attempt reached verified closure (`note` is its recovered diagnostic)
+             'failed'   an attempt ended with `error`; the next stop() retries
+             'takeover' a follower gave up on the stopper (`error` is what it met); it supersedes that attempt
+             'observe'  a waiter or follower looks; it publishes nothing
+        The state is published only if `generation` is still the current one. A background failure is queued always."""
+        with self._changed:
+            if kind == 'takeover':
+                current = self._state == 'stopping' and self._generation == generation
+                if current:
+                    self._generation += 1
+            else:
+                current = kind != 'observe' and self._generation == generation
+            if background and error is not None:
+                self._undelivered.append(error)
+            if current:
+                if kind == 'closed':
+                    self._state, self._close_error, self._close_note = 'closed', None, note
+                else:
+                    self._state, self._close_error, self._consumed = 'close_failed', error, False
+                self._changed.notify_all()
+            reason = (self.ended or 'stopped') if self._state == 'closed' else None
+            if kind == 'observe':
+                claimed = [] if background else self._claim_locked()
+                if claimed:
+                    return self._delivery(claimed), reason
+                if self._state == 'close_failed':
+                    if self._consumed:
+                        return AppError('companion_live_close_unsettled',
+                                        'The listener has not been closed; stop() retries the close.'), reason
+                    return self._close_failure(self._close_error), reason
+                return None, reason
+            if background or kind == 'takeover':
+                return error, reason       # a background thread re-raises its own; a follower raises what it met
+            if kind == 'closed':
+                claimed = self._claim_locked()
+                return (self._delivery(claimed) if claimed else None), reason
+            if not isinstance(error, Exception):
+                return error, reason       # an interrupt is raised as it is
+            claimed = self._claim_locked()
+            if claimed:
+                return self._delivery(claimed, own=error), reason
+            return (self._close_failure(error) if role == 'retry' else error), reason
 
     def stop(self):
         return self._run_stop(background=False)
@@ -584,64 +639,53 @@ class LiveCompanion:
         if role == 'follower':
             return self._follow(background)
         self._stop.set()
+        primary, diagnostic = self._cleanup()
+        if primary is not None:
+            failure, _ = self._settle(mine, 'failed', primary, background=background, role=role)
+            raise failure
+        failure, _ = self._settle(mine, 'closed', note=diagnostic, background=background)
+        # Settled before this join: the watchdog may itself be waiting above as a second caller.
+        interrupted = None
         try:
-            problem = self._shut_down_and_close()
-        except BaseException as error:
-            self._publish(mine, 'close_failed', error, background=background)
-            if role == 'retry' and isinstance(error, Exception):
-                # The report below delivers the earlier failures with this one named.
-                claimed = [] if background else self._claim()
-                if claimed:
-                    raise self._delivery(claimed, own=error)
-                raise self._close_failure(error) from error
-            raise
-        if self._publish(mine, 'closed', note=problem):
-            # Publish before this join: the watchdog may itself be waiting above as a second caller.
             if self._watchdog is not None and self._watchdog is not threading.current_thread():
-                self._watchdog.join(STOP_WAIT_SECONDS)
-        if not background:
-            claimed = self._claim()
-            if claimed:
-                raise self._delivery(claimed)
+                self._join_watchdog()
+        except BaseException as error:
+            interrupted = error
+        if failure is not None:
+            if interrupted is not None:
+                _add_class_note(failure, interrupted)
+            raise failure
+        if interrupted is not None:
+            raise interrupted
 
     def _follow(self, background):
         with self._changed:
             generation = self._generation
             settled = self._changed.wait_for(self._settled, STOP_WAIT_SECONDS)
-            state, error = self._state, self._close_error
         if settled:
-            claimed = [] if background else self._claim()
-            if claimed:
-                raise self._delivery(claimed)
-            if state == 'close_failed':
-                raise self._close_failure(error)
+            failure, _ = self._settle(None, 'observe', background=background)
+            if failure is not None:
+                raise failure
             return None
         # The stopper outlived the bound. Close the socket here, check that it is closed, and say what is true. This
         # attempt takes over the state, so a stopper that finishes later cannot overwrite it; the next stop() retries.
-        forced = self._raw_close(wake=True)
-        if forced is not None and not isinstance(forced, Exception):
-            self._take_over(generation, forced, background)      # settled and retryable before the interrupt propagates
-            raise forced
-        if self._listener_closed():
+        attempt = _Attempt()
+        attempt.add(self._raw_close(wake=True))
+        closed = self._listener_closed()
+        primary, diagnostic = attempt.resolve(closed)
+        met = primary if primary is not None else diagnostic
+        if primary is not None and not isinstance(primary, Exception):
+            failure, _ = self._settle(generation, 'takeover', primary, background=background)
+            raise failure                  # an interrupt: settled and retryable before it propagates
+        if closed:
             message = 'The listener is still being stopped by another caller; its port is closed.'
         else:
             message = ('The listener is still being stopped by another caller, and its port could not be closed: %s.'
-                       % (type(forced).__name__ if forced is not None else 'the socket stayed open'))
-        failure = AppError('companion_live_stop_timeout', message)
-        failure.__cause__ = forced
-        self._take_over(generation, failure, background)
+                       % type(met).__name__)
+        timeout = AppError('companion_live_stop_timeout', message)
+        timeout.__cause__ = met
+        failure, _ = self._settle(generation, 'takeover', timeout, background=background)
         raise failure
-
-    def _take_over(self, generation, failure, background):
-        """A follower that gave up on the stopper takes the state over: queued once if nobody is there to receive it, the
-        generation moves on so the stopper's late finish cannot overwrite this, and the next stop() retries at once."""
-        with self._changed:
-            if background:
-                self._undelivered.append(failure)
-            if self._state == 'stopping' and self._generation == generation:
-                self._generation += 1
-                self._state, self._close_error, self._consumed = 'close_failed', failure, False
-                self._changed.notify_all()
 
     def __enter__(self):
         return self.start()

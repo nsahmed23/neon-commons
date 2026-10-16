@@ -1246,21 +1246,9 @@ class StopTests(Fixture):
     def test_a_failure_published_between_the_state_read_and_the_claim_is_delivered_exactly_once(self):
         from intune_iac.io import AppError
         live = self.start()
-        failure = OSError('background, published in the gap')
+        failure = OSError('background, published around a wait_step')
         with live._lock:
             live._state, live._generation = 'stopping', 7
-        real_claim = live._claim
-
-        published = []
-
-        def claim_after_a_publish(*arguments, **keywords):
-            if not published:
-                published.append(True)
-                live._publish(7, 'close_failed', failure, background=True)
-            return real_claim(*arguments, **keywords)
-        patch = mock.patch.object(live, '_claim', claim_after_a_publish)
-        patch.start()
-        self.addCleanup(patch.stop)
         outcomes = []
 
         def step():
@@ -1269,9 +1257,7 @@ class StopTests(Fixture):
             except AppError as error:
                 outcomes.append((error.code, error.__cause__))
         step()
-        if not published:
-            published.append(True)
-            live._publish(7, 'close_failed', failure, background=True)    # a version with no gap: published here
+        live._settle(7, 'failed', failure, background=True)
         step()
         step()
         deliveries = [cause for code, cause in outcomes if code == 'companion_live_close_failed']
@@ -1374,13 +1360,14 @@ class StopTests(Fixture):
                 live.stop()
         self.assertIn('PermissionError', ' '.join(getattr(caught.exception, '__notes__', [])))
 
-    def test_a_recovered_close_diagnostic_survives_a_later_drain_failure(self):
+    def test_a_recovered_close_diagnostic_does_not_outrank_a_later_writer_timeout(self):
         from intune_iac.io import AppError
         live = self.wedged_with_a_forced_close_failure()
         self.scripted_drain(live, AppError('companion_live_writer_timeout', 'held'))
-        with self.assertRaises(PermissionError) as caught:
+        with self.assertRaises(AppError) as caught:
             live.stop()
-        self.assertIn('AppError', ' '.join(getattr(caught.exception, '__notes__', [])))
+        self.assertEqual(caught.exception.code, 'companion_live_writer_timeout', 'the unresolved condition stays primary')
+        self.assertIn('PermissionError', ' '.join(getattr(caught.exception, '__notes__', [])))
 
     def test_an_exception_inside_a_with_block_is_not_replaced_by_a_failing_exit(self):
         from intune_iac.companion_live import LiveCompanion
@@ -1430,6 +1417,107 @@ class StopTests(Fixture):
         notes = ' '.join(primary.__notes__)
         self.assertIn('OSError', notes)
         self.assertIn('KeyError', notes)
+
+    def start_with_failing_thread_starts(self, failing_calls, server_class=None):
+        from intune_iac import companion_live
+        live = companion_live.LiveCompanion(lambda settings: '', lambda: {})
+        real_start, calls = threading.Thread.start, []
+
+        def start(thread):
+            calls.append(thread)
+            if len(calls) in failing_calls:
+                raise RuntimeError("can't start new thread")
+            return real_start(thread)
+        with mock.patch.object(threading.Thread, 'start', start):
+            if server_class is not None:
+                with mock.patch.object(companion_live, 'BoundedServer', server_class):
+                    with self.assertRaises(RuntimeError) as caught:
+                        live.start()
+            else:
+                with self.assertRaises(RuntimeError) as caught:
+                    live.start()
+        self.addCleanup(live.stop)
+        return live, caught.exception
+
+    def test_a_failed_start_whose_shutdown_helper_cannot_start_still_closes_the_port(self):
+        live, _ = self.start_with_failing_thread_starts({2, 3})        # the watchdog, then the shutdown helper
+        with self.assertRaises(OSError):
+            socket.create_connection(('127.0.0.1', live.port), timeout=2)
+        self.assertTrue(live._listener_closed())
+        self.assertEqual(live._state, 'closed')
+
+    def test_a_failed_start_that_cannot_verify_closure_is_not_marked_closed(self):
+        from intune_iac import companion_live
+
+        class Stuck(companion_live.BoundedServer):
+            def __init__(self, *arguments, **keywords):
+                super().__init__(*arguments, **keywords)
+                self.real_socket = self.socket
+                self.socket = UnclosableSocket(self.real_socket)
+
+            def server_close(self):
+                raise OSError('server_close failed')
+        live, startup = self.start_with_failing_thread_starts({1}, Stuck)
+        self.addCleanup(lambda: setattr(live.server, 'socket', live.server.real_socket))
+        self.assertEqual(live._state, 'close_failed', 'closed was published although the socket is still open')
+        self.assertIn('companion_live_close_failed', ' '.join(getattr(startup, '__notes__', [])))
+        self.assertTrue(self.port_accepts(live))
+
+    def test_end_without_waiting_stops_in_this_thread_when_the_hand_over_thread_cannot_start(self):
+        live = self.start()
+        real_start, calls = threading.Thread.start, []
+
+        def start(thread):
+            calls.append(thread)
+            if len(calls) == 1:
+                raise RuntimeError("can't start new thread")
+            return real_start(thread)
+        with mock.patch.object(threading.Thread, 'start', start):
+            live.end('idle', wait=False)
+        with self.assertRaises(OSError):
+            socket.create_connection(('127.0.0.1', live.port), timeout=2)
+        self.assertEqual(live.wait_step(), 'idle')
+
+    def test_end_without_waiting_queues_the_failure_when_the_stop_in_this_thread_fails_too(self):
+        from intune_iac.io import AppError
+        live = self.start()
+        self.break_close(live)
+        real_start, calls = threading.Thread.start, []
+
+        def start(thread):
+            calls.append(thread)
+            if len(calls) == 1:
+                raise RuntimeError("can't start new thread")
+            return real_start(thread)
+        with mock.patch.object(threading.Thread, 'start', start):
+            live.end('idle', wait=False)
+        with self.assertRaises(AppError) as caught:
+            live.wait_step()
+        self.assertEqual(caught.exception.code, 'companion_live_close_failed')
+
+    def test_class_notes_of_a_constituent_failure_travel_into_the_delivery_and_the_cleanup_note(self):
+        from intune_iac.companion import note_cleanup_failure
+        from intune_iac.io import AppError
+        live = self.start()
+        constituent = OSError('background')
+        constituent.add_note('Also failed: KeyError')
+        report = live._delivery([constituent])
+        self.assertIn('Also failed: KeyError', report.__notes__)
+        wrapper = AppError('companion_live_close_failed', 'wrapped')
+        wrapper.__cause__ = constituent          # nothing copied onto the wrapper: the chain is what carries it
+        primary = RuntimeError('the error the engineer needs')
+        note_cleanup_failure(primary, wrapper)
+        self.assertIn('KeyError', ' '.join(primary.__notes__))
+
+    def test_a_follower_that_finds_a_consumed_failure_says_unsettled(self):
+        from intune_iac.io import AppError
+        live = self.start()
+        with live._lock:
+            live._state, live._close_error, live._consumed = 'close_failed', OSError('given to a waiter'), True
+        with self.assertRaises(AppError) as caught:
+            live._follow(False)
+        self.assertEqual(caught.exception.code, 'companion_live_close_unsettled')
+        self.assertIsNone(caught.exception.__cause__)
 
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
