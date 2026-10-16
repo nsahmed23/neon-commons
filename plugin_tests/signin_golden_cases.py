@@ -40,6 +40,12 @@ def _gh(login):
 STATUS = ['signin', 'status', '--tenant', TENANT_A]
 # name: (answers, argv)
 CASES = {
+    # Round 3: the paths that render hidden names inside a listing, and a GitHub login that is only an unbroken run.
+    'two_defaults_hidden_accounts': (_az(azure_account(user=LONG_UPN), azure_account(user='alex.password@example.test', default=True)),
+                                     STATUS),
+    'several_hidden_accounts': (_az(azure_account(user=LONG_UPN), azure_account(user='alex.password@example.test', default=False),
+                                    azure_account(user='ABCDEF123456!', default=False)), STATUS),
+    'cred_github_unbroken_run': (_gh('a' * 30), ['signin', 'status', '--provider', 'github']),
     'two_defaults': (_az(azure_account(), azure_account(user='sam@example.test', default=True)), STATUS),
     'two_default_rows_one_account': (_az(azure_account(sub='s1'), azure_account(sub='s2')), STATUS),
     'cred_token_prefix': (_az(azure_account(user='ghp_abc1234')), STATUS),

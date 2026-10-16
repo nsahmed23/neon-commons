@@ -57,10 +57,11 @@ class GoldenTests(unittest.TestCase):
 
     def test_the_former_inner_codes_are_the_status_values(self):
         for name, status in (('two_defaults', 'several_accounts'), ('two_default_rows_one_account', 'several_accounts'),
-                             ('cred_token_prefix', 'unknown'),
+                             ('two_defaults_hidden_accounts', 'several_accounts'), ('cred_token_prefix', 'unknown'),
                              ('cred_unbroken_run', 'unknown')):
             self.assertEqual(json.loads(run_case(name)[1])['azure']['status'], status, name)
         self.assertEqual(json.loads(run_case('cred_github')[1])['github']['status'], 'unknown')
+        self.assertEqual(json.loads(run_case('cred_github_unbroken_run')[1])['github']['status'], 'unknown')
 
     def test_the_verdicts_carry_only_the_canonical_keys(self):
         from intune_iac import signin
