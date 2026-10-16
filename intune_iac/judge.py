@@ -88,11 +88,11 @@ _SECRET_SHAPES = (
     re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}"
                r"|AKIA[0-9A-Z]{16})"),                                                        # vendor prefixes
     re.compile(r"[A-Za-z0-9_.-]{3}\dQ~[A-Za-z0-9_.~-]{20,}"),                                 # Entra client secret
-    re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://[^/\s:@]*:[^/\s@]{3,}@"),                          # URL userinfo password
+    re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://[^/\s:@]*:[^/\s@]+@"),                            # URL userinfo password, any length
 )
 # name = value / name: value / "name": "value" / connection-string pairs, where the NAME is a secret keyword.
-_SECRET_PAIR = re.compile(r"(?i)" + _SECRET_NAME + r"[\"']?\s*[:=]\s*[\"']?([^\s\"',;&]{6,})")
-_PLACEHOLDER = re.compile(r"(?i)[*x#.•-]+|[<\[{(]?(?:redacted|hidden|removed|omitted|masked)[>\]})]?")
+_SECRET_PAIR = re.compile(r"(?i)" + _SECRET_NAME + r"[\"']?\s*[:=]\s*[\"']?([^\s\"',;&]+)")
+_PLACEHOLDER = re.compile(r"(?i)[*#.•-]+|[<\[{(]?(?:redacted|hidden|removed|omitted|masked)[>\]})]?")
 _SECRET_KEY = re.compile(r"(?:^|_)(?:password|passwd|pwd|secret|token|apikey|api_key|accountkey|account_key|sharedaccesskey|"
                          r"shared_access_key|sharedaccesssignature|access_key|private_key|credentials?|authorization|sig)(?:_|$)")
 
@@ -109,7 +109,12 @@ _HEX = re.compile(r"[0-9A-Fa-f]+")
 _B64_RUN = re.compile(r"[A-Za-z0-9+/_=-]{32,}")
 _B64_ONLY = re.compile(r"[A-Za-z0-9+/_=-]+")
 _POLICY_KEY = re.compile(r"p_[0-9a-f]{32}_[0-9a-f]{32}")
-_DIGEST_VALUE = re.compile(r"(?i)(?:sha1|sha256|sha512):[0-9a-f]{40,128}")
+_DIGEST_VALUE = re.compile(r"(?i)sha256:[0-9a-f]{64}")  # the only prefixed form; sha1:, sha512: and short bodies are refused
+_B64_CANONICAL = re.compile(r"[A-Za-z0-9+/]{32,}={0,2}")
+# An identifier or path made of words (deviceManagementConfigurationPolicy, resourceGroups/networkSecurity) is not base64.
+_WORDY = re.compile(r"(?:[a-z]+|[A-Z][a-z]+)(?:[A-Z][a-z]+)*")
+_SECRET_KEY_LAST = re.compile(r"(?:^|_)(?:password|passwd|pwd|secret|token|apikey|api_key|accountkey|account_key|sharedaccesskey|"
+                              r"shared_access_key|sharedaccesssignature|access_key|private_key|credentials?|authorization|sig)$")
 _DIGEST_NAMES = frozenset(("sha1", "sha256", "sha512", "digest", "hash", "checksum", "commit", "tree", "head",
                            "revision", "fingerprint"))
 
@@ -129,6 +134,21 @@ def _digest_key(key):
     # Only the key's last component counts: source_sha256, evidenceSha256 and commit qualify; commit_message does not.
     parts = [p for p in re.split(r"[^a-z0-9]+", re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", key).lower()) if p]
     return bool(parts) and parts[-1] in _DIGEST_NAMES
+
+
+def _canonical_base64(run):
+    """Canonical base64 by alphabet, length (32 or more, a multiple of 4 with padding) and padding; no entropy test.
+
+    The 32-character floor and the word-shape exemption keep ordinary words, identifiers and paths accepted; a long
+    word-shaped run cannot be told from an identifier, so only a run with a non-word shape is refused here.
+    """
+    if len(run) % 4 or not any(c.isalpha() for c in run) or _HEX.fullmatch(run.rstrip("=")):
+        return False
+    body = run.rstrip("=")
+    if "/" in body:
+        pieces = [p for p in body.split("/") if p]
+        return not (pieces and all(_WORDY.fullmatch(p) for p in pieces))
+    return _WORDY.fullmatch(body) is None
 
 
 def _base64_like(run):
@@ -165,6 +185,8 @@ def _shaped_once(text, digest_ok):
         for run in _B64_RUN.findall(stripped):
             if _base64_like(run) or any(_base64_like(part) for part in run.split("/")):
                 return True
+        if any(_canonical_base64(run) for run in _B64_CANONICAL.findall(stripped)):
+            return True
     for piece in _PIECE_SPLIT.split(text):
         # A random credential mixes cases and digits with high entropy; identifiers, GUIDs and digests do not.
         if (_TOKEN_CHARS.fullmatch(piece) and not _UUID_ANY.fullmatch(piece) and not _HEX.fullmatch(piece)
@@ -203,8 +225,11 @@ def _check_no_secret(value, root, key_value=None):
                 where = path + "{" + str(position) + "}"
                 leaf(key, where)
                 child = item[key]
-                if (type(child) is str and _SECRET_KEY.search(_snake(key)) and len(child) >= 6
-                        and not _placeholder(child)):
+                name = _snake(key)
+                # A member whose LAST word is a secret name (password, client_secret) is refused for any nonempty
+                # value; a member that only mentions one (token_required) is refused from six characters.
+                if (type(child) is str and not _placeholder(child) and child
+                        and (_SECRET_KEY_LAST.search(name) or (_SECRET_KEY.search(name) and len(child) >= 6))):
                     raise _Rejected("secret_shaped_value", where)
                 visit(child, where, _digest_key(key))
         elif type(item) is list:

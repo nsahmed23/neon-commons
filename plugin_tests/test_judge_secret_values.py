@@ -61,6 +61,40 @@ class JudgeSecretValueTests(unittest.TestCase):
                 self.refused({'section': {'items': ['ok', {'note': value}]}}, location='$.evidence{0}{0}[1]{0}',
                              secret=value)
 
+    def test_no_threshold_lets_a_short_or_low_entropy_documented_form_through(self):
+        hex64 = 'deadbeef' * 8
+        for name, text in (
+                ('one character url password', 'https://alice:x@db.example'),
+                ('48 character low entropy base64', 'YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh'),
+                ('padded low entropy base64', 'QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVo='),
+                ('sha1 prefix', 'sha1:' + hex64),
+                ('sha512 prefix', 'sha512:' + hex64 * 2),
+                ('sha256 prefix with a short body', 'sha256:' + hex64[:40]),
+                ('short connection string password', 'Password=abcde'),
+                ('one character pair', 'secret=a'),
+                ('pwd pair', 'Server=a;Pwd=q'),
+                ('quoted pair', '"api_key": "k"')):
+            with self.subTest(name):
+                self.refused({'detail': text}, location='$.evidence{0}', secret=(lambda t: t if len(t) >= 12 else None)(text.split('=')[-1].split(':')[-1]))
+
+    def test_a_mapping_member_named_for_a_secret_is_refused_for_any_nonempty_value(self):
+        self.refused({'password': 'abcde'}, location='$.evidence{0}')
+        self.refused({'client_secret': 'q'}, location='$.evidence{0}')
+        self.judge.requests.clear()
+        self.assertEqual(self.judge.call(evidence=[{'token_required': 'yes', 'tokenizer': 'qwen'}])['status'], 'assessed')
+
+    def test_product_forms_and_ordinary_words_stay_accepted_and_the_floor_is_32_characters(self):
+        h = 'ab12' * 16
+        evidence = [{'sha256': h, 'commit': h[:40], 'recorded': 'sha256:' + h.upper(),
+                     'policy': 'p_' + h[:32] + '_' + h[32:],
+                     'guid': '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+                     'type': '#microsoft.graph.deviceManagementConfigurationPolicyAssignmentTargetXX',
+                     'path': '/subscriptions/rg/resourceGroups/networkSecurity/providers/storageAccounts',
+                     'word': 'Pneumonoultramicroscopicsilicovolcanoconiosis', 'text': 'user:x is a name'}]
+        self.judge.requests.clear()
+        result = self.judge.call(evidence=evidence)
+        self.assertEqual(result['status'], 'assessed', result)
+
     def test_sols_breaking_inputs_are_refused_with_locations_that_do_not_contain_them(self):
         hex64 = secrets.token_hex(32)
         password = 'CorrectHorse' + secrets.token_urlsafe(6).replace('-', 'x').replace('_', 'y') + 'Staple'
