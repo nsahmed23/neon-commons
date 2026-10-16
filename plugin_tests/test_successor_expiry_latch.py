@@ -20,10 +20,12 @@ import base64
 import copy
 import sqlite3
 import subprocess
+import tempfile
 import time
 import types
 import unittest
 import uuid
+from pathlib import Path
 from unittest.mock import patch
 
 from intune_iac import clock
@@ -230,8 +232,8 @@ class ApprovalLatchTests(SuccessorFixture):
         self.assertEqual(self.latched(), [])
 
 
-class PreimageFreshnessTests(unittest.TestCase):
-    """The 30 second age of the service preimage is carried by the capture itself, on the monotonic clock."""
+class PreimageFixture(unittest.TestCase):
+    """A sealed service preimage capture and a manifest that binds it, under injected clocks."""
 
     def setUp(self):
         self.start = time.time()
@@ -256,6 +258,10 @@ class PreimageFreshnessTests(unittest.TestCase):
     def capture(self):
         """A capability made by this process now, as the reader makes one (the constructor is sealed)."""
         return reader_api.CapturedObservation(reader_api._CAPTURE, 'capture.json', self.batch, self.source, False)
+
+
+class PreimageFreshnessTests(PreimageFixture):
+    """The 30 second age of the service preimage is carried by the capture itself, on the monotonic clock."""
 
     def test_a_fresh_preimage_is_admitted(self):
         self.clocks.elapse(10)
@@ -297,6 +303,64 @@ class PreimageFreshnessTests(unittest.TestCase):
         self.clocks.step(-5)
         with self.assertRaises(AppError):
             successor._service_preimage(self.capture(), self.manifest)
+
+
+class PreimageStoreTimeTests(PreimageFixture):
+    """A capture made after a restart takes its first age from the policy store's effective time, not the bare wall clock:
+    the born age of a new capture is the wall clock's, and a wall clock set back after the store recorded a later time would
+    otherwise make an old observation look new."""
+
+    def setUp(self):
+        super().setUp()
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.root = Path(temp.name)
+        self.policy = types.SimpleNamespace(root=self.root)
+        self.clocks.install_session(self)
+        clock.reset_process_anchor()
+        self.addCleanup(clock.reset_process_anchor)
+        patcher = patch.object(clock, 'monotonic', side_effect=self.clocks.monotonic)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def record_floor(self):
+        clock.Floor(self.root / 'clock.json').observe(self.clocks.time())
+
+    def refused(self, captured):
+        with self.assertRaises(AppError) as raised:
+            successor._service_preimage(captured, self.manifest, self.policy)
+        self.assertEqual(raised.exception.code, 'successor_service_preimage_binding')
+
+    def test_a_new_capture_of_an_old_observation_is_stale_after_a_restart_with_the_wall_set_back(self):
+        self.record_floor()  # the store recorded T0 (the observation was made at T0)
+        self.clocks.elapse(70)  # real time: the store's floor now stands at T0 plus 70 seconds of boot time
+        clock.reset_process_anchor()  # the process restarted
+        self.clocks.step(-60)  # the wall clock was set back to 10 seconds after the observation
+        captured = self.capture()  # a new capture of the old observation: by the bare wall clock it is ten seconds old
+        self.assertLess(captured.carried_age(), 30)
+        self.refused(captured)
+
+    def test_a_new_capture_stays_fresh_when_the_store_time_agrees(self):
+        self.record_floor()
+        self.clocks.elapse(10)
+        clock.reset_process_anchor()
+        self.assertEqual(successor._service_preimage(self.capture(), self.manifest, self.policy)['capture_sha256'], 'c' * 64)
+
+    def test_a_store_that_has_recorded_nothing_leaves_the_wall_age(self):
+        self.clocks.elapse(10)
+        self.assertEqual(successor._service_preimage(self.capture(), self.manifest, self.policy)['capture_sha256'], 'c' * 64)
+
+    def test_the_process_checks_still_apply_with_a_store(self):
+        self.record_floor()
+        self.clocks.elapse(10)
+        captured = self.capture()
+        object.__setattr__(captured, '_pid', captured._pid + 1)
+        with self.assertRaises(AppError):
+            successor._service_preimage(captured, self.manifest, self.policy)
+        fresh = self.capture()
+        self.clocks.elapse(100)
+        self.clocks.step(-100)
+        self.refused(fresh)  # the monotonic age still decides when the store knows nothing more
 
 
 if __name__ == '__main__':

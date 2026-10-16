@@ -54,16 +54,21 @@ def _original(job, db):
             'cancelled': bool(row[1]), 'outcome_sha256': digest(outcome), 'scopes': owners}
 
 
-def _preimage_age(captured, batch):
-    """The age of a process-held capture: the wall age, or the capture's own carried age (its age when this process made
-    it plus the monotonic time since), whichever is older. A wall clock that steps back, however long after, cannot make it
-    fresh again, and no bounded map decides it; a capture from another process is refused. A capture dated ahead of the
+def _preimage_age(captured, batch, policy=None):
+    """The age of a process-held capture: the wall age, the age by the policy store's effective time, or the capture's own
+    carried age (its age when this process made it plus the monotonic time since), whichever is older. A wall clock that
+    steps back, however long after, cannot make it fresh again, and no bounded map decides it; a capture made after a
+    restart takes its first age from the store's recorded time, not the wall clock alone, so a wall clock set back before
+    the capture cannot make an old observation new. A capture from another process is refused. A capture dated ahead of the
     wall clock has a negative wall age and is refused by the caller."""
     wall_age = time.time() - batch['observed_at']
-    return wall_age if wall_age < 0 else max(wall_age, captured.carried_age())
+    if wall_age < 0:
+        return wall_age
+    store_age = 0.0 if policy is None else validity.effective_now(policy.root) - batch['observed_at']
+    return max(wall_age, store_age, captured.carried_age())
 
 
-def _service_preimage(captured, manifest):
+def _service_preimage(captured, manifest, policy=None):
     if type(captured) is not reader_api.CapturedObservation:
         _fail('successor_service_preimage_required')
     batch, source = captured.verified()
@@ -71,7 +76,7 @@ def _service_preimage(captured, manifest):
     live = manifest['profile'] == 'azure_public_pilot'
     expected_class = 'graph_authenticated_observation' if live else 'graph_reader_laboratory'
     if (captured.cancelled or type(batch.get('observed_at')) not in (int, float)
-            or not 0 <= _preimage_age(captured, batch) <= PREIMAGE_FRESH_SECONDS
+            or not 0 <= _preimage_age(captured, batch, policy) <= PREIMAGE_FRESH_SECONDS
             or batch.get('tenant_id') != manifest['tenant_id'] or [batch.get('object_id')] != manifest['object_ids']
             or batch.get('capture_sha256') != expected.get('preimage_capture_sha256')
             or source.get('evidence_class') != expected_class or source.get('source_authenticity_verified') is not live
@@ -195,7 +200,7 @@ def prepare_transfer(*, original_job, successor_manifest, successor_job_root, re
     with original_job.policy.connection() as db:
         original = _original(original_job, db)
     completion = _completion(recovery_completion, original_job, manifest)
-    preimage = _service_preimage(service_preimage, manifest)
+    preimage = _service_preimage(service_preimage, manifest, original_job.policy)
     return {'schema_version': VERSION, 'transfer_id': transfer_id, 'prepared_at': now, 'expires_at': expires_at,
             'authority': _authority(original_job.policy), 'original': original,
             'successor': {'operation_id': manifest['operation_id'], 'manifest_sha256': digest(manifest), 'job_root': str(root)},
@@ -334,7 +339,7 @@ def _execute_transfer(transfer, signed, original_job, successor_manifest, recove
         _fail('successor_authority_overlap')
     # Recheck sealed observations after signature verification and preparation, before any effect.
     if (_completion(recovery_completion, original_job, manifest) != transfer['recovery_completion']
-            or _service_preimage(service_preimage, manifest) != transfer['service_preimage']):
+            or _service_preimage(service_preimage, manifest, policy) != transfer['service_preimage']):
         _fail('successor_preimage_changed')
     policy.check()
     # The final judgment is the dispatch-start judgment: the window is judged in the critical section, and the successor's
