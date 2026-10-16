@@ -88,7 +88,9 @@ class JudgeSecretValueTests(unittest.TestCase):
         for name in ('secrets', 'passwords', 'tokens', 'keys', 'credentials', 'password2', 'secret1', 'token2', 'api_keys',
                      'client_secrets', 'adminpassword', 'adminPassword', 'clientsecret', 'clientSecret', 'accesstoken',
                      'accessToken', 'refreshtoken', 'refreshToken', 'idtoken', 'bearertoken', 'authtoken', 'sessiontoken',
-                     'rootpassword', 'dbpassword', 'userpassword', 'adminpasswords', 'clientsecret2'):
+                     'rootpassword', 'dbpassword', 'userpassword', 'adminpasswords', 'clientsecret2',
+                     'proxypassword', 'smtppassword', 'certpassword', 'oauthtoken', 'ldapsecret', 'rdppwd', 'dbpasswd',
+                     'proxyPassword', 'oauthToken', 'webhooksecret', 'githubtoken', 'serviceaccounttokens'):
             with self.subTest(name):
                 self.refused({name: 'abcde'}, location='$.evidence{0}')
                 self.refused({name: ['a']}, location='$.evidence{0}')
