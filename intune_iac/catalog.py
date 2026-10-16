@@ -244,6 +244,10 @@ class Catalog(dict):
     text_build = None
     text_placeholders = frozenset()
 
+    def __reduce_ex__(self, protocol):
+        # Persistence (pickle, shelve, copy) keeps the catalog the JSON form prints and nothing else; see entry.Survey.
+        return dict, (dict(self),)
+
 
 def _text_build(result, survey, goal, relative_to):
     """(the catalog as a screen prints it, the placeholders written). Every state and verdict is the JSON build's; only the

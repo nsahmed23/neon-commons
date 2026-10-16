@@ -1316,6 +1316,33 @@ class OperandRenderingTests(Base):
             self.assertIn(self.EXPLANATION, flat(lines))
             self.assertIn('No action needed.', flat(lines))  # a step that names nothing is not hidden with the others
 
+    # -- round 6, item 2: persistence ----------------------------------------------------------------------------------------------
+    def test_persistence_rebuilds_a_plain_dict_and_keeps_none_of_the_text_build(self):
+        # pickle is used here only to round-trip values this test builds itself, in memory; no file or untrusted data is loaded
+        import copy
+        import pickle
+        import tempfile
+        from intune_iac import catalog as module, entry
+        with tempfile.TemporaryDirectory() as temp:
+            folder = self.estate_in(temp, 'ghp_abc1234')
+            survey = entry.survey(folder, relative_to=temp)
+            value = module.build(survey, doctor=tc.doctor(), relative_to=temp)
+            for label, original in (('survey', survey), ('catalog', value)):
+                clones = [pickle.loads(pickle.dumps(original, protocol)) for protocol in range(0, pickle.HIGHEST_PROTOCOL + 1)]
+                clones += [copy.copy(original), copy.deepcopy(original)]  # copy and shelve use the same reduction as pickle
+                for clone in clones:
+                    self.assertIs(type(clone), dict, label)
+                    self.assertEqual(clone, dict(original), label)
+                    self.assertFalse(hasattr(clone, 'text_build'), label)
+                    self.assertFalse(hasattr(clone, 'text_placeholders'), label)
+            # a persisted value prints through the plain-data path: nothing of the refused name
+            shown = '\n'.join(module.catalog_lines(pickle.loads(pickle.dumps(value)), 120) +
+                              entry.start_lines(pickle.loads(pickle.dumps(survey)), 120))
+            for fragment in ('ghp_', 'abc1234'):
+                self.assertNotIn(fragment, shown, fragment)
+            # while the builders' own value still prints from its text build
+            self.assertIn('intune-iac workbench workspace --root DIRECTORY/store', flat(entry.start_lines(survey, 120)))
+
     # -- round 6, item 3: one writer for every command operand ------------------------------------------------------------------
     def test_the_note_the_pointer_and_the_sign_in_command_are_written_relative_to_relative_to_like_the_actions(self):
         import tempfile

@@ -517,6 +517,12 @@ class Survey(dict):
     text_build = None
     text_placeholders = frozenset()
 
+    def __reduce_ex__(self, protocol):
+        # Persistence (pickle, shelve, copy) keeps the survey the JSON form prints and nothing else: the text build holds what a
+        # screen may print and is made again by survey(), never stored. What comes back is a plain dict, which a screen prints
+        # through the plain-data path (recorded strings only where nothing in them is refused).
+        return dict, (dict(self),)
+
 
 LABELS = {'wizard_session': 'Wizard session', 'journey_session': 'Journey', 'guided_session': 'Guided session',
           'export': 'Export', 'context': 'Context', 'generated_project': 'Generated', 'store': 'Store',
