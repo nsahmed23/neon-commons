@@ -214,6 +214,25 @@ LABEL = 17
 LEVEL_PREFIX = 'qualification '
 
 
+def _ready_words(goal):
+    """The words of the operation-ready row; the verdict that closes the screen says them again from here."""
+    ready = goal['operation_ready']
+    return '%s (readiness status: %s)' % (ready['state'], ready['status'])
+
+
+def _blocked_words(goal):
+    """The first words of the blocked row: whether a prerequisite blocks the goal and which one first."""
+    blocked = goal['blocked']
+    if blocked['state'] == 'blocked':
+        return 'yes, by %s (%s)' % (blocked['row'], blocked['row_state'])
+    return 'no prerequisite is reported as not ready'
+
+
+def verdict_words(goal):
+    """One goal's verdict in the words of its state rows (operation-ready and blocked), for the last screen."""
+    return 'operation-ready: %s; blocked: %s' % (_ready_words(goal), _blocked_words(goal))
+
+
 def _state_lines(goal, width):
     from .entry import _flow
     rest = ' ' * (4 + LABEL)
@@ -241,12 +260,11 @@ def _state_lines(goal, width):
         text = '%s (Azure CLI sign-in: %s)' % (auth['state'].replace('_', ' '), auth.get('message') or auth.get('status'))
         text += ' ' + auth['permission']
     lines += row('authenticated', text)
-    lines += row('operation-ready', '%s (readiness status: %s)' % (ready['state'], ready['status']))
+    lines += row('operation-ready', _ready_words(goal))
     if blocked['state'] == 'blocked':
-        text = 'yes, by %s (%s). %s Next action: %s' % (blocked['row'], blocked['row_state'], blocked['missing'] or '',
-                                                       blocked['next_action'])
+        text = '%s. %s Next action: %s' % (_blocked_words(goal), blocked['missing'] or '', blocked['next_action'])
     else:
-        text = 'no prerequisite is reported as not ready'
+        text = _blocked_words(goal)
     lines += row('blocked', text)
     if unsupported['state'] == 'unsupported':
         text = 'yes: ' + ' '.join(unsupported['reasons'])
@@ -299,5 +317,8 @@ def catalog_lines(value, width):
     for record in value['integrations']:
         for goal in record['goals']:
             lines.append('  %s:' % goal['goal'])
+            # A 40-row pane shows only the last rows: the verdict that justifies the next action stands beside it, in the
+            # words of the goal's state rows (one source), so the pane never shows an action without its reason.
+            lines += _flow('Verdict: ' + verdict_words(goal), width, '    ', '      ')
             lines += _flow(goal['next_action'], width, '    ', '    ', commands=True)
     return lines
