@@ -372,8 +372,8 @@ def _binding_kind(token):
     claims = _unverified_claims(token)
     if not claims:
         return 'no_claim' if _is_jwt_payload(token) else 'opaque'
-    named = [claims.get(key) for key in ('upn', 'unique_name', 'appid')]
-    return 'unusable_claim' if any(isinstance(value, str) and value for value in named) else 'no_claim'
+    # Present means present, whatever the value (a number, null, an empty string): an unusable claim, not an absent one.
+    return 'unusable_claim' if any(key in claims for key in ('upn', 'unique_name', 'appid')) else 'no_claim'
 
 
 def _is_jwt_payload(token):

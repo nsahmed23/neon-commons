@@ -293,5 +293,22 @@ class OutputPathDisplayTests(unittest.TestCase):
         self.assertIn('"output": "{OUT}"', text)
 
 
+class BindingKindTests(unittest.TestCase):
+    def kind(self, **claims):
+        from plugin_tests.signin_golden_cases import _token
+        return signin._binding_kind(_token(**claims))
+
+    def test_a_present_claim_is_unusable_whatever_its_value(self):
+        for claims in ({'upn': 123}, {'upn': ''}, {'appid': None}, {'unique_name': ['x']}, {'unique_name': ''}, {'appid': False}):
+            self.assertEqual(self.kind(tid=TENANT_A, **claims), 'unusable_claim', claims)
+
+    def test_no_claim_only_when_all_three_are_absent(self):
+        self.assertEqual(self.kind(tid=TENANT_A), 'no_claim')
+        self.assertEqual(self.kind(tid=TENANT_A, oid='x'), 'no_claim')
+
+    def test_a_token_that_is_not_a_jwt_is_opaque(self):
+        self.assertEqual(signin._binding_kind('opaque-' + 'A' * 40), 'opaque')
+
+
 if __name__ == '__main__':
     unittest.main()
