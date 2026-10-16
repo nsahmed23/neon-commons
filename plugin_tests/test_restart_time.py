@@ -348,6 +348,24 @@ class MigrationTests(StoreFixture):
         self.other_family(self.issued(START + 55, nonce='c' * 32, operation_id='operation-3'))
         self.assertEqual(self.rows('SELECT cutoff FROM second_cutoff'), [(0.0,)])
 
+    def test_a_family_with_no_history_judged_first_does_not_hide_another_familys_legacy_rows(self):
+        # Another family's pre-upgrade (version 1) rows are in the database, and there is no recorded time. A family with
+        # no history of its own is judged first: the store's cutoff is decided from the history of every family in the
+        # database, so it is not 0, and the other family's legacy approval stays held when it is judged later.
+        with self.connect() as db:
+            db.execute(validity.table_sql('second'))
+            db.execute("INSERT INTO second VALUES ('issuer-1', 'old', 'operation-8', 'q', ?, ?, ?)", (START + 100, START + 50, START + 50))
+        self.clocks.wall = START + 60
+        self.enter(self.issued(START + 61, nonce='c' * 32, operation_id='operation-3'))  # family A, no history of its own
+        self.assertEqual(self.cutoff(), [(START + 60,)])
+        store = validity.Store(self.base, self.connect, 'second', fail, create=True, domain='second-family')
+        legacy = self.issued(START + 40, nonce='z', operation_id='operation-9')
+        with self.assertRaises(AppError) as raised:
+            with validity.critical(store, legacy, 'q', expired_code='toy_expired') as db:
+                db.execute('COMMIT')
+        self.assertEqual(raised.exception.code, 'clock_moved_backward')
+        self.assertIn(LOST_WORDS, raised.exception.message)
+
     def test_an_artifact_without_an_issue_time_is_judged_normally(self):
         self.legacy_store()
         self.clocks.wall = START + 60

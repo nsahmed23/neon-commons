@@ -344,6 +344,25 @@ def _sibling_cutoff(db, table):
     return min(found, key=lambda row: row[1]) if found else None
 
 
+_V1_COLUMNS = ['issuer', 'nonce', 'operation_id', 'request_sha256', 'expires_at', 'judged_at', 'wall']
+
+
+def _database_history(db):
+    """Whether any family in this database has authorization history: a row in a version 2 expiry table, an open-judgment
+    table, or a version 1 expiry table (recognised by its exact columns). The cutoff is one value per database, so its first
+    initialization looks at every family's tables, not only the one being judged: a family with no history that is judged
+    first must not hide another family's legacy rows behind a zero cutoff."""
+    for (name,) in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
+        if not _TABLE.fullmatch(name) or name.endswith('_cutoff'):
+            continue
+        if not name.endswith(('_v2', '_open')):
+            if [column[1] for column in db.execute('PRAGMA table_info(' + name + ')').fetchall()] != _V1_COLUMNS:
+                continue
+        if db.execute('SELECT 1 FROM ' + name).fetchone():
+            return True
+    return False
+
+
 def _ensure_cutoff(store, floor, wall):
     """Write the store's migration cutoff if it has none: once, at its first judgment under the boot session, in a transaction
     of its own that commits before the recorded time is touched. A refusal that follows cannot roll it back, and a failed first
@@ -369,9 +388,7 @@ def _ensure_cutoff(store, floor, wall):
             _sync(store.root)
             return
         recorded = floor.record()
-        history = recorded is not None or any(
-            _has(db, name) and db.execute('SELECT 1 FROM ' + name).fetchone()
-            for name in (store.table, v2_table(store.table), open_table(store.table)))
+        history = recorded is not None or _database_history(db)
         value = 0.0
         if history:
             carried = floor.carried(recorded)
