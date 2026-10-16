@@ -415,7 +415,8 @@ def _in_list(form, entry):
     return form
 
 
-def hazard_rows(facts, signals, width, *, routes=True, here=False, listed=False, repository_here=False, surface=True):
+def hazard_rows(facts, signals, width, *, routes=True, here=False, listed=False, repository_here=False, surface=True,
+                keep_essential=False):
     """The band: the primary hazard with its response, in the longest wording that fits, and the count of other
     findings and any re-read that failed, beside it or on a row of their own so neither is cut. A window too narrow
     for the shortest wording gets it wrapped with the response kept whole. [] when nothing is recorded.
@@ -423,7 +424,10 @@ def hazard_rows(facts, signals, width, *, routes=True, here=False, listed=False,
     listed: the actions list is open, where a is not a key; the response names its entry in the list instead.
     repository_here: surface 9 is drawn, which is where the band's 9 would point, so the band does not point at it.
     surface: the count names the surface that lists the other findings; False only below the minimum window, where no
-    surface can be shown (the constrained frame)."""
+    surface can be shown (the constrained frame).
+    keep_essential: where no form that keeps the hazard's essential words (BAND_ESSENTIAL) fits one row, wrap the shortest
+    such form over two rows instead of choosing a shorter form that drops them; the constrained frame sets it, because
+    there a dropped "never replays" leaves an unknown outcome with a response that reads as a retry."""
     primary, others = _band_primary(facts, signals)
     if primary is None:
         return []
@@ -458,6 +462,9 @@ def hazard_rows(facts, signals, width, *, routes=True, here=False, listed=False,
     # itself, the count moves to a row of its own. Only when none fits does a shorter form drop them.
     essential = BAND_ESSENTIAL.get(primary.get('code'))
     whole = [form for form in forms if essential in form] if essential else []
+    if keep_essential and whole and not any(cell_width(form) <= width for form in whole):
+        # The window holds no complete form on one row: the shortest complete one is wrapped, condition then response.
+        forms, whole = [min(whole, key=cell_width)], []
     for candidates in ([whole] if whole else []) + [forms]:
         keep = next((form for form in candidates if cell_width(form) <= width), None) if candidates is whole else None
         if keep is not None:
@@ -534,7 +541,8 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
                                                    if selected and str(value) in HAZARD_STATES[label]
                                                    and str(value) in SHORT_STATES and str(value) in STRIP_DEFINITIONS]
     groups = {'header': [header], 'strip': _pack(items, width), 'prompt': [prompt], 'keys': [keys] if keys else [],
-              'band': hazard_rows(facts, facts.get('signals') or [], width, routes=False, surface=False) if selected else [],
+              'band': hazard_rows(facts, facts.get('signals') or [], width, routes=False, surface=False,
+                                  keep_essential=True) if selected else [],
               'legend': strip_key_rows([STRIP_DEFINITIONS[key] for key in dict.fromkeys(shown)], width)}
     if layer == 'workflow':
         # What the map needs, then the plain-text command that prints it anywhere on its own rows (route: the workspace's

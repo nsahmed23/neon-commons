@@ -2817,5 +2817,69 @@ class WorkflowRouteFrameTests(LayerFixture):
             self.assertIn('Esc closes it', ' '.join(' '.join(rows).split()), size)
 
 
+# ---- PKG-UXVIS-5b item 4: the constrained view keeps the safety clause of an unknown outcome ----------------------------
+
+class ConstrainedBandPureTests(unittest.TestCase):
+    """constrained_rows is the one frame every surface draws below its minimum window: its band must not lose "never replays"."""
+
+    def rows(self, layer, width, height=12):
+        from intune_iac.workbench_screens import constrained_rows
+        from plugin_tests.test_workbench_hazard import UNKNOWN
+        facts = {'signals': [UNKNOWN], 'operation': 'outcome_unknown', 'object_id': OBJECT, 'identity_prefixes': {}}
+        lines, band = constrained_rows(TENANT, OBJECT, facts, 'synthetic', width, height, '60x20', '', layer=layer,
+                                       route=('/tmp/store', OBJECT))
+        return [lines[index] for index in band], lines
+
+    def test_where_no_complete_form_fits_a_row_the_shortest_is_wrapped_and_keeps_never_replays(self):
+        for layer in ('summary', 'catalog', 'workflow'):
+            for width in (40, 38, 36, 32):
+                band, lines = self.rows(layer, width)
+                self.assertIn('never replays', ' '.join(' '.join(band).split()), (layer, width, band))
+                self.assertIn('Reconcile', ' '.join(band), (layer, width, band))
+                self.assertEqual(len(band), 2, (layer, width, band))              # the condition on one row, the response on the next
+                for row in lines:
+                    self.assertLessEqual(len(row), width, (layer, width, row))
+
+    def test_a_window_that_holds_a_complete_form_on_one_row_still_draws_that_one_row(self):
+        for width in (60, 80):
+            band, _ = self.rows('summary', width)
+            self.assertEqual(len(band), 1, (width, band))
+            self.assertIn('never replays', band[0])
+
+    def test_the_regular_band_keeps_its_shorter_response_where_the_frame_is_not_constrained(self):
+        from intune_iac.workbench_screens import hazard_rows
+        from plugin_tests.test_workbench_hazard import UNKNOWN
+        # run 12's own expectation for the unconstrained band at 40 columns: only the constrained frame wraps.
+        rows = hazard_rows({'signals': [UNKNOWN]}, [UNKNOWN], 40)
+        self.assertIn('Reconcile (a actions)', rows[0])
+
+
+class ConstrainedBandFrameTests(LayerFixture):
+    def lose_the_response(self):
+        from intune_iac import maintenance
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'], fault='lost-response')
+
+    def text(self, frames):
+        return ' '.join(' '.join(self.plain(frames[-1])).split())
+
+    def test_at_40x12_the_workflow_layer_and_the_inspector_both_keep_never_replays_with_the_unknown_outcome(self):
+        self.lose_the_response()
+        key = lambda char: ('text', char)
+        ws, layer = self.run_keys(typed('select ' + OBJECT) + typed('workflow') + [key('q')], (40, 12), 'ascii')
+        self.assertEqual(ws.states[-1]['layer'], 'workflow')
+        # The Inspector draws its own frame down to 40x12; the same constrained view is what it shows below that.
+        ws, inspector = self.run_keys(typed('select ' + OBJECT) + [key('q')], (39, 11), 'ascii')
+        self.assertEqual(ws.states[-1]['layer'], 'summary')
+        for name, frames, width in (('workflow layer', layer, 40), ('inspector', inspector, 39)):
+            text = self.text(frames)
+            self.assertIn('Outcome unknown', text, name)
+            self.assertIn('never replays', text, name)
+            for row in self.plain(frames[-1]):
+                self.assertLessEqual(len(row), width, (name, row))
+        # The layer's own sentence and command are still whole beside the band.
+        self.assertIn('intune-iac workbench workflow --root', self.text(layer).replace(' \\', ''))
+
+
 if __name__ == "__main__":
     unittest.main()
