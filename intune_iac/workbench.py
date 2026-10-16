@@ -318,11 +318,34 @@ def _attention(store, object_id):
     except AppError as error:
         return {'status': 'unavailable', 'error_code': error.code, 'signals': [], 'checked': {}}
     partial = any(state in ('partly_checked', 'unavailable') for state in value['checked'].values())
-    return {'status': 'attention' if value['signals'] else 'partly_checked' if partial else 'clear',
-            'signals': [{**{key: signal[key] for key in ('area', 'code', 'observed', 'next_step', 'line_command') if key in signal},
-                         'evidence': signal.get('evidence') if isinstance(signal.get('evidence'), dict) else {}}
-                        for signal in value['signals']],
+    signals = [{**{key: signal[key] for key in ('area', 'code', 'observed', 'next_step', 'line_command') if key in signal},
+                'evidence': signal.get('evidence') if isinstance(signal.get('evidence'), dict) else {}}
+               for signal in value['signals']]
+    closed = _closed_window_signal(value.get('newest_operation'))
+    if closed is not None:
+        signals.append(closed)
+    return {'status': 'attention' if signals else 'partly_checked' if partial else 'clear', 'signals': signals,
             'checked': value['checked'], 'newest_operation': value.get('newest_operation')}
+
+
+def _closed_window_signal(operation):
+    """The operations signal for a prepared newest operation whose approval window closed (journey 34 run 2, review A
+    Low-1): execute refuses it, so the rollup says so, with the step the workflow map gives for the same stage (the one
+    `lifecycle_next` words from the operation's review). None when the window is open, or the operation is not prepared."""
+    if not isinstance(operation, dict) or operation.get('approval_window') not in ('closed', 'closed_recorded'):
+        return None
+    import time
+    from . import maintenance
+    from .workbench_screens import lifecycle_next
+    try:
+        review = maintenance.review(operation['operation_root'])
+    except (AppError, OSError, KeyError, TypeError, ValueError):
+        review = {'status': 'prepared', 'approval_window': {'state': operation['approval_window']}}
+    return {'area': 'operations', 'code': 'operation_approval_closed',
+            'observed': 'Operation %s is prepared, but its approval window closed: execute refuses it.' % operation['operation_id'],
+            'next_step': lifecycle_next(4, review, time.time()),
+            'evidence': {'operation_id': operation['operation_id'], 'operation_root': operation.get('operation_root'),
+                         'approval_window': operation['approval_window']}}
 
 
 def _states(observation, intent, attention, eligibility):

@@ -5,10 +5,15 @@ Item 3: the attention rollup counts a closed approval window. Item 4: one reason
 current operation. Item 5: a hint names a key that works where it is shown.
 """
 import re
+import time
 import unittest
 
 from plugin_tests import test_workbench_run19 as run19
 from plugin_tests.test_workflow_map import LayerFixture, OBJECT, typed
+
+
+def key(char):
+    return ('text', char)
 
 
 def key(char):
@@ -101,6 +106,61 @@ class LabelWithCommandPagingTests(run19.CatalogLayerCase):
 
     def test_at_60x20_no_page_ends_on_a_label_whose_command_starts_the_next(self):
         self.check_pages((60, 20))
+
+
+class ClosedWindowAttentionTests(LayerFixture):
+    """Journey 34 run 2 review A Low-1: with `OP expired` (the approval window closed) the Inspector said "No signal in
+    the areas checked (... operations ...)" while the map said `blocked | reason closed`. A closed window is an
+    operations signal; the rollup says so, with the step the map gives."""
+
+    def squash(self, rows):
+        return ' '.join(' '.join(self.plain(rows)).replace('│', ' ').split())
+
+    def close_window(self, how):
+        """Close the prepared operation's approval window as execute would judge it: the recorded latch, or the clock."""
+        import contextlib
+        from unittest import mock
+        from intune_iac import protected
+        if how == 'recorded':
+            (self.operation / 'executor' / 'expired.json').write_text('{}')
+            return contextlib.nullcontext()
+        return mock.patch.object(protected, '_now', return_value=time.time() + 10 ** 7)
+
+    def inspector_and_map(self, how):
+        from intune_iac import workbench
+        self.prepare()
+        with self.close_window(how):
+            ws, frames = self.run_keys(typed('select ' + OBJECT) + [key('q')], (120, 40), 'unicode')
+            projection = workbench._workflow(self.store, OBJECT, service_root=self.service.root)
+            read = workbench._workflow_read(self.store, OBJECT, service_root=self.service.root)
+        stage = next(item for item in projection['stages'] if item['id'] == 'approve_execute')
+        return self.squash(frames[len(typed('select ' + OBJECT))]), stage, read
+
+    def check(self, how, window):
+        text, stage, read = self.inspector_and_map(how)
+        self.assertEqual((stage['state'], stage['reason']), ('blocked', window), stage)
+        self.assertEqual(read['states']['operation']['approval_window'], window)
+        rollup = text[text.index('NEEDS ATTENTION'):text.index('WHAT THE EVIDENCE SAYS')]
+        self.assertNotIn('No signal in the areas checked', rollup)
+        self.assertIn('approval window closed', rollup)
+        # The step the map gives for that stage, word for word.
+        self.assertIn(' '.join(stage['continuation'].split()), rollup)
+        codes = [signal['code'] for signal in read['attention']['signals']]
+        self.assertIn('operation_approval_closed', codes)
+        signal = next(item for item in read['attention']['signals'] if item['code'] == 'operation_approval_closed')
+        self.assertEqual(signal['area'], 'operations')
+
+    def test_a_window_closed_by_the_clock_is_a_signal_in_the_rollup(self):
+        self.check('clock', 'closed')
+
+    def test_a_window_closed_and_recorded_is_a_signal_in_the_rollup(self):
+        self.check('recorded', 'closed_recorded')
+
+    def test_an_open_window_is_no_signal(self):
+        from intune_iac import workbench
+        self.prepare()
+        read = workbench._workflow_read(self.store, OBJECT, service_root=self.service.root)
+        self.assertNotIn('operation_approval_closed', [signal['code'] for signal in read['attention']['signals']])
 
 
 if __name__ == '__main__':
