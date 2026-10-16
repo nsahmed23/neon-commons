@@ -88,12 +88,10 @@ def _judge(store,db,decide,apply):
     commits the raised mark (a closed window stays closed). A temporal refusal keeps its code even when the mark could not be
     written or committed (it then says closure_recorded=false); an admission whose time was not recorded is refused with
     worker_evidence_clock_unrecorded. Returns the pending refusal or None."""
-    recorded=True
+    recorded=True;mark=0
     try:
         db.execute('BEGIN IMMEDIATE')
         mark=_mark(db);now,wall=_reading(store,mark)
-        if now>mark:  # a held or unchanged read records nothing
-            db.execute('INSERT INTO metadata VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',(CLOCK,canonical({'high_water':now}).decode()))
     except BaseException as error:
         if isinstance(error,(KeyboardInterrupt,SystemExit)):raise
         recorded=False
@@ -101,12 +99,20 @@ def _judge(store,db,decide,apply):
         except BaseException as reading:
             if isinstance(reading,(KeyboardInterrupt,SystemExit)):raise
             now,wall=_reading(store,0)
-    pending=verified=None
+    # Decide, and apply the backward hold, BEFORE the mark is touched: a held admission records nothing, on every path.
+    pending=verified=None;held=False
     try:verified=decide(now)
     except AppError as error:pending=error
     if pending is None and _behind(now,wall):
+        held=True
         try:_hold()  # a refusal at the effective time (above) still wins; only an admission is held
         except AppError as error:pending=error
+    if recorded and not held and now>mark:  # a refusal records the effective time, so a closure stays durable
+        try:
+            db.execute('INSERT INTO metadata VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',(CLOCK,canonical({'high_water':now}).decode()))
+        except BaseException as error:
+            if isinstance(error,(KeyboardInterrupt,SystemExit)):raise
+            recorded=False
     if recorded and pending is None:
         try:apply(db,verified)
         except AppError as error:pending=error

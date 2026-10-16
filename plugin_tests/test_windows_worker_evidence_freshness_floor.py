@@ -380,6 +380,39 @@ class WindowsStoreReaderTests(Shape, unittest.TestCase):
         self.assertEqual(held.exception.code, 'worker_evidence_clock_moved_backward')
 
 
+    def slow_wall(self):
+        """A process anchored at wall T+100 whose monotonic clock then runs 70 s while the wall reads T+90 (effective T+170)."""
+        self.mono = [0.0]
+        patch.object(clock, 'monotonic', side_effect=lambda: self.mono[0]).start()
+        a = make_envelope(self.req, issued_at=T, expires_at=T + 500, read_at=T - 5)
+        self.put_and_ingest(self.req, a, T + 100)  # the mark is T+100 and the process anchor is taken at T+100
+        self.assertEqual(self.mark(), T + 100)
+        self.mono[0] = 70.0
+
+    def test_a_held_admission_never_raises_the_mark_on_any_path(self):
+        self.slow_wall()
+        d = make_request(self.policy, 'b' * 32)
+        for _ in range(2):
+            with self.assertRaises(AppError) as held:  # ingest: the write path (_judge)
+                self.put_and_ingest(d, make_envelope(d, issued_at=T, expires_at=T + 400, read_at=T - 5), T + 90)
+            self.assertEqual(held.exception.code, 'worker_evidence_clock_moved_backward')
+            with wall(T + 90), self.assertRaises(AppError) as reopened:  # reopen: the read path
+                self.read()
+            self.assertEqual(reopened.exception.code, 'worker_evidence_clock_moved_backward')
+            self.assertEqual(self.mark(), T + 100)
+        clock.reset_process_anchor()  # a restart
+        self.assertEqual(self.mark(), T + 100)
+
+    def test_a_fresh_process_admits_after_a_slow_wall_held_one(self):
+        self.slow_wall()
+        with wall(T + 110), self.assertRaises(AppError) as held:  # the wall passed the mark, but this process floor leads it
+            self.read()
+        self.assertEqual(held.exception.code, 'worker_evidence_clock_moved_backward')
+        clock.reset_process_anchor()  # a new process: a fresh anchor, and the held read never raised the mark
+        with wall(T + 110):
+            self.assertTrue(self.read()['baseline_admissible'])
+
+
 class QualificationScriptTests(unittest.TestCase):
     """The native harness judges current admissibility, so it must do so through a store, never a loose-file inspect."""
 
