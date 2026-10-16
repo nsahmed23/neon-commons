@@ -297,6 +297,10 @@ def catalog_route(directory, width):
 CATALOG_HELP_LINES = ('? help | : command | Esc close catalog | b back | q exit', '? help | Esc close | b back | q exit',
                       'Esc close | b back | q exit', 'Esc close | q exit')
 CATALOG_READ_ONLY = 'The catalog is read-only; Esc closes it.'
+CATALOG_SHOWN = 'Catalog shown (read-only). Esc closes it.'
+# A notice drawn in the longest form the window holds, so the key it names is never cut ("Esc closes…", "Esc...");
+# the notice the workspace holds stays the first form. The last form fits 40 columns.
+NOTICE_FORMS = {CATALOG_SHOWN: (CATALOG_SHOWN, 'Catalog (read-only). Esc closes it.', 'Read-only. Esc closes it.')}
 # The workflow layer (PKG-UXVIS-5): the keys it has, and none that prepares, refreshes, approves, executes or records.
 WORKFLOW_HELP_LINES = ('? help | : command | Up/Down stage | Enter open | Esc close | b back | q exit',
                        '? help | Up/Down stage | Enter open | Esc close | b back | q exit',
@@ -323,11 +327,19 @@ OPERATION_FROM_SIGNAL = {'operation_outcome_unknown': 'outcome_unknown', 'operat
                          'operation_approval_held': 'held'}
 
 
-def title_line(tab, last_command, value, layer='summary'):
-    """The surface, the view shown on it when that view is not the surface's own, and the evidence layer."""
+def title_line(tab, last_command, value, layer='summary', width=None):
+    """The surface, the view shown on it when that view is not the surface's own, and the evidence layer.
+
+    width: the window's. Where the whole title does not fit, the window would cut it at its edge and the layer word, the
+    last of it, would be lost ("Help / Catalog /" with no "read-only", journey 33 run 1 frame 65). The layer then keeps
+    its word in a shorter form: the view in front of it without the product's name, then without the surface."""
     name = last_command.split(' ', 1)[0] if isinstance(last_command, str) else ''
     sub = SUBVIEWS.get(name) if isinstance(value, dict) and value.get('status') != 'error' else None
-    return 'INTUNE WORKBENCH  /  ' + tab + ('  /  ' + sub if sub else '') + ('  /  ' + LAYERS[layer] if layer in LAYERS else '')
+    full = 'INTUNE WORKBENCH  /  ' + tab + ('  /  ' + sub if sub else '') + ('  /  ' + LAYERS[layer] if layer in LAYERS else '')
+    if width is None or layer not in LAYERS or cell_width(full) <= width:
+        return full
+    view = '%s (%s)' % (sub or tab, LAYERS[layer])
+    return next((form for form in ('INTUNE WORKBENCH  /  ' + view, view) if cell_width(form) <= width), full)
 
 
 def fit(value, width, ellipsis='...'):
@@ -959,7 +971,7 @@ class Workspace:
             if value.get('schema_version') == 'integration-catalog/1' and self.last_command.split(' ', 1)[0] == 'catalog':
                 # A layer over the Help surface: the same lines as `intune-iac catalog`, read-only; Esc returns to the view before.
                 self.layer = 'catalog'
-                self.notice = 'Catalog shown (read-only). Esc closes it.'
+                self.notice = CATALOG_SHOWN
             if value.get('schema_version') == 'workflow-map/1' and self.last_command.split(' ', 1)[0] == 'workflow':
                 # A layer over the Inspector: the selected policy's change path, read-only; Esc returns to the view before it.
                 self.layer = 'workflow'
@@ -1849,7 +1861,8 @@ class Workspace:
             return self._compose_constrained(width, height)
         inner = width - 2
         from .workbench_screens import hazard_rows, tab_line
-        header = title_line(TABS[self.tab], getattr(self, 'last_command', ''), self.value, getattr(self, 'layer', 'summary'))
+        header = title_line(TABS[self.tab], getattr(self, 'last_command', ''), self.value, getattr(self, 'layer', 'summary'),
+                            width)
         labels = tab_line(TABS, self.tab, width)
         # The primary hazard is chrome, not body: layers, scrolling and narrow windows never move it out of view.
         selected = getattr(self, 'selected', None)
@@ -1980,6 +1993,9 @@ class Workspace:
         A command longer than the bar keeps its verb in view and marks each cut with an ellipsis, so the command
         Enter will submit is always named (journey 27 review, Sonnet 1 and 9)."""
         if not self.mode:
+            forms = NOTICE_FORMS.get(self.notice)
+            if forms:
+                return next((form for form in forms if cell_width(form) <= width), fit(forms[-1], width, ellipsis))
             return fit(self.notice, width, ellipsis)
         prefix = '/' if self.mode == 'search' else ':'
         before, after = safe_text(self.buffer[:self.cursor]), safe_text(self.buffer[self.cursor:])

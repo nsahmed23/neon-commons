@@ -5,6 +5,7 @@ workflow map's tests do (LayerFixture): after `:views` (Coverage) every move to 
 Items 2 to 5 are the catalog layer at the smaller windows of journey 33 run 1 (frame review B, findings 1 to 4).
 """
 import copy
+import re
 import tempfile
 import unittest
 from unittest import mock
@@ -352,6 +353,61 @@ class IdentifierWrapTests(CatalogLayerCase):
         for row in rows:
             self.assertNotRegex(row, r'^-[0-9a-f]{4}-', 'a row that continues a GUID cut inside its groups')
             self.assertNotRegex(row, r'[0-9a-f]{8}-[0-9a-f]{4}-4222$', 'a row that ends inside a GUID')
+
+
+class NarrowChromeTests(CatalogLayerCase):
+    """Item 4 (journey 33 run 1, review B finding 3): at 40x12 the title lost "read-only" and ended in a slash, and the
+    notice row ended in "Esc closes…" or "Esc...". Where the full form does not fit, a shorter one that keeps those
+    words whole is drawn; where it fits, nothing changes."""
+
+    def rows(self, size, rules='ascii'):
+        return [row.rstrip() for row in catalog_layer.rows_of(self.layer(size, rules=rules))]
+
+    def notice_row(self, rows):
+        """The row under the status row (`rows A-B/N`), where the notice is."""
+        return rows[next(index for index, row in enumerate(rows) if re.search(r'rows \d+-\d+/\d+', row)) + 1]
+
+    def test_at_40x12_the_title_keeps_read_only_whole_in_both_rules(self):
+        for rules in ('ascii', 'unicode'):
+            rows = self.rows((40, 12), rules)
+            self.assertEqual(rows[0], 'INTUNE WORKBENCH  /  Catalog (read-only)', rules)
+            self.assertLessEqual(len(rows[0]), 40)
+
+    def test_at_40x12_the_notice_row_keeps_esc_closes_it_whole_in_both_rules(self):
+        for rules in ('ascii', 'unicode'):
+            self.assertEqual(self.notice_row(self.rows((40, 12), rules)), 'Catalog (read-only). Esc closes it.', rules)
+
+    def test_at_40x12_the_key_row_keeps_esc_whole(self):
+        rows = self.rows((40, 12))
+        self.assertEqual(rows[-1], '? help | Esc close | b back | q exit')
+
+    def test_where_the_full_forms_fit_they_are_unchanged(self):
+        for size in ((60, 20), (80, 24)):
+            rows = self.rows(size)
+            self.assertEqual(rows[0], 'INTUNE WORKBENCH  /  Help  /  Catalog  /  read-only', size)
+            self.assertEqual(self.notice_row(rows), 'Catalog shown (read-only). Esc closes it.', size)
+
+    def test_the_notice_the_layer_holds_is_not_changed_by_a_narrow_window(self):
+        ws = self.layer((40, 12))
+        self.assertEqual(ws.notice, 'Catalog shown (read-only). Esc closes it.')   # the form is chosen when it is drawn
+        ws._terminal_size = lambda: (80, 24)
+        ws.size = (80, 24)
+        self.assertEqual(self.notice_row([row.rstrip() for row in catalog_layer.rows_of(ws)]),
+                         'Catalog shown (read-only). Esc closes it.')
+
+    def test_title_line_names_the_layer_in_the_longest_form_the_width_holds(self):
+        from intune_iac.workbench_tui import title_line
+        shown = {'schema_version': 'integration-catalog/1'}
+        self.assertEqual(title_line('Help', 'catalog', shown, 'catalog'), 'INTUNE WORKBENCH  /  Help  /  Catalog  /  read-only')
+        self.assertEqual(title_line('Help', 'catalog', shown, 'catalog', 51), 'INTUNE WORKBENCH  /  Help  /  Catalog  /  read-only')
+        self.assertEqual(title_line('Help', 'catalog', shown, 'catalog', 50), 'INTUNE WORKBENCH  /  Catalog (read-only)')
+        self.assertEqual(title_line('Help', 'catalog', shown, 'catalog', 40), 'INTUNE WORKBENCH  /  Catalog (read-only)')
+        self.assertEqual(title_line('Help', 'catalog', shown, 'catalog', 39), 'Catalog (read-only)')
+        self.assertEqual(title_line('Inspector', 'inspect', {'object_id': OBJECT}, 'details', 40), 'Inspector (typed details)')
+        # No layer, or no width: the title is what it always was.
+        self.assertEqual(title_line('Inspector', 'inspect', {'object_id': OBJECT}, 'summary', 20), 'INTUNE WORKBENCH  /  Inspector')
+        self.assertEqual(title_line('Inspector', 'inspect', {'object_id': OBJECT}, 'details'),
+                         'INTUNE WORKBENCH  /  Inspector  /  typed details')
 
 
 if __name__ == '__main__':
