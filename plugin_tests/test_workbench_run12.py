@@ -179,7 +179,7 @@ class LegendMeaningTests(unittest.TestCase):
         'outcome_unknown': 'unknown = the change may have reached the service; reconcile it (a)',
         'recorded_intent_not_revalidated': 'not revalidated = shown from the recorded intent; repository not re-read',
         'desired_state_observed': 'observed = a readback found the service already holds the desired state',
-        'age unknown': "age? = the observation's age cannot be judged; collect again (a)",
+        'age unknown': "age? = the observation's age is not known; 2 Inspector says why",
         'stale (later collection incomplete)': 'stale = a later collection did not finish; collect again (a)'}
 
     def test_each_row_carries_its_meaning(self):

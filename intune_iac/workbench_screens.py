@@ -133,8 +133,9 @@ STRIP_DEFINITIONS = {
     'outcome_unknown': 'unknown = the change may have reached the service; reconcile it (a)',
     'recorded_intent_not_revalidated': 'not revalidated = shown from the recorded intent; repository not re-read',
     'desired_state_observed': 'observed = a readback found the service already holds the desired state',
-    'age unknown': "age? = the observation's age cannot be judged; collect again (a)",
-    'age unknown (stamped ahead)': "age? = stamped ahead of this host's clock, age unknown; collect again (a)",
+    # Cause only: a clock hold or a stamp ahead is not cured by collecting (the band and Diagnostics say so; review 18).
+    'age unknown': "age? = the observation's age is not known; 2 Inspector says why",
+    'age unknown (stamped ahead)': "age? = stamped ahead of this host's clock; 2 Inspector says why",
     'stale (later collection incomplete)': 'stale = a later collection did not finish; collect again (a)'}
 
 

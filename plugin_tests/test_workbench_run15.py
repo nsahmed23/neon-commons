@@ -82,3 +82,32 @@ class ChangedBoundFileWordingTests(unittest.TestCase):
     def test_the_general_meaning_names_both_files_too(self):
         from intune_iac.workbench_screens import REFUSALS
         self.assertIn('(its desired file or its context file)', REFUSALS['maintenance_source_changed'][0])
+
+
+class AgeDefinitionStatesCauseOnlyTests(unittest.TestCase):
+    """Item 3 (review 18): a clock hold and a stamp ahead are not cured by collecting again (the band, Diagnostics and
+    the actions list all say so), so their definition rows state the cause and point at the Inspector."""
+    KEYS = ('age unknown', 'age unknown (stamped ahead)')
+
+    def test_the_rows_do_not_send_the_engineer_to_collect(self):
+        from intune_iac.workbench_screens import STRIP_DEFINITIONS
+        for key in self.KEYS:
+            row = STRIP_DEFINITIONS[key]
+            self.assertNotIn('collect', row, row)
+            self.assertNotIn('(a)', row, row)
+            self.assertIn('2 Inspector says why', row)
+            self.assertLessEqual(len(row), 80, row)
+
+    def test_the_rows_a_narrow_strip_prints_do_not_say_collect(self):
+        from intune_iac.workbench_screens import strip_choice, strip_key_rows
+        for observation in self.KEYS:
+            facts = {'observation': observation, 'name': 'A policy', 'repository': 'not checked'}
+            definitions = strip_choice('t' * 8, 'p' * 8, facts, 80, None)[1]
+            self.assertTrue(definitions, observation)
+            rows = strip_key_rows(definitions, 80)
+            self.assertTrue(any('age?' in row for row in rows), rows)
+            self.assertNotIn('collect', ' '.join(rows))
+
+    def test_the_collect_cured_stale_row_still_says_collect(self):
+        from intune_iac.workbench_screens import STRIP_DEFINITIONS
+        self.assertIn('collect again (a)', STRIP_DEFINITIONS['stale (later collection incomplete)'])
