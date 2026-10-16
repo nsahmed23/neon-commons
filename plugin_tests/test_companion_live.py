@@ -53,8 +53,9 @@ class UnclosableSocket:
 class InterruptibleSocket:
     """A listening socket whose shutdown() and/or close() raise `error` (an interrupt); the rest is the real socket's.
     close_works=True makes close() really close it, so the port refuses afterwards."""
-    def __init__(self, real, error=KeyboardInterrupt, on_shutdown=False, on_close=False):
+    def __init__(self, real, error=KeyboardInterrupt, on_shutdown=False, on_close=False, close_error=None):
         self._real, self._error, self._on_shutdown, self._on_close = real, error, on_shutdown, on_close
+        self._close_error = close_error
 
     def shutdown(self, how):
         if self._on_shutdown:
@@ -64,6 +65,8 @@ class InterruptibleSocket:
         return self._real.shutdown(how)
 
     def close(self):
+        if self._close_error is not None:
+            raise self._close_error('ordinary close failure')
         if self._on_close:
             raise self._error('interrupted in close')
         return self._real.close()
@@ -1196,8 +1199,9 @@ class StopTests(Fixture):
         real_socket = live.server.socket
         live.server.socket = InterruptibleSocket(real_socket, **how)
         self.addCleanup(lambda: setattr(live.server, 'socket', real_socket))
-        first, _ = self.run_in_thread(live.stop)
+        self.wedged_first = self.run_in_thread(live.stop)
         self.assertTrue(entered.wait(5))
+        self.wedged_release = release
         with mock.patch.object(companion_live, 'STOP_WAIT_SECONDS', 0.2):
             live._stop_in_background()
         return live
@@ -1288,6 +1292,29 @@ class StopTests(Fixture):
             self.assertFalse(self.port_accepts(live))
             self.assertIsInstance(live.close_note, PermissionError, 'the failure of the forced close is not discarded')
             self.assertEqual(live.wait_step(), 'stopped')
+
+    def test_an_interrupted_background_follower_leaves_a_settled_retryable_state(self):
+        from intune_iac.io import AppError
+        live = self.background_follower_interrupted(on_shutdown=True)
+        self.assertEqual(live._state, 'close_failed', 'the interrupted follower left the listener stuck in stopping')
+        self.wedged_release.set()
+        original, original_outcome = self.wedged_first
+        original.join(5)                      # the original stopper finishes late; it must not overwrite the takeover
+        self.assertEqual(live._state, 'close_failed')
+        # It is a caller too, so it was the next to claim the queued interrupt.
+        self.assertEqual([kind for kind, _ in original_outcome], ['raised'])
+        self.assertIsInstance(original_outcome[0][1].__cause__, KeyboardInterrupt)
+        live.stop()                           # retries at once
+        self.assertTrue(live.is_closed)
+        self.assertEqual(live.wait_step(), 'stopped')
+
+    def test_a_wake_up_interrupt_stays_primary_when_the_close_also_fails(self):
+        from intune_iac.io import AppError
+        live = self.background_follower_interrupted(on_shutdown=True, close_error=PermissionError)
+        with self.assertRaises(AppError) as caught:
+            live.wait_step()
+        self.assertIsInstance(caught.exception.__cause__, KeyboardInterrupt, 'the interrupt, not the close failure')
+        self.assertIn('PermissionError', ' '.join(getattr(caught.exception.__cause__, '__notes__', [])))
 
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)

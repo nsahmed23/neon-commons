@@ -362,8 +362,12 @@ class LiveCompanion:
         try:
             sock.close()
         except BaseException as error:
-            # An interrupt too: the caller decides, so that no earlier error is lost with it.
+            # An interrupt too: the caller decides, so that no earlier error is lost with it. An interrupt from the wake-up
+            # stays the primary failure over an ordinary close failure, which is named on it by class.
             if interrupted is not None:
+                if isinstance(error, Exception):
+                    interrupted.add_note('The close also failed: %s' % type(error).__name__)
+                    return interrupted
                 error.add_note('The wake-up shutdown was also interrupted: %s' % type(interrupted).__name__)
             return error
         return interrupted
@@ -547,9 +551,7 @@ class LiveCompanion:
         # attempt takes over the state, so a stopper that finishes later cannot overwrite it; the next stop() retries.
         forced = self._raw_close(wake=True)
         if forced is not None and not isinstance(forced, Exception):
-            if background:
-                with self._lock:
-                    self._undelivered.append(forced)     # nobody receives what is raised here
+            self._take_over(generation, forced, background)      # settled and retryable before the interrupt propagates
             raise forced
         if self._listener_closed():
             message = 'The listener is still being stopped by another caller; its port is closed.'
@@ -558,6 +560,12 @@ class LiveCompanion:
                        % (type(forced).__name__ if forced is not None else 'the socket stayed open'))
         failure = AppError('companion_live_stop_timeout', message)
         failure.__cause__ = forced
+        self._take_over(generation, failure, background)
+        raise failure
+
+    def _take_over(self, generation, failure, background):
+        """A follower that gave up on the stopper takes the state over: queued once if nobody is there to receive it, the
+        generation moves on so the stopper's late finish cannot overwrite this, and the next stop() retries at once."""
         with self._changed:
             if background:
                 self._undelivered.append(failure)
@@ -565,7 +573,6 @@ class LiveCompanion:
                 self._generation += 1
                 self._state, self._close_error, self._consumed = 'close_failed', failure, False
                 self._changed.notify_all()
-        raise failure
 
     def __enter__(self):
         return self.start()
