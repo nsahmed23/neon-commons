@@ -433,3 +433,38 @@ class ReducedBandNamesTheOperationTests(unittest.TestCase):
 
     def test_without_an_operation_id_the_band_is_unchanged(self):
         self.assertEqual(self.band(60, evidence={})[0], '! Outcome unknown. Reconcile, never replays (a: actions)')
+
+
+class RunningStripTests(unittest.TestCase):
+    """Item 8, L-running (frame 32): while execute runs, the strip shows the operation as executing, not prepared (the
+    status line already says executing); a read-only reconcile shows reconciling; nothing else changes the strip."""
+    workspace = states_tests.StateSurfaceTests.workspace
+
+    def strip(self, notice, command, width=140, operation='prepared'):
+        ws = self.workspace(5, {})
+        ws.facts = dict(ws.facts, name='Windows Privacy Pilot', operation=operation, repository='current', observation='fresh')
+        ws.notice, ws.last_command = notice, command
+        return ws._context_strip(width)
+
+    def test_an_executing_operation_is_shown_as_executing(self):
+        strip = self.strip('RUNNING: executing operation c0e84704; its outcome is not yet known.', "execute '/w/op' " + 'a' * 64)
+        self.assertTrue(strip.endswith('OP executing'), strip)
+        self.assertNotIn('prepared', strip)
+
+    def test_a_reconcile_shows_reconciling(self):
+        strip = self.strip('RUNNING: reconciling operation c0e84704 (a read; it never replays the change).', "reconcile '/w/op'")
+        self.assertTrue(strip.endswith('OP reconciling'), strip)
+
+    def test_otherwise_the_strip_keeps_the_recorded_state(self):
+        self.assertTrue(self.strip('', 'collect').endswith('OP prepared'))
+        self.assertTrue(self.strip('RUNNING: collecting from the service; the new observation is not yet recorded.',
+                                   'collect').endswith('OP prepared'))
+
+    def test_executing_is_a_hazard_the_strip_keeps_after_routine_states(self):
+        running = 'RUNNING: executing operation c0e84704; its outcome is not yet known.'
+        command = "execute '/w/op' " + 'a' * 64
+        for width in (100, 120, 140):
+            self.assertIn('OP executing', self.strip(running, command, width), width)
+        from intune_iac.workbench_screens import HAZARD_STATES
+        self.assertIn('executing', HAZARD_STATES['OPERATION'])
+        self.assertNotIn('reconciling', HAZARD_STATES['OPERATION'])  # a read; it never replays the change

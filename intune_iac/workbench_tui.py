@@ -1029,7 +1029,21 @@ class Workspace:
         """The strip's text and the definitions of the abbreviated width forms it shows."""
         from .workbench_screens import strip_choice
         facts = self.facts if self.selected and self.facts.get('object_id') == self.selected else {}
+        running = self._running_operation_state()
+        if facts and running:
+            # While execute or reconcile runs the recorded state is still the one before it; the strip says what runs.
+            facts = dict(facts, operation=running)
         return strip_choice(self.store.tenant_id, self.selected, facts, width, getattr(self, 'mode_class', None))
+
+    def _running_operation_state(self):
+        """`executing` or `reconciling` while that command runs (the RUNNING line is up), else None (run 12, frame 32)."""
+        if not str(getattr(self, 'notice', '')).startswith('RUNNING:'):
+            return None
+        try:
+            verb = shlex.split(getattr(self, 'last_command', '') or '')[0]
+        except (ValueError, IndexError):
+            return None
+        return {'execute': 'executing', 'reconcile': 'reconciling'}.get(verb)
 
     def _strip_key_rows(self, width):
         """The rows that define the strip's abbreviated forms, or [] where there are none or the screen's own pinned

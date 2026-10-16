@@ -100,7 +100,8 @@ def _strip_severity(state):
 HAZARD_STATES = {'OBSERVED': {'stale', 'age unknown', 'age unknown (stamped ahead)', 'stale (later collection incomplete)',
                               'source changed', 'policy changed', 'other source', 'other tenant'},
                  'REPOSITORY': {'stale', 'unavailable', 'consumer mismatch', 'needs attention'},
-                 'OPERATION': {'outcome_unknown', 'diverged', 'records disagree', 'unreadable', 'held'}}
+                 # executing: the strip's word while execute runs, when its outcome is not yet known (run 12, frame 32)
+                 'OPERATION': {'outcome_unknown', 'diverged', 'records disagree', 'unreadable', 'held', 'executing'}}
 
 
 def _newest_operation_id(facts):
