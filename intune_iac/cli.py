@@ -67,7 +67,10 @@ def _parser_message(message):
 # harmless, so an emoji sequence joined with U+200D, a soft hyphen (U+00AD), Arabic number signs (U+0600 to U+0605) and a Persian
 # text with U+200C show their escapes instead of the joined glyph. Unassigned points (Cn), private use (Co), spaces (Zs) and
 # combining marks (M) are left alone.
-_TEXT_GUARDED_CATEGORIES=frozenset(('Cc','Cf','Zl','Zp'))
+# Cs (surrogates) is guarded too: a file name holding the raw byte 0x9B reaches Python as the lone surrogate U+DC9B (surrogateescape),
+# and a stream that escapes surrogates on output would write the byte, a C1 CSI, back. Each is shown as \uXXXX. Surrogates are not
+# text, so this costs nothing legitimate.
+_TEXT_GUARDED_CATEGORIES=frozenset(('Cc','Cf','Cs','Zl','Zp'))
 _TEXT_NAMED={'\n':'\\n','\r':'\\r','\t':'\\t'}
 
 

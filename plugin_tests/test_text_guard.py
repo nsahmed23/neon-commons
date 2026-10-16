@@ -35,15 +35,14 @@ HOSTILE = ''.join(chr(n) for n in (0x1b,)) + '[31m' + 'a' + chr(13) + 'b' + chr(
     chr(0x2060) + chr(0x2064) + chr(0x206b) + chr(0xad) + chr(0xe0001) + 'z'
 # A file or directory name cannot hold a slash; this one holds every other character of the hostile value.
 CLEAN = 'plain-value'
-GUARDED_CATEGORIES = frozenset(('Cc', 'Cf', 'Zl', 'Zp'))
+GUARDED_CATEGORIES = frozenset(('Cc', 'Cf', 'Cs', 'Zl', 'Zp'))
 
 
 def _forbidden_pattern():
     """A character class of every code point whose category is guarded, except the row-separating LF, built from the table."""
     ranges, start = [], None
     for number in range(0x110001):
-        hit = (number < 0x110000 and number != 10 and not 0xd800 <= number <= 0xdfff
-               and unicodedata.category(chr(number)) in GUARDED_CATEGORIES)
+        hit = number < 0x110000 and number != 10 and unicodedata.category(chr(number)) in GUARDED_CATEGORIES
         if hit and start is None:
             start = number
         elif not hit and start is not None:
@@ -312,6 +311,33 @@ class PortabilityTests(unittest.TestCase):
         self.assertEqual(next(fixture.work.glob('note-*.txt')).read_bytes(), HOSTILE.encode('utf-8'))
         self.assertTrue(fixture.work.name.isprintable())
 
+    @unittest.skipUnless(os.name == 'posix', 'a name of raw bytes needs a POSIX filesystem')
+    def test_a_raw_0x9b_in_a_file_or_directory_name_never_puts_a_c1_byte_or_a_lone_surrogate_on_stdout(self):
+        raw = os.fsencode(self.base) + b'/work' + bytes([0x9b]) + b'dir'
+        os.mkdir(raw)
+        with open(raw + b'/p' + bytes([0x9b]) + b'31mINJECTED.json', 'wb') as handle:
+            handle.write(b'{}')
+        os.mkdir(raw + b'/d' + bytes([0x9b]) + b'31m')
+        env = dict(os.environ, PYTHONIOENCODING='utf-8:surrogateescape', PYTHONDONTWRITEBYTECODE='1', COLUMNS='100')
+        # The product's own screens hide a directory or file name they cannot show (the operand becomes DIRECTORY), so no real
+        # renderer prints one. This is the case the guard is for: a renderer that forgot. A real process lists the real directory
+        # (names come back as lone surrogates) and a catalog renderer that prints them raw runs through cli.main.
+        program = ('import os, sys\n'
+                   'sys.path.insert(0, %r)\n'
+                   'from unittest import mock\n'
+                   'from intune_iac import cli\n'
+                   'names = [n for n in os.listdir(sys.argv[1])] + [n for n in os.listdir(os.path.join(sys.argv[1], sys.argv[2]))]\n'
+                   'with mock.patch("intune_iac.catalog.catalog_lines", return_value=["name " + n for n in names]), \\\n'
+                   '        mock.patch.object(cli, "execute", return_value={}):\n'
+                   '    raise SystemExit(cli.main(["catalog", sys.argv[1]]))\n') % str(ROOT)
+        top, inner = os.path.dirname(raw), os.path.basename(raw)
+        done = subprocess.run([sys.executable, '-B', '-c', program, top, inner], capture_output=True, cwd=str(self.base), env=env)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual(forbidden_in(done.stdout), [])
+        self.assertEqual(forbidden_in(done.stderr), [])
+        self.assertNotIn(b'\x9b', done.stdout)
+        self.assertGreaterEqual(done.stdout.count(b'\\udc9b'), 3, done.stdout)  # the work dir, the file and the directory
+
     def test_rows_are_joined_by_one_lf_and_never_by_the_platform_newline(self):
         self.assertEqual(cli.text_guard_rows(['a', 'b' + chr(13) + chr(10) + 'c', 'd']), 'a\nb\\r\\nc\nd')
         self.assertNotIn('\r', cli.text_guard_rows(['a', 'b' + chr(13), 'c']))
@@ -462,12 +488,10 @@ class TextGuardSweepTests(unittest.TestCase):
 
 
 class GuardUnitTests(unittest.TestCase):
-    def test_every_code_point_is_changed_if_and_only_if_its_category_is_cc_cf_zl_or_zp(self):
+    def test_every_code_point_is_changed_if_and_only_if_its_category_is_cc_cf_cs_zl_or_zp(self):
         from intune_iac.workbench_tui import safe_text
         wrong, covered, changed = [], 0, 0
         for number in range(0x110000):
-            if 0xd800 <= number <= 0xdfff:
-                continue
             char, covered = chr(number), covered + 1
             shown = cli.text_guard(char)
             guarded = unicodedata.category(char) in GUARDED_CATEGORIES
@@ -475,11 +499,16 @@ class GuardUnitTests(unittest.TestCase):
             if (shown != char) != guarded or (guarded and shown != safe_text(char)):
                 wrong.append(hex(number))
         self.assertEqual(wrong[:20], [])
-        self.assertEqual(covered, 0x110000 - 0x800)
+        self.assertEqual(covered, 0x110000)  # every code point, surrogates included
         self.assertGreater(changed, 100)
 
+    def test_a_surrogate_is_escaped_so_a_surrogateescape_stream_cannot_restore_a_raw_byte(self):
+        self.assertEqual(cli.text_guard('x' + chr(0xdc9b) + '31m'), 'x\\udc9b31m')
+        self.assertEqual(cli.text_guard(chr(0xd800) + chr(0xdfff)), '\\ud800\\udfff')
+        self.assertEqual(cli.text_guard('a' + chr(0xdc9b)).encode('utf-8'), b'a\\udc9b')  # strict UTF-8 encodes it: no lone surrogate left
+
     def test_the_forbidden_pattern_matches_exactly_the_guarded_categories_except_the_row_newline(self):
-        sample = [chr(n) for n in range(0x110000) if not 0xd800 <= n <= 0xdfff]
+        sample = [chr(n) for n in range(0x110000)]
         matched = {ch for ch in sample if FORBIDDEN.match(ch)}
         expected = {ch for ch in sample if unicodedata.category(ch) in GUARDED_CATEGORIES and ch != '\n'}
         self.assertEqual(len(matched ^ expected), 0)
