@@ -368,6 +368,30 @@ class ServiceAndObservationTests(unittest.TestCase):
             node = nodes_of(project(read))['observation']
             self.assertEqual((node['state'], node['reason']), ('unknown', hold))
 
+    def test_the_observation_basis_names_every_input_its_state_reads(self):
+        field = nodes_of(project(baseline()))['observation']['basis']['field']
+        names = [part.strip() for part in field.split(',')]
+        for read_input in ('freshness', 'freshness_reasons', 'coverage', 'run_id', 'eligibility.reason', 'eligibility.code'):
+            self.assertIn(read_input, names)
+
+    def test_a_proposal_check_that_could_not_be_made_does_not_leave_a_fresh_complete_observation_recorded(self):
+        # The workflow map holds this case unknown (workflow_projection.py:113); the check's own code is the reason.
+        read = baseline()
+        read['eligibility'] = {'code': 'service_unavailable', 'reason': None, 'message': 'The service cannot be read.'}
+        node = nodes_of(project(read))['observation']
+        self.assertEqual((node['state'], node['reason']), ('unknown', 'service_unavailable'))
+
+    def test_a_check_that_passed_or_was_never_made_leaves_a_fresh_complete_observation_recorded(self):
+        for check in (None, {}):
+            read = baseline()
+            read['eligibility'] = check
+            self.assertEqual(nodes_of(project(read))['observation']['state'], 'recorded', check)
+
+    def test_the_observation_edge_follows_the_observation_when_the_check_could_not_be_made(self):
+        read = baseline()
+        read['eligibility'] = {'code': 'service_unavailable', 'reason': None}
+        self.assertEqual(edges_of(project(read))['observes:service>observation']['state'], 'unknown')
+
     def test_the_identity_is_the_recorded_run_and_time(self):
         node = nodes_of(project(baseline()))['observation']
         self.assertEqual(node['identity'], {'run_id': 4, 'observed_at': '2026-10-14T19:55:52.390326Z'})

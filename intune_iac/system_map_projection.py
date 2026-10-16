@@ -188,8 +188,11 @@ def _provider(pinned, unread):
 
 # ---- the service, observation and readback nodes ----------------------------------------------------------------------
 
-def _observation_state(observation):
-    """(state, reason) of the latest collection: fresh only when its age, its source and its coverage all agree."""
+def _observation_state(observation, check=None):
+    """(state, reason) of the latest collection: fresh only when its age, its source and its coverage all agree.
+
+    check: the proposal's own observation check as the read model reports it. One that raised is a code with no reason and
+    means the check could not be made, so whether the source moved on is not known (as workflow_projection._observe holds it)."""
     from .workbench_diagnostics import clock_hold
     if not observation:
         return 'unknown', 'no_observation'
@@ -205,6 +208,9 @@ def _observation_state(observation):
     if freshness == 'fresh' and eligibility:
         # Fresh by age and no longer current with its source: stale, with the reason the proposal check recorded.
         return 'stale', eligibility
+    unmade = _text(_dict(check).get('code')) if freshness == 'fresh' and not _text(_dict(check).get('reason')) else None
+    if unmade:
+        return 'unknown', unmade
     if freshness != 'fresh':
         return 'unknown', _text(freshness) or 'freshness_not_recorded'
     if observation.get('coverage') != 'complete':
@@ -212,12 +218,15 @@ def _observation_state(observation):
     return 'recorded', None
 
 
-def _observation(observation):
-    state, reason = _observation_state(observation)
+OBSERVATION_BASIS = 'freshness, freshness_reasons, eligibility.reason, eligibility.code, coverage, run_id'
+
+
+def _observation(observation, check=None):
+    state, reason = _observation_state(observation, check)
     run_id = observation.get('run_id') if observation else None
     identity = {'run_id': run_id, 'observed_at': observation.get('observed_at') if observation else None}
     facts = {'coverage': observation.get('coverage'), 'freshness': observation.get('freshness')} if observation else {}
-    return _node('observation', state, identity, _basis(RECORD_OBSERVATION, 'freshness, coverage, run_id',
+    return _node('observation', state, identity, _basis(RECORD_OBSERVATION, OBSERVATION_BASIS,
                                                         None if run_id is None else str(run_id)),
                  reason, facts, OPENS['observation'])
 
@@ -370,7 +379,7 @@ def project(read):
              'atmos.component': _atmos(status, scope, intent, pinned),
              'tofu.engine': _engine(pinned, unread), 'tofu.backend': _backend(status, scope, intent),
              'provider': _provider(pinned, unread), 'service': _service(observation, read, label),
-             'readback': _readback(operation, delivery), 'observation': _observation(observation)}
+             'readback': _readback(operation, delivery), 'observation': _observation(observation, read.get('eligibility'))}
     nodes = [built[identifier] for identifier in NODE_IDS]
     edges = _edges(read, nodes, status, scope, intent, operation, delivery)
     body = {'schema_version': SCHEMA, 'object_id': object_id, 'tenant_id': read.get('tenant_id'),
