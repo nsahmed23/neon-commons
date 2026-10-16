@@ -82,7 +82,7 @@ def opaque(text):
 CHILD_ERROR_CODES = frozenset({
     'capture_identity_invalid', 'capture_output_unsafe', 'capture_output_conflict', 'capture_platform_unavailable',
     'capture_limit_invalid', 'capture_provenance_invalid', 'capture_token_env_invalid', 'capture_token_missing',
-    'capture_token_invalid', 'capture_transport_invalid', 'capture_write_failed', 'output_conflict',
+    'capture_token_invalid', 'capture_token_expired', 'capture_token_wrong_tenant', 'capture_transport_invalid', 'capture_write_failed', 'output_conflict',
     'identity_explicit_credential_fd_required', 'identity_credential_fd_type', 'identity_credential_fd_private',
     'identity_credential_fd_limit', 'identity_credential_fd_read_only', 'identity_credential_fd_deadline',
     'identity_credential_invalid', 'identity_credential_fd_not_pending', 'identity_credential_control_character',

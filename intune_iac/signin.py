@@ -39,6 +39,7 @@ import sys
 import time
 
 from . import signin_facts
+from .signin_facts import TENANT_PLACEHOLDER
 from .io import AppError
 
 OUTPUT_LIMIT = 256 * 1024
@@ -508,7 +509,7 @@ def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, col
     rerun = 'intune-iac signin collect --tenant %s --policy %s --output NEW_DIR (a folder that does not exist yet)%s' % (
         tenant, policy, ' --account NAME (the account you named)' if account is not None else '')
     return _collector_result(code, out, err, watch, output,
-                             lambda child_exit, exact: _withheld(child_exit, output, existed, rerun, exact))
+                             lambda child_exit, exact: _withheld(child_exit, output, existed, rerun, exact), rerun, tenant)
 
 
 def _observe(output):
@@ -545,30 +546,53 @@ def _withheld(code, output, before, rerun, exact):
                                                        if exact else '')}
 
 
-def _collector_result(code, out, err, watch, output, withheld):
+def _invalid(code):
+    return {'status': 'failed', 'error_code': 'collector_output_invalid', 'collector_started': True, 'child_exit': code}
+
+
+def _partial_next_step(output, rerun, tenant, shown):
+    """What to do after a partial capture: the folder the run wrote is named (never opened or removed here), then the cause."""
+    cause = ''
+    problem = shown.get('credential_problem')
+    if problem in _CREDENTIAL_CODES:
+        cause = ('The service said the token %s; sign in again: az login --tenant %s; then ' % (
+            'belongs to a different tenant' if problem == 'token_wrong_tenant' else 'has expired', tenant))
+    elif any(item['coverage'] == 'access_denied' for item in shown['coverage']):
+        cause = ('The service denied the read; ask your administrator whether the signed-in account may read these Intune objects; '
+                 'then ')
+    return ('The run wrote the output folder %s (what was captured before it stopped); this command did not open or remove it, '
+            'and a new run cannot reuse it. %sTo collect again, run: %s.' % (output, cause, rerun))
+
+
+def _collector_result(code, out, err, watch, output, withheld, rerun='', tenant=TENANT_PLACEHOLDER):
+    """The collecting command's result. Its documented exits are 0 (captured) and 2 (partial); anything else is a failure."""
     text_out, text_err = out.decode('utf-8', 'replace'), err.decode('utf-8', 'replace')
     if watch.hit(text_out) or watch.hit(text_err):
         return withheld(code, watch.full_match(text_out) or watch.full_match(text_err))
-    if code != 0:
+    if code not in (0, 2):
         return {'status': 'failed', 'error_code': _error_code(text_err), 'collector_started': True, 'child_exit': code}
     try:
         value = json.loads(text_out)
     except (ValueError, RecursionError):
-        return {'status': 'failed', 'error_code': 'collector_output_invalid', 'collector_started': True, 'child_exit': 0}
+        return _invalid(code)
     found = []
     if not _strings(value, found):
-        return {'status': 'failed', 'error_code': 'collector_output_invalid', 'collector_started': True, 'child_exit': 0}
+        return _invalid(code)
     # Decoded strings (JSON escapes undone), one by one and joined, so a token split over fields is still recognised.
     if watch.hit(''.join(found)) or any(watch.hit(item) for item in found):
         # Fragments only found in the concatenation never count as the whole token: only one decoded string can.
-        return withheld(0, any(watch.full_match(item) for item in found))
+        return withheld(code, any(watch.full_match(item) for item in found))
     for key, item in (value.items() if isinstance(value, dict) else ()):
         if key not in _PATH_FIELDS and isinstance(item, str) and _TOKEN_SHAPE.fullmatch(item):
-            return withheld(0, False)  # shaped like a credential; not shown to be the delivered token
+            return withheld(code, False)  # shaped like a credential; not shown to be the delivered token
     shown = collector_schema(value)
-    if shown is None:
-        return {'status': 'failed', 'error_code': 'collector_output_invalid', 'collector_started': True, 'child_exit': 0}
-    return {'status': 'collected', 'collector_started': True, 'child_exit': 0, 'result': dict(shown, output=output)}
+    # The status and the exit code must agree: exit 0 is captured, exit 2 is partial.
+    if shown is None or shown['status'] != ('captured' if code == 0 else 'partial'):
+        return _invalid(code)
+    if code == 0:
+        return {'status': 'collected', 'collector_started': True, 'child_exit': 0, 'result': dict(shown, output=output)}
+    return {'status': 'partial', 'collector_started': True, 'child_exit': 2, 'result': dict(shown, output=output),
+            'next_step': _partial_next_step(output, rerun, tenant, shown)}
 
 
 def _error_code(text):

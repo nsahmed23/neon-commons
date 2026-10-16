@@ -831,6 +831,8 @@ plugin_tests/fixtures/pre_pin_migration/session/session.json
 plugin_tests/fixtures/pre_pin_migration/session/session.json.repository-context.7afc87cf3f7641e8bafde059edb3b335.json
 plugin_tests/fixtures/worker_service_tls_client.c
 plugin_tests/orchestration_fixtures.py
+plugin_tests/signin_5b_common.py
+plugin_tests/signin_capture_launcher.py
 plugin_tests/signin_collector.py
 plugin_tests/signin_fakes.py
 plugin_tests/signing_fixture.py
@@ -957,6 +959,7 @@ plugin_tests/test_signin_fix1.py
 plugin_tests/test_signin_fix2.py
 plugin_tests/test_signin_fix4.py
 plugin_tests/test_signin_fix5a.py
+plugin_tests/test_signin_5b_partial.py
 plugin_tests/test_signin_not_permission.py
 plugin_tests/test_signin_output.py
 plugin_tests/test_signin_tenant.py
