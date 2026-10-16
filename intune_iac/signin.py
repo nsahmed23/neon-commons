@@ -259,7 +259,8 @@ def status_report(tenant=None, account=None, providers='azure', deadline=DEFAULT
         status = 'reported'
     else:
         status = 'blocked'
-    return {'status': status, 'tenant': tenant, 'account': account, **verdicts,
+    # The account argument is compared, never echoed: only whether one was given is reported.
+    return {'status': status, 'tenant': tenant, 'account_given': account is not None, **verdicts,
             'access': {'graph': 'unknown', 'intune': 'unknown', 'state_storage': 'unknown'},
             'note': 'A signed-in account does not establish Graph, Intune or state-storage access; those stay unknown until a '
                     'read actually succeeds.',

@@ -953,6 +953,7 @@ plugin_tests/test_signin_detect.py
 plugin_tests/test_signin_expired.py
 plugin_tests/test_signin_fix1.py
 plugin_tests/test_signin_fix2.py
+plugin_tests/test_signin_fix4.py
 plugin_tests/test_signin_not_permission.py
 plugin_tests/test_signin_tenant.py
 plugin_tests/test_security_audit_completion.py

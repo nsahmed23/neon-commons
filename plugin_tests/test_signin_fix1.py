@@ -228,14 +228,17 @@ class DisplayFilterTests(Base):  # decision 4
             blob = json.dumps(facts) + json.dumps(verdict)
             self.assertNotIn('BBBBBBBBBB', blob, field_name)
             self.assertNotIn('AAAAAAAAAA', blob, field_name)
-            self.assertFalse(verdict['usable'], field_name)
+            # Round 4: a hidden account NAME no longer blocks reuse (display control only); a hidden CLOUD still does.
+            if field_name != 'account':
+                self.assertFalse(verdict['usable'], field_name)
 
-    def test_a_hidden_account_is_shown_as_not_shown_and_is_not_usable(self):
+    def test_a_hidden_account_is_shown_as_not_shown_and_is_still_usable(self):
+        # Changed in round 4: was "is not usable". Only an unbroken credential signature blocks (see test_signin_fix4).
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user=SEGMENTED)))
         facts = signin.detect_azure(deadline=5)
         self.assertEqual(facts['accounts'][0]['account'], signin_facts.NOT_SHOWN)
         self.assertEqual(signin_facts.NOT_SHOWN, '<not shown>')
-        self.assertFalse(signin_facts.evaluate(facts, TENANT_A)['usable'])
+        self.assertTrue(signin_facts.evaluate(facts, TENANT_A)['usable'])
 
     def test_segmented_github_host_and_login_are_hidden(self):
         hosts = {'hosts': {SEGMENTED: [{'state': 'success', 'active': True, 'host': SEGMENTED, 'login': SEGMENTED}]}}

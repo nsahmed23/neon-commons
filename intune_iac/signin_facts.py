@@ -10,6 +10,7 @@ States: signed_in, not_signed_in, expired, unknown. The reason is a short code, 
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 
@@ -73,15 +74,46 @@ CHILD_ERROR_CODES = frozenset({
     'cleanup_unconfirmed'})
 
 
+_TOKEN_PREFIXES = ('ghp_', 'gho_', 'ghu_', 'ghs_', 'ghr_', 'github_pat_')
+_UNBROKEN_RUN = re.compile(r'[A-Za-z0-9]{24,}')
+_ACCOUNT_ARGUMENT = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.@+-]{0,127}')
+HIDDEN_NAME = 'an account whose name is not shown here (it is longer than this display allows, or shaped like a credential)'
+
+
+def credential_signature(raw):
+    """The usability rule: True only for an unbroken credential signature.
+
+    A JWT prefix, a known token prefix (ghp_, gho_, ghu_, ghs_, ghr_, github_pat_), or 24 or more letters and digits with no
+    separator. A name that is merely long, or split by separators, is hidden from display (opaque) but is not blocked.
+    """
+    return isinstance(raw, str) and (raw.startswith('eyJ') or raw.startswith(_TOKEN_PREFIXES) or bool(_UNBROKEN_RUN.search(raw)))
+
+
+def name_digest(raw):
+    """What the product keeps of a name it does not show: a digest, so --account can be compared without echoing anything."""
+    return hashlib.sha256(raw.encode('utf-8')).hexdigest()
+
+
+def account_argument_ok(value):
+    """The shape of an --account argument (compared internally, never echoed); it need not be displayable."""
+    return isinstance(value, str) and bool(_ACCOUNT_ARGUMENT.fullmatch(value))
+
+
 def shown_name(value):
     """An account or login name as it may be displayed (a GUID, an e-mail-like name or a plain name), else NOT_SHOWN."""
     if not isinstance(value, str):
         return NOT_SHOWN
     if GUID.fullmatch(value):
         return value.lower()
-    if (_UPN.fullmatch(value) or (NAME.fullmatch(value) and len(value) <= 64)) and not opaque(value) and not _TOKENISH.search(value):
+    if ((_UPN.fullmatch(value) or (NAME.fullmatch(value) and len(value) <= 64)) and not opaque(value) and not _TOKENISH.search(value)
+            and not credential_signature(value)):
         return value
     return NOT_SHOWN
+
+
+def hidden_internals(raw):
+    """The private fields kept beside a hidden name: its digest and whether it carries a credential signature."""
+    return {'digest': name_digest(raw), 'signature': credential_signature(raw)}
 
 
 def shown_host(value):
@@ -153,6 +185,8 @@ def parse_azure(text):
         seen[key] = {'tenant': tenant.lower(), 'account': name, 'cloud': cloud, 'default': default, 'session': session}
         if NOT_SHOWN in (name, cloud):
             seen[key]['ref'] = len(accounts) + 1  # tells hidden entries apart without showing them
+        if name == NOT_SHOWN:
+            seen[key].update(hidden_internals(raw_name))
         accounts.append(seen[key])
     if not accounts:
         return _facts('azure', 'unknown', reason='account_state_unrecognized' if unrecognized else 'malformed_answer')
@@ -190,6 +224,7 @@ def parse_github(text, code, error_text):
                 item['group'] = list(hosts).index(host) + 1  # tells two hidden hosts apart without showing either
             if item['account'] == NOT_SHOWN:
                 item['ref'] = len(accounts) + 1
+                item.update(hidden_internals(raw_login))
             accounts.append(item)
     if not accounts:
         return _facts('github', 'not_signed_in')
@@ -210,16 +245,34 @@ def _clean_accounts(facts, provider):
         # Values from elsewhere are filtered again: whatever cannot be displayed safely becomes NOT_SHOWN, never dropped.
         name = shown_name(entry.get('account'))
         ref = entry.get('ref') if isinstance(entry.get('ref'), int) and not isinstance(entry.get('ref'), bool) else len(cleaned) + 1
+        private = {}
+        if name == NOT_SHOWN:
+            digest = entry.get('digest')
+            private = {'digest': digest if isinstance(digest, str) and re.fullmatch(r'[0-9a-f]{64}', digest) else None,
+                       'signature': entry.get('signature') is not False}  # unknown counts as a signature: fail closed
         if provider == 'azure':
             tenant = shown(entry.get('tenant'), GUID)
             if tenant:
                 cleaned.append({'tenant': tenant.lower(), 'account': name, 'cloud': shown_cloud(entry.get('cloud')),
-                                'default': entry.get('default') is True, 'session': entry['session'], 'ref': ref})
+                                'default': entry.get('default') is True, 'session': entry['session'], 'ref': ref, **private})
         else:
             group = entry.get('group') if isinstance(entry.get('group'), int) and not isinstance(entry.get('group'), bool) else 0
             cleaned.append({'host': shown_host(entry.get('host')), 'account': name, 'active': entry.get('active') is True,
-                            'session': entry['session'], 'ref': ref, 'group': group})
+                            'session': entry['session'], 'ref': ref, 'group': group, **private})
     return cleaned
+
+
+def _matches(entry, account):
+    """Whether the account the engineer named is this entry's: compared internally, never echoed."""
+    if account is None:
+        return True
+    if entry['account'] != NOT_SHOWN:
+        return entry['account'] == account
+    return entry.get('digest') is not None and entry['digest'] == name_digest(account)
+
+
+def _signature(entry):
+    return entry['account'] == NOT_SHOWN and entry.get('signature') is not False
 
 
 def _identity(entry):
@@ -228,12 +281,15 @@ def _identity(entry):
 
 
 def _verdict(provider, status, message, next_step, tenant, usable=False, signed_in=()):
-    return {'provider': provider, 'status': status, 'usable': usable, 'tenant_wanted': tenant, 'signed_in': list(signed_in),
-            'message': message, 'next_step': next_step}
+    # Only display fields leave: the private digest, signature flag and reference stay inside this module.
+    shown_keys = ('tenant', 'account', 'cloud', 'default', 'session', 'host', 'active')
+    return {'provider': provider, 'status': status, 'usable': usable, 'tenant_wanted': tenant,
+            'signed_in': [{k: e[k] for k in shown_keys if k in e} for e in signed_in], 'message': message, 'next_step': next_step}
 
 
 def _who(entry):
-    return 'tenant %s as %s (%s)' % (entry['tenant'], entry['account'], entry['cloud'])
+    name = entry['account'] if entry['account'] != NOT_SHOWN else HIDDEN_NAME
+    return 'tenant %s as %s (%s)' % (entry['tenant'], name, entry['cloud'])
 
 
 def evaluate(facts, tenant=None, account=None):
@@ -250,8 +306,8 @@ def evaluate(facts, tenant=None, account=None):
         return _evaluate_github(facts)
     wanted = tenant or 'TENANT_ID'
     login = 'az login --tenant %s' % wanted
-    if account is not None and shown_name(account) == NOT_SHOWN:
-        # Never echoed: only a plain account name is ever repeated in a message.
+    if account is not None and not account_argument_ok(account):
+        # Never echoed: the account argument is only compared, never repeated in a message.
         return _verdict('azure', 'unknown', 'The account to use is not a plain account name.',
                         'Name the account as the Azure CLI lists it, or leave --account out.', tenant)
     state = facts.get('state') if isinstance(facts, dict) else None
@@ -294,26 +350,38 @@ def evaluate(facts, tenant=None, account=None):
         return _verdict('azure', 'wrong_tenant',
                         'Signed in to %s; the context names tenant %s. Nothing proceeds.%s' % (_who(default), tenant, extra),
                         'Sign in to the tenant the context names: %s; then run this command again.' % login, tenant, signed_in=active)
-    if NOT_SHOWN in (default['account'], default['cloud']):
-        return _verdict('azure', 'unknown', 'The account or cloud the Azure CLI uses cannot be displayed safely, so it is not '
-                        'used. Signed in to tenant %s as %s (%s).' % (default['tenant'], default['account'], default['cloud']),
-                        'Sign in with an account whose name the product can show, or run az account list --output json '
-                        'yourself.', tenant, signed_in=active)
-    if len(names) > 1 and account != default['account']:
+    if _signature(default):
+        # The usability rule: only an unbroken credential signature blocks (a merely hidden name does not).
+        return _verdict('azure', 'unknown', 'The account name the Azure CLI uses is shaped like a credential (a token prefix or '
+                        'an unbroken run of 24 or more letters and digits), so it is not used and not shown. Signed in to tenant '
+                        '%s (%s).' % (default['tenant'], default['cloud']),
+                        'Run az account list --output json yourself to see the sign-in, or sign in with an ordinary account: '
+                        '%s; then run this command again.' % login, tenant, signed_in=active)
+    if default['cloud'] == NOT_SHOWN:
+        return _verdict('azure', 'unknown', 'The cloud the Azure CLI uses is not a known Azure cloud name, so it is not used. '
+                        'Signed in to tenant %s as %s.' % (default['tenant'], HIDDEN_NAME if default['account'] == NOT_SHOWN
+                                                           else default['account']),
+                        'Run az account list --output json yourself to see the sign-in.', tenant, signed_in=active)
+    if len(names) > 1 and not (account is not None and _matches(default, account)):
         listing = '; '.join('%s%s' % (_who(a), ' (the CLI uses this one)' if a is default else '') for a in active)
-        tail = '' if account is None else ' You named %s.' % account
+        tail = '' if account is None else ' The account you named is not the one the CLI uses by default.'
         return _verdict('azure', 'several_accounts',
                         'Several accounts are signed in: %s. The product does not pick one.%s' % (listing, tail),
                         'Name the account with --account NAME; it must be the one the Azure CLI uses by default (change that '
                         'with: az account set --subscription SUBSCRIPTION), or sign out the others with: az logout --username NAME.',
                         tenant, signed_in=active)
-    if account is not None and account != default['account']:
+    if account is not None and not _matches(default, account):
         return _verdict('azure', 'account_mismatch',
-                        'You named account %s; the Azure CLI uses %s by default. Nothing proceeds.' % (account, default['account']),
+                        'The account you named is not the one the Azure CLI uses by default. Nothing proceeds.',
                         'Sign in with that account (az login --tenant %s) or leave --account out.' % wanted, tenant, signed_in=active)
-    return _verdict('azure', 'signed_in', 'Signed in to %s; session freshness is checked when a token is requested.' % _who(default),
-                    'No sign-in step is needed.' if tenant else 'Name the context tenant to compare it with this sign-in.',
-                    tenant, usable=bool(tenant), signed_in=[default])
+    message = 'Signed in to %s; session freshness is checked when a token is requested.' % _who(default)
+    next_step = 'No sign-in step is needed.' if tenant else 'Name the context tenant to compare it with this sign-in.'
+    if account is not None:
+        message += ' The account matches.'  # the product says so; it never prints either value
+    elif default['account'] == NOT_SHOWN:
+        next_step = ('To see the account name, run az account show --query user.name -o tsv yourself; to confirm it, pass '
+                     '--account NAME. ') + next_step
+    return _verdict('azure', 'signed_in', message, next_step, tenant, usable=bool(tenant), signed_in=[default])
 
 
 def refused(status, tenant, answered=None):
@@ -361,5 +429,12 @@ def _evaluate_github(facts):
     if not active:
         return _verdict('github', 'expired', 'The GitHub sign-in reports an invalid session: %s.' % '; '.join(
             '%s as %s' % (a['host'], a['account']) for a in accounts), 'Sign in again: %s; then check again.' % login, None)
-    return _verdict('github', 'signed_in', 'Signed in to %s.' % '; '.join('%s as %s' % (a['host'], a['account']) for a in active),
-                    'No sign-in step is needed.', None, usable=False, signed_in=active)
+    if any(_signature(a) for a in active):
+        return _verdict('github', 'unknown', 'A GitHub login name is shaped like a credential (a token prefix or an unbroken run '
+                        'of 24 or more letters and digits), so it is not used and not shown.',
+                        'Run gh auth status yourself to see it.', None, signed_in=active)
+    hidden = any(a['account'] == NOT_SHOWN for a in active)
+    return _verdict('github', 'signed_in', 'Signed in to %s.' % '; '.join(
+        '%s as %s' % (a['host'], HIDDEN_NAME if a['account'] == NOT_SHOWN else a['account']) for a in active),
+        'To see the login name, run gh auth status yourself.' if hidden else 'No sign-in step is needed.', None, usable=False,
+        signed_in=active)

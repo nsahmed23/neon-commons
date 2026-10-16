@@ -77,8 +77,8 @@ def _policy(value):
 
 
 def _account(value):
-    from .signin_facts import NOT_SHOWN, shown_name
-    if not isinstance(value,str) or shown_name(value)==NOT_SHOWN:
+    from .signin_facts import account_argument_ok
+    if not account_argument_ok(value):
         raise argparse.ArgumentTypeError('expects an account name (letters, digits and . _ @ + -)')
     return value
 
