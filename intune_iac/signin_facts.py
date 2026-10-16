@@ -1,12 +1,18 @@
 """Sign-in facts from the answers of the az and gh listings: parsing and judging, pure, offline, no process and no secret.
 
 The input is the text a documented CLI listing printed (az account list, gh auth status --json hosts). Only an allow-list
-of fields is read (tenant, account name, cloud, default marker and session state for az; host, login, active marker and
+of fields is read (tenant, account name, cloud, default marker and state word for az; host, login, active marker and
 state for gh); every value passes a plain-shape check, and anything else in the answer, including any field that might
 carry a credential, is ignored and never copied to the result. A malformed answer yields state unknown with a reason code,
 never a fragment of the answer.
 
-States: signed_in, not_signed_in, expired, unknown. The reason is a short code, set when the state is unknown.
+Each listed entry keeps the state word the listing printed, as listing_state, when it is one of the known plain words. It is
+never called a session: az's word (Enabled, Expired) is the state of the listed subscription and says nothing about whether
+the sign-in is still fresh, which is learnt only when a token is requested; gh's word (success, error, timeout) is the result
+of gh's own check of the stored login.
+
+States: signed_in, not_signed_in, expired, invalid (gh reported error for every login it checked and none succeeded), unknown.
+The reason is a short code, set when the state is unknown or invalid.
 """
 from __future__ import annotations
 
@@ -22,9 +28,12 @@ CLOUD = re.compile(r'[A-Za-z][A-Za-z0-9]{0,39}')
 # A run this long without a break looks like a token, not a name; a name that carries a JWT prefix is refused too.
 _LONG_RUN = re.compile(r'[A-Za-z0-9+/]{32,}')
 _TOKENISH = re.compile(r'eyJ|bearer|secret|passw|=', re.I)
-SESSION_ACTIVE, SESSION_EXPIRED = 'active', 'expired'
+# The known plain state words, exactly as the listings print them; an entry with any other word is not used.
 AZURE_ACTIVE_STATES = frozenset({'Enabled'})
 AZURE_EXPIRED_STATES = frozenset({'Expired'})
+GITHUB_USABLE, GITHUB_ERROR, GITHUB_TIMEOUT = 'success', 'error', 'timeout'
+LISTING_STATES = {'azure': AZURE_ACTIVE_STATES | AZURE_EXPIRED_STATES,
+                  'github': frozenset({GITHUB_USABLE, GITHUB_ERROR, GITHUB_TIMEOUT})}
 
 
 def shown(value, pattern=NAME):
@@ -179,21 +188,17 @@ def parse_azure(text):
             return _facts('azure', 'unknown', reason='malformed_answer')
         # A value that cannot be displayed safely stays in the list as NOT_SHOWN; the raw value is used only to tell entries apart.
         name, cloud = shown_name(raw_name), shown_cloud(raw_cloud)
-        if state in AZURE_ACTIVE_STATES:
-            session = SESSION_ACTIVE
-        elif state in AZURE_EXPIRED_STATES:
-            session = SESSION_EXPIRED
-        else:
+        if not (isinstance(state, str) and state in LISTING_STATES['azure']):
             unrecognized = True
             continue
         key = (tenant.lower(), raw_name, raw_cloud)
         default = entry.get('isDefault') is True
-        if default and session == SESSION_ACTIVE:
+        if default and state in AZURE_ACTIVE_STATES:
             default_rows += 1  # counted per source row, before rows for one account are merged
         if key in seen:
             seen[key]['default'] = seen[key]['default'] or default
             continue
-        seen[key] = {'tenant': tenant.lower(), 'account': name, 'cloud': cloud, 'default': default, 'session': session}
+        seen[key] = {'tenant': tenant.lower(), 'account': name, 'cloud': cloud, 'default': default, 'listing_state': state}
         if NOT_SHOWN in (name, cloud):
             seen[key]['ref'] = len(accounts) + 1  # tells hidden entries apart without showing them
         if name == NOT_SHOWN:
@@ -201,7 +206,7 @@ def parse_azure(text):
         accounts.append(seen[key])
     if not accounts:
         return _facts('azure', 'unknown', reason='account_state_unrecognized' if unrecognized else 'malformed_answer')
-    if any(a['session'] == SESSION_ACTIVE for a in accounts):
+    if any(a['listing_state'] in AZURE_ACTIVE_STATES for a in accounts):
         return _facts('azure', 'signed_in', accounts, default_rows=default_rows)
     return _facts('azure', 'expired', accounts, default_rows=default_rows)
 
@@ -228,10 +233,10 @@ def parse_github(text, code, error_text):
             raw_login = entry.get('login') if isinstance(entry, dict) else None
             state = entry.get('state') if isinstance(entry, dict) else None
             if (not isinstance(raw_login, str) or not raw_login or not _strict_utf8(raw_login)
-                    or state not in ('success', 'error', 'timeout')):
+                    or not isinstance(state, str) or state not in LISTING_STATES['github']):
                 return _facts('github', 'unknown', reason='malformed_answer')
             item = {'host': shown_host(host), 'account': shown_name(raw_login), 'active': entry.get('active') is True,
-                    'session': SESSION_ACTIVE if state == 'success' else SESSION_EXPIRED}
+                    'listing_state': state}
             if item['host'] == NOT_SHOWN:
                 item['group'] = list(hosts).index(host) + 1  # tells two hidden hosts apart without showing either
             if item['account'] == NOT_SHOWN:
@@ -240,9 +245,13 @@ def parse_github(text, code, error_text):
             accounts.append(item)
     if not accounts:
         return _facts('github', 'not_signed_in')
-    if any(a['session'] == SESSION_ACTIVE for a in accounts):
+    states = {a['listing_state'] for a in accounts}
+    if GITHUB_USABLE in states:
         return _facts('github', 'signed_in', accounts)
-    return _facts('github', 'expired', accounts)
+    # gh's states are success, error and timeout; none of them says expired, so no GitHub login is ever reported expired.
+    if GITHUB_ERROR in states:
+        return _facts('github', 'invalid', accounts, reason='gh_state_error')
+    return _facts('github', 'unknown', accounts, reason='gh_state_timeout')
 
 
 # Judgement -------------------------------------------------------------------------------------------------------
@@ -252,7 +261,8 @@ def _clean_accounts(facts, provider):
     listed = facts.get('accounts') if isinstance(facts, dict) else None
     cleaned = []
     for entry in listed if isinstance(listed, list) else []:
-        if not isinstance(entry, dict) or entry.get('session') not in (SESSION_ACTIVE, SESSION_EXPIRED):
+        word = entry.get('listing_state') if isinstance(entry, dict) else None
+        if not isinstance(word, str) or word not in LISTING_STATES[provider]:
             continue
         # Values from elsewhere are filtered again: whatever cannot be displayed safely becomes NOT_SHOWN, never dropped.
         name = shown_name(entry.get('account'))
@@ -266,11 +276,11 @@ def _clean_accounts(facts, provider):
             tenant = shown(entry.get('tenant'), GUID)
             if tenant:
                 cleaned.append({'tenant': tenant.lower(), 'account': name, 'cloud': shown_cloud(entry.get('cloud')),
-                                'default': entry.get('default') is True, 'session': entry['session'], 'ref': ref, **private})
+                                'default': entry.get('default') is True, 'listing_state': word, 'ref': ref, **private})
         else:
             group = entry.get('group') if isinstance(entry.get('group'), int) and not isinstance(entry.get('group'), bool) else 0
             cleaned.append({'host': shown_host(entry.get('host')), 'account': name, 'active': entry.get('active') is True,
-                            'session': entry['session'], 'ref': ref, 'group': group, **private})
+                            'listing_state': word, 'ref': ref, 'group': group, **private})
     return cleaned
 
 
@@ -294,7 +304,7 @@ def _identity(entry):
 
 def _verdict(provider, status, message, next_step, tenant, usable=False, signed_in=()):
     # Only display fields leave: the private digest, signature flag and reference stay inside this module.
-    shown_keys = ('tenant', 'account', 'cloud', 'default', 'session', 'host', 'active')
+    shown_keys = ('tenant', 'account', 'cloud', 'default', 'listing_state', 'host', 'active')
     return {'provider': provider, 'status': status, 'usable': usable, 'tenant_wanted': tenant,
             'signed_in': [{k: e[k] for k in shown_keys if k in e} for e in signed_in], 'message': message, 'next_step': next_step}
 
@@ -307,7 +317,8 @@ def _who(entry):
 def evaluate(facts, tenant=None, account=None):
     """Judge facts against the tenant the context names (and the account the engineer named, if any).
 
-    Pure. status is signed_in, not_signed_in, expired, wrong_tenant, several_accounts, account_mismatch or unknown; usable is
+    Pure. status is signed_in, not_signed_in, expired, invalid (GitHub only), wrong_tenant, several_accounts, account_mismatch
+    or unknown; usable is
     true only for an azure sign-in that is in the context's tenant, is the one account the CLI would use, and (when the
     engineer named one) is that account. The next step is the exact thing the engineer does; the product runs none of it.
     """
@@ -324,8 +335,8 @@ def evaluate(facts, tenant=None, account=None):
                         'Name the account as the Azure CLI lists it, or leave --account out.', tenant)
     state = facts.get('state') if isinstance(facts, dict) else None
     accounts = _clean_accounts(facts, 'azure')
-    active = [a for a in accounts if a['session'] == SESSION_ACTIVE]
-    expired = [a for a in accounts if a['session'] == SESSION_EXPIRED]
+    active = [a for a in accounts if a['listing_state'] in AZURE_ACTIVE_STATES]
+    expired = [a for a in accounts if a['listing_state'] in AZURE_EXPIRED_STATES]
     if state == 'not_signed_in':
         return _verdict('azure', 'not_signed_in', 'Not signed in to Azure.',
                         'Sign in to the tenant the context names: %s; then run this command again.' % login, tenant)
@@ -420,27 +431,33 @@ def _evaluate_github(facts):
     login = 'gh auth login'
     if state == 'not_signed_in':
         return _verdict('github', 'not_signed_in', 'Not signed in to GitHub.', 'Sign in: %s; then check again.' % login, None)
-    if state not in ('signed_in', 'expired') or not accounts:
+    # A timeout from gh's own check leaves the facts unknown but with the entries listed; they are still judged below.
+    if state not in ('signed_in', 'invalid', 'unknown') or not accounts:
         reason = shown(facts.get('reason') if isinstance(facts, dict) else None, NAME) or 'not_established'
         return _verdict('github', 'unknown', 'The GitHub sign-in could not be determined (reason: %s).' % reason,
                         'Run gh auth status yourself to see it.', None)
-    active = [a for a in accounts if a['session'] == SESSION_ACTIVE]
-    # Several accounts on one host are found before any session filter: a stale one beside a good one is still ambiguous.
+    active = [a for a in accounts if a['listing_state'] == GITHUB_USABLE]
+    # Several accounts on one host are found before any state filter: a failing one beside a good one is still ambiguous.
     per_host = {}
     for entry in accounts:
         per_host.setdefault((entry['host'], entry['group']), []).append(entry)
     crowded = {key: entries for key, entries in per_host.items() if len(entries) > 1}
     if crowded:
-        listing = '; '.join('%s: %s' % (key[0], ', '.join('%s (%s%s)' % (e['account'], 'session ok' if e['session'] == SESSION_ACTIVE
-                            else 'session invalid', ', active' if e['active'] else '') for e in entries))
+        listing = '; '.join('%s: %s' % (key[0], ', '.join('%s (gh state: %s%s)' % (e['account'], e['listing_state'],
+                            ', active' if e['active'] else '') for e in entries))
                             for key, entries in sorted(crowded.items(), key=lambda item: item[0]))
         return _verdict('github', 'several_accounts',
                         'Several accounts are listed for one host: %s. The product does not pick one.' % listing,
                         'Make one active with: gh auth switch --user NAME, and remove the others you do not use with: '
                         'gh auth logout --user NAME; then check again.', None, signed_in=active)
     if not active:
-        return _verdict('github', 'expired', 'The GitHub sign-in reports an invalid session: %s.' % '; '.join(
-            '%s as %s' % (a['host'], a['account']) for a in accounts), 'Sign in again: %s; then check again.' % login, None)
+        # gh never reports a login as expired: error means its check of the stored login failed, timeout that it did not finish.
+        listing = '; '.join('%s as %s (gh state: %s)' % (a['host'], a['account'], a['listing_state']) for a in accounts)
+        if any(a['listing_state'] == GITHUB_ERROR for a in accounts):
+            return _verdict('github', 'invalid', 'gh reports the GitHub sign-in as invalid (reason: gh_state_error): %s.'
+                            % listing, 'Sign in again: %s; then check again.' % login, None)
+        return _verdict('github', 'unknown', 'The GitHub sign-in could not be determined (reason: gh_state_timeout): gh did '
+                        'not finish checking %s.' % listing, 'Run gh auth status yourself to see it.', None)
     if any(_signature(a) for a in active):
         return _verdict('github', 'unknown', 'A GitHub login name is shaped like a credential (a token prefix or an unbroken run '
                         'of 24 or more letters and digits), so it is not used and not shown.',

@@ -312,7 +312,7 @@ class AggregateTests(Base):  # decision 7
         self.fakes.answer('gh', 'auth', 'status', out=github_hosts(('github.com', 'octo-user', 'error', True)))
         value = signin.status_report(TENANT_A, None, 'all', 5)
         self.assertEqual(value['azure']['status'], 'signed_in')
-        self.assertEqual(value['github']['status'], 'expired')
+        self.assertEqual(value['github']['status'], 'invalid')
         self.assertEqual(value['status'], 'blocked')
 
     def test_all_is_ready_when_both_are_usable(self):

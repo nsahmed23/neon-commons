@@ -30,7 +30,7 @@ class DetectionTests(unittest.TestCase):
         facts = signin.detect_azure(deadline=5)
         self.assertEqual(facts["state"], "signed_in")
         self.assertEqual(facts["accounts"], [{"tenant": TENANT_A, "account": "alex@example.test", "cloud": "AzureCloud",
-                                              "default": True, "session": "active"}])
+                                              "default": True, "listing_state": "Enabled"}])
         self.assertEqual(self.fakes.calls(), ["account list --output json"])
 
     def test_azure_empty_listing_is_not_signed_in(self):
@@ -41,7 +41,7 @@ class DetectionTests(unittest.TestCase):
         self.azure(out=azure_list(azure_account(state="Expired")))
         facts = signin.detect_azure(deadline=5)
         self.assertEqual(facts["state"], "expired")
-        self.assertEqual(facts["accounts"][0]["session"], "expired")
+        self.assertEqual(facts["accounts"][0]["listing_state"], "Expired")
 
     def test_azure_repeated_subscriptions_of_one_account_are_one_sign_in(self):
         self.azure(out=azure_list(azure_account(sub="s1"), azure_account(sub="s2", default=False)))
@@ -91,7 +91,7 @@ class DetectionTests(unittest.TestCase):
         facts = signin.detect_github(deadline=5)
         self.assertEqual(facts["state"], "signed_in")
         self.assertEqual(facts["accounts"], [{"host": "github.com", "account": "octo-user", "active": True,
-                                              "session": "active"}])
+                                              "listing_state": "success"}])
         self.assertEqual(self.fakes.calls(), ["auth status --json hosts"])
 
     def test_github_not_signed_in_and_invalid_session(self):
@@ -99,7 +99,7 @@ class DetectionTests(unittest.TestCase):
         self.assertEqual(signin.detect_github(deadline=5)["state"], "not_signed_in")
         self.fakes.answer("gh", "auth", "status", out=github_hosts(("github.com", "octo-user", "error", True)), code=1)
         facts = signin.detect_github(deadline=5)
-        self.assertEqual(facts["state"], "expired")
+        self.assertEqual(facts["state"], "invalid")
 
     def test_github_malformed_and_slow(self):
         self.fakes.answer("gh", "auth", "status", out="{" + POISON)

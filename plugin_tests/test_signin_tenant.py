@@ -24,8 +24,9 @@ OTHER = '55555555-5555-4555-8555-555555555555'
 
 def azure(*accounts, state='signed_in'):
     """Facts shaped like signin.detect_azure's result."""
+    words = {'active': 'Enabled', 'expired': 'Expired'}  # the listing's own state words (PKG-SETUP-5 item 1a)
     return {'provider': 'azure', 'state': state, 'reason': None, 'accounts': [
-        {'tenant': t, 'account': a, 'cloud': 'AzureCloud', 'default': d, 'session': s} for t, a, d, s in accounts]}
+        {'tenant': t, 'account': a, 'cloud': 'AzureCloud', 'default': d, 'listing_state': words[s]} for t, a, d, s in accounts]}
 
 
 class EvaluateTests(unittest.TestCase):
@@ -95,12 +96,12 @@ class EvaluateTests(unittest.TestCase):
 
     def test_github_facts_are_judged_without_a_tenant_and_never_pick_an_account(self):
         one = {'provider': 'github', 'state': 'signed_in', 'reason': None,
-               'accounts': [{'host': 'github.com', 'account': 'octo-user', 'active': True, 'session': 'active'}]}
+               'accounts': [{'host': 'github.com', 'account': 'octo-user', 'active': True, 'listing_state': 'success'}]}
         value = signin_facts.evaluate(one, TENANT_A)
         self.assertEqual(value['status'], 'signed_in')
         self.assertIn('github.com', value['message'])
         two = dict(one, accounts=one['accounts'] + [{'host': 'github.com', 'account': 'other-user', 'active': False,
-                                                      'session': 'active'}])
+                                                      'listing_state': 'success'}])
         value = signin_facts.evaluate(two, None)
         self.assertEqual(value['status'], 'several_accounts')
         self.assertIn('other-user', value['message'])

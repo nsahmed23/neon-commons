@@ -131,7 +131,7 @@ class ExpiredTests(unittest.TestCase):
     def test_the_readiness_row_for_an_expired_sign_in_is_missing_with_the_exact_step(self):
         from intune_iac.readiness import readiness
         facts = {'azure': {'provider': 'azure', 'state': 'expired', 'reason': None, 'accounts': [
-            {'tenant': TENANT_A, 'account': 'alex@example.test', 'cloud': 'AzureCloud', 'default': True, 'session': 'expired'}]}}
+            {'tenant': TENANT_A, 'account': 'alex@example.test', 'cloud': 'AzureCloud', 'default': True, 'listing_state': 'Expired'}]}}
         value = readiness(tr.survey_of(tr.repository_item(), tr.context_item(tenant=TENANT_A)), tr.host_report(),
                           tr.doctor_report(), signin=facts)
         row = tr.rows_of(value, 'discover')['integration_service']

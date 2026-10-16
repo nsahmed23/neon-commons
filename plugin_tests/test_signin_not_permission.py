@@ -14,9 +14,9 @@ from plugin_tests import test_readiness as tr
 from plugin_tests.signin_fakes import FakeClis, TENANT_A, azure_account, azure_list, github_hosts
 
 GOOD = {'provider': 'azure', 'state': 'signed_in', 'reason': None, 'accounts': [
-    {'tenant': TENANT_A, 'account': 'alex@example.test', 'cloud': 'AzureCloud', 'default': True, 'session': 'active'}]}
+    {'tenant': TENANT_A, 'account': 'alex@example.test', 'cloud': 'AzureCloud', 'default': True, 'listing_state': 'Enabled'}]}
 GITHUB = {'provider': 'github', 'state': 'signed_in', 'reason': None,
-          'accounts': [{'host': 'github.com', 'account': 'octo-user', 'active': True, 'session': 'active'}]}
+          'accounts': [{'host': 'github.com', 'account': 'octo-user', 'active': True, 'listing_state': 'success'}]}
 
 
 def model(signin):

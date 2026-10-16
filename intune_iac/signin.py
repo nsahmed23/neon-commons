@@ -184,7 +184,7 @@ def _unknown(provider, code):
 
 
 def detect_azure(deadline=DEFAULT_DEADLINE):
-    """Azure facts from the CLI's own account listing: tenant, account, cloud and the session state it reports."""
+    """Azure facts from the CLI's own account listing: tenant, account, cloud and the state word it prints for each entry."""
     try:
         code, out, _ = _run(['az', 'account', 'list', '--output', 'json'], deadline)
     except CliError as error:
@@ -195,7 +195,7 @@ def detect_azure(deadline=DEFAULT_DEADLINE):
 
 
 def detect_github(deadline=DEFAULT_DEADLINE):
-    """GitHub facts from the CLI's own status: host, account, whether a session exists."""
+    """GitHub facts from the CLI's own status: host, account and the state word gh reports for its check of each login."""
     try:
         code, out, err = _run(['gh', 'auth', 'status', '--json', 'hosts'], deadline)
     except CliError as error:
@@ -247,7 +247,8 @@ def status_report(tenant=None, account=None, providers='azure', deadline=DEFAULT
     """The facts, the verdict and the commands run for `signin status`; the product runs no sign-in step.
 
     ready only when Azure is checked and usable in the context tenant and every other requested provider is signed in;
-    reported when everything requested is signed in but no tenant comparison could make it ready; otherwise blocked.
+    reported when everything requested is signed in but no tenant comparison could make it ready; otherwise blocked. A ready
+    report says once, in ready_for, what it is ready for.
     """
     facts = detect(providers, deadline)
     verdicts = {name: signin_facts.evaluate(value, tenant, account if name == 'azure' else None) for name, value in facts.items()}
@@ -260,11 +261,20 @@ def status_report(tenant=None, account=None, providers='azure', deadline=DEFAULT
     else:
         status = 'blocked'
     # The account argument is compared, never echoed: only whether one was given is reported.
-    return {'status': status, 'tenant': tenant, 'account_given': account is not None, **verdicts,
-            'access': {'graph': 'unknown', 'intune': 'unknown', 'state_storage': 'unknown'},
-            'note': 'A signed-in account does not establish Graph, Intune or state-storage access; those stay unknown until a '
-                    'read actually succeeds.',
-            'commands_run': {name: LISTING_COMMANDS[name] for name in verdicts}}
+    report = {'status': status, 'tenant': tenant, 'account_given': account is not None, **verdicts,
+              'access': {'graph': 'unknown', 'intune': 'unknown', 'state_storage': 'unknown'},
+              'note': 'A signed-in account does not establish Graph, Intune or state-storage access; those stay unknown until a '
+                      'read actually succeeds.',
+              'commands_run': {name: LISTING_COMMANDS[name] for name in verdicts}}
+    if status == 'ready':
+        report['ready_for'] = _ready_for(azure['tenant_wanted'], 'github' in verdicts)
+    return report
+
+
+def _ready_for(tenant, github):
+    """What a ready report is ready for, said once: the Azure CLI sign-in is usable for the tenant, and no access is known."""
+    return ('The Azure CLI sign-in is usable for tenant %s%s; Graph, Intune and state-storage access are not known until a '
+            'read is attempted.' % (tenant, ' and the GitHub CLI is signed in' if github else ''))
 
 
 def obtain_token(tenant, account=None, deadline=DEFAULT_DEADLINE):

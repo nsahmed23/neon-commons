@@ -119,7 +119,7 @@ class HiddenNameTests(Base):
     def test_the_facts_and_verdicts_carry_no_raw_name_and_no_internal_key(self):
         verdict = verdict_for(self.fakes, LONG_UPN)
         for entry in verdict['signed_in']:
-            self.assertEqual(set(entry), {'tenant', 'account', 'cloud', 'default', 'session'})
+            self.assertEqual(set(entry), {'tenant', 'account', 'cloud', 'default', 'listing_state'})
         self.assertNotIn(LONG_UPN, json.dumps(verdict))
 
 
