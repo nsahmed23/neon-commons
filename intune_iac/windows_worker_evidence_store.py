@@ -38,6 +38,11 @@ def _record(value):
     return value
 
 
+def _armed(store,envelope):
+    """The process-floor key: one received envelope in one native store (no portable floor file exists there)."""
+    return 'worker-evidence:'+str(store.root)+':'+digest(envelope)
+
+
 def _read(path,api):return capture._reference_bytes(str(path),api,contract.MAX_BYTES)
 
 
@@ -52,7 +57,7 @@ def _ingest(store,envelope_path,request_path,trust_path,pin_path,scratch,api):
         envelope=parse_json(raw_envelope);request=parse_json(raw_request)
         policy=parse_json(_read(trust_path,api));pin=parse_json(_read(pin_path,api))
         with native._verifier(pin,scratch,api) as verify:
-            verified=contract.verify_envelope(envelope,request,policy,verify,now=int(time.time()))
+            verified=contract.verify_envelope(envelope,request,policy,verify,now=contract.fresh_now(key=_armed(store,envelope)))
             result=verified.result();binding=contract.received_binding(verified,digest(request))
             if result['tenant_id']!=store.tenant_id:contract.fail('workbench_evidence_identity')
             result['native_verifier']=verify.metadata
@@ -97,7 +102,7 @@ def _reopen(store,request_sha256,trust_path,pin_path,scratch,api,*,historical=Fa
     if digest(envelope)!=record['bundle_sha256'] or digest(request)!=request_sha256:contract.fail('worker_evidence_stored_bytes_changed')
     policy=parse_json(_read(trust_path,api));pin=parse_json(_read(pin_path,api))
     with native._verifier(pin,scratch,api) as verify:
-        verified=contract.verify_envelope(envelope,request,policy,verify,now=int(time.time()),historical=historical)
+        verified=contract.verify_envelope(envelope,request,policy,verify,now=int(time.time()) if historical else contract.fresh_now(key=_armed(store,envelope)),historical=historical)
         binding=contract.received_binding(verified,request_sha256)
         with store._connection() as db:
             _validate_schema(db)

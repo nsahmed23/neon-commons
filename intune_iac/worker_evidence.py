@@ -8,6 +8,8 @@ from contextlib import contextmanager
 import hashlib
 from pathlib import PurePosixPath
 import re
+import time
+from . import clock
 from .io import AppError, canonical, digest, parse_json
 
 DOMAIN=b'intune-workbench:worker-evidence:v1\x00'
@@ -381,6 +383,20 @@ def stored_result(verified,head):
         result['journal_snapshot'].update(status='unknown',historical_only=True)
         result['reasons'].append('superseded_by_newer_received_signed_snapshot')
     return result
+
+
+def fresh_now(*,floor=None,key=None,persist=False):
+    """The time a non-historical read judges expiry and snapshot age on: never the bare wall.
+
+    With a store clock floor (the path of its clock.json) it is the floor's effective time, max(wall, recorded mark, process
+    floor); persist=True (a path that already writes the store) also records it, persist=False reads only and records
+    nothing. Without a floor file it is this process's own monotonic carry of the latest wall seen for key, armed on the
+    first read in the process. A wall step back therefore cannot reopen a window that already closed."""
+    wall=time.time()
+    if floor is not None:
+        f=clock.Floor(floor);reading=f.observe(wall) if persist else f.peek(wall);effective=reading['effective']
+    else:effective=clock._process_floor(key,wall)
+    return int(effective)
 
 
 def verify_envelope(envelope,req,policy,verify,*,now,historical=False):

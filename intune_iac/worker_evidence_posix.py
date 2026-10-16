@@ -240,7 +240,7 @@ def ingest_raw(store_root,envelope_raw,request_raw,policy,verifier):
     protected._exclusive(attempt/'envelope.json',envelope_raw);protected._exclusive(attempt/'request.json',request_raw);protected._sync(attempt)
     try:
         frozen_envelope=load(attempt/'envelope.json');req=load(attempt/'request.json')
-        verified=contract.verify_envelope(frozen_envelope,req,policy,verifier,now=int(time.time()))
+        verified=contract.verify_envelope(frozen_envelope,req,policy,verifier,now=contract.fresh_now(floor=root/'clock.json',persist=True))
         # Only process-owned parsed persisted bytes and verified content feed the ledger.
         result=verified.result();binding=contract.received_binding(verified,digest(req))
         result.update(received_byte_sha256=hashlib.sha256(envelope_raw).hexdigest(),request_byte_sha256=hashlib.sha256(request_raw).hexdigest())
@@ -279,7 +279,8 @@ def reopen(store_root,request_sha256,policy,verifier,*,historical=False):
     attempt=_private(root/row[1],directory=True);envelope_raw=read(attempt/'envelope.json');request_raw=read(attempt/'request.json')
     envelope=parse_json(envelope_raw);req=parse_json(request_raw)
     if digest(envelope)!=row[0] or digest(req)!=request_sha256 or hashlib.sha256(envelope_raw).hexdigest()!=row[2] or hashlib.sha256(request_raw).hexdigest()!=row[3]:contract.fail('worker_evidence_stored_bytes_changed')
-    verified=contract.verify_envelope(envelope,req,policy,verifier,now=int(time.time()),historical=historical)
+    now=int(time.time()) if historical else contract.fresh_now(floor=root/'clock.json')
+    verified=contract.verify_envelope(envelope,req,policy,verifier,now=now,historical=historical)
     binding=contract.received_binding(verified,request_sha256)
     with readonly_database(root/'evidence.sqlite3') as (db,_):
         current=db.execute('SELECT bundle_sha256,attempt,envelope_byte_sha256,request_byte_sha256 FROM received WHERE request_sha256=?',(request_sha256,)).fetchone()
