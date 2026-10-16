@@ -2431,8 +2431,10 @@ QUEUE_HOLD_WORDS = {'clock_moved_backward': 'host clock behind a recorded time',
                     'clock_floor_invalid': 'the recorded time cannot be read'}
 
 
-def queue_lines(value, width):
-    """Findings as work: what, why, state, ownership, dates, compatibility, evidence and related proposals."""
+def queue_lines(value, width, selected=None):
+    """Findings as work: what, why, state, ownership, dates, compatibility, evidence and related proposals.
+
+    The review commands act on the selected policy, so a finding of any other policy puts `select` first."""
     lines = ['[MAINTENANCE QUEUE]']
     findings = [item for item in value.get('findings') or [] if isinstance(item, dict)]
     page = value.get('pagination') if isinstance(value.get('pagination'), dict) else {}
@@ -2472,11 +2474,17 @@ def queue_lines(value, width):
         # The route to record or amend a review, with the exact prior it must name; it names this finding.
         prior = review.get('artifact_id') if review.get('status') == 'recorded' and review.get('artifact_id') else 'none'
         # Each command stands on its own row, after the sentence, so a copied row carries no words (run 9, frame 47).
-        blocks.append(('route', word_wrap("  This finding's review: write the form with the first command, then record it with the "
-                                          'second (an annotation, never approval). The last word of the second command is the '
-                                          'earlier review it replaces' + (
+        # The commands act on the selected policy: another policy's finding is selected first (review 20).
+        other = item.get('object_id') != selected
+        blocks.append(('route', word_wrap("  This finding's review: " + (
+            'this policy is not the selected one, so select it with the first command, write the form with the second, '
+            'then record it with the third' if other else
+            'write the form with the first command, then record it with the second')
+                                          + ' (an annotation, never approval). The last word of the %s command is the '
+                                          'earlier review it replaces' % ('third' if other else 'second') + (
                                               '; none means this finding has no earlier review to replace.' if prior == 'none'
                                               else '.'), width)
+                       + (word_wrap('    :select %s' % item.get('object_id'), width) if other else [])
                        + word_wrap('    :queue-review-template %s NEW_JSON' % item.get('finding'), width)
                        + word_wrap('    :queue-amend FILE %s' % prior, width), False))
         compatibility = item.get('compatibility') if isinstance(item.get('compatibility'), dict) else None
@@ -2844,7 +2852,7 @@ RECORD_WORDS = {'workflow_run': 'CI workflow run', 'device_evidence': 'device ev
                 'queue_review': 'queue review', 'adoption_receipt': 'adoption receipt'}
 
 
-def recorded_lines(value, width):
+def recorded_lines(value, width, selected=None):
     """A record the store just accepted: what it is, whether it is new, and for a CI run what it claims."""
     kind = str(value.get('kind'))
     lines = word_wrap('[RECORDED] %s %s | %s | %s' % (
@@ -2861,6 +2869,9 @@ def recorded_lines(value, width):
         lines += word_wrap('Review version %s of %s for policy %s: an annotation, never approval or execution.' % (
             data.get('version', 'unknown'), _as_words(data['finding']), short_id(str(data['object_id']))), width)
         lines += word_wrap('Next: In the workspace:', width)
+        # queue-review reads the selected policy's review, so another policy is selected first (review 20).
+        if data['object_id'] != selected:
+            lines += word_wrap('  select %s' % data['object_id'], width)
         lines += word_wrap('  queue-review %s' % data['finding'], width)
     if kind == 'workflow_run' and data:
         links = ['linked to %s %s' % ('operation' if row.get('relation') == 'related_operation' else 'observation',

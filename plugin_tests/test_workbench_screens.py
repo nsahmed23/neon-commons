@@ -385,7 +385,7 @@ class EstateScreensTests(unittest.TestCase):
         value = {'findings': [{'object_id': POLICY_ID, 'finding': 'ownership_unknown', 'priority': 'review',
                                'review_record': {'status': 'recorded', 'artifact_id': 'c' * 64}}],
                  'pagination': {'total_objects': 1}}
-        text = ' '.join(' '.join(queue_lines(value, 120)).split())
+        text = ' '.join(' '.join(queue_lines(value, 120, selected=POLICY_ID)).split())
         # Run 9 (frame 47): each command stands on its own row, so the rows say the sentence and then the commands.
         self.assertIn("This finding's review: write the form with the first command, then record it with the second "
                       '(an annotation, never approval). The last word of the second command is the earlier review it '
@@ -1456,7 +1456,8 @@ class RunEightScreensTests(unittest.TestCase):
     # Items 6 and 14 (frame 47): the queue's own review route, and codes as words.
     def test_the_queue_labels_each_findings_own_review_route_and_reads_codes_as_words(self):
         from intune_iac.workbench_screens import queue_lines
-        text = '\n'.join(queue_lines(QueueRun7Tests().value('reporting_incomplete', 'ownership_unknown'), 160))
+        text = '\n'.join(queue_lines(QueueRun7Tests().value('reporting_incomplete', 'ownership_unknown'), 160,
+                                     selected=POLICY_ID))
         for finding in ('reporting_incomplete', 'ownership_unknown'):
             self.assertIn("This finding's review: write the form with the first command", text)
             self.assertIn('\n    :queue-review-template %s NEW_JSON\n' % finding, text + '\n')

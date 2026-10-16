@@ -624,7 +624,7 @@ class RecordedQueueReviewTests(unittest.TestCase):
 
     def rows(self, value=None):
         from intune_iac.workbench_screens import recorded_lines
-        return recorded_lines(value or self.VALUE, 118)
+        return recorded_lines(value or self.VALUE, 118, selected='22222222-2222-4222-8222-222222222222')
 
     def test_the_record_names_finding_policy_version_and_next(self):
         text = '\n'.join(row.strip() for row in self.rows())

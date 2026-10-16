@@ -420,7 +420,7 @@ class QueueNoneTests(unittest.TestCase):
         from intune_iac.workbench_screens import queue_lines
         prior = 'f' * 64
         finding = dict(self.FINDING, review_record={'status': 'recorded', 'artifact_id': prior})
-        text = ' '.join(' '.join(queue_lines({'findings': [finding], 'scope': {}}, 118)).split())
+        text = ' '.join(' '.join(queue_lines({'findings': [finding], 'scope': {}}, 118, selected='o' * 8)).split())
         self.assertIn(':queue-amend FILE ' + prior, text)
         self.assertNotIn(self.MEANING, text)
         self.assertIn('The last word of the second command is the earlier review it replaces.', text)

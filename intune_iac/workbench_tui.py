@@ -1094,7 +1094,7 @@ class Workspace:
         elif (isinstance(value.get('artifact_id'), str) and isinstance(value.get('kind'), str)
                 and isinstance(value.get('data'), dict) and 'created' in value):
             from .workbench_screens import recorded_lines
-            rows.extend(recorded_lines(value, width))
+            rows.extend(recorded_lines(value, width, selected=self.selected))
         elif value.get('status') in ('ready_local_model_handoff', 'adopted_local_model'):
             from .workbench_screens import adoption_lines
             rows.extend(adoption_lines(value, width))
@@ -1369,7 +1369,7 @@ class Workspace:
             rows.extend(diagnostics_lines(value, width, check=facts.get('eligibility')))
         elif self.tab == 6 and isinstance(value.get('findings'), list):
             from .workbench_screens import queue_lines
-            rows.extend(queue_lines(value, width))
+            rows.extend(queue_lines(value, width, selected=self.selected))
         elif self.tab == 6 and value.get('schema_version') == 'workbench-four-views/1':
             rows.append('[REPOSITORY / OBSERVED / PROPOSED / COVERAGE]')
             # Each line a statement: what is recorded, qualified or fresh, never a bare yes or no (item 28).
