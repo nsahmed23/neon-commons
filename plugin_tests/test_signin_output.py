@@ -186,10 +186,12 @@ class WithheldTests(Base):  # item 2a, finding 8
                       result['next_step'])
 
     def test_a_folder_that_was_there_before_is_reported_as_observed_and_never_offered_for_deletion(self):
-        self.mode = 'echo'
+        # PKG-SETUP-5B item 7: an existing output path is refused before a token is minted; the report function is driven
+        # directly with the before-observation given (reachable only by a race).
         Path(self.output).mkdir()
-        result = self.withheld()
+        result = signin._withheld(0, self.output, True, 'RERUN', False)
         self.assertEqual((result['output_present_before'], result['output_present_after']), (True, True))
+        self.assertNotIn('rm -r', json.dumps(result))
 
 
 class AccountMismatchTests(Base):  # item 2b, finding 9

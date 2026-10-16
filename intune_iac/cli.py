@@ -93,6 +93,8 @@ def _fd_token(descriptor,owner=None):
 def _start_signin(args):
     # start runs no process unless --check-signin asks for the CLI listing; the flag without a goal has nothing to show.
     if not args.check_signin:return None
+    if os.name != 'posix':
+        raise AppError('identity_fd_platform_unsupported','Sign-in reuse needs a Unix host (inherited descriptors and bounded child output).')
     if not args.goal:raise AppError('signin_check_needs_goal','--check-signin needs --goal (it adds the sign-in to that goal\'s readiness).')
     from .signin import detect
     return detect(args.check_signin)

@@ -38,6 +38,7 @@ import signal
 import subprocess
 import sys
 import time
+import uuid
 
 from . import signin_facts
 from .signin_facts import TENANT_PLACEHOLDER
@@ -494,6 +495,14 @@ def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, col
         raise AppError('signin_policy_invalid', 'The policy must be a GUID.')
     if not isinstance(output, str) or not output or '\x00' in output:
         raise AppError('signin_output_invalid', 'The output path is not valid.')
+    # Refuse what the collecting command would refuse, before a token is minted or a child started: a nil tenant or policy, and
+    # an output path that already exists (the command needs a new folder).
+    for identity in (tenant, policy):
+        if isinstance(identity, str) and signin_facts.GUID.fullmatch(identity) and not uuid.UUID(identity).int:
+            raise AppError('capture_identity_invalid', 'Capture requires nonzero tenant and policy UUIDs.')
+    if os.path.lexists(output):
+        raise AppError('capture_output_conflict', 'Capture requires a new directory with no symlinked ancestors; existing files '
+                       'are preserved. Name a folder that does not exist yet.')
     try:
         token = obtain_token(tenant, account, deadline)
     except SigninBlocked as blocked:

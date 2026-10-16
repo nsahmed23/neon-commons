@@ -69,13 +69,16 @@ class FolderTests(Base):  # item 1
                          (False, False, 'absent'))
         self.assertNotIn('was not written', result['message'])
 
+    # PKG-SETUP-5B item 7: a path that exists when collect starts is now refused before any token is minted, so "there before"
+    # can only be reached by a race. These two tests therefore drive the report function with the before-observation given.
     def test_a_folder_that_was_there_and_is_gone_is_not_called_left_as_found(self):
-        result = self.withheld('rmdir', precreate=True)
+        result = signin._withheld(0, self.output, True, 'RERUN', False)
         self.assertEqual((result['output_present_before'], result['output_present_after']), (True, False))
         self.assertNotIn('as it was found', result['message'])
 
     def test_a_folder_there_before_and_after_is_reported_as_observed(self):
-        result = self.withheld('nothing', precreate=True)
+        Path(self.output).mkdir()
+        result = signin._withheld(0, self.output, True, 'RERUN', False)
         self.assertEqual((result['output_present_before'], result['output_present_after'], result['output_kind_after']),
                          (True, True, 'directory'))
 
