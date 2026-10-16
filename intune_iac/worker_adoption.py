@@ -392,7 +392,8 @@ class AdoptionRuntime:
         self.pid = os.getpid()
     def __reduce_ex__(self, protocol): raise TypeError('Adoption runtime cannot be serialized.')
     def __repr__(self): return '<AdoptionRuntime redacted>'
-    def check(self, manifest, *, verification=False):
+    def check(self, manifest, *, verification=False, check_window=True):
+        """check_window=False is the mode after a dispatch has started: every check but the broker policy's expiry bounds."""
         if self.pid != os.getpid() or self.profile != manifest['profile']: _fail('adoption_runtime_profile')
         live = self.profile == 'azure_public_pilot'
         if type(self.binding) is not (ib.LiveIdentityBinding if live else ib.LaboratoryIdentityBinding): _fail('adoption_identity_capability')
@@ -403,8 +404,9 @@ class AdoptionRuntime:
             _fail('adoption_runtime_content_changed')
         if self.ownership.binding() != manifest['ownership_binding']: _fail('adoption_ownership_changed')
         policy = manifest['verification_broker_policy'] if verification else manifest['broker_policy']
-        broker.validate_policy(policy, **({} if verification else {'adoption_contract': self.state_contract}))
-        self.credentials.check(policy, **({} if verification else {'adoption_contract': self.state_contract}))
+        contract = {} if verification else {'adoption_contract': self.state_contract}
+        broker.validate_policy(policy, check_window=check_window, **contract)
+        self.credentials.check(policy, check_window=check_window, **contract)
         identity, target = self.binding.backend_configuration(self.credentials.backend_credential)
         backend = manifest['provider_binding']['backend']
         if asdict(identity) != backend['identity'] or asdict(target) != backend['backend']:
@@ -491,7 +493,7 @@ class AdoptionPermit:
         self.job._check(expiry=False)
         with self.job.policy.connection() as db:
             if self._stopped_or_changed(db): _fail('adoption_permit_inactive')
-        self.runtime.check(self.job.manifest, verification=self.verification)
+        self.runtime.check(self.job.manifest, verification=self.verification, check_window=False)
     def check_active(self):
         """The authorization check that gates every backend or service call (the broker guard and the dispatch
         boundaries). It enters the shared critical section, judges the window, rereads the job state, the signer

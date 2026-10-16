@@ -300,6 +300,19 @@ class PermitLatchTests(RecoveryFixture):
         self.run_job(self.receipt())
         return self.permits[-1]
 
+    def test_the_inflight_check_runs_the_runtime_check_without_the_window_after_the_expiry(self):
+        # The runtime check re-validates the broker policy through the host-held credentials; its window bounds judge when a
+        # dispatch may start, so once the response is back (the window is over) it must be asked without them.
+        permit = self.running(self.start + 10)
+        check = bridge.RecoveryPlanRuntime.check
+        self.clocks.elapse(LIFETIME + 1)
+        check.reset_mock()
+        permit.inflight_active()
+        check.assert_called_once_with(self.job.manifest, check_window=False)
+        check.reset_mock()
+        self.assertEqual(self.refused(permit.check_active).code, 'adoption_recovery_plan_expired')  # the next dispatch is judged
+        check.assert_called_once_with(self.job.manifest)
+
     def test_check_active_refuses_after_the_expiry_and_after_a_backward_step_that_follows_it(self):
         permit = self.running(self.start + 10)
         permit.check_active()

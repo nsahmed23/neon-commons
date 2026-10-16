@@ -457,13 +457,13 @@ class RecoveryPlanRuntime:
         self.profile,self.run,self.storage,self.binding,self.credentials=profile,run,storage,binding,credentials
         self.upstream,self.certificate,self.private_key,self.provider=upstream,certificate,private_key,provider;self.pid=os.getpid()
     def __reduce_ex__(self,protocol):raise TypeError('Recovery Plan runtime cannot be serialized.')
-    def check(self,manifest):
+    def check(self,manifest,*,check_window=True):
         live=self.profile=='azure_public_pilot'
         if (self.pid!=os.getpid() or self.profile!=manifest['profile'] or type(self.binding) is not (ib.LiveIdentityBinding if live else ib.LaboratoryIdentityBinding)
                 or type(self.upstream) is not (broker.NativeUpstream if live else broker.LaboratoryUpstream)):_fail('adoption_recovery_runtime_profile')
         self.run.check(manifest['run_binding_sha256']);self.storage.check(manifest['storage_binding_sha256']);self.binding.assert_fresh(manifest['identity_binding_sha256'])
         if self.provider.binding()!=manifest['provider_binding']:_fail('adoption_recovery_provider_changed')
-        self.credentials.check(manifest['broker_policy'])
+        self.credentials.check(manifest['broker_policy'],check_window=check_window)
         identity,target=self.binding.backend_configuration(self.credentials.backend_credential)
         if asdict(identity)!=manifest['provider_binding']['backend']['identity'] or asdict(target)!=manifest['provider_binding']['backend']['backend']:_fail('adoption_recovery_identity_changed')
         spec=service._host_spec(manifest['host_spec']);key=_private(self.private_key)
@@ -540,7 +540,7 @@ class _Permit:
         """The in-flight check the broker makes once the upstream has answered: cancellation and revocation only, never
         the window (it bounds when a dispatch may start)."""
         if not self.active or self.pid!=os.getpid():_fail('adoption_recovery_permit_inactive')
-        self.job._check(expiry=False);self.runtime.check(self.job.manifest);phase=self._phase()
+        self.job._check(expiry=False);self.runtime.check(self.job.manifest,check_window=False);phase=self._phase()
         with self.job.policy.connection() as db:
             if self._stopped_or_changed(db,phase):_fail('adoption_recovery_permit_revoked')
     def check_active(self):
