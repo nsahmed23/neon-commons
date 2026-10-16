@@ -1598,6 +1598,22 @@ class StopTests(Fixture):
             live.wait_step()
         self.assertIs(caught.exception.__cause__, queued)
 
+    def test_an_interrupted_closure_check_does_not_replace_the_startup_failure_or_skip_the_close(self):
+        from intune_iac import companion_live
+        real_check, calls = companion_live.LiveCompanion._listener_closed, []
+
+        def check(live):
+            calls.append(1)
+            if len(calls) == 1:
+                raise KeyboardInterrupt('interrupted in the closure check')
+            return real_check(live)
+        with mock.patch.object(companion_live.LiveCompanion, '_listener_closed', check):
+            live, startup = self.start_with_failing_thread_starts({1})
+        self.assertIsInstance(startup, RuntimeError)
+        self.assertIn('KeyboardInterrupt', ' '.join(getattr(startup, '__notes__', [])))
+        with self.assertRaises(OSError):
+            socket.create_connection(('127.0.0.1', live.port), timeout=2)
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500

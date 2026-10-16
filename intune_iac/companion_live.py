@@ -544,11 +544,13 @@ class LiveCompanion:
                 attempt.guard('close', server.stop_serving)
                 attempt.add(self._raw_close(wake=True))
                 attempt.guard('close', thread.join, STOP_WAIT_SECONDS)
-                self._serving_stopped = self._listener_closed()
+                self._serving_stopped = attempt.guard('close', self._listener_closed) is True
         attempt.guard('close', server.server_close)
-        if not self._listener_closed():
+        # Every closure check is a guarded step too, and only an explicit True counts as closed: a check that raised
+        # cannot skip the raw close or the final verification.
+        if attempt.guard('close', self._listener_closed) is not True:
             attempt.add(self._raw_close())
-        closed = self._listener_closed()
+        closed = attempt.guard('close', self._listener_closed) is True
         if join_watchdog:
             attempt.guard('close', self._join_watchdog)
         if closed:
@@ -690,7 +692,7 @@ class LiveCompanion:
         # attempt takes over the state, so a stopper that finishes later cannot overwrite it; the next stop() retries.
         attempt = _Attempt()
         attempt.add(self._raw_close(wake=True))
-        closed = self._listener_closed()
+        closed = attempt.guard('close', self._listener_closed) is True
         primary, diagnostic = attempt.resolve(closed)
         met = primary if primary is not None else diagnostic
         if primary is not None and not isinstance(primary, Exception):
