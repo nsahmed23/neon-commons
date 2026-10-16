@@ -313,7 +313,7 @@ class OpenWindowWasOpenAtTheLastReadTests(unittest.TestCase):
 
     def test_the_next_says_the_window_was_open_at_the_last_read_of_this_policy(self):
         self.assertIn('review the newest operation, a23983bd, whose approval window was open at the last read of this '
-                      'policy; Expiry and Approval window above say why this plan cannot run', self.text())
+                      'policy; this plan cannot run because its approval window closed at ', self.text())
 
     def test_it_no_longer_claims_the_window_is_open_now(self):
         self.assertNotIn('approval window is open', self.text())

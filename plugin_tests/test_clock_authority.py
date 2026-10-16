@@ -481,7 +481,7 @@ class WindowViewTests(unittest.TestCase):
         self.assertIn('recorded; a clock that reads earlier does not reopen it', _approval_text(stage, stage['status']))
         review = maintenance.review(self.operation)
         # Run 8 item 7: the Approval window row says it closed; the Next line is the step and refers to that row.
-        self.assertIn('Prepare a proposal from the recorded intent (a: actions); Expiry and Approval window above say why',
+        self.assertIn('Prepare a proposal from the recorded intent (a: actions); this plan cannot run because its approval window closed at ',
                       lifecycle_next(4, review, self.clocks.now()))
 
     def test_a_damaged_clock_record_reads_as_unknown_and_refused(self):

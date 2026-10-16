@@ -306,7 +306,7 @@ class LifecycleTests(unittest.TestCase):
         prepared = {'operation_id': 'a' * 32, 'object_id': OBJECT, 'status': 'prepared', 'expires_at': time.time() + 200}
         text = self.summary(4, dict(prepared, expires_at=time.time() - 1))
         # Run 8 item 7: the Approval window row and the Context file row state the facts; the Next lines are the steps.
-        self.assertIn('Next: Prepare a proposal from the recorded intent (a: actions); Expiry and Approval window above say why', text)
+        self.assertIn('Next: Prepare a proposal from the recorded intent (a: actions); this plan cannot run because its approval window closed at ', text)
         self.assertNotIn('execute OPERATION_DIR', text)
         text = self.summary(4, dict(prepared, repository={'cited': None, 'context_changed': True}))
         self.assertIn('Next: Prepare a proposal from the recorded intent (a: actions).', text)
@@ -1153,8 +1153,8 @@ class ExpiredReviewOnceTests(unittest.TestCase):
         text = ' '.join((self.summary(self.workspace(4, self.CLOSED)) + ' ' + ' '.join(lifecycle_lines(4, 160, self.CLOSED, 2e9))).split())
         self.assertIn('Review digest: not offered; execute can no longer run this plan.', text)
         self.assertEqual(text.count('Prepare a'), 1, text)
-        # Run 8 item 7: the Approval window row states the fact; the Next line refers to it instead of saying it again.
-        self.assertEqual(text.count('window closed') + text.count('window has closed'), 0, text)
+        # Run 16 N1: the Next sits above the rows, so it gives the reason itself, once; the digest line does not.
+        self.assertEqual(text.count('window closed') + text.count('window has closed'), 1, text)
         self.assertIn('Approval window: closed', text)
 
 

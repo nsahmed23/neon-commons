@@ -1480,7 +1480,7 @@ class RunEightScreensTests(unittest.TestCase):
         self.assertIn('Prepare a proposal from the recorded intent (a: actions)', said)
         self.assertIn('stage 3 says when its approval window closed', said)
         closed = lifecycle_next(4, {'status': 'prepared', 'approval_window': {'state': 'closed'}}, 0)
-        self.assertEqual(closed, 'Prepare a proposal from the recorded intent (a: actions); Expiry and Approval window above say why')
+        self.assertEqual(closed, 'Prepare a proposal from the recorded intent (a: actions); this plan cannot run because its approval window is closed')
         self.assertNotIn('has closed', closed)
 
     # Item 8 (frames 08, 11 to 14, 16, 75, 77): the Source path is quoted when it holds a space.

@@ -392,8 +392,8 @@ class CanonicalNameTests(unittest.TestCase):
         from intune_iac.workbench_delivery import _next_step
         from intune_iac.workbench_screens import hazard_rows, lifecycle_next
         closed = {'operation_id': 'a' * 32, 'status': 'prepared', 'expires_at': time.time() - 5}
-        self.assertEqual(lifecycle_next(4, closed, time.time()),
-                         PREPARE + ' (a: actions); Expiry and Approval window above say why')
+        self.assertRegex(lifecycle_next(4, closed, time.time()),
+                         '^' + re.escape(PREPARE + ' (a: actions); this plan cannot run because its approval window closed at ') + r'\d{4}-')
         changed = {'operation_id': 'a' * 32, 'status': 'prepared', 'repository': {'cited': None, 'context_changed': True}}
         self.assertEqual(lifecycle_next(4, changed, 0), PREPARE + ' (a: actions)')
         facts = {'object_id': 'o', 'operation': 'prepared', 'operation_id': 'a' * 32,

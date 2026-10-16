@@ -801,13 +801,16 @@ def lifecycle_next(tab, value, now, eligibility=None, newest_open=None):
         expires = value.get('expires_at')
         if judged.get('state') in ('closed', 'closed_recorded') or (
                 not judged and isinstance(expires, (int, float)) and not isinstance(expires, bool) and expires <= now):
-            # The Approval window row states the fact; this line refers to it rather than say it again.
+            # The Next sits above the Expiry and Approval window rows (run 16, frames 70 and 72), so it gives the reason
+            # itself and never points at them by position.
+            closed_at = _readable_epoch(expires) if isinstance(expires, (int, float)) and not isinstance(expires, bool) else None
+            reason = ('its approval window closed at %s' % closed_at) if isinstance(closed_at, str) \
+                else 'its approval window is closed'
             if newest_open:
                 return ('Prepare a proposal from the recorded intent (a: actions), or review the newest operation, %s, '
-                        'whose approval window was open at the last read of this policy; Expiry and Approval window above say why '
-                        'this plan cannot run'
-                        % newest_open)
-            return 'Prepare a proposal from the recorded intent (a: actions); Expiry and Approval window above say why'
+                        'whose approval window was open at the last read of this policy; this plan cannot run because %s'
+                        % (newest_open, reason))
+            return 'Prepare a proposal from the recorded intent (a: actions); this plan cannot run because %s' % reason
         # The command stands on its own row after the sentence, so a copied row carries no words (run 9, frame 18).
         # The real directory when the review names it (a review always does); the template only where it does not.
         operation = command_arg(value['operation_root']) if isinstance(value.get('operation_root'), str) else 'OPERATION_DIR'
