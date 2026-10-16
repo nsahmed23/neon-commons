@@ -113,6 +113,37 @@ def start_live(read, *, idle_seconds=IDLE_SECONDS, poll_seconds=POLL_SECONDS):
     return live
 
 
+def as_close_failure(failure):
+    """What a listener that would not stop is called to the engineer: one error with one code, whatever raised it."""
+    if isinstance(failure, AppError):
+        return failure
+    shown = AppError('companion_live_close_failed', 'The listener could not be closed: %s' % type(failure).__name__)
+    shown.__cause__ = failure
+    return shown
+
+
+def note_cleanup_failure(primary, failure):
+    """Attach a cleanup failure to the error that is already escaping, so the engineer still gets that error. The note
+    carries the code and the class only: never an address, a token or a message."""
+    shown = as_close_failure(failure)
+    cause = shown.__cause__ or shown
+    primary.add_note('Cleanup also failed: %s (%s). The listener may still be bound until this process exits.'
+                     % (shown.code, type(cause).__name__))
+
+
+def release_listener(live, primary=None):
+    """Stop a listener as cleanup. With an error already escaping (`primary`), a failure to stop is attached to it as a
+    note and returned as True, never raised in its place; with nothing escaping, the failure is raised."""
+    try:
+        live.stop()
+    except Exception as failure:
+        if primary is None:
+            raise
+        note_cleanup_failure(primary, failure)
+        return True
+    return False
+
+
 def run_companion(read, *, out=None, serve=False, announce=None, idle_seconds=IDLE_SECONDS, poll_seconds=POLL_SECONDS):
     """Write the static page (out=PATH) or serve it on loopback (serve=True, announce=callable taking the notice).
 
@@ -125,12 +156,17 @@ def run_companion(read, *, out=None, serve=False, announce=None, idle_seconds=ID
     if not callable(announce):
         raise AppError('companion_announce_required', 'Live mode needs a way to tell the engineer the address.')
     live = start_live(read, idle_seconds=idle_seconds, poll_seconds=poll_seconds)
-    reason = 'interrupted'
     try:
         announce(live.notice)
         reason = live.wait()
-    except KeyboardInterrupt:
-        reason = 'interrupted'
-    finally:
-        live.stop()
+    except KeyboardInterrupt as interrupt:
+        # Ctrl+C is the ordinary way to end this. If the listener then will not stop, the interrupt is kept (with the
+        # failure noted on it) rather than lost behind the cleanup error.
+        if release_listener(live, interrupt):
+            raise
+        return {'mode': 'live', 'stopped': 'interrupted'}
+    except BaseException as error:
+        release_listener(live, error)
+        raise
+    release_listener(live)
     return {'mode': 'live', 'stopped': reason}

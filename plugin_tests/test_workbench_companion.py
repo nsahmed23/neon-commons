@@ -248,6 +248,96 @@ class SessionEndTests(Fixture):
             socket.create_connection(('127.0.0.1', port), timeout=2)
 
 
+class FailingStopTests(Fixture):
+    """The session's cleanup when a listener will not close: the engineer sees the error, the listener stays held so
+    `companion stop` can be retried, and an error already escaping the session is not replaced by the cleanup's."""
+
+    def setUp(self):
+        super().setUp()
+        from intune_iac import companion
+        self.listeners, self.repairs = [], []
+        real_start = companion.start_live
+
+        def capturing(*arguments, **keywords):
+            live = real_start(*arguments, **keywords)
+            self.listeners.append(live)
+            self.addCleanup(live.stop)       # runs after the repairs below (cleanups run last in, first out)
+            return live
+        patch = unittest.mock.patch.object(companion, 'start_live', capturing)
+        patch.start()
+        self.addCleanup(patch.stop)
+
+    def break_close(self):
+        from plugin_tests.test_companion_live import UnclosableSocket
+        live = self.listeners[0]
+        real_socket = live.server.socket
+        patch = unittest.mock.patch.object(live.server, 'server_close', side_effect=OSError('close failed'))
+        patch.start()
+        live.server.socket = UnclosableSocket(real_socket)
+
+        def repair():
+            patch.stop()
+            live.server.socket = real_socket
+        self.addCleanup(repair)
+        self.repair = repair
+
+    def run_terminal(self, *steps):
+        """Lines are typed; callables run between prompts (to break or repair the listener)."""
+        from intune_iac.workbench import _run_terminal
+        results, remaining = [], list(steps)
+
+        def feed(prompt):
+            while True:
+                step = remaining.pop(0)
+                if callable(step):
+                    step()
+                else:
+                    return step
+        _run_terminal(self.root, input_fn=feed, result_fn=results.append)
+        return results
+
+    def test_a_failing_companion_stop_keeps_the_listener_held_and_a_retry_succeeds(self):
+        import socket
+        select = 'select ' + self.object_id
+        results = self.run_terminal(select, 'companion serve', self.break_close, 'companion stop', 'companion serve',
+                                    lambda: self.repair(), 'companion stop', 'quit')
+        outcomes = [item['error']['code'] if item.get('status') == 'error' else item.get('stopped')
+                    for item in results if isinstance(item, dict) and (item.get('status') == 'error' or item.get('stopped'))]
+        self.assertEqual(outcomes, ['companion_live_close_failed', 'companion_running', 'stopped'])
+        with self.assertRaises(OSError):
+            socket.create_connection(('127.0.0.1', self.listeners[0].port), timeout=2)
+
+    def test_an_error_escaping_the_session_is_not_replaced_by_a_failing_stop(self):
+        from intune_iac.workbench import _run_terminal
+
+        class Boom(RuntimeError):
+            pass
+        script = ['select ' + self.object_id, 'companion serve', self.break_close]
+
+        def feed(prompt):
+            while script:
+                step = script.pop(0)
+                if callable(step):
+                    step()
+                else:
+                    return step
+            raise Boom('the input failed')
+        with self.assertRaises(Boom) as caught:
+            _run_terminal(self.root, input_fn=feed, result_fn=lambda value: None)
+        notes = ' '.join(getattr(caught.exception, '__notes__', []))
+        self.assertIn('companion_live_close_failed', notes)
+        self.assertNotIn('127.0.0.1', notes)
+        self.assertNotIn(self.listeners[0].token, notes)
+
+    def test_with_nothing_escaping_a_failing_stop_at_the_end_is_raised(self):
+        from intune_iac.io import AppError
+        def end_of_input():
+            raise EOFError
+        with self.assertRaises(AppError) as caught:
+            self.run_terminal('select ' + self.object_id, 'companion serve', self.break_close, end_of_input)
+        self.assertEqual(caught.exception.code, 'companion_live_close_failed')
+
+
 class ActionsMenuTests(Fixture):
     def actions(self):
         from intune_iac.workbench import _inspection, _store

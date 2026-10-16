@@ -1256,10 +1256,25 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             service_root = service_origin['root']
     page = {'kind': 'overview', 'limit': 10, 'offset': 0, 'query': ''}
     held = []  # the loopback listeners this session started; the session ends them, and each ends itself when idle
-    def stop_companions():
-        for listener in held:
-            listener.stop()
-        held.clear()
+    def stop_companions(escaping=None):
+        # A listener leaves `held` only once it has stopped: one that will not close stays, so "companion stop" can be
+        # tried again and "companion serve" stays refused. If it never closes, the process exit releases the port.
+        from .companion import as_close_failure, note_cleanup_failure
+        failure = None
+        for listener in list(held):
+            try:
+                listener.stop()
+            except Exception as error:
+                failure = failure or error
+                continue
+            held.remove(listener)
+        if failure is None:
+            return
+        if escaping is not None:
+            # An error is already leaving the session: the cleanup failure is attached to it, not raised in its place.
+            note_cleanup_failure(escaping, failure)
+            return
+        raise as_close_failure(failure)
     def show_page(specification=None):
         target = page if specification is None else specification
         if target['kind'] == 'history-recent':
@@ -1279,6 +1294,7 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
         result = show_page(candidate)
         page.update(candidate)
         return result
+    escaping = None   # the error leaving the session, if one is, so that the cleanup below never replaces it
     try:
         initial_overview = show_page()
         present({'title': 'Intune Workbench', 'evidence_class': initial_overview.get('evidence_class', 'unknown'), 'commands': HELP})
@@ -1569,7 +1585,10 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
             except (ValueError, TypeError, KeyError, OSError):
                 present({'status': 'error', 'error': {'code': 'invalid_workbench_request',
                          'message': 'Command or local input is invalid. Enter help for exact syntax.'}})
+    except BaseException as error:
+        escaping = error
+        raise
     finally:
         # However the session ends (a return, an error in the input or in the presentation), the
         # listeners it started do not outlive it.
-        stop_companions()
+        stop_companions(escaping)

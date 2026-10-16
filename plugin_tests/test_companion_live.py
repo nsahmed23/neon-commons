@@ -975,6 +975,64 @@ class StopTests(Fixture):
         with self.assertRaises(OSError):
             socket.create_connection(('127.0.0.1', self.port), timeout=2)
 
+    def run_live_with_a_broken_close(self, announce, raw):
+        """run_companion(serve=True) whose listener cannot close its port (raw=False: only server_close fails, so the
+        fallback closes the socket). Returns (the listener, repair)."""
+        from intune_iac import companion
+        real_start, captured = companion.start_live, []
+
+        def capturing(*arguments, **keywords):
+            live = real_start(*arguments, **keywords)
+            captured.append(live)
+            self.addCleanup(live.stop)       # runs last: after the repair below, so it can close the port
+            captured.append(self.break_close(live, raw=raw))
+            return live
+        with mock.patch.object(companion, 'start_live', capturing):
+            try:
+                companion.run_companion(self.read, serve=True, announce=announce)
+            finally:
+                self.live_under_test = captured[0]
+        return captured[0]
+
+    def test_a_cleanup_failure_does_not_replace_the_error_the_engineer_needs(self):
+        def announce(text):
+            raise RuntimeError('the announcement failed')
+        with self.assertRaises(RuntimeError) as caught:
+            self.run_live_with_a_broken_close(announce, raw=True)
+        self.assertEqual(str(caught.exception), 'the announcement failed')
+        notes = ' '.join(getattr(caught.exception, '__notes__', []))
+        self.assertIn('companion_live_close_failed', notes)
+        self.assertIn('OSError', notes)
+        self.assertNotIn('127.0.0.1', notes)
+        self.assertNotIn(self.live_under_test.token, notes)
+
+    def test_an_interrupt_is_not_replaced_by_a_cleanup_failure_either(self):
+        def announce(text):
+            raise KeyboardInterrupt
+        with self.assertRaises(KeyboardInterrupt) as caught:
+            self.run_live_with_a_broken_close(announce, raw=True)
+        self.assertIn('companion_live_close_failed', ' '.join(getattr(caught.exception, '__notes__', [])))
+
+    def test_with_the_fallback_the_port_is_closed_when_the_error_propagates(self):
+        def announce(text):
+            raise RuntimeError('the announcement failed')
+        with self.assertRaises(RuntimeError) as caught:
+            self.run_live_with_a_broken_close(announce, raw=False)
+        self.assertEqual(getattr(caught.exception, '__notes__', []), [], 'stop() succeeded, so there is nothing to note')
+        with self.assertRaises(OSError):
+            socket.create_connection(('127.0.0.1', self.live_under_test.port), timeout=2)
+
+    def test_a_cleanup_failure_with_nothing_propagating_is_raised(self):
+        from intune_iac.companion import release_listener
+        from intune_iac.io import AppError
+
+        class Stuck:
+            def stop(self):
+                raise AppError('companion_live_close_failed', 'The listener could not be closed: OSError')
+        with self.assertRaises(AppError) as caught:
+            release_listener(Stuck(), None)
+        self.assertEqual(caught.exception.code, 'companion_live_close_failed')
+
     def test_serve_prints_the_address_never_launches_a_browser_and_stops_when_idle(self):
         from intune_iac.companion import run_companion
         said = []
