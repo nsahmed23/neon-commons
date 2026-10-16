@@ -1964,18 +1964,18 @@ def raw_controls(text):
     return [char for char in SGR.sub('', text) if unicodedata.category(char)[0] in 'CM' or char == '\x7f']
 
 
-def hostile_flow():
+def hostile_flow(text=HOSTILE):
     """The projection of a prepared operation with hostile text in every field a record can supply."""
     flow = project(with_operation(baseline()))
-    flow['name'] = HOSTILE
+    flow['name'] = text
     for stage in flow['stages']:
-        stage['basis'] = 'basis ' + HOSTILE
-        stage['reason'] = 'reason ' + HOSTILE
-        stage['facts'] = {name: HOSTILE for name in ('run_id', 'observed_at', 'stack', 'classification', 'closes_at',
-                                                     'intent_id', 'proposal_check', 'zz unlisted ' + HOSTILE)}
+        stage['basis'] = 'basis ' + text
+        stage['reason'] = 'reason ' + text
+        stage['facts'] = {name: text for name in ('run_id', 'observed_at', 'stack', 'classification', 'closes_at',
+                                                  'intent_id', 'proposal_check', 'zz unlisted ' + text)}
         # A step: its sentence, then a command after the trusted line break, both holding recorded text.
-        stage['continuation'] = 'Step ' + HOSTILE + '\n  reconcile ' + HOSTILE
-        stage['opens'] = HOSTILE
+        stage['continuation'] = 'Step ' + text + '\n  reconcile ' + text
+        stage['opens'] = text
     flow['stages'][0]['id'] = 'observe'
     return flow
 
@@ -2033,9 +2033,43 @@ class RecordedTextTests(LayerFixture):
                 for line in lines:
                     self.assertEqual(raw_controls(line), [], (rules, line))
 
+    def test_a_line_or_paragraph_separator_in_a_record_makes_no_row_in_the_plain_text_form_or_the_layer(self):
+        from intune_iac.workbench_screens import workflow_text_lines
+
+        def compared(text):
+            # short_id cuts a recorded identity to eight characters before it is escaped, so that one fact would differ between
+            # a separator and its six-character spelling; the comparison with the spelled text leaves it out.
+            flow = hostile_flow(text)
+            for stage in flow['stages']:
+                stage['facts'].pop('intent_id')
+            return flow
+        flow = hostile_flow(SEPARATED)
+        for width in (36, 50, 80, 120):
+            for rules in ('ascii', 'unicode'):
+                lines = workflow_text_lines(flow, width, rules)
+                text = '\n'.join(lines)
+                for separator in SEPARATORS:
+                    self.assertNotIn(separator, text, (width, rules))
+                # A splitlines() consumer sees exactly the rows the output has: no row starts where a separator was.
+                self.assertEqual(len(text.splitlines()), len(lines), (width, rules))
+                self.assertEqual(workflow_text_lines(compared(SEPARATED), width, rules),
+                                 workflow_text_lines(compared(SPELLED), width, rules), (width, rules))
+        for size in ((120, 40), (80, 24), (60, 20)):
+            for rules in ('ascii', 'unicode'):
+                for focus in IDS:
+                    frame = self.frame_of(flow, size, rules, focus)
+                    self.assertEqual(len(frame), size[1], (size, rules, focus))
+                    for row in frame:
+                        for separator in SEPARATORS:
+                            self.assertNotIn(separator, row, (size, rules, focus))
+                        self.assertLessEqual(len(row.splitlines()), 1, (size, rules, focus, row))
+                    self.assertEqual(self.frame_of(compared(SEPARATED), size, rules, focus),
+                                     self.frame_of(compared(SPELLED), size, rules, focus), (size, rules, focus))
+
 
 class RecordedNameFixture(LayerFixture):
     """A store whose policy carries a hostile name from the collection onward."""
+    NAME = HOSTILE
 
     def setUp(self):
         import json
@@ -2055,7 +2089,7 @@ class RecordedNameFixture(LayerFixture):
         capture = json.loads((root / 'examples/supported/input/export.json').read_text())
         for item in capture['collections'][0]['pages'][0]['body']['value']:
             if item.get('id') == OBJECT:
-                item['name'] = HOSTILE
+                item['name'] = self.NAME
         self.service = ModeledService.create(self.root / 'service', capture, [OBJECT])
         self.store = WorkbenchStore.create(self.root / 'store', TENANT)
         self.store.collect(self.service)
@@ -2433,6 +2467,111 @@ class StoredRootTextTests(LayerFixture):
             for frame in frames:
                 for row in frame:
                     self.assertEqual(raw_controls(row), [], (command, row))
+
+
+
+# ---- round 3: the line and paragraph separators are escaped like every other control -------------------------------------
+
+SEPARATED = 'policy\u2028Position: forged\u2029KEYS: q exits'
+SPELLED = SEPARATED.replace('\u2028', '\\u2028').replace('\u2029', '\\u2029')      # the same text with each separator spelled out
+SEPARATORS = ('\u2028', '\u2029')
+
+
+class SafeTextSeparatorTests(unittest.TestCase):
+    def test_safe_text_escapes_the_line_and_paragraph_separators_in_the_form_it_uses_for_every_other_control(self):
+        from intune_iac.workbench_tui import safe_text
+        self.assertEqual(safe_text('a\u2028b'), 'a\\u2028b')
+        self.assertEqual(safe_text('a\u2029b'), 'a\\u2029b')
+        self.assertEqual(safe_text(SEPARATED), SPELLED)
+        self.assertEqual(safe_text(SPELLED), SPELLED)               # escaping twice changes nothing
+
+    def test_no_character_str_splitlines_breaks_on_survives_safe_text(self):
+        from intune_iac.workbench_tui import safe_text
+        breaks = ['\n', '\r', '\r\n', '\x0b', '\x0c', '\x1c', '\x1d', '\x1e', '\x85', '\u2028', '\u2029']
+        text = safe_text('x'.join(breaks))
+        self.assertEqual(text.splitlines(), [text])
+        self.assertEqual(len(safe_text('policy\u2028Position: forged').splitlines()), 1)
+
+    def test_the_whole_zl_and_zp_categories_are_those_two_characters_and_ordinary_text_is_untouched(self):
+        import sys
+        import unicodedata
+        from intune_iac.workbench_tui import safe_text
+        self.assertEqual([chr(n) for n in range(sys.maxunicode + 1) if unicodedata.category(chr(n)) in ('Zl', 'Zp')],
+                         ['\u2028', '\u2029'])
+        # Spaces (Zs), wide and accented text stay as they are.
+        for kept in ('a\u00a0b', 'a\u2003b', 'a b', 'Windows Privacy Pilot', 'caf\u00e9 \u65e5\u672c'):
+            self.assertEqual(safe_text(kept), kept)
+
+
+class StoredSeparatorTests(RecordedNameFixture):
+    NAME = SEPARATED
+
+    def command(self):
+        import sys
+        from pathlib import Path
+        script = Path(__file__).resolve().parents[1] / 'scripts/intune-iac.py'
+        return [sys.executable, str(script), 'workbench', 'workflow', '--root', str(self.store.root), '--policy', OBJECT,
+                '--service-root', str(self.service.root)]
+
+    def test_a_stored_name_with_the_separators_makes_no_row_in_the_piped_text_form(self):
+        import json
+        import subprocess
+        from intune_iac import workbench
+        self.assertEqual(workbench._workflow(self.store, OBJECT, service_root=self.service.root)['name'], SEPARATED)
+        piped = subprocess.run(self.command(), capture_output=True, cwd='/tmp')
+        self.assertEqual(piped.returncode, 0, piped.stderr)
+        for separator in SEPARATORS:
+            self.assertNotIn(separator.encode('utf-8'), piped.stdout)
+        text = piped.stdout.decode('utf-8')
+        self.assertEqual(len(text.splitlines()), len(text.rstrip('\n').split('\n')))       # splitlines() adds no row
+        self.assertIn('policy\\u2028Position:', text.split('\n')[0])
+        data = subprocess.run(self.command() + ['--json'], capture_output=True, cwd='/tmp')
+        self.assertEqual(json.loads(data.stdout)['name'], SEPARATED)                       # the data form keeps it exactly
+        self.assertTrue(all(byte < 0x80 for byte in data.stdout))
+
+    def test_a_stored_name_with_the_separators_makes_no_row_in_the_text_form_on_a_terminal(self):
+        import fcntl
+        import os
+        import pty
+        import struct
+        import subprocess
+        import termios
+        master, slave = pty.openpty()
+        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack('HHHH', 40, 100, 0, 0))
+        env = dict(os.environ, LANG='C.UTF-8', PYTHONIOENCODING='utf-8')
+        env.pop('COLUMNS', None)
+        process = subprocess.Popen(self.command(), stdout=slave, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL, env=env, cwd='/tmp')
+        os.close(slave)
+        chunks = []
+        while True:
+            try:
+                data = os.read(master, 4096)
+            except OSError:
+                break
+            if not data:
+                break
+            chunks.append(data)
+        process.wait()
+        os.close(master)
+        self.assertEqual(process.returncode, 0, process.stderr.read())
+        raw = b''.join(chunks)
+        for separator in SEPARATORS:
+            self.assertNotIn(separator.encode('utf-8'), raw)
+        text = raw.decode('utf-8').replace('\r\n', '\n')
+        self.assertEqual(len(text.splitlines()), len(text.rstrip('\n').split('\n')))
+        self.assertIn('policy\\u2028Position:', text.split('\n')[0])
+
+    def test_a_stored_name_with_the_separators_makes_no_row_in_the_layer_frames_of_the_real_engine(self):
+        key = lambda char: ('text', char)
+        for size, rules in (((120, 40), 'unicode'), ((80, 24), 'ascii')):
+            ws, frames = self.run_keys(typed('select ' + OBJECT) + typed('workflow') + ['down'] * 2 + [key('q')], size, rules)
+            self.assertEqual(ws.states[-1]['layer'], 'workflow')
+            for frame in frames:
+                self.assertEqual(len(frame), size[1])
+                for row in frame:
+                    for separator in SEPARATORS:
+                        self.assertNotIn(separator, row, (size, rules))
+                    self.assertLessEqual(len(row.splitlines()), 1, (size, rules, row))
 
 
 if __name__ == "__main__":

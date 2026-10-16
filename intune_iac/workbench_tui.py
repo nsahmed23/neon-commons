@@ -142,19 +142,23 @@ def _valid_adoption_plan_navigation(value):
 
 
 def safe_text(value):
-    """Escape controls/format/combining characters; preserve inspectable bytes in DB.
+    """Escape controls/format/combining characters and the line and paragraph separators; preserve inspectable bytes in DB.
 
     Width uses Unicode East Asian W/F=2, all other displayed codepoints=1.
     Combining/format sequences are escaped so they cannot obscure identity or
-    forge status. Emoji grapheme composition is intentionally not interpreted.
+    forge status. U+2028 and U+2029 (the whole Zl and Zp categories) are escaped
+    too: a Unicode-aware renderer or a splitlines() reader starts a new row at
+    each, so a recorded name could otherwise begin an unindented row of its own.
+    Emoji grapheme composition is intentionally not interpreted.
     """
     result = []
     for char in str(value):
         number = ord(char)
+        category = unicodedata.category(char)
         if char == '\n': result.append('\\n')
         elif char == '\r': result.append('\\r')
         elif char == '\t': result.append('\\t')
-        elif unicodedata.category(char)[0] in 'CM' or number == 127:
+        elif category[0] in 'CM' or category in ('Zl', 'Zp') or number == 127:
             result.append('\\u%04x' % number if number <= 65535 else '\\U%08x' % number)
         else: result.append(char)
     return ''.join(result)
