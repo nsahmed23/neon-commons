@@ -136,10 +136,11 @@ class ExpiredTests(unittest.TestCase):
         value = readiness(tr.survey_of(tr.repository_item(), tr.context_item(tenant=TENANT_A)), tr.host_report(),
                           tr.doctor_report(), signin=facts)
         row = tr.rows_of(value, 'discover')['integration_service']
-        # readiness.py is not part of this round: it still blocks only on wrong_tenant, not_signed_in and expired, so a
-        # subscription_expired verdict leaves the row unknown (never ready) until it learns the new status (follow-up).
-        self.assertEqual(row['state'], 'unknown')
+        # A subscription_expired verdict blocks the integration row like the other sign-in blocks: missing, with the next step.
+        self.assertEqual(row['state'], 'missing')
         self.assertIn('subscription', ' '.join(row['missing']))
+        self.assertIn('az account set --subscription SUBSCRIPTION (the subscription id or name)', row['next_action'])
+        self.assertIn('az login --tenant %s' % TENANT_A, row['next_action'])
 
 
 if __name__ == '__main__':
