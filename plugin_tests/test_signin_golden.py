@@ -25,7 +25,9 @@ ADDED = {
     'cred_token_prefix': {'detail_code': 'credential_shaped_name', 'rule': 'token_prefix'},
     'cred_jwt_prefix': {'detail_code': 'credential_shaped_name', 'rule': 'token_prefix'},
     'cred_unbroken_run': {'detail_code': 'credential_shaped_name', 'rule': 'unbroken_run'},
-    'cred_prefix_and_run': {'detail_code': 'credential_shaped_name'},
+    'cred_prefix_and_run': {'detail_code': 'credential_shaped_name', 'rule': 'token_prefix'},
+    'hidden_capitals_and_bang_usable': {'rule': 'shape'},
+    'hidden_long_usable': {'rule': 'length'},
     'cred_github': {'detail_code': 'credential_shaped_name', 'rule': 'token_prefix'},
 }
 

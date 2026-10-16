@@ -159,27 +159,26 @@ def signature_phrase(entry):
 
 
 def hidden_reasons(raw):
-    """Why shown_name hides this raw name: the codes of REASON_TEXT that matched, a credential signature taking the place of the rest.
+    """Why shown_name hides this raw name: a list of exactly one code of REASON_TEXT (the first match), or [] for a name it shows.
 
-    Worked out from the raw name once, when the listing is parsed; it names the rule, never any part of the name.
+    The order is the judges' own, deterministic: first the usability judge (credential_signature: a token prefix, then an
+    unbroken run), which decides that a name is blocked and is the rule a blocked message names; then shown_name's checks in its
+    order (plain shape, then opaque: length, then capitals block, then a credential word). Only the first match is kept, so a
+    name never discloses more than one rule. Worked out from the raw name once, when the listing is parsed; it names the rule,
+    never any part of the name.
     """
     if not isinstance(raw, str):
         return []
-    signature = [code for code, hit in (('token_prefix', raw.startswith('eyJ') or raw.startswith(_TOKEN_PREFIXES)),
-                                        ('unbroken_run', bool(_UNBROKEN_RUN.search(raw)))) if hit]
-    if signature:
-        return signature
-    reasons = []
     normalized = _SEPARATORS.sub('', raw)
-    if _TOKENISH.search(raw):
-        reasons.append('credential_word')
-    if not (_UPN.fullmatch(raw) or NAME.fullmatch(raw)):
-        reasons.append('shape')
-    elif len(normalized) >= RUN_LIMIT or not (_UPN.fullmatch(raw) or len(raw) <= 64):
-        reasons.append('length')
-    if len(normalized) >= BLOCK_LIMIT and not any(c.islower() for c in normalized):
-        reasons.append('caps_block')
-    return reasons
+    checks = (
+        ('token_prefix', lambda: raw.startswith('eyJ') or raw.startswith(_TOKEN_PREFIXES)),
+        ('unbroken_run', lambda: bool(_UNBROKEN_RUN.search(raw))),
+        ('shape', lambda: not (_UPN.fullmatch(raw) or NAME.fullmatch(raw))),
+        ('length', lambda: len(normalized) >= RUN_LIMIT or not (_UPN.fullmatch(raw) or len(raw) <= 64)),
+        ('caps_block', lambda: len(normalized) >= BLOCK_LIMIT and not any(c.islower() for c in normalized)),
+        ('credential_word', lambda: bool(_TOKENISH.search(raw))),
+    )
+    return next(([code] for code, hit in checks if hit()), [])
 
 
 def name_digest(raw):
