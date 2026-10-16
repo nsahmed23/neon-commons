@@ -75,7 +75,7 @@ def _choose(task, event):
     """(attempt, is_current) for the event, or (None, False) when it must not be applied to any attempt."""
     wanted = event['attempt']
     if wanted is None:
-        if len(task['explicit']) >= 2:
+        if len(task['attempts']) >= 2:  # an unnamed attempt that ended, then a named retry, is two attempts too
             if event['event_type'] in ATTRIBUTED:  # other types (claims) say nothing about an attempt; nothing to show
                 task['notes'].append('%s recorded without an attempt after attempt %s started: not attributed' % (
                     event['event_type'], task['current']))

@@ -177,6 +177,18 @@ class AttemptTests(Base):
         row = self.row(events)
         self.assertEqual((row['state'], row['state_words']), ('started', 'started, no news since ' + wall(4)))
 
+    def test_an_event_without_an_attempt_after_an_unnamed_first_attempt_ended_is_not_credited_to_the_retry(self):
+        events = [event(1, 'dispatch.queued', 'T-1', kind='advisor'),
+                  event(2, 'dispatch.started', 'T-1', adopted=False),
+                  event(3, 'dispatch.failed', 'T-1', reason='x'),
+                  event(4, 'dispatch.started', 'T-1', attempt=self.B, adopted=False)]
+        before = self.row(events)
+        self.assertEqual((before['state'], before['state_words']), ('started', 'started, no news since ' + wall(4)))
+        for kind in ('dispatch.cancelled', 'dispatch.completed'):
+            row = self.row(events + [event(5, kind, 'T-1', cleanup_confirmed=True)])
+            self.assertEqual((row['state'], row['state_words']), ('started', 'started, no news since ' + wall(4)), kind)
+            self.assertIn('%s recorded without an attempt after attempt B1 started: not attributed' % kind, row['words'])
+
 
 class VerificationTests(Base):
     def done(self, tree=TREE_X, first=1, kind='repair'):
