@@ -235,6 +235,64 @@ class VerificationTests(Base):
                   event(4, 'dispatch.completed', 'T-1', attempt='A1', tree=TREE_X), self.verification(5)]
         self.assertEqual(self.row(events)['state'], 'started')
 
+    def test_a_tree_from_an_unattributed_repair_report_does_not_verify_the_current_attempt(self):
+        events = [event(1, 'dispatch.queued', 'T-1', kind='repair'),
+                  event(2, 'dispatch.started', 'T-1', attempt='A1', adopted=False),
+                  event(3, 'dispatch.started', 'T-1', attempt='A2', adopted=False),
+                  event(4, 'repair.reported', 'T-1', tree=TREE_X),
+                  event(5, 'dispatch.completed', 'T-1', attempt='A2', tree=None), self.verification(6)]
+        row = self.row(events)
+        self.assertEqual((row['state'], row['state_words']), ('completed', 'completed, unverified'))
+        self.assertIn('repair.reported recorded without an attempt after attempt A2 started: not attributed', row['words'])
+
+    def test_an_unattributed_claim_event_does_not_move_the_current_attempts_no_news_clock(self):
+        events = [event(1, 'dispatch.queued', 'T-1', kind='repair'),
+                  event(2, 'dispatch.started', 'T-1', attempt='A1', adopted=False),
+                  event(3, 'dispatch.started', 'T-1', attempt='A2', adopted=False),
+                  event(5, 'claim.released', 'T-1')]
+        row = self.row(events)
+        self.assertEqual(row['state_words'], 'started, no news since ' + wall(3))
+
+    def test_a_repair_report_after_the_completion_never_changes_the_tree_the_completion_recorded(self):
+        events = self.done(tree=TREE_X) + [event(4, 'repair.reported', 'T-1', tree=TREE_Y), self.verification(5, tree=TREE_Y)]
+        row = self.row(events)
+        self.assertEqual((row['state'], row['state_words']), ('completed', 'completed, unverified'))
+        self.assertIn('later repair reported', row['words'])
+        row = self.row(self.done(tree=TREE_X) + [event(4, 'repair.reported', 'T-1', tree=TREE_Y), self.verification(5)])
+        self.assertEqual(row['state'], 'verified')
+        self.assertIn(TREE_X[:12], row['state_words'])
+
+
+class UnopenedAttemptTests(Base):
+    def test_an_unknown_attempt_id_on_a_claim_event_opens_nothing(self):
+        events = lifecycle('T-1', terminal='dispatch.completed') + [event(4, 'claim.released', 'T-1', attempt='A1')]
+        row = self.row(events)
+        self.assertEqual((row['state'], row['state_words']), ('completed', 'completed, unverified'))
+        self.assertIn('claim.released names attempt A1, which no started record opened: not attributed', row['words'])
+
+    def test_an_unknown_attempt_id_opens_a_new_attempt_only_for_queued_or_started(self):
+        events = [event(1, 'dispatch.queued', 'T-1', kind='advisor'),
+                  event(2, 'dispatch.started', 'T-1', attempt='A1', adopted=False),
+                  event(3, 'dispatch.failed', 'T-1', attempt='A1', reason='x'),
+                  event(4, 'dispatch.completed', 'T-1', attempt='A9')]
+        row = self.row(events)
+        self.assertEqual(row['state'], 'failed')
+        self.assertIn('dispatch.completed names attempt A9, which no started record opened: not attributed', row['words'])
+
+
+class StartedAfterTerminalTests(Base):
+    def test_an_adopted_started_after_unknown_is_counted_and_noted_and_unknown_stays_unknown(self):
+        events = lifecycle('T-1', terminal='dispatch.unknown', reason='r') + [
+            event(4, 'dispatch.started', 'T-1', adopted=True, incarnation=RUNNER_B)]
+        row = self.row(events)
+        self.assertEqual((row['state'], row['adoptions'], row['incarnation']), ('unknown', 1, RUNNER_B))
+        self.assertEqual(row['words'], 'unknown; later started (adopted)')
+
+    def test_a_plain_started_after_a_terminal_event_is_noted_without_an_adoption(self):
+        row = self.row(lifecycle('T-1', terminal='dispatch.failed', reason='r') + [event(4, 'dispatch.started', 'T-1', adopted=False)])
+        self.assertEqual((row['state'], row['adoptions']), ('failed', 0))
+        self.assertEqual(row['words'], 'failed; later started')
+
 
 class RedactionTests(Base):
     def test_a_sentinel_in_a_result_field_never_appears_in_any_output(self):

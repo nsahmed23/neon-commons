@@ -26,7 +26,9 @@ FINAL = ('completed', 'verified', 'failed', 'cancelled', 'unknown', 'blocked')
 # Events that change or annotate a task's state; an unattributed one on a multi-attempt task is not applied.
 ATTRIBUTED = frozenset(('dispatch.queued', 'dispatch.refused', 'dispatch.started', 'dispatch.timed_out',
                         'dispatch.cancel_requested', 'dispatch.cancelled', 'dispatch.completed', 'dispatch.failed',
-                        'dispatch.unknown', 'dispatch.unavailable', 'advisor.late_result'))
+                        'dispatch.unknown', 'dispatch.unavailable', 'advisor.late_result', 'repair.reported'))
+# Only these may open a new explicit attempt; any other event naming an unopened attempt is not attributed.
+OPENING = frozenset(('dispatch.queued', 'dispatch.started'))
 # What an attempt that is no longer current may say about the task: nothing, only an annotation.
 ENDINGS = frozenset(('dispatch.cancelled', 'dispatch.completed', 'dispatch.failed', 'dispatch.unknown',
                      'dispatch.unavailable', 'advisor.late_result'))
@@ -73,12 +75,17 @@ def _choose(task, event):
     """(attempt, is_current) for the event, or (None, False) when it must not be applied to any attempt."""
     wanted = event['attempt']
     if wanted is None:
-        if len(task['explicit']) >= 2 and event['event_type'] in ATTRIBUTED:
-            task['notes'].append('%s recorded without an attempt after attempt %s started: not attributed' % (
-                event['event_type'], task['current']))
+        if len(task['explicit']) >= 2:
+            if event['event_type'] in ATTRIBUTED:  # other types (claims) say nothing about an attempt; nothing to show
+                task['notes'].append('%s recorded without an attempt after attempt %s started: not attributed' % (
+                    event['event_type'], task['current']))
             return None, False
         return task['attempts'][task['current']], True
     if wanted not in task['attempts']:
+        if event['event_type'] not in OPENING:
+            task['notes'].append('%s names attempt %s, which no started record opened: not attributed' % (
+                event['event_type'], wanted))
+            return None, False
         implicit = task['attempts'].get(None)
         if implicit is not None and not task['explicit'] and implicit['terminal'] is None:
             task['attempts'][wanted] = dict(implicit, id=wanted)  # the one logical attempt, now named
@@ -113,8 +120,10 @@ def _apply(task, event):
     elif kind == 'dispatch.started':
         if attempt['terminal'] is None:
             attempt.update(started=True, timed_out=False, cancel_requested=False, cleanup_unconfirmed=False)
-            task['adoptions'] += 1 if data.get('adopted') else 0
-            task['incarnation'] = event['incarnation']
+        else:  # the state stays as the terminal event left it; the later start is shown, not dropped
+            task['notes'].append('later started (adopted)' if data.get('adopted') else 'later started')
+        task['adoptions'] += 1 if data.get('adopted') else 0
+        task['incarnation'] = event['incarnation']
     elif kind == 'dispatch.timed_out':
         attempt['timed_out'] = True
     elif kind == 'dispatch.cancel_requested':
@@ -130,7 +139,10 @@ def _apply(task, event):
         if _later_or_end(task, attempt, event, kind.split('.')[1]) and kind == 'dispatch.completed':
             attempt['tree'] = data.get('tree') or attempt['tree']
     elif kind == 'repair.reported':
-        attempt['tree'] = data.get('tree') or attempt['tree']
+        if attempt['terminal'] is None:
+            attempt['tree'] = data.get('tree') or attempt['tree']
+        else:  # the completion already recorded its tree; a later report never changes it
+            task['notes'].append('later repair reported')
     elif kind == 'dispatch.unavailable':
         _later_or_end(task, attempt, event, 'blocked')
     elif kind == 'advisor.late_result':
