@@ -97,7 +97,9 @@ class RecordTests(unittest.TestCase):
         self.assertNotEqual(goal['operation_ready']['state'], 'yes')
 
     def test_a_sign_in_that_is_not_usable_is_not_authenticated(self):
-        expired = dict(GOOD, accounts=[dict(GOOD['accounts'][0], session='expired')])
+        # The facts shape after PKG-SETUP-5A: the listing's own word is listing_state, and a listing whose subscriptions are all
+        # Expired is the facts state subscription_expired (the subscription's state, never the sign-in's).
+        expired = dict(GOOD, state='subscription_expired', accounts=[dict(GOOD['accounts'][0], listing_state='Expired')])
         goal = goals_of(catalog(tr.context_item(tenant=GOOD['accounts'][0]['tenant']), signin={'azure': expired}))['discover']
         self.assertEqual(goal['authenticated']['state'], 'not_authenticated')
         self.assertIn('expired', goal['authenticated']['status'])
