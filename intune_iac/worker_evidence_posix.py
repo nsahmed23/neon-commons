@@ -249,10 +249,10 @@ def ingest_raw(store_root,envelope_raw,request_raw,policy,verifier):
             result=verified.result();binding=contract.received_binding(verified,digest(req))
             result.update(received_byte_sha256=hashlib.sha256(envelope_raw).hexdigest(),request_byte_sha256=hashlib.sha256(request_raw).hexdigest())
             database=root/'evidence.sqlite3'
-            try:protected._exclusive(database,b'')
-            except FileExistsError:pass
-            _private(database);_no_sidecars(database)
             try:
+                try:protected._exclusive(database,b'')
+                except FileExistsError:pass
+                _private(database);_no_sidecars(database)
                 with sqlite3.connect(database,timeout=0,isolation_level=None) as db:
                     db.execute('PRAGMA synchronous=FULL');db.execute('PRAGMA journal_mode=DELETE');db.execute('PRAGMA trusted_schema=OFF')
                     db.execute('BEGIN IMMEDIATE')
@@ -265,8 +265,8 @@ def ingest_raw(store_root,envelope_raw,request_raw,policy,verifier):
                     if prior is None:db.execute('INSERT INTO received VALUES (?,?,?,?,?)',(digest(req),result['bundle_sha256'],result['received_byte_sha256'],result['request_byte_sha256'],attempt.name))
                     db.execute('INSERT INTO heads VALUES (?,?,?) ON CONFLICT(scope) DO UPDATE SET sequence=excluded.sequence,event_sha256=excluded.event_sha256',(scope,sequence,events))
                     db.execute('COMMIT')
-            except sqlite3.Error:
-                # Opening, BEGIN IMMEDIATE, the receipt writes or the acceptance commit failed: not recorded, not admitted.
+            except (sqlite3.Error,OSError):
+                # Creating the database, opening it, BEGIN IMMEDIATE, the receipt writes or the acceptance commit failed: not recorded, not admitted.
                 contract.unrecorded()
         protected._sync(root)
         write_new(attempt/'result.json',result)
@@ -323,21 +323,28 @@ def _locked_now(root):
     """The store floor lock, outermost (directory flock, then the floor lock, then SQLite: the order validity.py uses).
 
     Resamples the wall under the lock, persists the observation and yields (effective time, recorded), so no other writer
-    can move the floor between this sample and the caller's acceptance. recorded is False when the write failed; the caller
-    then refuses an admission and flags a temporal refusal. Call only after the input authenticated."""
+    can move the floor between this sample and the caller's acceptance. recorded is False when the lock or the write failed
+    (the whole recording boundary, directory open and flock included); the caller then refuses an admission and flags a
+    temporal refusal, which the read-only effective time still establishes. Call only after the input authenticated."""
     import fcntl
+    from contextlib import ExitStack
     from . import clock
-    directory=os.open(root,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
-    try:
-        opened,current=os.fstat(directory),os.stat(root)
-        if (opened.st_dev,opened.st_ino)!=(current.st_dev,current.st_ino):contract.fail('worker_evidence_private_file')
-        fcntl.flock(directory,fcntl.LOCK_EX)
-        floor=clock.Floor(root/'clock.json')
-        with floor.locked():
-            wall=time.time();recorded=True
-            try:reading=floor.observe_locked(wall)
-            except (OSError,AppError) as error:
-                if isinstance(error,AppError) and error.code in ('clock_floor_invalid','clock_reading_invalid'):raise
-                recorded=False;reading=floor.observe_locked(wall,persist=False)
-            yield int(reading['effective']),recorded
-    finally:os.close(directory)
+    floor=clock.Floor(root/'clock.json')
+    with ExitStack() as held:
+        locked=True
+        try:
+            directory=os.open(root,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW);held.callback(os.close,directory)
+            opened,current=os.fstat(directory),os.stat(root)
+            if (opened.st_dev,opened.st_ino)!=(current.st_dev,current.st_ino):contract.fail('worker_evidence_private_file')
+            fcntl.flock(directory,fcntl.LOCK_EX)
+            held.enter_context(floor.locked())
+        except OSError:locked=False
+        if not locked:
+            yield contract.fresh_now(floor=root/'clock.json'),False
+            return
+        wall=time.time();recorded=True
+        try:reading=floor.observe_locked(wall)
+        except (OSError,AppError) as error:
+            if isinstance(error,AppError) and error.code in ('clock_floor_invalid','clock_reading_invalid'):raise
+            recorded=False;reading=floor.observe_locked(wall,persist=False)
+        yield int(reading['effective']),recorded

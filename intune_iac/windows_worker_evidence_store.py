@@ -87,7 +87,7 @@ def _judge(store,db,decide,apply):
     try:verified=decide(now)
     except AppError as error:pending=error
     if recorded and pending is None:
-        try:apply(verified)
+        try:apply(db,verified)
         except AppError as error:pending=error
         except sqlite3.Error:
             recorded=False  # the receipt write failed: roll back whatever it wrote, nothing is admitted
@@ -98,7 +98,34 @@ def _judge(store,db,decide,apply):
         except BaseException as error:
             if isinstance(error,(KeyboardInterrupt,SystemExit)):raise
             recorded=False
+            try:db.execute('ROLLBACK')
+            except BaseException as rolling:
+                if isinstance(rolling,(KeyboardInterrupt,SystemExit)):raise
+    elif db.in_transaction:
+        try:db.execute('ROLLBACK')
+        except BaseException as rolling:
+            if isinstance(rolling,(KeyboardInterrupt,SystemExit)):raise
     if not recorded:
+        if pending is None:contract.unrecorded()
+        contract.mark_unrecorded(pending)
+    return pending
+
+
+def _transaction(store,hint,decide,apply):
+    """The one owner of the write transaction on a judged path: connection entry, schema validation, BEGIN IMMEDIATE,
+    COMMIT, ROLLBACK and connection exit. The connection's own commit-on-exit is never used. Any storage failure is
+    normalized: a temporally refused read keeps its code with closure_recorded=False, an otherwise admissible one is
+    worker_evidence_clock_unrecorded. Returns the pending refusal or None."""
+    pending=None;judged=False
+    try:
+        with store._connection(True) as db:
+            _validate_schema(db)
+            pending=_judge(store,db,decide,apply);judged=True
+    except (sqlite3.Error,OSError):
+        if not judged:
+            # Entry or schema failed before anything was decided: decide on what the authenticated reading already gives.
+            try:decide(_effective(store,hint))
+            except AppError as error:pending=error
         if pending is None:contract.unrecorded()
         contract.mark_unrecorded(pending)
     return pending
@@ -119,11 +146,11 @@ def _ingest(store,envelope_path,request_path,trust_path,pin_path,scratch,api):
         policy=parse_json(_read(trust_path,api));pin=parse_json(_read(pin_path,api))
         with native._verifier(pin,scratch,api) as verify:
             # Authenticate first on a read-only reading; a rejected input leaves no clock effect.
-            auth=contract.verify_envelope(envelope,request,policy,verify,now=_peek(store),historical=True).result()
+            auth_time=_peek(store);auth=contract.verify_envelope(envelope,request,policy,verify,now=auth_time,historical=True).result()
             if auth['tenant_id']!=store.tenant_id:contract.fail('workbench_evidence_identity')
             holder={}
             def decide(now):return contract.verify_envelope(envelope,request,policy,verify,now=now)
-            def apply(verified):
+            def apply(db,verified):
                 result=verified.result();binding=contract.received_binding(verified,digest(request))
                 result['native_verifier']=verify.metadata
                 record={'schema_version':'worker-evidence-received/1','request_sha256':binding['request_sha256'],
@@ -140,9 +167,7 @@ def _ingest(store,envelope_path,request_path,trust_path,pin_path,scratch,api):
                 db.execute('INSERT INTO metadata VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',(HEAD+binding['scope'],value))
                 holder['result']=result;holder['record']=record
             # Both indexes and the mark commit together under the existing native storage barriers.
-            with store._connection(True) as db,db:
-                _validate_schema(db)
-                pending=_judge(store,db,decide,apply)
+            pending=_transaction(store,auth_time,decide,apply)
             if pending is not None:raise pending
         result,record,repeated=holder['result'],holder['record'],holder['repeated']
         result.update(received_byte_sha256=record['envelope_byte_sha256'],request_byte_sha256=record['request_byte_sha256'],
@@ -185,11 +210,9 @@ def _reopen(store,request_sha256,trust_path,pin_path,scratch,api,*,historical=Fa
                 _validate_schema(db);finish(db,verified)
         else:
             # Authenticate on a read-only reading, then record the authenticated time and decide in one transaction.
-            auth=contract.verify_envelope(envelope,request,policy,verify,now=_peek(store),historical=True).result()
+            auth_time=_peek(store);auth=contract.verify_envelope(envelope,request,policy,verify,now=auth_time,historical=True).result()
             if auth['tenant_id']!=store.tenant_id:contract.fail('workbench_evidence_identity')
-            with store._connection(True) as db,db:
-                _validate_schema(db)
-                pending=_judge(store,db,lambda now:contract.verify_envelope(envelope,request,policy,verify,now=now),lambda verified:finish(db,verified))
+            pending=_transaction(store,auth_time,lambda now:contract.verify_envelope(envelope,request,policy,verify,now=now),finish)
             if pending is not None:raise pending
         result=holder['result']
     return result

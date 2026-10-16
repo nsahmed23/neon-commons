@@ -403,6 +403,7 @@ def unrecorded():
 
 def mark_unrecorded(error):
     """A temporal refusal keeps its own code; this only says its closure could not be recorded."""
+    if getattr(error,'closure_recorded',True) is False:return error
     error.closure_recorded=False
     if hasattr(error,'add_note'):error.add_note('closure_recorded=false: worker_evidence_clock_unrecorded')
     return error

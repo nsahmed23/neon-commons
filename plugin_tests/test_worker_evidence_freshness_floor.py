@@ -8,7 +8,9 @@ The Windows readers' tests live in test_windows_worker_evidence_freshness_floor 
 """
 import base64
 import contextlib
+import fcntl
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -279,6 +281,45 @@ class PosixStoreReaderTests(Shape, unittest.TestCase):
         with self.failing_commit(), wall(T + 20), self.assertRaises(AppError) as raised:
             host.ingest(self.root, expiring(self.req), self.req, self.policy, OK)
         self.assertEqual(raised.exception.code, 'worker_evidence_expired')
+
+    def only_from_locked_now(self, module, name):
+        """Make module.name raise OSError, but only when _locked_now is the caller."""
+        real = getattr(module, name)
+
+        def selective(*args, **kwargs):
+            if sys._getframe(1).f_code.co_name == '_locked_now':
+                raise OSError('injected ' + name)
+            return real(*args, **kwargs)
+        return patch.object(module, name, new=selective)
+
+    def refused(self, injection, at, envelope):
+        with injection, wall(at), self.assertRaises(AppError) as raised:
+            host.ingest(self.root, envelope, self.req, self.policy, OK)
+        return raised.exception
+
+    def test_a_failed_directory_open_is_unrecorded_or_keeps_the_temporal_code(self):
+        error = self.refused(self.only_from_locked_now(os, 'open'), T + 1, expiring(self.req))
+        self.assertEqual(error.code, 'worker_evidence_clock_unrecorded')
+        error = self.refused(self.only_from_locked_now(os, 'open'), T + 20, expiring(self.req))
+        self.assertEqual(error.code, 'worker_evidence_expired')
+        self.assertIs(error.closure_recorded, False)
+
+    def test_a_failed_flock_is_unrecorded_or_keeps_the_temporal_code(self):
+        error = self.refused(self.only_from_locked_now(fcntl, 'flock'), T + 1, expiring(self.req))
+        self.assertEqual(error.code, 'worker_evidence_clock_unrecorded')
+        error = self.refused(self.only_from_locked_now(fcntl, 'flock'), T + 20, expiring(self.req))
+        self.assertEqual(error.code, 'worker_evidence_expired')
+        self.assertIs(error.closure_recorded, False)
+
+    def test_a_failed_database_creation_is_unrecorded(self):
+        real = host.protected._exclusive
+
+        def selective(path, data):
+            if Path(path).name == 'evidence.sqlite3':
+                raise OSError('disk full')
+            return real(path, data)
+        error = self.refused(patch.object(host.protected, '_exclusive', side_effect=selective), T + 1, expiring(self.req))
+        self.assertEqual(error.code, 'worker_evidence_clock_unrecorded')
 
 
 if __name__ == '__main__':
