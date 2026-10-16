@@ -1560,12 +1560,20 @@ class Workspace:
                 primary, _ = _band_primary(known, known.get('signals') or [])
                 # The band above names the refresh for a changed repository; the line does not name it again.
                 refresh = bool(primary) and primary.get('code') in ('repository_stale', 'repository_consumer_mismatch')
-                lines = lines + [''] + lifecycle_lines(self.tab, width, self.value, eligibility=self.facts.get('eligibility')
-                                                       if self.facts.get('object_id') == self.selected else None,
-                                                       band_names_refresh=refresh, band_has_next=bool(primary),
-                                                       newest_open=newest_open_operation(
-                                                           known, self.value.get('operation_id') if isinstance(self.value, dict) else None,
-                                                           known.get('identity_prefixes')))
+                step = lifecycle_lines(self.tab, width, self.value, eligibility=self.facts.get('eligibility')
+                                       if self.facts.get('object_id') == self.selected else None,
+                                       band_names_refresh=refresh, band_has_next=bool(primary),
+                                       newest_open=newest_open_operation(
+                                           known, self.value.get('operation_id') if isinstance(self.value, dict) else None,
+                                           known.get('identity_prefixes')))
+                if self.tab == 4 and '[PLAN REVIEW]' in lines:
+                    # The plan review's metadata (digest, paths, bound files) runs long; the Lifecycle and Next, with the
+                    # printed command, stand before it so the permitted response is on the first screen (run 14, A1 and A2;
+                    # P-PRES-03, P-PRES-12). The metadata stays whole below.
+                    at = lines.index('[PLAN REVIEW]')
+                    lines = lines[:at] + step + [''] + lines[at:]
+                else:
+                    lines = lines + [''] + step
         return lines
 
     def _band_has_next(self):
