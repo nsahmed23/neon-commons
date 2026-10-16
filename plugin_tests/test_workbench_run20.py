@@ -359,5 +359,33 @@ class ReconciledIsNotProofTests(LayerFixture):
         self.assertIn('already carried out', _proposal_note(None, attention, prefixes))
 
 
+class ClosedWindowNeedsPreparedTests(LayerFixture):
+    """Sol review of c679413, finding 2: operation_approval_closed only for a prepared operation with a closed window."""
+
+    def test_no_other_state_gets_the_signal_even_with_a_closed_window_value(self):
+        from intune_iac.workbench import _closed_window_signal
+        for journal in ('outcome_unknown', 'succeeded_verified', 'reconciled', 'failed', None):
+            for window in ('closed', 'closed_recorded'):
+                operation = {'operation_id': 'a' * 32, 'operation_root': '/nowhere', 'journal_status': journal,
+                             'approval_window': window}
+                self.assertIsNone(_closed_window_signal(operation), (journal, window))
+        prepared = {'operation_id': 'a' * 32, 'operation_root': '/nowhere', 'journal_status': 'prepared',
+                    'approval_window': 'closed'}
+        signal = _closed_window_signal(prepared)
+        self.assertIsNotNone(signal)
+        self.assertEqual(signal['code'], 'operation_approval_closed')
+
+    def test_an_unknown_outcome_past_its_deadline_keeps_its_own_signal_and_gets_no_closed_one(self):
+        from unittest import mock
+        from intune_iac import maintenance, protected, workbench
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'], fault='lost-response')
+        with mock.patch.object(protected, '_now', return_value=time.time() + 10 ** 7):
+            read = workbench._workflow_read(self.store, OBJECT, service_root=self.service.root)
+        codes = [signal['code'] for signal in read['attention']['signals']]
+        self.assertNotIn('operation_approval_closed', codes)
+        self.assertIn('operation_outcome_unknown', codes)
+
+
 if __name__ == '__main__':
     unittest.main()

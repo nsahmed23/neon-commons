@@ -332,7 +332,8 @@ def _closed_window_signal(operation):
     """The operations signal for a prepared newest operation whose approval window closed (journey 34 run 2, review A
     Low-1): execute refuses it, so the rollup says so, with the step the workflow map gives for the same stage (the one
     `lifecycle_next` words from the operation's review). None when the window is open, or the operation is not prepared."""
-    if not isinstance(operation, dict) or operation.get('approval_window') not in ('closed', 'closed_recorded'):
+    if (not isinstance(operation, dict) or operation.get('journal_status') != 'prepared'
+            or operation.get('approval_window') not in ('closed', 'closed_recorded')):
         return None
     import time
     from . import maintenance
