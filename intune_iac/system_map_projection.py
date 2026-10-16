@@ -275,16 +275,27 @@ def _edge(kind, source, target, basis, state):
 
 
 def _adoption_generated(adoptions, object_id):
-    """The newest adoption record that names the generated files of this policy: (artifact id, manifest digest) or None."""
-    rows = [row for row in adoptions if isinstance(row, dict)] if isinstance(adoptions, (list, tuple)) else []
-    best = None
-    for row in rows:
-        generated = _dict(_dict(_dict(row.get('data')).get('binding')).get('generated')).get(object_id)
-        digest = _text(_dict(generated).get('manifest_sha256'))
-        sequence = row.get('sequence') if isinstance(row.get('sequence'), int) else 0
-        if digest and _text(row.get('artifact_id')) and (best is None or sequence >= best[0]):
-            best = (sequence, row['artifact_id'], digest)
-    return None if best is None else best[1:]
+    """(artifact id, manifest digest) from the newest valid adoption record, or None.
+
+    The newest record is chosen first (a valid record names its artifact; the greatest sequence wins, a missing one is 0),
+    and only it is read for this policy's generated files: an older record never supplies what the newest no longer names.
+    Two valid records sharing the newest sequence cannot be ordered, so neither is chosen and nothing is established."""
+    rows = [row for row in adoptions if isinstance(row, dict) and _text(row.get('artifact_id'))] \
+        if isinstance(adoptions, (list, tuple)) else []
+    if not rows:
+        return None
+
+    def sequence(row):
+        value = row.get('sequence')
+        return value if isinstance(value, int) and not isinstance(value, bool) else 0
+    newest = max(sequence(row) for row in rows)
+    tied = [row for row in rows if sequence(row) == newest]
+    if len(tied) != 1:
+        return None
+    row = tied[0]
+    generated = _dict(_dict(_dict(row.get('data')).get('binding')).get('generated')).get(object_id)
+    digest = _text(_dict(generated).get('manifest_sha256'))
+    return (row['artifact_id'], digest) if digest else None
 
 
 def _edges(read, nodes, status, scope, intent, operation, delivery):

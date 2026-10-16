@@ -511,6 +511,44 @@ class EdgeTableTests(unittest.TestCase):
         self.assertEqual(edges_of(project(read))['generates:atmos.component>tofu.engine']['basis']['record_id'],
                          'a1b2c3d4' + '0' * 56)
 
+    def test_an_older_adoption_does_not_resurrect_a_generation_the_newest_no_longer_names(self):
+        key = 'generates:atmos.component>tofu.engine'
+        read = with_adoption(baseline())
+        older = copy.deepcopy(read['adoptions'][0])
+        older.update(artifact_id='0ld0' + '0' * 60, sequence=1)
+        for newer_binding in ({}, {'generated': {}}, {'generated': {'other': {'manifest_sha256': 'c' * 64}}},
+                              {'generated': {OBJECT: {'path': '/g'}}}, {'generated': {OBJECT: {'manifest_sha256': ''}}}):
+            newest = dict(copy.deepcopy(with_adoption(baseline())['adoptions'][0]), sequence=5, artifact_id='e5f6a7b8' + '0' * 56,
+                          data={'binding': newer_binding})
+            read['adoptions'] = [older, newest]
+            self.assertNotIn(key, edges_of(project(read)), newer_binding)
+        # The same holds whatever order the records arrive in.
+        read['adoptions'].reverse()
+        self.assertNotIn(key, edges_of(project(read)))
+
+    def test_two_adoptions_with_the_same_newest_sequence_establish_nothing(self):
+        key = 'generates:atmos.component>tofu.engine'
+        read = with_adoption(baseline())
+        twin = copy.deepcopy(read['adoptions'][0])
+        twin['artifact_id'] = 'b2c3d4e5' + '0' * 56
+        read['adoptions'].append(twin)
+        self.assertNotIn(key, edges_of(project(read)))
+        # A tie below the newest sequence does not matter.
+        low_a, low_b = copy.deepcopy(twin), copy.deepcopy(twin)
+        low_a.update(sequence=1, artifact_id='c3d4e5f6' + '0' * 56)
+        low_b.update(sequence=1, artifact_id='d4e5f6a7' + '0' * 56)
+        read['adoptions'] = [low_a, low_b, with_adoption(baseline())['adoptions'][0]]
+        self.assertEqual(edges_of(project(read))[key]['basis']['record_id'], 'a1b2c3d4' + '0' * 56)
+
+    def test_a_newest_record_without_an_identifier_is_not_a_valid_adoption_and_is_passed_over(self):
+        read = with_adoption(baseline())
+        newest = copy.deepcopy(read['adoptions'][0])
+        newest.update(sequence=9)
+        del newest['artifact_id']
+        read['adoptions'].append(newest)
+        self.assertEqual(edges_of(project(read))['generates:atmos.component>tofu.engine']['basis']['record_id'],
+                         'a1b2c3d4' + '0' * 56)
+
     def test_a_prepared_operation_has_executed_nothing_so_it_has_no_apply_or_readback_edge(self):
         edges = edges_of(project(operation_read('prepared')))
         self.assertEqual(sorted(edges), sorted(edges_of(project(baseline()))))
