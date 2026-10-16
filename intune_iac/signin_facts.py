@@ -762,6 +762,31 @@ _COLLECT_EXIT_MEANING = ('(0 means collected; 2 means partial or blocked; 3 mean
                          'before any collecting command started).')
 
 
+# What the check of the output folder found, one sentence per cause (signin.check_new_output records the cause from the call that
+# failed). A cause this table does not know is told as the generic refusal, never as one of these.
+_REFUSAL_CAUSE = {
+    'exists': 'The output folder already exists, and this command never writes into a path that exists.',
+    'ancestor_symlink': 'A folder on the way to the output folder is a symbolic link, and this command does not follow symbolic '
+                        'links.',
+    'ancestor_not_directory': 'A part of the output path that must be a folder is not a folder.',
+    'ancestor_missing': 'A folder on the way to the output folder does not exist; this command creates only the last folder.',
+    'name_too_long': 'A name in the output path is too long for the file system to hold.',
+    'parent_not_writable': 'The folder that would hold the output folder does not allow this user to write to it.',
+    'permission_denied': 'This user is not allowed to open a folder on the way to the output folder.',
+}
+
+
+def _refusal_why(result):
+    cause = result.get('cause')
+    if cause in _REFUSAL_CAUSE:
+        return _REFUSAL_CAUSE[cause]
+    if cause == 'unchecked':
+        number = result.get('cause_errno')
+        return ('The file system refused the check of the output folder%s; no more specific cause was found.'
+                % (' (%s)' % number if isinstance(number, str) and re.fullmatch(r'E[A-Z0-9]+', number) else ''))
+    return result.get('message') or ''
+
+
 OUTPUT_DISPLAY_LIMIT = 200
 OUTPUT_NOT_SHOWN = '<the output path is not shown>'
 
@@ -813,7 +838,7 @@ def _collect_why(result, shown):
         cause = _BINDING_TEXT.get(shown.get('binding'))
         return message.replace(BINDING_CAUSES, cause, 1) if cause and BINDING_CAUSES in message else message
     if result.get('status') == 'output_conflict':
-        return result.get('message') or ''
+        return _refusal_why(result)
     if result.get('status') != 'failed':
         return ''
     if result.get('error_code') == 'collector_output_withheld':

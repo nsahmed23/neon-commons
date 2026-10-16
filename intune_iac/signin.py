@@ -557,32 +557,38 @@ def check_new_output(destination):
     if not _output_check_supported():
         raise AppError('capture_platform_unavailable', 'Secure capture persistence is unavailable on this platform; use a '
                        'supported POSIX host.')
-    from .capture import reject_dot_segments
+    from .capture import classify_output_failure, output_conflict, reject_dot_segments
     reject_dot_segments(destination)
     path = Path(destination).absolute()
     if path == Path('/'):
         raise AppError('capture_output_unsafe', 'Use a new output directory beneath an existing regular directory.')
     flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
-    conflict = AppError('capture_output_conflict', 'Capture requires a new directory with no symlinked ancestors; existing files '
-                        'are preserved. Name a folder that does not exist yet.')
+    message = ('Capture requires a new directory with no symlinked ancestors; existing files are preserved. Name a folder that '
+               'does not exist yet.')  # the same text for every cause: the JSON form is frozen; the cause rides on the error
     try:
         parent_fd = os.open('/', flags)
-    except OSError:
-        raise conflict from None
+    except OSError as error:
+        raise output_conflict(message, classify_output_failure(error), error.errno) from None
+    failing = None  # the name the failing call was given; it is looked at only to tell a link from a plain file
     try:
         for piece in path.parts[1:-1]:
+            failing = piece
             next_fd = os.open(piece, flags, dir_fd=parent_fd)
             os.close(parent_fd)
             parent_fd = next_fd
         if not os.access('.', os.W_OK | os.X_OK, dir_fd=parent_fd, effective_ids=True):
-            raise conflict  # a stable non-writable parent: the capture command's mkdir would fail after the token was minted
+            # a stable non-writable parent: the capture command's mkdir would fail after the token was minted
+            raise output_conflict(message, 'parent_not_writable')
+        failing = path.name
         try:
             os.stat(path.name, dir_fd=parent_fd, follow_symlinks=False)
         except FileNotFoundError:
             return  # nothing is there: a new directory can be made
-        raise conflict
-    except OSError:
-        raise conflict from None
+        raise output_conflict(message, 'exists')
+    except AppError:
+        raise
+    except OSError as error:
+        raise output_conflict(message, classify_output_failure(error, parent_fd, failing), error.errno) from None
     finally:
         os.close(parent_fd)
 
@@ -667,7 +673,8 @@ def collect_view(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE
             raise
         # The product refused the output folder before a token was minted or a child started. The text screen shows it as a
         # blocked collect; the status 'output_conflict' keeps the exit code the JSON form returns for the same refusal (4).
-        result = {'status': 'output_conflict', 'error_code': error.code, 'collector_started': False, 'message': error.message}
+        result = {'status': 'output_conflict', 'error_code': error.code, 'collector_started': False, 'message': error.message,
+                  'cause': getattr(error, 'cause', None), 'cause_errno': getattr(error, 'cause_errno', None)}
     presentation = {'rerun': rerun_command(tenant, policy, account is not None), 'output': output, 'tenant': tenant,
                     'binding': notes.get('binding'),
                     'output_after': _observe(output) if result.get('collector_started') else None}

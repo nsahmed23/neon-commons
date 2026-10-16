@@ -3,11 +3,13 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 
+import errno
 import hashlib
 import math
 import os
 from pathlib import Path
 import re
+import stat
 import time
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
@@ -226,6 +228,42 @@ def reject_dot_segments(destination):
         raise AppError('capture_output_unsafe', 'Use a new output directory beneath an existing regular directory.')
 
 
+def output_conflict(message, cause, number=None):
+    """The capture_output_conflict refusal, carrying the condition the failed check found (cause) beside the message.
+
+    The message and the code are what the JSON forms print and stay as they were; cause is an attribute only the text screen
+    reads, so it reaches no JSON. number is the errno of the failed call, kept as its symbolic name for the 'unchecked' cause.
+    """
+    error = AppError('capture_output_conflict', message)
+    error.cause = cause
+    error.cause_errno = errno.errorcode.get(number) if isinstance(number, int) else None
+    return error
+
+
+def classify_output_failure(error, parent_fd=None, name=None):
+    """Which condition a failed call on the output path found, read from that call's errno; never guessed from the path.
+
+    An ancestor that could not be opened as a directory without following links is either a symbolic link or not a directory;
+    that is told apart by one lstat of the same name in the same open parent. Anything not listed is 'unchecked'.
+    """
+    number = getattr(error, 'errno', None)
+    if number == errno.ENAMETOOLONG:
+        return 'name_too_long'
+    if number == errno.EEXIST:
+        return 'exists'
+    if number in (errno.EACCES, errno.EPERM, errno.EROFS):
+        return 'permission_denied'
+    if number == errno.ENOENT:
+        return 'ancestor_missing'
+    if number in (errno.ELOOP, errno.ENOTDIR) and parent_fd is not None and name is not None:
+        try:
+            mode = os.stat(name, dir_fd=parent_fd, follow_symlinks=False).st_mode
+        except OSError:
+            return 'unchecked'
+        return 'ancestor_symlink' if stat.S_ISLNK(mode) else 'ancestor_not_directory'
+    return 'unchecked'
+
+
 def _new_directory(destination):
     """Open every ancestor without following links; create only one new child."""
     reject_dot_segments(destination)
@@ -235,18 +273,22 @@ def _new_directory(destination):
     flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
     parent_fd = os.open('/', flags)
     output_fd = None
+    failing = None
     try:
         for piece in path.parts[1:-1]:
+            failing = piece
             next_fd = os.open(piece, flags, dir_fd=parent_fd)
             os.close(parent_fd); parent_fd = next_fd
+        failing = path.name
         os.mkdir(path.name, mode=0o700, dir_fd=parent_fd)
         output_fd = os.open(path.name, flags, dir_fd=parent_fd)
         os.fchmod(output_fd, 0o700)
         os.fsync(output_fd); os.fsync(parent_fd)
         return path, output_fd
-    except OSError:
+    except OSError as error:
         if output_fd is not None: os.close(output_fd)
-        raise AppError('capture_output_conflict', 'Capture requires a new directory with no symlinked ancestors; existing files are preserved.') from None
+        raise output_conflict('Capture requires a new directory with no symlinked ancestors; existing files are preserved.',
+                              classify_output_failure(error, parent_fd, failing), error.errno) from None
     finally:
         os.close(parent_fd)
 
