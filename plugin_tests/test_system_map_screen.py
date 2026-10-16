@@ -1017,5 +1017,38 @@ class LimiterTests(unittest.TestCase):
                     self.assertTrue(rows[0].startswith(('The system map needs', 'System map unavailable')), (name, width, height))
 
 
+class AdvertisedSizeTests(unittest.TestCase):
+    def sol_input(self):
+        snapshot = crowded(16)
+        snapshot['boundaries'] = [dict(item, label=str(index) * 40) for index, item in enumerate(snapshot['boundaries'])]
+        return snapshot
+
+    def advertised(self, rows):
+        match = re.search(r'at least (\d+)x(\d+)', ' '.join(row.strip() for row in rows))
+        return (int(match.group(1)), int(match.group(2))) if match else None
+
+    def test_the_size_the_notice_advertises_draws_the_map_whole(self):
+        for name, snapshot in (('sol', self.sol_input()), ('crowded 21', crowded(21)), ('crowded 40', crowded(40)),
+                               ('recorded', recorded()), ('hostile', hostile())):
+            for size in ((100, 20), (60, 20), (40, 12), (59, 30), (120, 22), (80, 10)):
+                rows = screen().render(snapshot, size[0], size[1], colour=False, unicode=False)
+                size_named = self.advertised(rows)
+                if size_named is None:
+                    continue
+                drawn = screen().render(snapshot, size_named[0], size_named[1], colour=False, unicode=False)
+                self.assertIsNone(self.advertised(drawn), (name, size, size_named))
+                self.assertEqual(len([row for row in drawn if '|- ' in row]), len(snapshot['nodes']), (name, size, size_named))
+                self.assertLessEqual(len(drawn), size_named[1], (name, size, size_named))
+
+    def test_sols_input_at_100x20_advertises_a_size_that_draws_it(self):
+        snapshot = self.sol_input()
+        rows = screen().render(snapshot, 100, 20, colour=False, unicode=False)
+        named = self.advertised(rows)
+        self.assertIsNotNone(named, rows)
+        self.assertEqual(named[0], 100)      # the window is wide enough: the notice names its own width and the rows it needs
+        self.assertGreater(named[1], 20)
+        self.assertEqual(len([r for r in screen().render(snapshot, *named, colour=False, unicode=False) if '|- ' in r]), 16)
+
+
 if __name__ == '__main__':
     unittest.main()

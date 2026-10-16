@@ -100,11 +100,18 @@ def unavailable_lines(reason, width):
     return word_wrap(UNAVAILABLE + reason + '.', width)
 
 
-def no_map_lines(width, rows_needed=MIN_SIZE[1]):
+def no_map_lines(width, snapshot=None, at_width=MIN_SIZE[0]):
     """What the map says where there is no room for it: that it needs a larger window, and the plain-text route in words.
     A copyable command never holds a stand-in operand (ROOT, ID), so the operands are named, not written, as the workflow
-    map's small-window notice does when it cannot show the real ones."""
-    return word_wrap(NEEDS % (MIN_SIZE[0], max(rows_needed, MIN_SIZE[1])), width)
+    map's small-window notice does when it cannot show the real ones.
+
+    The size it names is one the map can be drawn at: `at_width` columns and the rows the map's own mandatory part takes at
+    that width (the least the window allows, when the snapshot cannot be drawn or there is none). A width that wraps the legend
+    needs more rows than a wider one, so the rows are counted at the width that is named."""
+    needed = MIN_SIZE[1]
+    if snapshot is not None and unavailable_reason(snapshot) is None:
+        needed = max(needed, len(_core(snapshot, at_width, GLYPHS['ascii'], False, None)))
+    return word_wrap(NEEDS % (at_width, needed), width)
 
 
 # ---- the words of one node and one edge -------------------------------------------------------------------------------
@@ -271,8 +278,24 @@ def _render(snapshot, width, height, colour, unicode, focus):
     if reason:
         return unavailable_lines(reason, width)
     if width < MIN_SIZE[0] or height < MIN_SIZE[1]:
-        return no_map_lines(width)
+        return no_map_lines(width, snapshot)
     glyphs = GLYPHS['unicode' if unicode else 'ascii']
+    rows = _core(snapshot, width, glyphs, colour, focus)
+    if len(rows) > height:
+        # The mandatory rows alone are taller than the window: name this width and the rows the map takes at it.
+        return no_map_lines(width, snapshot, width)
+    room = height - len(rows)
+    if room > 0:
+        nodes = snapshot['nodes']
+        ids = [node['id'] for node in nodes]
+        chosen = focus if focus in ids else ids[0]
+        rows += _detail(snapshot, next(node for node in nodes if node['id'] == chosen), width)[:room]
+    return rows
+
+
+def _core(snapshot, width, glyphs, colour, focus):
+    """The rows the map cannot do without at `width`: the header, one row per node, one per edge (or the line that says there
+    is none), the boundary letters and the sentence that says what `recorded` means."""
     nodes, edges = snapshot['nodes'], snapshot['edges']
     ids = [node['id'] for node in nodes]
     focus = focus if focus in ids else ids[0]
@@ -282,14 +305,7 @@ def _render(snapshot, width, height, colour, unicode, focus):
     rows += [_edge_row(edge, width, glyphs, colour, width >= 100) for edge in edges] or ['  no link is recorded']
     rows += word_wrap('  '.join('%s %s' % (tags[item['id']], safe_text(item.get('label') or item['id']))
                                 for item in snapshot['boundaries']), width)
-    rows += word_wrap(HAZARD, width)
-    if len(rows) > height:
-        # The mandatory rows alone are taller than the window: say how tall it must be, never return more rows than it has.
-        return no_map_lines(width, len(rows))
-    room = height - len(rows)
-    if room > 0:
-        rows += _detail(snapshot, next(node for node in nodes if node['id'] == focus), width)[:room]
-    return rows
+    return rows + word_wrap(HAZARD, width)
 
 
 # ---- plain text and JSON ----------------------------------------------------------------------------------------------
