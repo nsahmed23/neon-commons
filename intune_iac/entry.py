@@ -576,9 +576,44 @@ def _command_rows(tokens, width, indent):
     return rows + [row]
 
 
+def hide_directory(text, directory):
+    """A printed copy of text in which the surveyed directory is shown as DIRECTORY wherever directory_hidden refuses its name.
+
+    Every occurrence of the absolute path and of the path relative to the working directory (the form the resume commands and
+    the next steps are written in) is replaced, each as the shell quotes it and as it stands, so that /work/ghp_x/store reads
+    DIRECTORY/store. Only this copy is edited: the survey and the catalog data it was printed from keep their paths, and the
+    JSON forms stay as they are."""
+    from .readiness import directory_hidden
+    if not directory_hidden(directory):
+        return text
+    forms = {directory}
+    try:
+        relative = Path(os.path.normpath(directory)).relative_to(Path(os.path.normpath(os.getcwd()))).as_posix()
+    except (ValueError, OSError):
+        relative = '.'
+    if relative != '.':
+        forms.add(relative)
+    for form in sorted(forms, key=len, reverse=True):
+        # a quoted word first (the shell quotes the whole path, tail included; the tail is quoted again only if it still needs it),
+        # then the bare path, in a command or in a sentence
+        text = re.sub(r"(?<![\w./-])'%s((?:/[^']*)?)'" % re.escape(form), lambda match: shlex.quote('DIRECTORY' + match.group(1)), text)
+        text = re.sub(r'(?<![\w./-])%s(?![\w.-])' % re.escape(form), 'DIRECTORY', text)
+    return text
+
+
+def guard_rows(rows):
+    """Every row that leaves a text form passes the product's own escape for control characters (workbench_tui.safe_text, which
+    the workspace and word_wrap use): no C0 character other than the newline that ends a row, no DEL and no C1 character reaches
+    the terminal from any recorded or user-supplied string; each is shown as a \\u escape instead."""
+    from .workbench_tui import safe_text
+    return [safe_text(row) for row in rows]
+
+
 def _flow(text, width, first, rest, commands=False):
     """Wrap text at spaces to the width; with commands, each command in it goes on its own rows (see _command_rows)."""
     from .workbench_screens import word_wrap
+    from .workbench_tui import safe_text
+    text = safe_text(text)  # before the layout, so that the widths are those of what is printed (a command row too)
     lines, lead = [], first
     for kind, body in (_segments(text) if commands else [('text', text)]):
         if kind == 'command':
@@ -699,7 +734,7 @@ def start_lines(value, width, goal=None, goal_hint=False):
         lines.append('FOUND')
         for item in value['items']:
             label = '  %-16s' % LABELS.get(item['kind'], item['kind'])
-            text = item['path'] + '  ' + _summary(item)
+            text = hide_directory(item['path'] + '  ' + _summary(item), value['directory'])
             for index, part in enumerate(word_wrap(text, max(10, width - len(label)))):
                 lines.append((label if index == 0 else ' ' * len(label)) + part)
             states = item['states']
@@ -716,13 +751,14 @@ def start_lines(value, width, goal=None, goal_hint=False):
         lines.append('NEXT')
     for number, action in enumerate(value['next_actions'], 1):
         prefix = '  %d. ' % number
-        lines += _flow(action, width, prefix, ' ' * len(prefix), commands=True)
+        # the next steps carry paths made from the directory (next_actions in the JSON form, which keeps them): the printed copy hides it
+        lines += _flow(hide_directory(action, value['directory']), width, prefix, ' ' * len(prefix), commands=True)
     lines.append('MISSING')
     for note in value['missing']:
         for index, part in enumerate(word_wrap(note, width - 4)):
             lines.append(('  - ' if index == 0 else '    ') + part)
     if value.get('skipped_links'):
-        lines += word_wrap('Symbolic links not followed: ' + ', '.join(value['skipped_links']), width)
+        lines += word_wrap(hide_directory('Symbolic links not followed: ' + ', '.join(value['skipped_links']), value['directory']), width)
     if value.get('truncated'):
         lines += word_wrap('The walk stopped at %d entries; narrow the directory to see everything.' % MAX_ENTRIES, width)
     if goal:
@@ -741,4 +777,4 @@ def start_lines(value, width, goal=None, goal_hint=False):
         # The goal block is longer than a 40-row pane, which then shows only the tail of the screen: the verdict closes the
         # screen too. It is a short fixed line and is never wrapped, so a pane always shows it whole.
         lines.append(goal_summary(goal))
-    return lines
+    return guard_rows(lines)

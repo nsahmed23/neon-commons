@@ -256,7 +256,7 @@ def verdict_words(goal):
 
 
 def _state_lines(goal, width, directory=None):
-    from .entry import _flow
+    from .entry import _flow, hide_directory
     rest = ' ' * (4 + LABEL)
 
     def row(name, text):
@@ -281,7 +281,9 @@ def _state_lines(goal, width, directory=None):
     else:
         text = '%s (Azure CLI sign-in: %s)' % (auth['state'].replace('_', ' '), auth.get('message') or auth.get('status'))
         text += ' ' + auth['permission']
-    lines += row('authenticated', text)
+    # the recorded sign-in message names the directory in its command (authenticated.message in the JSON form, which keeps it):
+    # the printed copy hides a directory name the output-path rule refuses
+    lines += row('authenticated', hide_directory(text, directory))
     lines += row('operation-ready', _ready_words(goal))
     if blocked['state'] == 'blocked':
         # said=True: a refused directory is said not to be shown once, under the screen's header, not again in each note
@@ -308,8 +310,9 @@ def _state_lines(goal, width, directory=None):
 
 
 def catalog_lines(value, width):
-    """The catalog as plain lines: ASCII words for every state, wrapped to the width."""
-    from .entry import _flow
+    """The catalog as plain lines: ASCII words for every state, wrapped to the width. Every row passes the control-character
+    guard (entry.guard_rows), and a refused directory name is shown as DIRECTORY wherever the screen prints it."""
+    from .entry import _flow, guard_rows, hide_directory
     from .workbench_screens import word_wrap
     lines = ['INTEGRATION CATALOG']
     directory = value.get('directory')
@@ -348,12 +351,14 @@ def catalog_lines(value, width):
             # that directory is not in the data: say once, above the commands, where they are typed.
             lines += _flow(RESUME_BASE, width, '  ', '  ')
         for project in value['projects']:
-            lines += _flow('%s %s: %s | %s' % (project['label'], project['path'], project['summary'], screen_words(project['state'])),
-                           width, '  ', '    ')
+            # the resume commands carry paths made from the directory (projects[].command in the JSON form, which keeps them):
+            # the printed copy hides a directory name the output-path rule refuses
+            lines += _flow(hide_directory('%s %s: %s | %s' % (project['label'], project['path'], project['summary'],
+                                                              screen_words(project['state'])), directory), width, '  ', '    ')
             if project['command']:
-                lines += _flow('Resume: ' + project['command'], width, '    ', '    ', commands=True)
+                lines += _flow(hide_directory('Resume: ' + project['command'], directory), width, '    ', '    ', commands=True)
             else:
-                lines += _flow('Resume: no command (%s)' % project['note'], width, '    ', '    ')
+                lines += _flow(hide_directory('Resume: no command (%s)' % project['note'], directory), width, '    ', '    ')
         # What the state words mean, once, under the projects they describe.
         lines += _flow(STATE_LEGEND, width, '  ', '  ')
     else:
@@ -369,4 +374,4 @@ def catalog_lines(value, width):
             contact = readiness_model.capture_contact(goal['next_action'])
             if contact:
                 lines += _flow(contact, width, '    ', '    ')
-    return lines
+    return guard_rows(lines)

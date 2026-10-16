@@ -796,5 +796,122 @@ class DirectoryEchoTests(Base):
             self.assertNotIn('not shown', text)
 
 
+class TerminalSafetyTests(Base):
+    """Round 4: nothing the surveyed directory or the surveyed files are called can reach the terminal as a control byte, and a
+    directory name the output-path rule refuses is shown as DIRECTORY in every printed copy of it (the authenticated rows, the
+    resume commands and start's next steps too). The data the text comes from is never edited: the --json forms stay byte for byte."""
+
+    # label: (the folder's name, the pieces of it that must never be printed)
+    NAMES = {
+        'an escape': ('xx9\x1b[31myy9', ('xx9', 'yy9')),
+        'a carriage return': ('xx9\ryy9', ('xx9', 'yy9')),
+        'a line feed': ('xx9\nyy9', ('xx9', 'yy9')),
+        'a C1 character': ('xx9\x85yy9', ('xx9', 'yy9')),
+        'a C1 control sequence introducer': ('xx9\x9b31myy9', ('xx9', 'yy9')),
+        'a token prefix': ('ghp_abc1234', ('ghp_', 'abc1234')),
+    }
+    GOALS = ('inspect', 'discover', 'adopt', 'change')
+
+    @staticmethod
+    def raw_output(cwd, *argv):
+        """(exit code, the bytes the command wrote to stdout) of the real command line, typed from cwd, at 120 columns."""
+        import contextlib
+        import io
+        from unittest.mock import patch
+        from intune_iac import cli
+        buffer = io.BytesIO()
+        stream = io.TextIOWrapper(buffer, encoding='utf-8', newline='', write_through=True)
+        old = os.getcwd()
+        os.chdir(cwd)
+        try:
+            with patch('shutil.get_terminal_size', return_value=os.terminal_size((120, 40))), contextlib.redirect_stdout(stream):
+                code = cli.main(list(argv))
+            stream.flush()
+        finally:
+            os.chdir(old)
+        return code, buffer.getvalue()
+
+    def assert_no_control_byte(self, data, label):
+        """No C0 character but the newline that ends a row, no DEL and no C1 character in the bytes (read as UTF-8)."""
+        text = data.decode('utf-8')
+        bad = sorted({hex(ord(char)) for char in text if (ord(char) < 32 and char != '\n') or ord(char) == 127 or 0x80 <= ord(char) <= 0x9f})
+        self.assertEqual(bad, [], label)
+        return text
+
+    def estate_in(self, parent, name):
+        """A copy of the start tests' full estate (a store, a session, a repository, an export ...: every kind that prints a resume
+        command and a next step) in a folder of that name; None when the file system refuses the name."""
+        import shutil
+        from pathlib import Path
+        target = Path(parent) / name
+        try:
+            shutil.copytree(self.dirs['full'], target)
+        except OSError:
+            return None
+        return target
+
+    def test_no_control_byte_reaches_stdout_from_a_directory_name_in_any_screen_and_the_name_is_shown_as_directory(self):
+        import tempfile
+        for label, (name, forbidden) in self.NAMES.items():
+            for cwd_kind in ('the parent', 'an unrelated directory'):
+                with self.subTest(label, cwd=cwd_kind), tempfile.TemporaryDirectory() as temp, tempfile.TemporaryDirectory() as elsewhere:
+                    folder = self.estate_in(temp, name)
+                    if folder is None:
+                        self.skipTest('this file system refuses that name')
+                    cwd = temp if cwd_kind == 'the parent' else elsewhere
+                    screens = {'catalog': self.raw_output(cwd, 'catalog', str(folder))[1]}
+                    for goal in self.GOALS:
+                        screens['catalog --goal ' + goal] = self.raw_output(cwd, 'catalog', str(folder), '--goal', goal)[1]
+                    screens['start'] = self.raw_output(cwd, 'start', str(folder))[1]
+                    for goal in self.GOALS:
+                        screens['start --goal ' + goal] = self.raw_output(cwd, 'start', str(folder), '--goal', goal)[1]
+                    for screen, data in screens.items():
+                        text = self.assert_no_control_byte(data, screen)
+                        for fragment in forbidden:
+                            self.assertNotIn(fragment, text, screen)
+                    # the printed copies that carry the directory say DIRECTORY (read across the wrapped rows)
+                    catalog = flat(screens['catalog'].decode('utf-8').split('\n'))
+                    self.assertIn('intune-iac catalog DIRECTORY --check-signin azure', catalog)            # the authenticated rows
+                    self.assertIn('intune-iac workbench workspace --root DIRECTORY/store', catalog)       # the resume commands
+                    self.assertIn('intune-iac wizard --session DIRECTORY/session.json', catalog)
+                    start = flat(screens['start'].decode('utf-8').split('\n'))
+                    self.assertIn('intune-iac workbench workspace --root DIRECTORY/store', start)         # the next steps
+                    self.assertIn('intune-iac wizard --session DIRECTORY/session.json', start)
+                    self.assertIn('the repository DIRECTORY/repository holds', start)
+
+    def test_an_ordinary_folder_keeps_every_path_it_prints(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp:
+            folder = self.estate_in(temp, 'estate dir')
+            _, data = self.raw_output(temp, 'catalog', str(folder))
+            text = flat(data.decode('utf-8').split('\n'))
+            self.assertNotIn('DIRECTORY', text)
+            self.assertIn("intune-iac workbench workspace --root 'estate dir/store' --service-root 'estate dir/service'", text)
+            self.assertIn("intune-iac catalog '%s' --check-signin azure" % folder, text)
+            _, data = self.raw_output(temp, 'start', str(folder))
+            self.assertNotIn('DIRECTORY', data.decode('utf-8'))
+
+    def test_a_control_character_in_the_name_of_a_surveyed_file_is_shown_as_an_escape_not_sent(self):
+        import shutil
+        import tempfile
+        from pathlib import Path
+        from plugin_tests.test_start_goal import ROOT
+        for label, name, shown in (('an escape', 'ex\x1b[31mport.json', 'ex\\u001b[31mport.json'),
+                                   ('a C1 character', 'ex\x85port.json', 'ex\\u0085port.json'),
+                                   ('a carriage return', 'ex\rport.json', 'ex\\rport.json'),
+                                   ('a line feed', 'ex\nport.json', 'ex\\nport.json')):
+            with self.subTest(label), tempfile.TemporaryDirectory() as temp:
+                folder = Path(temp) / 'work'
+                folder.mkdir()
+                shutil.copyfile(ROOT / 'examples/context.json', folder / 'context.json')
+                try:
+                    shutil.copyfile(ROOT / 'examples/supported/input/export.json', folder / name)
+                except OSError:
+                    self.skipTest('this file system refuses that name')
+                for argv in (('catalog', str(folder)), ('start', str(folder))):
+                    text = self.assert_no_control_byte(self.raw_output(temp, *argv)[1], argv)
+                    self.assertIn(shown, text, argv)
+
+
 if __name__ == '__main__':
     unittest.main()
