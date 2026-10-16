@@ -479,6 +479,7 @@ intune_iac/azure_backend.py
 intune_iac/blob_lease.py
 intune_iac/capture.py
 intune_iac/capture_adapter.py
+intune_iac/catalog.py
 intune_iac/cli.py
 intune_iac/clock.py
 intune_iac/companion.py
@@ -858,6 +859,7 @@ plugin_tests/test_capture_audit.py
 plugin_tests/test_capture_provenance_r4.py
 plugin_tests/test_capture_reimport_r4.py
 plugin_tests/test_capture_retry.py
+plugin_tests/test_catalog.py
 plugin_tests/test_catalog_acquisition_security.py
 plugin_tests/test_ci_contract.py
 plugin_tests/test_cli.py
