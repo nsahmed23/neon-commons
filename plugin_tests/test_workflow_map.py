@@ -2970,5 +2970,28 @@ class RoundThreeFindingOneTests(unittest.TestCase):
         self.assertEqual(band[:2], ['! Outcome unknown.', 'Reconcile, never replays'])
 
 
+class RoundThreeFindingTwoTests(LayerFixture):
+    """Finding 2: the command block is atomic."""
+    def test_a_command_row_ending_in_a_backslash_is_always_followed_by_its_own_continuation(self):
+        import shlex
+        from intune_iac import maintenance
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'], fault='lost-response')
+        key = lambda char: ('text', char)
+        for size in ((40, 5), (40, 6), (40, 7), (40, 8), (40, 9), (40, 10), (40, 12), (40, 13)):
+            ws, frames = self.run_keys(typed('select ' + OBJECT) + typed('workflow') + [key('q')], size, 'ascii')
+            rows = [row.rstrip() for row in self.plain(frames[-1])]
+            for index, row in enumerate(rows):
+                if row.endswith('\\'):
+                    self.assertLess(index + 1, len(rows), (size, rows))
+                    self.assertTrue(rows[index + 1].startswith('    '), (size, rows))
+            start, block = command_block(rows)
+            if start is not None:
+                # Whole or absent: the block parses to the full command, ending in the policy.
+                self.assertEqual(shlex.split(' '.join(row.rstrip('\\') for row in block))[-2:], ['--policy', OBJECT], (size, rows))
+                self.assertFalse(block[-1].endswith('\\'), (size, rows))
+            self.assertIn('never replays', ' '.join(' '.join(rows).split()), size)
+
+
 if __name__ == "__main__":
     unittest.main()

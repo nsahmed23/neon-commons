@@ -563,7 +563,7 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
     if layer == 'workflow':
         # What the map needs, then the plain-text command that prints it anywhere on its own rows (route: the workspace's
         # root and the selected policy, which the command names when it knows them).
-        groups['header'] = workflow_unavailable_lines(width, *route)
+        groups['header'] = workflow_unavailable_lines(width, *route, room=max(0, height - len(band)))
     if layer == 'workflow' and not typing:
         # The notice row only repeats the sentence above it, so the rows go to the strip's legend and the keys instead.
         groups['prompt'] = []
@@ -2468,11 +2468,29 @@ def workflow_command_rows(root, policy, width):
     return _command_rows(['workbench', 'workflow', '--root', operand, '--policy', named], width, 0)
 
 
-def workflow_unavailable_lines(width, root=None, policy=None):
+WORKFLOW_NEEDS_BASE = 'The workflow map needs a larger window (at least %dx%d).' % WORKFLOW_MIN_SIZE
+WORKFLOW_COMMAND_OMITTED = 'Its plain-text command needs more rows.'
+
+
+def workflow_unavailable_lines(width, root=None, policy=None, room=None):
     """What the workflow layer says where there is no map: that it needs a larger window, then the plain-text command on its
-    own rows (workflow_command_rows), then how to close the layer."""
-    return (word_wrap(WORKFLOW_NEEDS, width) + workflow_command_rows(root, policy, width)
-            + word_wrap(WORKFLOW_UNAVAILABLE_CLOSE, width))
+    own rows (workflow_command_rows), then how to close the layer.
+
+    room: the rows the frame has for all of it (None: as many as it takes). The command is one block: all of its rows, or
+    none of them and a sentence that says it needs more rows, so a frame never shows the start of a command whose
+    continuation is cut off. The closing sentence and the prose are budgeted apart from it."""
+    lead, close = word_wrap(WORKFLOW_NEEDS, width), word_wrap(WORKFLOW_UNAVAILABLE_CLOSE, width)
+    command = workflow_command_rows(root, policy, width)
+    if room is None or len(lead) + len(command) + len(close) <= room:
+        return lead + command + close
+    if len(lead) + len(command) <= room:
+        return lead + command
+    prose = word_wrap(WORKFLOW_NEEDS_BASE, width)
+    longer = prose + word_wrap(WORKFLOW_COMMAND_OMITTED, width)
+    for rows in (longer + close, longer, prose + close, prose):
+        if len(rows) <= room:
+            return rows
+    return prose[:room]
 
 
 def workflow_legends():
