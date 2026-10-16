@@ -680,6 +680,11 @@ class Workspace:
         self.rules = choose_rules(getattr(self.stdout, 'encoding', None), os.environ.get('TERM', ''), rules)
         self.reduced_motion = reduced_motion  # Both modes are event-driven: no decorative motion.
         self.value = {}
+        # The result held and the surface it was asked for under, so a draw that finds it under another surface (the
+        # RUNNING frame, before the engine answers) can tell it is the one that surface left (_leftover).
+        self._origin = None
+        # The kind of fault the body is saying while a frame is redrawn after one (draw).
+        self._display_fault = None
         self.selected = None
         # Last facts the engine reported about the selected object, for the
         # context strip only; never a source of truth and never persisted.
@@ -834,6 +839,7 @@ class Workspace:
             return
         # Initial help should not displace restored selection/navigation.
         self.value = value
+        self._origin = (value, self.tab)
         self.scroll = 0
         self._restore_map_view(value)
         self._restore_workflow_return(value)
@@ -1109,9 +1115,21 @@ class Workspace:
             return []
         return strip_key_rows(self._strip_choice(width)[1], width)
 
+    def _leftover(self):
+        """Whether the result held was asked for under another surface than the one on screen. _send draws the surface it
+        opens (the RUNNING frame) before the engine answers, so the result it finds is the one of the surface it left: the
+        views result names the policy and carries a coverage record, and the Inspector took it for its own (run 19,
+        DEF-INSPECTOR-AFTER-VIEWS). A result put here by hand, with no record of where it was asked for, is trusted."""
+        origin = getattr(self, '_origin', None)
+        return origin is not None and origin[0] is self.value and origin[1] != self.tab
+
+    def _shown_value(self):
+        """The result a surface draws from: the one held, unless that is another surface's leftover, which draws nothing."""
+        return {} if self._leftover() else self.value
+
     def _surface_summary(self, width):
-        from .workbench_screens import collection_result_lines, is_collection_run, word_wrap
-        value = self.value
+        from .workbench_screens import collection_result_lines, is_collection_run, is_inspection, word_wrap
+        value = self._shown_value()
         rows = []
         if self._states_here(value):
             # The same three states as the Inspector, from the last read of this policy, before the surface's own detail.
@@ -1215,7 +1233,7 @@ class Workspace:
         elif self.tab == 1 and isinstance(value.get('entries'), list) and 'fact_provenance_contract' in value:
             from .workbench_screens import dictionary_lines
             rows.extend(dictionary_lines(value, width))
-        elif self.tab == 1 and value.get('object_id'):
+        elif self.tab == 1 and is_inspection(value):
             from .workbench_screens import inspector_lines
             from .workbench_screens import strip_operation_shown
             rows.extend(inspector_lines(value, width, strip_operation=strip_operation_shown(self.facts)))
@@ -1655,6 +1673,10 @@ class Workspace:
 
     def _body_lines(self, inner, side):
         """The body as drawn. From WIDE cells, typed details or the raw record open beside the summary."""
+        if getattr(self, '_display_fault', None):
+            # The frame is redrawn after a fault in drawing it: the body says so instead of drawing the result again.
+            from .workbench_screens import display_fault_lines
+            return display_fault_lines(self._display_fault, inner)
         if inner < WIDE or getattr(self, 'layer', 'summary') in ('summary', 'catalog', 'workflow'):
             return self._data_lines(inner)
         left = (inner - 3) * 11 // 20
@@ -1711,17 +1733,18 @@ class Workspace:
             lines.append('Enter reviews the highlighted plan as it is now; nothing is approved.')
         else:
             lines = self._surface_summary(width)
-            if self._on_change_path(self.value):
+            shown = self._shown_value()
+            if self._on_change_path(shown):
                 from .workbench_screens import _band_primary, lifecycle_lines, newest_open_operation
                 known = self.facts if self.selected and self.facts.get('object_id') == self.selected else {}
                 primary, _ = _band_primary(known, known.get('signals') or [])
                 # The band above names the refresh for a changed repository; the line does not name it again.
                 refresh = bool(primary) and primary.get('code') in ('repository_stale', 'repository_consumer_mismatch')
-                step = lifecycle_lines(self.tab, width, self.value, eligibility=self.facts.get('eligibility')
+                step = lifecycle_lines(self.tab, width, shown, eligibility=self.facts.get('eligibility')
                                        if self.facts.get('object_id') == self.selected else None,
                                        band_names_refresh=refresh, band_has_next=bool(primary),
                                        newest_open=newest_open_operation(
-                                           known, self.value.get('operation_id') if isinstance(self.value, dict) else None,
+                                           known, shown.get('operation_id') if isinstance(shown, dict) else None,
                                            known.get('identity_prefixes')))
                 if self.tab == 4 and '[PLAN REVIEW]' in lines:
                     # The plan review's metadata (digest, paths, bound files) runs long; the Lifecycle and Next, with the
@@ -1774,10 +1797,44 @@ class Workspace:
         return detail
 
     def draw(self):
+        """Draw the frame. A fault while drawing is the interface's, not the engineer's input, yet the engine loop calls a
+        TypeError, KeyError or ValueError raised under it an invalid request. So it is caught here and said in the body
+        as a display fault with its code (the chrome, the notice and the keys stay, and a command in flight is not
+        stopped), and nothing is raised into the loop. A typed refusal (AppError) passes as before, and so does a write
+        the terminal refuses: that is not a fault of the drawing."""
+        try:
+            text = self._compose()
+        except AppError:
+            raise
+        except Exception as fault:
+            text = self._compose_fault(fault)
+        self.stdout.write(text)
+        self.stdout.flush()
+
+    def _compose_fault(self, fault):
+        """The frame for a fault in drawing: the same chrome with the body saying what failed; where even that cannot be
+        composed, bare rows say it. Only the fault's kind is named, never its message."""
+        self._display_fault = type(fault).__name__
+        try:
+            return self._compose()
+        except AppError:
+            raise
+        except Exception:
+            # The chrome itself cannot be drawn: bare rows, from nothing but the window's last known size.
+            from .workbench_screens import DISPLAY_FAULT
+            width, height = getattr(self, 'size', None) or (80, 24)
+            text = ('[DISPLAY FAULT] The screen could not be drawn (%s: %s). The fault is in the display, not in what you '
+                    'typed.' % (DISPLAY_FAULT, self._display_fault))
+            rows = list(wrap(text, max(1, width)))[:max(1, height)]
+            return '\x1b[H' + '\r\n'.join(pad(row, width) for row in rows) + '\x1b[J'
+        finally:
+            self._display_fault = None
+
+    def _compose(self):
         self.size = self._terminal_size()
         width, height = self.size
         if width < MIN_SIZE[0] or height < MIN_SIZE[1] or self._workflow_too_small():
-            return self._draw_constrained(width, height)
+            return self._compose_constrained(width, height)
         inner = width - 2
         from .workbench_screens import hazard_rows, tab_line
         header = title_line(TABS[self.tab], getattr(self, 'last_command', ''), self.value, getattr(self, 'layer', 'summary'))
@@ -1889,8 +1946,7 @@ class Workspace:
                 painted.append('\x1b[48;5;%s;38;5;%sm%s\x1b[0m' % (palette['bg'], base, line))
         else: painted = ['\x1b[1m' + line + '\x1b[22m' if i in band_rows else emphasize(line) if line.startswith(side) else line
                          for i, line in enumerate(frame)]
-        self.stdout.write('\x1b[H' + '\r\n'.join(painted) + '\x1b[J')
-        self.stdout.flush()
+        return '\x1b[H' + '\r\n'.join(painted) + '\x1b[J'
 
     def _scope(self, facts):
         """The evidence class for the status row: the result's own, else the selected policy's; an estate page
@@ -1939,7 +1995,7 @@ class Workspace:
             return fit(notice[len('Viewing '):].rstrip('.') + ' hidden; enlarge to see it', width, ellipsis)
         return self._prompt_line(width, ellipsis)
 
-    def _draw_constrained(self, width, height):
+    def _compose_constrained(self, width, height):
         """Below MIN_SIZE: what the window is too small for, the session, the primary hazard and the prompt, by
         priority, never the body. Keys keep their meaning; the full frame returns when the window is large enough."""
         from .workbench_screens import WORKFLOW_MIN_SIZE, constrained_rows
@@ -1957,8 +2013,7 @@ class Workspace:
                                                        '\x1b[1m' if i in band_rows else '', line) for i, line in enumerate(frame)]
         else:
             painted = ['\x1b[1m' + line + '\x1b[22m' if i in band_rows else line for i, line in enumerate(frame)]
-        self.stdout.write('\x1b[H' + '\r\n'.join(painted) + '\x1b[J')
-        self.stdout.flush()
+        return '\x1b[H' + '\r\n'.join(painted) + '\x1b[J'
 
     def _known_cause(self, code):
         """The cause the last read of this policy recorded, for a refusal code that covers several; else None."""

@@ -1240,7 +1240,33 @@ COVERAGE_WORDS = {'complete': 'policy list, settings and assignments read in ful
 
 
 def coverage_words(coverage):
-    return COVERAGE_WORDS.get(coverage, 'collection %s (i shows what was not read)' % str(coverage).replace('_', ' '))
+    """An observation's coverage in words. Only a word is one: a views result's coverage is a record of several facts,
+    and no other shape is one either, so those say no word was recorded instead of raising (an unhashable value cannot
+    even be looked up)."""
+    if not isinstance(coverage, str):
+        return 'collection coverage not recorded as one word (i shows what was not read)'
+    return COVERAGE_WORDS.get(coverage, 'collection %s (i shows what was not read)' % coverage.replace('_', ' '))
+
+
+def is_inspection(value):
+    """Whether a result is one policy's inspection, what select and inspect return. A typed view of the same policy (the
+    four views, diagnostics, the workflow map) names it too but carries its own schema, and is not one: the Inspector
+    draws only an inspection, never another view's result that is still held while its own is asked for."""
+    return isinstance(value, dict) and bool(value.get('object_id')) and 'schema_version' not in value
+
+
+# A fault in drawing is the interface's, not the engineer's input; the engine loop calls any TypeError, KeyError or
+# ValueError an invalid request, so the workspace says this itself and the loop never sees it.
+DISPLAY_FAULT = 'workbench_display_fault'
+
+
+def display_fault_lines(kind, width):
+    """The body of a screen that could not be drawn: what happened in words, its code and the fault's kind, whose fault
+    it is, and the keys that still work. The fault's own message is not echoed: it may hold a recorded value."""
+    lines = word_wrap('[DISPLAY FAULT] The screen could not be drawn (%s: %s).' % (DISPLAY_FAULT, safe_text(kind)), width)
+    lines += word_wrap('Cause: the fault is in the display, not in what you typed; no command you sent was stopped by it.', width)
+    lines += word_wrap('Next: b goes back and 1 opens the Estate; r shows the last result as recorded.', width)
+    return lines
 
 
 # Diagnostics area states that mean the area was not examined, in words.
