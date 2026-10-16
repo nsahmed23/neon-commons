@@ -1225,5 +1225,154 @@ class ReadOnlyTests(LayerFixture):
             self.assertFalse(any(command.startswith(forbidden) for command in ws.sent), (forbidden, ws.sent))
 
 
+
+# ---- item 4: the command ------------------------------------------------------------------------------------------
+
+READ_ONLY = 'This view is read-only: it reads the recorded state of the policy and writes nothing.'
+
+
+class CommandTests(LayerFixture):
+    """`intune-iac workbench workflow --root ROOT --policy ID [--json]`: the same lines, or the projection."""
+
+    def cli(self, *args, encoding='utf-8'):
+        import os
+        import subprocess
+        import sys
+        from pathlib import Path
+        script = Path(__file__).resolve().parents[1] / 'scripts/intune-iac.py'
+        env = dict(os.environ, PYTHONIOENCODING=encoding, PYTHONUTF8='0')
+        env.pop('COLUMNS', None)
+        return subprocess.run([sys.executable, str(script), 'workbench', 'workflow', *map(str, args)], text=True,
+                              capture_output=True, cwd='/tmp', env=env)
+
+    def tree(self):
+        import hashlib
+        from pathlib import Path
+        return {str(path): hashlib.sha256(path.read_bytes()).hexdigest()
+                for root in (self.store.root, self.operation) for path in sorted(Path(root).rglob('*')) if path.is_file()}
+
+    def test_the_text_form_prints_every_stage_the_position_and_its_step_complete_when_piped(self):
+        self.prepare()
+        result = self.cli('--root', self.store.root, '--policy', OBJECT, '--service-root', self.service.root)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        text = result.stdout
+        lines = text.splitlines()
+        self.assertTrue(lines[0].startswith('[WORKFLOW] '), lines[:2])
+        for label in ('observe', 'adopt', 'intent', 'propose', 'review', 'approve, execute', 'readback', 'reconcile', 'record',
+                      'observed after', 'maintain'):
+            self.assertEqual(sum(1 for line in lines if label + ':' in line), 1, label)       # one block each in STAGES
+        self.assertEqual(sum(line.startswith('  basis') for line in lines), 11)
+        flat = ' '.join(text.split())
+        self.assertIn('Position: approve, execute', flat)
+        self.assertIn('approve and run it with the review digest', flat)
+        self.assertIn('execute %s DIGEST' % self.operation, flat)
+        self.assertIn('operation ' + self.read_operation_prefix() + ' delivery stage approval', flat)
+        self.assertTrue(flat.endswith(READ_ONLY), flat[-120:])                # said last, once
+        self.assertEqual(flat.count(READ_ONLY), 1)
+        # Piped output is 80 columns: no line is wider, and a command is never cut.
+        self.assertTrue(all(len(line) <= 80 for line in lines), [line for line in lines if len(line) > 80])
+
+    def read_operation_prefix(self):
+        from intune_iac import workbench
+        flow = workbench._workflow(self.store, OBJECT, service_root=self.service.root)
+        return flow['operation']['operation_id'][:8]
+
+    def test_the_text_lines_are_the_layers_lanes_in_the_encoding_the_output_can_carry(self):
+        from intune_iac import workbench
+        from intune_iac.workbench_screens import MapLine, workflow_map_lines
+        self.prepare()
+        flow = workbench._workflow(self.store, OBJECT, service_root=self.service.root)
+        for encoding, rules in (('utf-8', 'unicode'), ('ascii', 'ascii')):
+            result = self.cli('--root', self.store.root, '--policy', OBJECT, '--service-root', self.service.root,
+                              encoding=encoding)
+            self.assertEqual(result.returncode, 0, (encoding, result.stderr))
+            lanes = [str(row) for row in workflow_map_lines(flow, 80, rules, detail=False) if isinstance(row, MapLine)]
+            self.assertEqual(len(lanes), 11)
+            lines = result.stdout.splitlines()
+            for lane in lanes:
+                self.assertIn(lane.rstrip(), [line.rstrip() for line in lines], (encoding, lane))
+            if encoding == 'ascii':
+                self.assertTrue(all(ord(char) < 0x80 for char in result.stdout), encoding)
+            else:
+                self.assertTrue(any(ord(char) >= 0x80 for char in result.stdout), encoding)
+
+    def test_json_prints_one_document_that_is_the_projection(self):
+        import json
+        from intune_iac import workbench
+        self.prepare()
+        result = self.cli('--root', self.store.root, '--policy', OBJECT, '--service-root', self.service.root, '--json')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        document = json.loads(result.stdout)
+        expected = workbench._workflow(self.store, OBJECT, service_root=self.service.root)
+        self.assertEqual(document['schema_version'], 'workflow-map/1')
+        self.assertEqual(document['revision'], expected['revision'])
+        self.assertEqual([stage['id'] for stage in document['stages']], IDS)
+        self.assertEqual(document['position'], 'approve_execute')
+        self.assertTrue(result.stdout.isascii())                      # the CLI's own safe JSON: every non-ASCII character escaped
+        self.assertEqual(result.stdout.count('\n'), 1)
+
+    def test_a_service_root_is_optional_and_without_one_the_policy_is_still_read(self):
+        import json
+        self.prepare()
+        plain = json.loads(self.cli('--root', self.store.root, '--policy', OBJECT, '--json').stdout)
+        self.assertEqual(plain['schema_version'], 'workflow-map/1')
+        self.assertEqual(plain['position'], 'approve_execute')
+
+    def test_it_writes_nothing_and_changes_neither_the_store_nor_the_operation(self):
+        self.prepare()
+        before = self.tree()
+        for extra in ((), ('--json',)):
+            result = self.cli('--root', self.store.root, '--policy', OBJECT, '--service-root', self.service.root, *extra)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(self.tree(), before)
+
+    def test_an_unknown_policy_is_an_error_with_a_nonzero_exit_and_nothing_on_stdout(self):
+        import json
+        self.prepare()
+        result = self.cli('--root', self.store.root, '--policy', '33333333-3333-4333-8333-333333333333')
+        self.assertEqual(result.returncode, 3)
+        self.assertEqual(json.loads(result.stderr)['error']['code'], 'workbench_object_missing')
+        self.assertEqual(result.stdout, '')
+        missing = self.cli('--root', self.store.root)
+        self.assertEqual(missing.returncode, 2)
+
+    def test_the_command_is_listed_in_the_workbench_help(self):
+        import subprocess
+        import sys
+        from pathlib import Path
+        script = Path(__file__).resolve().parents[1] / 'scripts/intune-iac.py'
+        result = subprocess.run([sys.executable, str(script), 'workbench', '--help'], text=True, capture_output=True, cwd='/tmp')
+        # The command itself, not workflow-import or workflows, which this text also holds.
+        self.assertRegex(result.stdout, r'(?<![-\w])workflow(?![-\w])')
+
+
+class TextLinesTests(unittest.TestCase):
+    def test_the_text_form_lists_every_stage_with_its_basis_and_fits_each_width_down_to_the_lane(self):
+        from intune_iac.workbench_screens import workflow_text_lines
+        for name, flow in flows().items():
+            for rules in ('ascii', 'unicode'):
+                for width in (116, 80, 60, 41):
+                    lines = workflow_text_lines(flow, width, rules)
+                    for line in lines:
+                        self.assertLessEqual(len(str(line)), width, (name, rules, width, line))
+                    self.assertEqual(sum(str(line).startswith('  basis') for line in lines), 11, (name, width))
+                    self.assertTrue(' '.join(' '.join(str(line) for line in lines).split()).endswith(READ_ONLY), (name, width))
+
+    def test_below_the_lane_width_the_text_form_leaves_the_lanes_out_and_still_lists_every_stage(self):
+        from intune_iac.workbench_screens import MapLine, workflow_text_lines
+        flow = flows()['unknown']
+        lines = workflow_text_lines(flow, 30, 'ascii')
+        self.assertFalse(any(isinstance(row, MapLine) for row in lines))
+        self.assertEqual(sum(str(line).startswith('  basis') for line in lines), 11)
+        for line in lines:
+            self.assertLessEqual(len(str(line)), 30, line)
+
+    def test_every_stages_step_is_in_the_text_form_not_only_the_positions(self):
+        from intune_iac.workbench_screens import RECONCILE_NEXT, workflow_text_lines
+        flat = ' '.join(' '.join(str(line) for line in workflow_text_lines(flows()['unknown'], 80, 'ascii')).split())
+        self.assertEqual(flat.count(' '.join(RECONCILE_NEXT.split())), 3)       # approve and execute, readback, reconcile
+        self.assertIn('Position: reconcile', flat)
+
+
 if __name__ == "__main__":
     unittest.main()

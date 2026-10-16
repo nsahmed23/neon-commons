@@ -2428,6 +2428,41 @@ def workflow_map_lines(flow, width, rules='ascii', focus=None, prefixes=None, de
     return lines
 
 
+WORKFLOW_LANE_WIDTH = 3 + 3 + 4 + WORKFLOW_LABEL_WIDTH + 1 + WORKFLOW_WORD_WIDTH        # gutter, spine, mark, label, word
+WORKFLOW_READ_ONLY_STATEMENT = 'This view is read-only: it reads the recorded state of the policy and writes nothing.'
+
+
+def workflow_text_lines(flow, width, rules='ascii', prefixes=None):
+    """The plain-text form of the workflow map (`intune-iac workbench workflow`): the lanes and the legend where the width
+    holds them, the position, then every stage as a block with its state, reason, basis, recorded values and step. The
+    keyboard reaches one stage's detail at a time; this lists all of them, so no stage's step is left out of a pipe."""
+    stages = [stage for stage in flow.get('stages') or [] if isinstance(stage, dict)]
+    if width >= WORKFLOW_LANE_WIDTH:
+        lines = [str(row) for row in workflow_map_lines(flow, width, rules, prefixes=prefixes, detail=False)]
+    else:
+        name = flow.get('name') if isinstance(flow.get('name'), str) and flow['name'] else None
+        lines = word_wrap('[WORKFLOW] %s (%s) | %s' % (name or '(no name)', short_id(flow.get('object_id'), prefixes),
+                                                      evidence_words(flow.get('evidence_class'))), width)
+    here = next((stage for stage in stages if stage.get('id') == flow.get('position')), None)
+    lines += [''] + word_wrap('Position: %s (the last stage with a recorded state; @ marks it in the map).' % (
+        workflow_stage_label(here) if here else 'none recorded'), width)
+    lines += ['', 'STAGES']
+    for number, stage in enumerate(stages, 1):
+        _, word = _workflow_state(stage.get('state'))
+        reason = stage.get('reason')
+        lines += word_wrap('%d %s: %s | %s' % (number, workflow_stage_label(stage), word,
+                                               'reason ' + safe_text(str(reason)) if reason else 'no reason recorded'), width)
+        lines += _labelled('  basis', str(stage.get('basis')), width, 11)
+        facts = workflow_fact_words(stage)
+        if facts:
+            lines += _labelled('  recorded', '; '.join(facts), width, 11)
+        step = stage.get('continuation')
+        if isinstance(step, str) and step:
+            lines += _labelled_steps('  next', step, width, 11)
+    # Said once, on the last rows, because a small terminal shows the end of the output and not its start.
+    return lines + [''] + word_wrap(WORKFLOW_READ_ONLY_STATEMENT, width)
+
+
 def history_lines(value, width, current=None):
     """Observations newest first, each with what changed since the one before it on this page.
 

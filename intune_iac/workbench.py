@@ -49,6 +49,11 @@ def add_parser(commands):
     companion.add_argument('--idle-seconds', type=int, default=1800, help='With --serve: stop after this long without a page request')
     overview = sub.add_parser('estate-overview', help='Groups, filters, scope tags and settings the observed policies share, and what was not established (read-only)')
     overview.add_argument('--root', required=True); overview.add_argument('--limit', type=int, default=200)
+    flow = sub.add_parser('workflow', help="The change path of one policy as stages, each with the state its records give, the position and the next step (read-only)")
+    flow.add_argument('--root', required=True)
+    flow.add_argument('--policy', required=True, help='Exact immutable object ID, never a display name')
+    flow.add_argument('--service-root', help="The modeled service whose own check of the observation a proposal makes is included; without it, the one the store's latest adoption names, if any")
+    flow.add_argument('--json', action='store_true', help='Print the projection as JSON instead of the readable lines')
     sub.add_parser('families', help='Every policy, application and script family with its support disposition (read-only)')
     init = sub.add_parser('init', help='Create a private tenant-scoped observation store; no IaC required')
     init.add_argument('--root', required=True)
@@ -927,6 +932,15 @@ def _workflow(store, object_id, *, service_root=None):
     return project(_workflow_read(store, object_id, service_root=service_root))
 
 
+def _session_service_root(store, explicit=None):
+    """The modeled service a read uses: the one named, else the one the store's latest adoption names (as the workspace
+    does); None when neither exists or the adopted one cannot be opened for this tenant."""
+    if explicit is not None:
+        return explicit
+    origin = _adopted_service(store)
+    return origin['root'] if origin is not None and not origin.get('problem') else None
+
+
 def command(args):
     name = args.workbench_command
     from .host_capabilities import require_profile
@@ -992,6 +1006,9 @@ def command(args):
     if name == 'estate-overview':
         from .workbench_overview import estate_overview
         return estate_overview(_store(args.root), limit=args.limit)
+    if name == 'workflow':
+        store = _store(args.root)
+        return _workflow(store, args.policy, service_root=_session_service_root(store, args.service_root))
     if name == 'companion':
         from .companion import run_companion
         read = _companion_read(_store(args.root), args.object)

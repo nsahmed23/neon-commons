@@ -510,6 +510,14 @@ def main(argv=None):
             from .engineering_view import lines_for
             print('\n'.join(lines_for(result)));sys.stdout.flush()
             return 0
+        if args.command=='workbench' and getattr(args,'workbench_command',None)=='workflow' and not args.json:
+            # A person reads the workflow map; --json keeps the data form. The same lanes as the workspace layer, 80 columns
+            # when piped and the terminal's width otherwise, in ASCII where the output encoding is not UTF-8. Read-only.
+            from .engineering_view import output_width
+            from .workbench_screens import workflow_text_lines
+            encoding=(getattr(sys.stdout,'encoding',None) or '').lower().replace('-','').replace('_','')
+            print('\n'.join(workflow_text_lines(result,output_width(),'unicode' if encoding=='utf8' else 'ascii')));sys.stdout.flush()
+            return 0
         if (getattr(args,'workbench_command',None)=='workspace' and isinstance(result,dict)
                 and result.get('status')=='interrupted' and sys.stdout.isatty()):
             # A person reads this after Ctrl-C: sentences with the exact next step; a pipe keeps the JSON.
