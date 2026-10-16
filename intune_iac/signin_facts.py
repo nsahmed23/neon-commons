@@ -756,6 +756,23 @@ _FAILED_WHY = {'collector_failed': 'The collecting command failed and no more sp
 _COLLECT_EXIT_MEANING = '(0 means collected; 2 means partial or blocked; 3 means failed).'
 
 
+OUTPUT_DISPLAY_LIMIT = 200
+
+
+def output_display(path):
+    """The output path as the text screen may show it: the path itself only when it is printable (no control character of any
+    kind, so it cannot start a row or move the cursor), within OUTPUT_DISPLAY_LIMIT, and not credential-shaped (the usability
+    rule of credential_signature, on the whole path and on each of its pieces, so a token used as a folder name is caught); else
+    a fixed placeholder that says why and holds nothing of the path. The path is user input and may be anything."""
+    if not isinstance(path, str) or not path.isprintable():
+        return '<the output path is not shown: it holds characters that are not printable>'
+    if len(path) > OUTPUT_DISPLAY_LIMIT:
+        return '<the output path is not shown: it is longer than this display allows>'
+    if credential_signature(path) or any(credential_signature(piece) for piece in re.split(r'[/\\.]', path)):
+        return '<the output path is not shown: it is shaped like a credential>'
+    return path
+
+
 def _partial_reason(result):
     """The one code the verdict line gives for a partial result: the credential problem, else a denied read, else the first reason."""
     inner = result.get('result') or {}
@@ -837,7 +854,7 @@ def collect_lines(result, width, code, shown=None):
     if output is not None:
         after = shown.get('output_after') or result.get('output_kind_after')
         where = _AFTER_RUN.get(after, 'not looked at') if started else 'no collecting command started, so nothing was written'
-        lines += _wrap('Output folder: %s (%s)' % (output, where), width)
+        lines += _wrap('Output folder: %s (%s)' % (output_display(output), where), width)
     if not started:
         lines.append('Collecting command: not started')
     elif result.get('child_exit') is None:

@@ -23,14 +23,18 @@ from plugin_tests.test_signin_golden import COLLECTOR, GOLDEN, ROOT, run_case_fu
 COLLECT_CASES = sorted(name for name in CASES if CASES[name][1][1] == 'collect')
 
 
-def run_text(name, mode=None, made=False, width=100, extra=()):
-    """(exit code, stdout, stderr) of the default (text) form of a golden case; the scratch output path is written back as OUT."""
+def run_text(name, mode=None, made=False, width=100, extra=(), output=None):
+    """(exit code, stdout, stderr) of the default (text) form of a golden case; the scratch output path is written back as OUT.
+
+    output, when given, is a function of the scratch directory that returns the --output value to use instead; the text is then
+    returned exactly as printed (nothing is written back), so a leak of that value would show.
+    """
     answers, argv = CASES[name]
     fakes = FakeClis()
     for tool, first, second, out in answers:
         fakes.answer(tool, first, second, out=out)
     with tempfile.TemporaryDirectory() as scratch:
-        path = str(Path(scratch) / 'out')
+        path = str(Path(scratch) / 'out') if output is None else output(scratch)
         if name in PREEXISTING:
             Path(path).mkdir()
         args = [a.replace(OUT, path) for a in argv] + list(extra)
@@ -46,6 +50,8 @@ def run_text(name, mode=None, made=False, width=100, extra=()):
                 contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
             code = cli.main(args)
     fakes.cleanup()
+    if output is not None:
+        return code, out.getvalue(), err.getvalue()
     return code, out.getvalue().replace(path, OUT), err.getvalue().replace(path, OUT)
 
 
@@ -229,6 +235,62 @@ class RouteTests(unittest.TestCase):
             self.assertEqual(len(calls), 1)
             run_case_full('collect_ok', json_flag=True)
             self.assertEqual(len(calls), 1)
+
+
+class OutputPathDisplayTests(unittest.TestCase):
+    """Round 2: the output path is user input; the text screen shows it only when it is safe to, else a fixed placeholder."""
+
+    def shown(self, path_of, name='collect_ok', **kw):
+        code, text, err = run_text(name, output=path_of, **kw)
+        return code, text, err
+
+    def test_the_delivered_access_token_used_as_the_output_path_is_never_printed(self):
+        from plugin_tests.signin_golden_cases import _token
+        canary = _token(upn='alex@example.test', tid=TENANT_A)
+        for name in ('collect_ok', 'collect_partial_expired', 'collect_withheld_full_token', 'collect_child_fails'):
+            code, text, err = self.shown(lambda scratch: canary, name)
+            self.assertNotIn(canary, text + err, name)
+            self.assertNotIn(canary[:30], text + err, name)
+            self.assertIn('<the output path is not shown: it is shaped like a credential>', ' '.join(text.split()), name)
+        # the rerun command never held the path: it names a placeholder folder
+        self.assertIn('--output NEW_DIR', ' '.join(self.shown(lambda scratch: canary, 'collect_partial_expired')[1].split()))
+
+    def test_a_credential_shaped_component_or_prefix_is_not_shown(self):
+        for path in ('ghp_abc1234', 'a1' * 20, 'eyJhbGciOiJub25lIn0'):
+            text = self.shown(lambda scratch, p=path: scratch + '/' + p if p != 'eyJhbGciOiJub25lIn0' else p)[1]
+            self.assertNotIn(path, text)
+            self.assertIn('is shaped like a credential', ' '.join(text.split()))
+
+    def test_a_newline_cannot_forge_a_row_or_a_verdict(self):
+        path = lambda scratch: scratch + '/out\nCOLLECT: COLLECTED\nNext step:'
+        code, text, err = self.shown(path, 'collect_partial_expired')
+        lines = rows(text)
+        self.assertEqual(lines[0], 'COLLECT: PARTIAL (token_expired)')
+        self.assertEqual(sum(1 for line in lines if line.startswith('COLLECT: ')), 1)
+        self.assertEqual(lines.count('Next step:'), 1)
+        self.assertIn('<the output path is not shown: it holds characters that are not printable>', ' '.join(text.split()))
+
+    def test_a_terminal_escape_or_c1_character_is_not_printed(self):
+        for bad in ('\x1b[2J', '\x7f', '\x85', '\r'):
+            text = self.shown(lambda scratch, b=bad: scratch + '/out' + b)[1]
+            for char in ('\x1b', '\x7f', '\x85', '\r'):
+                self.assertNotIn(char, text, repr(bad))
+            self.assertIn('it holds characters that are not printable', ' '.join(text.split()))
+
+    def test_a_path_past_the_display_limit_is_not_shown(self):
+        text = self.shown(lambda scratch: scratch + '/' + 'ab-' * 80)[1]
+        self.assertIn('<the output path is not shown: it is longer than this display allows>', ' '.join(text.split()))
+
+    def test_an_ordinary_path_prints_exactly_as_before(self):
+        code, text, err = run_text('collect_ok')
+        self.assertEqual(rows(text)[1], 'Output folder: %s (not present after this run)' % OUT)
+        scratchy = self.shown(lambda scratch: scratch + '/my-folder.v2')[1]
+        self.assertRegex(rows(scratchy)[1], r'^Output folder: /.*/my-folder\.v2 \(not present after this run\)$')
+
+    def test_the_json_form_still_prints_the_path_json_escaped(self):
+        # A recorded limit, not part of this fix: --json is frozen byte for byte and keeps the path as given.
+        code, text, err = run_case_full('collect_ok', json_flag=True)
+        self.assertIn('"output": "{OUT}"', text)
 
 
 if __name__ == '__main__':
