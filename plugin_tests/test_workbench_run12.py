@@ -556,7 +556,7 @@ class JournalLastRecordedTests(unittest.TestCase):
 
     def test_the_time_is_labelled_as_the_journals(self):
         text = self.row()
-        self.assertIn('dddddddd succeeded verified; journal last recorded 2026-10-16 01:16:31 UTC', text)
+        self.assertIn('dddddddd succeeded verified; store last registered 2026-10-16 01:16:31 UTC', text)
         self.assertNotIn('; last recorded', text)
 
 

@@ -248,3 +248,19 @@ class GitPinsFromAShellTests(unittest.TestCase):
     def test_a_candidate_without_a_command_prints_no_command(self):
         text = ' '.join(' '.join(self.lines()).split())
         self.assertNotIn('From a shell', text)
+
+
+class StoreLastRegisteredLabelTests(unittest.TestCase):
+    """Item 6, low 35: the operation state row's time is when the store last registered the operation, which is not
+    the journal's last record when the journal and the store disagree."""
+
+    def row(self):
+        from intune_iac.workbench_screens import state_lines
+        states = {'operation': {'operation_id': 'd' * 32, 'journal_status': 'succeeded_verified',
+                                'status': 'succeeded_verified', 'recorded_at': '2026-10-16T01:16:31Z'}}
+        return ' '.join(' '.join(state_lines(states, 140)).split())
+
+    def test_the_time_is_labelled_as_the_stores_registration(self):
+        text = self.row()
+        self.assertIn('dddddddd succeeded verified; store last registered 2026-10-16 01:16:31 UTC', text)
+        self.assertNotIn('journal last recorded', text)
