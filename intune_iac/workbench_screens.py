@@ -540,9 +540,14 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
     shown = ['T'] + (['P'] if selected else []) + [str(value) for label, short, value in states
                                                    if selected and str(value) in HAZARD_STATES[label]
                                                    and str(value) in SHORT_STATES and str(value) in STRIP_DEFINITIONS]
+    band = hazard_rows(facts, facts.get('signals') or [], width, routes=False, surface=False,
+                       keep_essential=True) if selected else []
+    if len(band) >= height:
+        # A window too short to hold the whole band and the line that says what it needs keeps the shorter forms: the
+        # header outranks the wrapped band only when the band would take every row.
+        band = hazard_rows(facts, facts.get('signals') or [], width, routes=False, surface=False)
     groups = {'header': [header], 'strip': _pack(items, width), 'prompt': [prompt], 'keys': [keys] if keys else [],
-              'band': hazard_rows(facts, facts.get('signals') or [], width, routes=False, surface=False,
-                                  keep_essential=True) if selected else [],
+              'band': band,
               'legend': strip_key_rows([STRIP_DEFINITIONS[key] for key in dict.fromkeys(shown)], width)}
     if layer == 'workflow':
         # What the map needs, then the plain-text command that prints it anywhere on its own rows (route: the workspace's

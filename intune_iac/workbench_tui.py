@@ -1611,7 +1611,7 @@ class Workspace:
         larger window and gives the plain-text command."""
         from .workbench_screens import word_wrap, workflow_fits, workflow_map_lines, workflow_unavailable_lines
         if not workflow_fits(self._map_size()):
-            return workflow_unavailable_lines(width, self.store.root, getattr(self, 'selected', None))
+            return workflow_unavailable_lines(width, getattr(self.store, 'root', None), getattr(self, 'selected', None))
         flow = self._workflow_flow()
         if flow is None:
             return word_wrap('No workflow map is loaded. Esc closes this layer.', width)
@@ -2085,7 +2085,7 @@ class Workspace:
         lines, band_rows = constrained_rows(self.store.tenant_id, selected, known, getattr(self, 'mode_class', None), width,
                                             height, '%dx%d' % need, self._draw_constrained_prompt(width, ellipsis),
                                             typing=bool(self.mode), layer=getattr(self, 'layer', 'summary'),
-                                            route=(self.store.root, selected))
+                                            route=(getattr(self.store, 'root', None), selected))
         frame = [pad(safe_text(line), width) for line in lines] + [' ' * width] * (height - len(lines))
         if self.color:
             palette = THEMES.get(self.theme, THEMES['dark'])

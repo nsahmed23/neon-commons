@@ -2840,6 +2840,16 @@ class ConstrainedBandPureTests(unittest.TestCase):
                 for row in lines:
                     self.assertLessEqual(len(row), width, (layer, width, row))
 
+    def test_a_window_too_short_for_the_wrapped_band_and_the_header_keeps_the_header_and_the_shorter_band(self):
+        for height in (3, 4):
+            band, lines = self.rows('summary', 24, height)
+            text = ' '.join(lines).lower()
+            self.assertIn('below 60x20', text, height)                  # what the window is too small for stays
+            self.assertIn('reconcile', text, height)
+            self.assertLessEqual(len(lines), height)
+        band, lines = self.rows('summary', 36, 12)
+        self.assertEqual(len(band), 2)                                   # with room, the band is wrapped whole
+
     def test_a_window_that_holds_a_complete_form_on_one_row_still_draws_that_one_row(self):
         for width in (60, 80):
             band, _ = self.rows('summary', width)
