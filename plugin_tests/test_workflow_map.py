@@ -1653,6 +1653,25 @@ class ReviewPureTests(unittest.TestCase):
         self.assertEqual((stages['observed_after']['state'], stages['observed_after']['continuation']), ('blocked', None))
         self.assertEqual(stages['record']['continuation'], NO_RECORD_STEP)
 
+    def test_a_value_outside_the_set_a_record_can_hold_reads_as_unknown_and_invents_no_reason(self):
+        read = baseline()
+        read['states'].pop('observation')
+        stage = by_id(project(read))['observe']
+        self.assertEqual((stage['state'], stage['basis'], stage['reason']), ('not_recorded', 'states.observation', None))
+        read = baseline()
+        read['states']['observation']['freshness'] = 'unrecognised'
+        stage = by_id(project(read))['observe']
+        self.assertEqual((stage['state'], stage['reason']), ('unknown', None))
+        # A delivery stage whose status is outside its set is unknown, and its reason is that status, as recorded.
+        for index, name, key in ((2, 'approval', 'approve_execute'), (5, 'reconciliation', 'reconcile'),
+                                 (6, 'deployment_record', 'record')):
+            delivery = prepared_delivery() if name == 'approval' else executed_delivery('reconciled')
+            delivery['stages'][index] = stage_row(name, 'unrecognised')
+            journal = delivery['journal_status']
+            read = with_operation(baseline(), delivery=delivery, journal=journal, review=prepared_review('open', status=journal))
+            stage = by_id(project(read))[key]
+            self.assertEqual((stage['state'], stage['reason']), ('unknown', 'unrecognised'), name)
+
 
 class ReviewStoreTests(LayerFixture):
     def flow(self):
@@ -1724,6 +1743,20 @@ class ReviewStoreTests(LayerFixture):
         for char in ('e', 'r', 'f'):
             self.assertIsNone(self.press(ws, ('text', char)))
             self.assertEqual(ws.notice, 'The workflow map is read-only; Esc closes it.', char)
+
+    def test_esc_with_no_view_before_the_layer_returns_to_the_estate_overview(self):
+        self.prepare()
+        ws = self.layer_workspace()
+        self.assertEqual(self.press(ws, 'escape'), 'overview')
+        self.assertEqual(ws.layer, 'summary')
+
+    def test_a_layer_with_nothing_loaded_says_so_and_a_window_below_the_minimum_says_it_needs_a_larger_one(self):
+        self.prepare()
+        ws = self.layer_workspace()
+        ws.value = {}
+        self.assertIn('No workflow map is loaded', ' '.join(str(row) for row in ws._workflow_lines(80)))
+        small = self.layer_workspace(size=(50, 15))
+        self.assertIn('needs a larger window', ' '.join(str(row) for row in small._workflow_lines(50)))
 
 
 class ReviewTextTests(unittest.TestCase):
