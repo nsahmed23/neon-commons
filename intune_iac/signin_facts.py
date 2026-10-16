@@ -11,8 +11,10 @@ never called a session: az's word (Enabled, Expired) is the state of the listed 
 the sign-in is still fresh, which is learnt only when a token is requested; gh's word (success, error, timeout) is the result
 of gh's own check of the stored login.
 
-States: signed_in, not_signed_in, expired, invalid (gh reported error for every login it checked and none succeeded), unknown.
-The reason is a short code, set when the state is unknown or invalid.
+States: signed_in, not_signed_in, subscription_expired (az lists every subscription as Expired: the subscription's state, not
+sign-in expiry, which only a token request shows), unknown, and invalid (gh reported error for a login it checked, which is
+any error after same-host ambiguity is resolved). Verdict statuses add expired (found at token time), wrong_tenant,
+several_accounts and account_mismatch. The reason is a short code, set when the state is unknown or invalid.
 """
 from __future__ import annotations
 

@@ -76,6 +76,9 @@ def main(argv):
         print(json.dumps(result(alpha=token[:half], beta=token[half:])))
     elif mode == 'rawecho':
         print(token)
+    elif mode == 'nestedhalves':
+        half = len(token) // 2
+        print(json.dumps(result(note=[token[:half], token[half:]])))  # halves in one ignored nested list
     elif mode == 'shapednote':
         print(json.dumps(result(note='abcdefghijklmnopqrst')))  # credential-shaped text that is NOT the delivered token
     elif mode == 'extra':

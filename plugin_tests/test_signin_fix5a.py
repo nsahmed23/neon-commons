@@ -41,6 +41,7 @@ class FolderTests(Base):  # item 1
         self.assertNotIn(self.token, blob)
         self.assertNotIn('rm -r', blob)
         self.assertNotIn('rm ', blob.replace('form ', ''))
+        self.assertNotIn('product_removed_anything', blob)
         self.assertNotIn('Delete', blob)
         for inferred in ('output_folder', 'output_removed', 'written', 'existed_before', 'not_written', 'left as it was found'):
             self.assertNotIn(inferred, blob, inferred)
@@ -51,8 +52,9 @@ class FolderTests(Base):  # item 1
         self.assertEqual((result['output_present_before'], result['output_present_after'], result['output_kind_after']),
                          (False, True, 'directory'))
         self.assertTrue(Path(self.output).is_dir())  # still there: the product removes nothing
-        self.assertIs(result['product_removed_anything'], False)
-        self.assertIn('did not remove anything', result['message'])
+        self.assertNotIn('product_removed_anything', result)
+        self.assertNotIn('did not remove', result['message'])
+        self.assertIn('cannot determine which process created, changed or removed', result['message'])
 
     def test_a_symlink_that_appears_is_reported_as_a_symlink(self):
         result = self.withheld('symlink')
@@ -182,6 +184,14 @@ class WithheldWordingTests(Base):  # item 4
         self.assertNotIn('itself prints', result['next_step'])
         self.assertEqual(result['token_match'], 'fragment_or_shape')
 
+    def test_two_halves_in_one_nested_list_are_fragments_not_a_full_match(self):
+        self.mode = 'nestedhalves'
+        result = self.collect()
+        self.assertEqual(result['error_code'], 'collector_output_withheld')
+        self.assertEqual(result['token_match'], 'fragment_or_shape')
+        self.assertNotIn('the access token itself', result['message'])
+        self.assertNotIn('printed the access token', result['next_step'])
+
     def test_a_split_token_is_fragments_not_a_full_match(self):
         self.mode = 'split'
         result = self.collect()
@@ -217,6 +227,45 @@ class OneAccessStatementTests(Base):  # item 5
         self.assertEqual(blocked['status'], 'blocked')
         self.assertIn('note', blocked)
         self.assertEqual(blocked['access'], {'graph': 'unknown', 'intune': 'unknown', 'state_storage': 'unknown'})
+
+
+class JoinedFragmentsTests(Base):
+    def test_halves_that_only_the_joined_string_reconstructs_are_not_a_full_token_match(self):
+        # A token with slashes, its two halves in one ignored nested list, the document JSON-escaped so the raw bytes match
+        # no window: only the decoded strings and their concatenation see the token. Fragments, never "the access token".
+        token = 'abc/' * 8
+        watch = signin._Watch(token)
+        half = len(token) // 2
+        out = json.dumps({'status': 'captured', 'page_count': 1, 'attempt_count': 1, 'retry_count': 0, 'cancelled': False,
+                          'coverage': [], 'note': [token[:half], token[half:]]}).replace('/', '\\/').encode()
+        result = signin._collector_result(0, out, b'', watch, '/somewhere/out',
+                                          lambda code, exact: {'error_code': 'collector_output_withheld', 'exact': exact})
+        self.assertEqual(result['error_code'], 'collector_output_withheld')
+        self.assertIs(result['exact'], False)
+
+    def test_a_whole_token_in_one_decoded_string_is_still_a_full_match(self):
+        token = 'abc/' * 8
+        watch = signin._Watch(token)
+        out = json.dumps({'status': 'captured', 'note': token}).replace('/', '\\/').encode()
+        result = signin._collector_result(0, out, b'', watch, '/somewhere/out',
+                                          lambda code, exact: {'error_code': 'collector_output_withheld', 'exact': exact})
+        self.assertIs(result['exact'], True)
+
+
+class DocumentationAndComparisonTests(Base):  # items 3 and 4 of round 2
+    def test_the_full_token_digest_is_compared_in_constant_time(self):
+        import hmac
+        from unittest import mock
+        watch = signin._Watch('A' * 30 + '-' + 'b' * 20)
+        with mock.patch('intune_iac.signin.hmac.compare_digest', wraps=hmac.compare_digest) as spy:
+            self.assertFalse(watch.full_match('x' * 80))
+        self.assertGreater(spy.call_count, 0)
+
+    def test_the_documented_state_lists_name_subscription_expired_and_any_failed_gh_login(self):
+        doc = signin_facts.__doc__
+        self.assertIn('subscription_expired', doc)
+        self.assertIn('any error after same-host ambiguity is resolved', doc)
+        self.assertNotIn('for every login it checked and none succeeded', doc)
 
 
 if __name__ == '__main__':

@@ -163,7 +163,7 @@ class WithheldTests(Base):  # item 2a, finding 8
         result = self.collect()
         self.assertEqual((result['status'], result['error_code']), ('failed', 'collector_output_withheld'))
         self.assertNotIn(self.token, json.dumps(result))
-        self.assertIs(result['product_removed_anything'], False)
+        self.assertNotIn('product_removed_anything', result)
         self.assertEqual(unmarked(result['next_step']), [])
         self.assertNotIn('rm -r', json.dumps(result))  # changed in 5A round 1: no deletion command is ever printed
         return result
@@ -175,7 +175,7 @@ class WithheldTests(Base):  # item 2a, finding 8
         self.assertTrue(Path(self.output).is_dir())  # collect never removes the folder
         self.assertIn('intune-iac signin collect --tenant %s --policy %s --output NEW_DIR (' % (TENANT_A, POLICY),
                       result['next_step'])
-        self.assertIn('did not remove anything', result['message'])
+        self.assertIn('cannot determine which process created, changed or removed', result['message'])
 
     def test_a_folder_that_does_not_appear_is_reported_absent(self):
         self.mode = 'echo'

@@ -25,6 +25,7 @@ cgroup (or a subreaper) could contain it, and no such mechanism exists in the pr
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import math
 import os
@@ -394,7 +395,7 @@ class _Watch:
     def full_match(self, text):
         """True only when the whole delivered token appears, exactly (same case, same characters), in the text."""
         data = text.encode('utf-8', 'replace')
-        return any(hashlib.sha256(data[i:i + self.full_length]).digest() == self.full_digest
+        return any(hmac.compare_digest(hashlib.sha256(data[i:i + self.full_length]).digest(), self.full_digest)
                    for i in range(max(len(data) - self.full_length + 1, 0)))
 
     def hit(self, text):
@@ -522,9 +523,10 @@ def _observe(output):
 def _withheld(code, output, before, rerun, exact):
     """The output contained the token or credential-shaped text: nothing of it is shown. Report only what was observed.
 
-    The output path is looked at before the child starts and again now; those two observations do not show who created or
-    removed anything, so no creation, removal or ownership is claimed and no deletion command is printed. This command removes
-    nothing. The access token is named only when the whole delivered token matched exactly.
+    The output path is looked at before the child starts and again now; those two observations do not show which process
+    created, changed or removed anything, so no creation, removal or ownership is claimed and no deletion command is printed.
+    The access token is named only when the whole delivered token matched exactly, in raw stdout, raw stderr or one decoded
+    string; never in a concatenation of fragments.
     """
     kind = _observe(output)
     after = kind != 'absent'
@@ -534,10 +536,9 @@ def _withheld(code, output, before, rerun, exact):
     return {'status': 'failed', 'error_code': 'collector_output_withheld', 'collector_started': True, 'child_exit': code,
             'token_match': 'full_token' if exact else 'fragment_or_shape',
             'output_present_before': before, 'output_present_after': after, 'output_kind_after': kind,
-            'product_removed_anything': False,
             'message': 'The output of the collecting command %s and was withheld, so nothing of it is shown. The output path '
-                       '%s before this run and %s after it%s. This command did not remove anything and does not know what the '
-                       'collecting command did at that path.' % (subject, 'was present' if before else 'was not present',
+                       '%s before this run and %s after it%s. This command cannot determine which process created, changed or removed '
+                       'that path.' % (subject, 'was present' if before else 'was not present',
                                                                  'is present' if after else 'is not present', detail),
             'next_step': 'If you need to know what is at the output path, look at it yourself (this command did not open it); '
                          'then run: ' + rerun + '.' + (' The collecting command printed the access token: stop and report it.'
@@ -559,7 +560,8 @@ def _collector_result(code, out, err, watch, output, withheld):
         return {'status': 'failed', 'error_code': 'collector_output_invalid', 'collector_started': True, 'child_exit': 0}
     # Decoded strings (JSON escapes undone), one by one and joined, so a token split over fields is still recognised.
     if watch.hit(''.join(found)) or any(watch.hit(item) for item in found):
-        return withheld(0, watch.full_match(''.join(found)) or any(watch.full_match(item) for item in found))
+        # Fragments only found in the concatenation never count as the whole token: only one decoded string can.
+        return withheld(0, any(watch.full_match(item) for item in found))
     for key, item in (value.items() if isinstance(value, dict) else ()):
         if key not in _PATH_FIELDS and isinstance(item, str) and _TOKEN_SHAPE.fullmatch(item):
             return withheld(0, False)  # shaped like a credential; not shown to be the delivered token
