@@ -24,8 +24,8 @@ def _token(**claims):
     return _part({'alg': 'none'}) + '.' + _part(claims) + '.' + 'sig' * 8
 
 
-def _token_answer(token):
-    return json.dumps({'accessToken': token, 'expires_on': int(time.time()) + 3600, 'expiresOn': '2099-01-01 00:00:00.000000',
+def _token_answer(token, lifetime=3600):
+    return json.dumps({'accessToken': token, 'expires_on': int(time.time()) + lifetime, 'expiresOn': '2099-01-01 00:00:00.000000',
                        'tenant': TENANT_A, 'tokenType': 'Bearer'})
 
 
@@ -38,6 +38,10 @@ def _gh(login):
 
 
 STATUS = ['signin', 'status', '--tenant', TENANT_A]
+COLLECT = ['signin', 'collect', '--tenant', TENANT_A, '--policy', POLICY, '--output', OUT]
+NIL = '00000000-0000-0000-0000-000000000000'
+_COLLECT_OK = _az(azure_account()) + [('az', 'account', 'get-access-token',
+                                       _token_answer(_token(upn='alex@example.test', tid=TENANT_A)))]
 # name: (answers, argv)
 CASES = {
     # Round 3: the paths that render hidden names inside a listing, and a GitHub login that is only an unbroken run.
@@ -65,4 +69,19 @@ CASES = {
     'collect_token_without_account_claim': (
         _az(azure_account()) + [('az', 'account', 'get-access-token', _token_answer(_token(tid=TENANT_A)))],
         ['signin', 'collect', '--tenant', TENANT_A, '--policy', POLICY, '--output', OUT]),
+    # PKG-SETUP-5D item 1: the rest of the collect JSON, captured from 051b09b before the readable form. A case named in CHILD
+    # runs the stand-in collecting child (plugin_tests/signin_collector.py) in that mode; one in PREEXISTING has its output
+    # folder made first; every collect case that reaches a child answers the token request with a usable token.
+    'collect_ok': (_COLLECT_OK, COLLECT), 'collect_withheld_full_token': (_COLLECT_OK, COLLECT),
+    'collect_withheld_shape': (_COLLECT_OK, COLLECT), 'collect_partial_expired': (_COLLECT_OK, COLLECT),
+    'collect_partial_denied': (_COLLECT_OK, COLLECT), 'collect_child_fails': (_COLLECT_OK, COLLECT),
+    'collect_expired_token': (_az(azure_account()) + [('az', 'account', 'get-access-token', _token_answer(
+        _token(upn='alex@example.test'), lifetime=-60))], COLLECT),
+    'collect_not_signed_in': (_az(), COLLECT),
+    'collect_wrong_tenant_listing': (_az(azure_account(tenant=TENANT_B)), COLLECT),
+    'collect_nil_policy': (_az(azure_account()), ['signin', 'collect', '--tenant', TENANT_A, '--policy', NIL, '--output', OUT]),
+    'collect_output_exists': (_az(azure_account()), COLLECT),
 }
+CHILD = {'collect_ok': 'ok', 'collect_withheld_full_token': 'echo', 'collect_withheld_shape': 'shapednote',
+         'collect_partial_expired': 'partial_expired', 'collect_partial_denied': 'partial_denied', 'collect_child_fails': 'fail'}
+PREEXISTING = frozenset({'collect_output_exists'})

@@ -1,0 +1,16 @@
+{
+ "exit": 3,
+ "output": {
+  "child_exit": 0,
+  "collector_started": true,
+  "error_code": "collector_output_withheld",
+  "message": "The output of the collecting command contained the access token itself and was withheld, so nothing of it is shown. The output path was not present before this run and is not present after it. This command cannot determine which process created, changed or removed that path.",
+  "next_step": "If you need to know what is at the output path, look at it yourself (this command did not open it); then run: intune-iac signin collect --tenant 11111111-1111-4111-8111-111111111111 --policy 22222222-2222-4222-8222-222222222222 --output NEW_DIR (a folder that does not exist yet). The collecting command printed the access token: stop and report it.",
+  "output_kind_after": "absent",
+  "output_present_after": false,
+  "output_present_before": false,
+  "status": "failed",
+  "token_match": "full_token"
+ },
+ "stdout": "{\"child_exit\": 0, \"collector_started\": true, \"error_code\": \"collector_output_withheld\", \"message\": \"The output of the collecting command contained the access token itself and was withheld, so nothing of it is shown. The output path was not present before this run and is not present after it. This command cannot determine which process created, changed or removed that path.\", \"next_step\": \"If you need to know what is at the output path, look at it yourself (this command did not open it); then run: intune-iac signin collect --tenant 11111111-1111-4111-8111-111111111111 --policy 22222222-2222-4222-8222-222222222222 --output NEW_DIR (a folder that does not exist yet). The collecting command printed the access token: stop and report it.\", \"output_kind_after\": \"absent\", \"output_present_after\": false, \"output_present_before\": false, \"status\": \"failed\", \"token_match\": \"full_token\"}\n"
+}

@@ -1,0 +1,12 @@
+{
+ "exit": 3,
+ "output": null,
+ "stderr": {
+  "error": {
+   "code": "capture_identity_invalid",
+   "message": "Capture requires nonzero tenant and policy UUIDs."
+  },
+  "status": "error"
+ },
+ "stdout": ""
+}

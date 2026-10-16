@@ -9,33 +9,64 @@ import io
 import json
 import os
 from pathlib import Path
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
 
 from intune_iac import cli, signin_facts
 from plugin_tests.signin_fakes import FakeClis
-from plugin_tests.signin_golden_cases import CASES, OUT
+from plugin_tests.signin_golden_cases import CASES, CHILD, OUT, PREEXISTING
 
 GOLDEN = Path(__file__).resolve().parent / 'fixtures' / 'signin_golden'
 CANONICAL_KEYS = {'provider', 'status', 'usable', 'tenant_wanted', 'signed_in', 'message', 'next_step'}
 
 
-def run_case(name):
+ROOT = Path(__file__).resolve().parents[1]
+COLLECTOR = str(ROOT / 'plugin_tests' / 'signin_collector.py')
+
+
+def run_case_full(name, json_flag=True):
+    """(exit code, stdout, stderr) of one case, the scratch output path written back as OUT so the text is the same every run.
+
+    A collect case that reaches a collecting child runs the stand-in child in the mode CHILD names. json_flag adds --json to the
+    status and collect commands (collect has the flag from PKG-SETUP-5D on; before it JSON was the only form).
+    """
     answers, argv = CASES[name]
     fakes = FakeClis()
     for tool, first, second, out in answers:
         fakes.answer(tool, first, second, out=out)
     with tempfile.TemporaryDirectory() as scratch:
-        args = [a.replace(OUT, str(Path(scratch) / 'out')) for a in argv]
-        if args[1] == 'status':
+        path = str(Path(scratch) / 'out')
+        if name in PREEXISTING:
+            Path(path).mkdir()
+        args = [a.replace(OUT, path) for a in argv]
+        if json_flag:
             args.append('--json')
+
+        def command(tenant, policy, output, descriptor):
+            return [sys.executable, '-I', COLLECTOR, str(ROOT), '--token-fd', str(descriptor), '--mode', CHILD[name]]
+
         out, err = io.StringIO(), io.StringIO()
         with patch.dict(os.environ, {'PATH': fakes.path_entry() + os.pathsep + os.environ['PATH']}), \
+                patch('intune_iac.signin.collector_command', command), \
                 contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-            code = cli.main(args)
+            try:
+                code = cli.main(args)
+            except SystemExit as stopped:  # the argument parser refused the command line (usage on stderr, exit 2)
+                code = stopped.code
     fakes.cleanup()
-    return code, out.getvalue()
+    return code, out.getvalue().replace(path, OUT), err.getvalue().replace(path, OUT)
+
+
+def run_case(name):
+    code, text, _ = run_case_full(name, json_flag=uses_json_flag(name))
+    return code, text
+
+
+def uses_json_flag(name):
+    """status keeps the flag it always had; collect gets it with the readable form (see the item 2 commit)."""
+    return CASES[name][1][1] == 'status'
 
 
 class GoldenTests(unittest.TestCase):
@@ -45,9 +76,13 @@ class GoldenTests(unittest.TestCase):
     def test_the_whole_json_document_equals_the_5404dd5_document_for_every_case(self):
         for name in CASES:
             golden = json.loads((GOLDEN / (name + '.json')).read_text())
-            code, text = run_case(name)
+            code, text, err = run_case_full(name, json_flag=uses_json_flag(name))
             self.assertEqual(code, golden['exit'], name)
-            self.assertEqual(json.loads(text), golden['output'], name)
+            self.assertEqual(json.loads(text) if text else None, golden['output'], name)
+            if 'stdout' in golden:  # the collect cases: the exact bytes the command printed, not only the parsed document
+                self.assertEqual(text, golden['stdout'], name)
+            # A refusal that raises prints its JSON error on stderr and nothing on stdout.
+            self.assertEqual(json.loads(err) if err else None, golden.get('stderr'), name)
 
     def test_no_additive_key_appears_anywhere_in_any_document(self):
         for name in CASES:

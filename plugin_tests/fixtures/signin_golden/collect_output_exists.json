@@ -1,0 +1,12 @@
+{
+ "exit": 4,
+ "output": null,
+ "stderr": {
+  "error": {
+   "code": "capture_output_conflict",
+   "message": "Capture requires a new directory with no symlinked ancestors; existing files are preserved. Name a folder that does not exist yet."
+  },
+  "status": "error"
+ },
+ "stdout": ""
+}

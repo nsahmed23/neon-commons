@@ -1,0 +1,24 @@
+{
+ "exit": 0,
+ "output": {
+  "child_exit": 0,
+  "collector_started": true,
+  "result": {
+   "attempt_count": 3,
+   "cancelled": false,
+   "coverage": [
+    {
+     "coverage": "complete",
+     "kind": "policies",
+     "reason": null
+    }
+   ],
+   "output": "{OUT}",
+   "page_count": 3,
+   "retry_count": 0,
+   "status": "captured"
+  },
+  "status": "collected"
+ },
+ "stdout": "{\"child_exit\": 0, \"collector_started\": true, \"result\": {\"attempt_count\": 3, \"cancelled\": false, \"coverage\": [{\"coverage\": \"complete\", \"kind\": \"policies\", \"reason\": null}], \"output\": \"{OUT}\", \"page_count\": 3, \"retry_count\": 0, \"status\": \"captured\"}, \"status\": \"collected\"}\n"
+}

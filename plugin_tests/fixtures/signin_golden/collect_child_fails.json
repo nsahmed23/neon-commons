@@ -1,0 +1,10 @@
+{
+ "exit": 3,
+ "output": {
+  "child_exit": 3,
+  "collector_started": true,
+  "error_code": "collector_failed",
+  "status": "failed"
+ },
+ "stdout": "{\"child_exit\": 3, \"collector_started\": true, \"error_code\": \"collector_failed\", \"status\": \"failed\"}\n"
+}

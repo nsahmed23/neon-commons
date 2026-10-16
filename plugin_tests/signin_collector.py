@@ -81,6 +81,15 @@ def main(argv):
         print(json.dumps(result(note=[token[:half], token[half:]])))  # halves in one ignored nested list
     elif mode == 'shapednote':
         print(json.dumps(result(note='abcdefghijklmnopqrst')))  # credential-shaped text that is NOT the delivered token
+    elif mode in ('partial_expired', 'partial_denied'):
+        # capture exits 2 with status partial; an expired token adds the credential problem (the product relays closed codes only)
+        expired = mode == 'partial_expired'
+        coverage = [{'kind': 'policies', 'coverage': 'complete', 'reason': None},
+                    {'kind': 'settings', 'coverage': 'partial' if expired else 'access_denied',
+                     'reason': 'token_expired' if expired else 'access_denied'}]
+        more = {'credential_problem': {'code': 'token_expired'}} if expired else {}
+        print(json.dumps(result(status='partial', coverage=coverage, **more)))
+        return 2
     elif mode == 'extra':
         print(json.dumps(result(note='a field the product does not show', nested={'deep': 'value'})))
     else:

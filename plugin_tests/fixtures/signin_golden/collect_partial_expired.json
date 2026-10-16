@@ -1,0 +1,31 @@
+{
+ "exit": 2,
+ "output": {
+  "child_exit": 2,
+  "collector_started": true,
+  "next_step": "The collector reported a partial result for the requested output path {OUT} (nothing is at that path now). This command did not establish who created or changed anything there, and did not open or remove it; a new run needs a new output path. The service said the token has expired; sign in again: az login --tenant 11111111-1111-4111-8111-111111111111; then To collect again, run: intune-iac signin collect --tenant 11111111-1111-4111-8111-111111111111 --policy 22222222-2222-4222-8222-222222222222 --output NEW_DIR (a folder that does not exist yet).",
+  "result": {
+   "attempt_count": 3,
+   "cancelled": false,
+   "coverage": [
+    {
+     "coverage": "complete",
+     "kind": "policies",
+     "reason": null
+    },
+    {
+     "coverage": "partial",
+     "kind": "settings",
+     "reason": "token_expired"
+    }
+   ],
+   "credential_problem": "token_expired",
+   "output": "{OUT}",
+   "page_count": 3,
+   "retry_count": 0,
+   "status": "partial"
+  },
+  "status": "partial"
+ },
+ "stdout": "{\"child_exit\": 2, \"collector_started\": true, \"next_step\": \"The collector reported a partial result for the requested output path {OUT} (nothing is at that path now). This command did not establish who created or changed anything there, and did not open or remove it; a new run needs a new output path. The service said the token has expired; sign in again: az login --tenant 11111111-1111-4111-8111-111111111111; then To collect again, run: intune-iac signin collect --tenant 11111111-1111-4111-8111-111111111111 --policy 22222222-2222-4222-8222-222222222222 --output NEW_DIR (a folder that does not exist yet).\", \"result\": {\"attempt_count\": 3, \"cancelled\": false, \"coverage\": [{\"coverage\": \"complete\", \"kind\": \"policies\", \"reason\": null}, {\"coverage\": \"partial\", \"kind\": \"settings\", \"reason\": \"token_expired\"}], \"credential_problem\": \"token_expired\", \"output\": \"{OUT}\", \"page_count\": 3, \"retry_count\": 0, \"status\": \"partial\"}, \"status\": \"partial\"}\n"
+}
