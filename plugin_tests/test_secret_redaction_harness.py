@@ -16,6 +16,9 @@ import json
 import os
 from pathlib import Path
 import secrets
+import shutil
+import socket
+import stat
 import subprocess
 import sys
 import tempfile
@@ -59,6 +62,21 @@ def forms(value):
             'hex': raw.hex().encode(), 'json_escaped': json.dumps(value).encode()[1:-1]}
 
 
+_WATCH = {'terminal': None}  # list while a command runs, else None
+
+
+def _audit(event, args):
+    if event == 'open' and _WATCH['terminal'] is not None:
+        path = args[0]
+        if isinstance(path, (str, bytes, os.PathLike)):
+            text = os.fsdecode(path)
+            if text.startswith(('/dev/tty', '/dev/pts/', '/dev/console')) or text.upper() in ('CON', 'CONOUT$', 'CONIN$'):
+                _WATCH['terminal'].append(text)
+
+
+sys.addaudithook(_audit)
+
+
 class Leaks:
     """Finds a canary in text, files, argv lists and environments, by every encoding of it."""
 
@@ -87,66 +105,129 @@ class RedactionHarness(unittest.TestCase):
         # Inputs that legitimately hold a canary (secret files, evidence files) live outside the scanned tree.
         self.inputs = self.root / 'inputs'
         self.inputs.mkdir()
+        self.tmpbox = self.root / 'tmpbox'
+        self.tmpbox.mkdir()
 
-    def listing(self, directory):
+    @staticmethod
+    def snapshot(directory, skip):
+        """Every file under directory (recursively, nested directories included) with its mtime and size."""
         found = {}
-        for p in Path(directory).iterdir():
-            try:
-                if p != self.root:
-                    found[p] = p.stat().st_mtime_ns
-            except OSError:
-                pass  # another process removed it between listing and stat
+        for base, dirs, files in os.walk(directory, onerror=lambda error: None):
+            dirs[:] = [d for d in dirs if skip is None or Path(base, d) != skip]
+            for name in files:
+                path = Path(base, name)
+                try:
+                    info = path.lstat()
+                    found[path] = (info.st_mtime_ns, info.st_size)
+                except OSError:
+                    pass  # another process removed it between listing and stat
         return found
 
-    def run_cli(self, argv, canaries, env=None, expect=0):
-        """Run cli.main in process with the work root as the working directory.
+    @staticmethod
+    def inheritable_leaks(leaks):
+        """Descriptors this process holds that a child would inherit and whose content holds a canary."""
+        hits = []
+        for name in os.listdir('/proc/self/fd'):
+            fd = int(name)
+            try:
+                if fd > 2 and os.get_inheritable(fd) and stat.S_ISREG(os.fstat(fd).st_mode):
+                    if leaks.in_bytes(os.pread(fd, 1 << 20, 0)):
+                        hits.append(fd)
+            except OSError:
+                pass  # closed since it was listed, or not readable
+        return hits
 
-        Returns (exit code, stdout, stderr, children). The call must exit with `expect`; the text of any uncaught
-        exception is scanned like stderr (and then re-raised); every child process's argv AND environment is recorded
-        and must hold no canary; the parent environment must be exactly baseline plus the declared route variables;
-        and no new file may appear in the system temporary directory outside this test's own directory.
+    def run_cli(self, argv, canaries, env=None, expect=0, outputs=(), bearer_ok=(), entry=None):
+        """Run cli.main (or entry) in process with the work root as the working directory.
+
+        Returns (exit code, stdout, stderr, children). The call must exit with `expect`. Channels observed, each shown
+        non-vacuous by a planted-leak test below: stdout, stderr, the text of an uncaught exception, every file under
+        the work root and under each declared output root (recursively), every new or changed file anywhere under the
+        system temporary directory (recursively), each child's argv, environment, pass_fds and close_fds, every
+        inheritable descriptor holding a canary (when a child starts and when the call ends), opens of a terminal
+        device, bytes sent on a socket (a canary may appear only as `Bearer <canary>` for canaries in bearer_ok), and
+        the parent environment, which must be exactly the baseline plus the declared route variables.
         """
         env = env or {}
+        leaks = Leaks(*canaries)
         baseline = dict(os.environ)
-        children = []
-        real = subprocess.Popen
+        children, terminal, wire, inherited = [], [], [], []
+        real_popen = subprocess.Popen
+        real_send, real_sendall = socket.socket.send, socket.socket.sendall
 
-        class Recording(real):
+        def watching_send(self_, data, *a):
+            wire.append(bytes(data))
+            return real_send(self_, data, *a)
+
+        def watching_sendall(self_, data, *a):
+            wire.append(bytes(data))
+            return real_sendall(self_, data, *a)
+
+        class Recording(real_popen):
             def __init__(self, args, *a, **k):
+                passed = list(k.get('pass_fds') or ())
                 children.append({'argv': [str(x) for x in args] if isinstance(args, (list, tuple)) else [str(args)],
-                                 'env': dict(k.get('env') or os.environ)})
+                                 'env': dict(k.get('env') or os.environ), 'pass_fds': passed,
+                                 'close_fds': k.get('close_fds', True)})
+                for fd in passed:
+                    try:
+                        if leaks.in_bytes(os.pread(fd, 1 << 20, 0)):
+                            inherited.append(fd)
+                    except OSError:
+                        pass
+                inherited.extend(RedactionHarness.inheritable_leaks(leaks))
                 super().__init__(args, *a, **k)
 
-        system_tmp = Path(tempfile.gettempdir())
-        before_tmp = self.listing(system_tmp)
+        # The system temporary directory for this call is a sandbox (TMPDIR and tempfile.tempdir point at it), so
+        # every file the command creates there, nested or not, is seen by a recursive snapshot.
+        system_tmp = self.tmpbox
+        before_tmp = self.snapshot(system_tmp, skip=None)
         out, err = io.StringIO(), io.StringIO()
         uncaught = None
         previous = os.getcwd()
         os.chdir(self.work)
         try:
-            with patch('subprocess.Popen', Recording), patch.dict(os.environ, env):
+            _WATCH['terminal'] = terminal
+            with patch('subprocess.Popen', Recording), patch.dict(os.environ, {**env, 'TMPDIR': str(system_tmp)}), \
+                    patch.object(tempfile, 'tempdir', str(system_tmp)), \
+                    patch.object(socket.socket, 'send', watching_send), patch.object(socket.socket, 'sendall', watching_sendall):
                 with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
                     try:
-                        code = cli.main(argv)
+                        code = (entry or cli.main)(argv)
                     except BaseException:
                         uncaught = traceback.format_exc()
                         code = None
                 after = dict(os.environ)
+                inherited.extend(self.inheritable_leaks(leaks))
         finally:
+            _WATCH['terminal'] = None
             os.chdir(previous)
-        self.assertEqual(after, {**baseline, **env}, 'the command changed the parent environment')
-        leaks = Leaks(*canaries)
+        # TMPDIR is the harness's own sandbox variable; every other variable must be the baseline plus the route's own.
+        self.assertEqual({k: v for k, v in after.items() if k != 'TMPDIR'},
+                         {k: v for k, v in {**baseline, **env}.items() if k != 'TMPDIR'},
+                         'the command changed the parent environment')
         if uncaught is not None:
             self.assertEqual(leaks.in_bytes(uncaught.encode()), [], 'canary in an uncaught exception')
             self.fail('uncaught exception: ' + uncaught.splitlines()[-1])
         self.assert_clean(canaries, out.getvalue(), err.getvalue(), children)
-        after_tmp = self.listing(system_tmp)
-        new_tmp = [p for p, stamp in after_tmp.items() if before_tmp.get(p) != stamp]
-        for path in new_tmp:
-            files = [path] if path.is_file() else [q for q in path.rglob('*') if q.is_file()]
-            for item in files:
-                self.assertEqual(leaks.in_bytes(item.read_bytes()), [], 'canary in a system temporary file')
-        self.assertEqual(code, expect, "unexpected exit code; stdout: " + out.getvalue()[:600])
+        for root in outputs:
+            self.assertEqual(leaks.in_tree(root), [], 'canary under a declared output root')
+        self.assertEqual(terminal, [], 'the command opened a terminal device')
+        self.assertEqual(inherited, [], 'a canary-bearing descriptor was passed to a child or left inheritable')
+        sent = b'\n'.join(wire)
+        for value in canaries:
+            if value in bearer_ok:
+                sent = sent.replace(b'Bearer ' + value.encode(), b'')
+        self.assertEqual(leaks.in_bytes(sent), [], 'canary written to a socket')
+        after_tmp = self.snapshot(system_tmp, skip=None)
+        for path, stamp in after_tmp.items():
+            if before_tmp.get(path) != stamp:
+                try:
+                    data = path.read_bytes()
+                except OSError:
+                    continue  # removed again by the command itself
+                self.assertEqual(leaks.in_bytes(data), [], 'canary in a system temporary file')
+        self.assertEqual(code, expect, 'unexpected exit code; stdout: ' + out.getvalue()[:600])
         return code, out.getvalue(), err.getvalue(), children
 
     def assert_clean(self, canaries, out, err, children, tree=None):
@@ -156,6 +237,112 @@ class RedactionHarness(unittest.TestCase):
         self.assertEqual(leaks.in_bytes(json.dumps(children, sort_keys=True).encode()), [],
                          'canary in a child process argv or environment')
         self.assertEqual(leaks.in_tree(tree or self.work), [], 'canary in a file the command wrote')
+
+    # planted leaks: each channel is shown to fire, so a clean result elsewhere means something ----------------
+
+    def planted(self, entry, pattern, **kwargs):
+        value = canary('planted')
+        with self.assertRaisesRegex(AssertionError, pattern):
+            self.run_cli([], (value,), entry=lambda argv: entry(value), **kwargs)
+
+    def test_planted_leaks_are_each_caught(self):
+        def to_stdout(v):
+            print(v)
+            return 0
+
+        def to_exception(v):
+            raise RuntimeError('failed with ' + v)
+
+        def to_file(v):
+            Path('leak.txt').write_text(v)
+            return 0
+
+        declared = self.root / 'declared'
+        declared.mkdir()
+
+        def to_declared_root(v):
+            (declared / 'deep').mkdir()
+            (declared / 'deep' / 'out.txt').write_text(v)
+            return 0
+
+        nested = self.tmpbox / 'pre-existing'
+        (nested / 'deep').mkdir(parents=True)
+
+        def to_nested_temp(v):
+            (nested / 'deep' / 'leak.txt').write_text(v)
+            return 0
+
+        def to_terminal(v):
+            try:
+                os.close(os.open('/dev/tty', os.O_WRONLY))
+            except OSError:
+                pass  # no controlling terminal here; the attempt is what is observed
+            return 0
+
+        def to_socket(v):
+            left, right = socket.socketpair()
+            with left, right:
+                left.sendall(('payload=' + v).encode())
+            return 0
+
+        def to_child_argument(v):
+            subprocess.run(['true', v])
+            return 0
+
+        def to_child_environment(v):
+            subprocess.run(['true'], env={'SECRET': v})
+            return 0
+
+        def to_passed_descriptor(v):
+            handle = tempfile.TemporaryFile()
+            handle.write(v.encode())
+            handle.flush()
+            subprocess.run(['true'], pass_fds=(handle.fileno(),))
+            handle.close()
+            return 0
+
+        def left_inheritable(v):
+            handle = tempfile.TemporaryFile()
+            handle.write(v.encode())
+            handle.flush()
+            os.set_inheritable(handle.fileno(), True)
+            self.addCleanup(handle.close)
+            return 0
+
+        def to_environment(v):
+            os.environ['PERSISTED'] = v
+            return 0
+
+        for name, entry, pattern, kwargs in (
+                ('stdout', to_stdout, 'canary on stdout', {}),
+                ('uncaught exception', to_exception, 'uncaught exception', {}),
+                ('work file', to_file, 'file the command wrote', {}),
+                ('declared output root', to_declared_root, 'declared output root', {'outputs': [declared]}),
+                ('nested temporary file', to_nested_temp, 'system temporary file', {}),
+                ('terminal device', to_terminal, 'terminal device', {}),
+                ('socket', to_socket, 'written to a socket', {}),
+                ('child argument', to_child_argument, 'child process argv', {}),
+                ('child environment', to_child_environment, 'child process argv or environment', {}),
+                ('passed descriptor', to_passed_descriptor, 'canary-bearing descriptor', {}),
+                ('left inheritable', left_inheritable, 'canary-bearing descriptor', {}),
+                ('parent environment', to_environment, 'parent environment', {})):
+            with self.subTest(channel=name):
+                os.environ.pop('PERSISTED', None)
+                self.planted(entry, pattern, **kwargs)
+                os.environ.pop('PERSISTED', None)
+
+    def test_an_authorization_header_is_the_only_allowed_wire_use_of_a_key(self):
+        key = canary('wire')
+
+        def header_and_body(argv):
+            left, right = socket.socketpair()
+            with left, right:
+                left.sendall(('Authorization: Bearer ' + key).encode())
+            return 0
+
+        self.run_cli([], (key,), entry=header_and_body, bearer_ok=(key,))
+        with self.assertRaisesRegex(AssertionError, 'written to a socket'):
+            self.run_cli([], (key,), entry=header_and_body)
 
     # start and doctor ------------------------------------------------------------------------------------
 
@@ -367,7 +554,8 @@ class RedactionHarness(unittest.TestCase):
         evidence = self.inputs / 'benign.json'
         write_json(evidence, [{'id': 'record-1', 'text': 'enabled'}])
         code, out, _, _ = self.run_cli(['judge', '--config', str(config), '--claim', 'The setting is enabled.',
-                                        '--evidence', str(evidence)], (key,), {'CLM_HARNESS_KEY': key})
+                                        '--evidence', str(evidence)], (key,), {'CLM_HARNESS_KEY': key},
+                                        bearer_ok=(key,))
         self.assertEqual(len(fake.requests), 1, 'exactly one request must reach the fake endpoint')
         request = fake.requests[0]
         self.assertEqual(request['authorization'], 'Bearer ' + key, 'the key must have been consumed where it belongs')
