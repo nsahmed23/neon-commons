@@ -256,10 +256,10 @@ RUNTIME = (f'Intune_IaC_Plugin_{builder.__version__}.zip', 'intune-iac')
 SOURCE = (f'Intune_IaC_Plugin_{builder.__version__}_Source.zip', 'intune-iac-source')
 
 
-class ArchiveCheckTests(GitCase):
-    """Round 6: the CI's archive check (research/enterprise-ci/check-archives.py) accepts the runtime and the source archive of one
-    clean build. Each archive's BUILD-IDENTITY.json describes that archive, so the two differ by design and are not compared; every
-    other member the two share must still have the same bytes, and every member still has to match its own archive's digest list."""
+class ArchivePairCase(GitCase):
+    """The runtime and the source archive of one clean build, made by the real builder from a real repository, and the repository's
+    CI archive check (research/enterprise-ci/check-archives.py) to run on them; helpers to change one archive and keep its digest
+    list and the build receipt in step, so that the check under test is the only thing left that can notice the change."""
 
     def setUp(self):
         super().setUp()
@@ -310,6 +310,35 @@ class ArchiveCheckTests(GitCase):
                        sha256=hashlib.sha256(path.read_bytes()).hexdigest())
             receipt_path.write_text(json.dumps(receipt))
 
+    def record(self, repo, archive):
+        """The identity record inside one archive, parsed."""
+        filename, prefix = archive
+        with zipfile.ZipFile(repo.output / filename) as opened:
+            return json.loads(opened.read(f'{prefix}/{IDENTITY}'))
+
+    def edit_record(self, repo, archive, changes, settle=True):
+        """Set fields of one archive's identity record ('companion.key' reaches into the companion; None removes the field), with the
+        archive's digest list and the receipt kept in step. The source record's companion names the runtime archive's own digest, so
+        after a change to the runtime archive that line is made true again (unless settle is false): only the edited field is wrong."""
+        record = self.record(repo, archive)
+        for path, value in changes.items():
+            holder, _, key = path.rpartition('.')
+            target = record[holder] if holder else record
+            if value is None:
+                target.pop(key, None)
+            else:
+                target[key] = value
+        self.rewrite(repo, archive, {IDENTITY: json.dumps(record, indent=2).encode() + b'\n'})
+        if settle and archive == RUNTIME:
+            digest = hashlib.sha256((repo.output / RUNTIME[0]).read_bytes()).hexdigest()
+            self.edit_record(repo, SOURCE, {'companion.archive_sha256': digest}, settle=False)
+
+
+class ArchiveCheckTests(ArchivePairCase):
+    """Round 6: the CI's archive check accepts the runtime and the source archive of one clean build. Each archive's
+    BUILD-IDENTITY.json describes that archive, so the two differ by design and are not required to match; every other member
+    the two share must still have the same bytes, and every member still has to match its own archive's digest list."""
+
     def test_the_runtime_and_source_archive_of_one_clean_build_pass_and_are_extracted(self):
         repo = self.build()
         self.assertNotEqual(repo.member(IDENTITY, 'runtime'), repo.member(IDENTITY, 'source'), 'the two identity records differ by design')
@@ -347,6 +376,103 @@ class ArchiveCheckTests(GitCase):
                 repo = self.build()
                 self.rewrite(repo, SOURCE, {member: b'changed without updating the digest list\n'}, consistent=False)
                 self.assertEqual(self.check(repo), 'Archive member digest mismatch.')
+
+
+SHARED_FIELDS = ('built_at', 'commit', 'dirty', 'product_version', 'schema_version', 'tree')
+
+
+class IdentityRecordTests(ArchivePairCase):
+    """Round 7: the CI archive check refuses a pair whose two identity records do not belong together, naming the field. Both
+    archives hold a record; the fields that name the build are equal in both; each record's companion names the other archive as it
+    is; each record describes its own archive (kind, file count, content digest). Each condition is tried alone, on a real pair
+    changed in that one place, after the untouched pair has been shown to pass."""
+
+    def refused(self, repo, expected):
+        self.assertEqual(self.check(repo), expected)
+        self.assertFalse((repo.parent / 'extracted').exists(), 'nothing is extracted from a pair that does not belong together')
+
+    def test_the_clean_pair_still_passes_and_says_that_its_records_were_checked(self):
+        repo = self.build()
+        report = self.checker.check_release(repo.output, repo.parent / 'extracted')
+        self.assertIs(report['success'], True)
+        self.assertIs(report.get('identity_records_verified'), True)
+
+    def test_a_pair_built_from_two_different_commits_is_refused_naming_the_commit(self):
+        repo = hard.GitFixture(self)
+        repo.build()
+        first = repo.output
+        repo.git('commit', '--allow-empty', '-q', '-m', 'second')
+        repo.output = repo.parent / 'second-out'
+        repo.build()
+        pair = repo.parent / 'pair'
+        pair.mkdir()
+        rows = []
+        for out, (filename, _) in ((first, RUNTIME), (repo.output, SOURCE)):
+            shutil.copy(out / filename, pair / filename)
+            receipt = json.loads((out / 'Intune_IaC_Plugin_Archive_Receipt.json').read_text())
+            rows += [item for item in receipt['archives'] if item['filename'] == filename]
+        (pair / 'Intune_IaC_Plugin_Archive_Receipt.json').write_text(json.dumps({'version': builder.__version__, 'archives': rows}))
+        repo.output = pair
+        self.assertNotEqual(self.record(repo, RUNTIME)['commit'], self.record(repo, SOURCE)['commit'], 'the pair is from two commits')
+        self.assertEqual(self.record(repo, RUNTIME)['tree'], self.record(repo, SOURCE)['tree'], 'and from the same tree')
+        self.refused(repo, f'The runtime and source {IDENTITY} records do not agree on commit.')
+
+    def test_each_shared_field_that_differs_or_is_missing_is_refused_naming_it(self):
+        other = {'built_at': '2000-01-01T00:00:00Z', 'commit': '1' * 40, 'dirty': True, 'product_version': '0.0.1',
+                 'schema_version': 'build-identity/0', 'tree': '2' * 40}
+        self.assertEqual(tuple(sorted(other)), SHARED_FIELDS)
+        for field in SHARED_FIELDS:
+            for how, value in (('differs', other[field]), ('is missing from the source record', None)):
+                with self.subTest(f'{field} {how}'):
+                    repo = self.build()
+                    self.assertIsNone(self.check(repo, 'untouched'), 'the untouched pair must pass, or this proves nothing')
+                    self.assertNotEqual(self.record(repo, SOURCE)[field], value)
+                    self.edit_record(repo, SOURCE, {field: value})
+                    self.refused(repo, f'The runtime and source {IDENTITY} records do not agree on {field}.')
+
+    def test_an_archive_without_its_identity_record_is_refused(self):
+        for kind, archive in (('runtime', RUNTIME), ('source', SOURCE)):
+            with self.subTest(kind):
+                repo = self.build()
+                self.rewrite(repo, archive, {IDENTITY: None})
+                self.refused(repo, f'The {kind} archive has no {IDENTITY}.')
+
+    def test_an_identity_record_that_is_not_a_json_object_is_refused(self):
+        for data, why in ((b'this is not json', 'is not valid JSON'), (b'["a", "list"]', 'is not a JSON object')):
+            with self.subTest(why):
+                repo = self.build()
+                self.rewrite(repo, SOURCE, {IDENTITY: data})
+                self.refused(repo, f'The source {IDENTITY} {why}.')
+
+    def test_a_companion_that_does_not_name_the_other_archive_as_it_is_is_refused(self):
+        wrong = '0' * 64
+        cases = {'the runtime record names another source content digest': (RUNTIME, 'companion.content_sha256', wrong, 'runtime', 'source'),
+                 'the source record names another runtime archive digest': (SOURCE, 'companion.archive_sha256', wrong, 'source', 'runtime'),
+                 'the runtime record names the wrong kind': (RUNTIME, 'companion.archive_kind', 'runtime', 'runtime', 'source'),
+                 'the source record names the wrong kind': (SOURCE, 'companion.archive_kind', 'source', 'source', 'runtime')}
+        for name, (archive, path, value, kind, other) in cases.items():
+            with self.subTest(name):
+                repo = self.build()
+                self.assertIsNone(self.check(repo, 'untouched'), 'the untouched pair must pass, or this proves nothing')
+                self.edit_record(repo, archive, {path: value})
+                self.refused(repo, f'The {kind} {IDENTITY} field {path} does not name the {other} archive.')
+        for kind, archive, other in (('runtime', RUNTIME, 'source'), ('source', SOURCE, 'runtime')):
+            with self.subTest(f'the {kind} record has no companion'):
+                repo = self.build()
+                self.edit_record(repo, archive, {'companion': None})
+                self.refused(repo, f'The {kind} {IDENTITY} has no companion naming the {other} archive.')
+
+    def test_a_record_that_does_not_describe_its_own_archive_is_refused(self):
+        for kind, archive, other in (('runtime', RUNTIME, 'source'), ('source', SOURCE, 'runtime')):
+            for label, field, change in (('archive_kind', 'archive_kind', lambda count: other),
+                                         ('file_count', 'file_count', lambda count: count + 1),
+                                         ('file_count as a float', 'file_count', float),
+                                         ('content_sha256', 'content_sha256', lambda count: '0' * 64)):
+                with self.subTest(f'{kind} {label}'):
+                    repo = self.build()
+                    self.assertIsNone(self.check(repo, 'untouched'), 'the untouched pair must pass, or this proves nothing')
+                    self.edit_record(repo, archive, {field: change(self.record(repo, archive)['file_count'])})
+                    self.refused(repo, f'The {kind} {IDENTITY} field {field} does not match the {kind} archive.')
 
 
 if __name__ == '__main__':
