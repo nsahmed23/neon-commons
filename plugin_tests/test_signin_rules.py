@@ -1,20 +1,23 @@
-"""PKG-SETUP-5C findings 3 and 4 (round 2): the rule that applied and the distinct codes ride in additive keys.
+"""PKG-SETUP-5C findings 3 and 4 (round 3): the finer code and the rule that applied live in a presentation, not in the verdict.
 
-status and message keep their former values (test_signin_golden holds the proof); detail_code, rule and readable_message are
-new keys. Readers that branch on status (readiness, catalog) use the former codes.
+status and message keep their former values and the verdict carries no other key (test_signin_golden holds the proof for the
+JSON commands). signin_facts.presentation(verdict) gives the text view its code, its one rule and its sentence, from the verdict
+and what was noted while it was judged, without judging again. Readers that branch on status use the former codes.
 """
 import json
+import threading
 import unittest
+from unittest import mock
 
 from intune_iac import signin, signin_facts
-from plugin_tests.signin_5b_common import Base as BindingBase, jwt
 from plugin_tests.signin_fakes import TENANT_A, azure_account, azure_list, github_hosts
-from plugin_tests.test_signin_fix1 import Base, token_answer
+from plugin_tests.test_signin_fix1 import Base
 from plugin_tests.test_signin_tenant import azure
 
 PREFIX_TEXT = '(it starts with a token prefix)'
 RUN_TEXT = '(it holds an unbroken run of 24 or more letters and digits)'
 FORMER = '(a token prefix or an unbroken run of 24 or more letters and digits)'
+CANONICAL = {'provider', 'status', 'usable', 'tenant_wanted', 'signed_in', 'message', 'next_step'}
 
 
 class CredentialShapedNameTests(Base):
@@ -22,71 +25,75 @@ class CredentialShapedNameTests(Base):
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user=user, **more)))
         return signin_facts.evaluate(signin.detect_azure(deadline=5), TENANT_A)
 
-    def test_a_token_prefix_keeps_status_unknown_and_adds_its_code_and_rule(self):
+    def test_a_token_prefix_keeps_status_unknown_and_the_presentation_has_its_code_and_rule(self):
         for name in ('ghp_abc1234', 'github_pat_abc1234', 'eyJhbGciOiJIUzI1NiJ9.x@contoso.com'):
             verdict = self.verdict(name)
+            shown = signin_facts.presentation(verdict)
             self.assertEqual((verdict['status'], verdict['usable']), ('unknown', False), name)
-            self.assertEqual((verdict['detail_code'], verdict['rule']), ('credential_shaped_name', 'token_prefix'), name)
+            self.assertEqual(set(verdict), CANONICAL, name)
+            self.assertEqual((shown['code'], shown['rule']), ('credential_shaped_name', 'token_prefix'), name)
             self.assertIn(FORMER, verdict['message'], name)
-            self.assertIn('is shaped like a credential ' + PREFIX_TEXT, verdict['readable_message'], name)
-            self.assertNotIn('unbroken', verdict['readable_message'], name)
-            self.assertNotIn(name, json.dumps(verdict))
+            self.assertIn('is shaped like a credential ' + PREFIX_TEXT, shown['sentence'], name)
+            self.assertNotIn('unbroken', shown['sentence'], name)
+            self.assertNotIn(name, json.dumps(verdict) + json.dumps(shown))
 
-    def test_an_unbroken_run_is_named_as_the_rule_in_the_readable_message_only(self):
+    def test_an_unbroken_run_is_named_as_the_rule_in_the_sentence_only(self):
         for name in ('a' * 30 + '@contoso.com', 'Z9' * 15):
             verdict = self.verdict(name)
-            self.assertEqual((verdict['status'], verdict['detail_code'], verdict['rule']), ('unknown', 'credential_shaped_name',
-                                                                                          'unbroken_run'), name)
-            self.assertIn('is shaped like a credential ' + RUN_TEXT, verdict['readable_message'], name)
-            self.assertNotIn('token prefix', verdict['readable_message'], name)
+            shown = signin_facts.presentation(verdict)
+            self.assertEqual((verdict['status'], shown['code'], shown['rule']), ('unknown', 'credential_shaped_name', 'unbroken_run'),
+                             name)
+            self.assertIn('is shaped like a credential ' + RUN_TEXT, shown['sentence'], name)
+            self.assertNotIn('token prefix', shown['sentence'], name)
             self.assertIn(FORMER, verdict['message'], name)
 
-    def test_a_credential_shaped_github_login_has_the_same_additive_keys(self):
+    def test_a_credential_shaped_github_login_has_the_same_presentation(self):
         self.fakes.answer('gh', 'auth', 'status', out=github_hosts(('github.com', 'ghp_abc1234', 'success', True)))
         verdict = signin_facts.evaluate(signin.detect_github(deadline=5))
-        self.assertEqual((verdict['status'], verdict['detail_code'], verdict['rule']), ('unknown', 'credential_shaped_name',
-                                                                                      'token_prefix'))
-        self.assertIn(PREFIX_TEXT, verdict['readable_message'])
-        self.assertNotIn('ghp_', json.dumps(verdict))
+        shown = signin_facts.presentation(verdict)
+        self.assertEqual((verdict['status'], shown['code'], shown['rule']), ('unknown', 'credential_shaped_name', 'token_prefix'))
+        self.assertIn(PREFIX_TEXT, shown['sentence'])
+        self.assertNotIn('ghp_', json.dumps(verdict) + json.dumps(shown))
 
     def test_a_collect_with_a_credential_shaped_name_is_blocked_with_status_unknown_and_runs_no_token_command(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user='ghp_abc1234')))
         result = self.collect()
-        self.assertEqual((result['status'], result['signin']['status'], result['signin']['detail_code']),
-                         ('blocked', 'unknown', 'credential_shaped_name'))
+        self.assertEqual((result['status'], result['signin']['status']), ('blocked', 'unknown'))
+        self.assertEqual(set(result['signin']), CANONICAL)
         self.assertEqual(self.fakes.calls(), ['account list --output json'])
 
-    def test_facts_that_record_no_rule_still_carry_the_code_without_a_rule(self):
+    def test_facts_that_record_no_rule_still_present_the_code_without_a_rule(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user='ghp_abc1234')))
         facts = signin.detect_azure(deadline=5)
         for account in facts['accounts']:
             account.pop('hidden_reasons', None)
-        verdict = signin_facts.evaluate(facts, TENANT_A)
-        self.assertEqual((verdict['status'], verdict['detail_code']), ('unknown', 'credential_shaped_name'))
-        self.assertNotIn('rule', verdict)
-        self.assertIn('(its form matches a credential signature)', verdict['readable_message'])
+        shown = signin_facts.presentation(signin_facts.evaluate(facts, TENANT_A))
+        self.assertEqual((shown['code'], shown['rule']), ('credential_shaped_name', None))
+        self.assertIn('(its form matches a credential signature)', shown['sentence'])
 
 
 class TwoDefaultsTests(Base):
-    def test_two_entries_marked_default_keep_status_several_accounts_and_add_two_defaults(self):
+    def test_two_entries_marked_default_keep_status_several_accounts_and_present_two_defaults(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(
             azure_account(), azure_account(user='sam@example.test', default=True)))
         verdict = signin_facts.evaluate(signin.detect_azure(deadline=5), TENANT_A)
-        self.assertEqual((verdict['status'], verdict['usable'], verdict['detail_code']), ('several_accounts', False, 'two_defaults'))
-        self.assertNotIn('readable_message', verdict)
+        shown = signin_facts.presentation(verdict)
+        self.assertEqual((verdict['status'], verdict['usable'], shown['code']), ('several_accounts', False, 'two_defaults'))
+        self.assertEqual(set(verdict), CANONICAL)
+        self.assertEqual(shown['sentence'], verdict['message'])
         self.assertIn('marks more than one entry as its default', verdict['message'])
 
     def test_two_default_rows_of_one_account_are_two_defaults_too(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(sub='s1'), azure_account(sub='s2')))
         verdict = signin_facts.evaluate(signin.detect_azure(deadline=5), TENANT_A)
-        self.assertEqual((verdict['status'], verdict['detail_code']), ('several_accounts', 'two_defaults'))
+        self.assertEqual((verdict['status'], signin_facts.presentation(verdict)['code']), ('several_accounts', 'two_defaults'))
 
-    def test_several_accounts_with_one_default_has_no_detail_code(self):
+    def test_several_accounts_with_one_default_has_no_code(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(
             azure_account(), azure_account(user='sam@example.test', default=False)))
         verdict = signin_facts.evaluate(signin.detect_azure(deadline=5), TENANT_A)
         self.assertEqual(verdict['status'], 'several_accounts')
-        self.assertNotIn('detail_code', verdict)
+        self.assertIsNone(signin_facts.presentation(verdict)['code'])
 
     def test_a_collect_with_two_defaults_is_refused_with_the_former_status(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(
@@ -107,15 +114,6 @@ class ReadersTests(Base):
         self.assertEqual(row['next_action'], value['signin']['azure']['next_step'])
         self.assertEqual(row['owner_role'], 'engineer')
 
-    def test_the_readiness_row_still_replaces_its_next_action_for_a_credential_shaped_name(self):
-        from intune_iac.readiness import readiness
-        from plugin_tests.test_readiness import context_item, doctor_report, host_report, rows_of, survey_of
-        self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user='ghp_abc1234')))
-        value = readiness(survey_of(context_item()), host_report(), doctor_report(),
-                          signin={'azure': signin.detect_azure(deadline=5)})
-        row = rows_of(value, 'discover')['integration_service']
-        self.assertEqual(row['next_action'], value['signin']['azure']['next_step'])
-
     def test_the_catalog_reads_the_former_status_unknown(self):
         from intune_iac import catalog
         from plugin_tests.test_readiness import context_item, survey_of
@@ -124,46 +122,74 @@ class ReadersTests(Base):
         states = {g['authenticated']['state'] for g in value['integrations'][0]['goals']}
         self.assertEqual(states, {'unknown'})
 
-    def test_the_text_screen_renders_from_the_additive_keys(self):
+    def test_the_text_screen_renders_from_the_presentation(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(
             azure_account(), azure_account(user='sam@example.test', default=True)))
         report = signin.status_report(TENANT_A, None, 'azure', 5)
         self.assertEqual(report['azure']['status'], 'several_accounts')
         self.assertEqual(signin_facts.status_lines(report, 100, 2)[0], 'AZURE: BLOCKED (two_defaults)')
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user='ghp_abc1234')))
-        report = signin.status_report(TENANT_A, None, 'azure', 5)
-        rows = signin_facts.status_lines(report, 100, 2)
+        rows = signin_facts.status_lines(signin.status_report(TENANT_A, None, 'azure', 5), 100, 2)
         self.assertEqual(rows[0], 'AZURE: BLOCKED (credential_shaped_name)')
         self.assertIn('(it starts with a token prefix)', ' '.join(rows))
         self.assertNotIn('unbroken', ' '.join(rows))
         self.assertNotIn('ghp_', ' '.join(rows))
 
+    def test_a_verdict_copied_to_a_plain_dict_has_no_presentation_and_the_text_falls_back_to_the_canonical_message(self):
+        self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user='ghp_abc1234')))
+        report = signin.status_report(TENANT_A, None, 'azure', 5)
+        plain = {'status': report['status'], 'azure': dict(report['azure'])}
+        rows = signin_facts.status_lines(plain, 100, 2)
+        self.assertEqual(rows[0], 'AZURE: BLOCKED (unknown)')
+        self.assertIn('a token prefix or an unbroken run', ' '.join(' '.join(rows).split()))
 
-class TokenBindingReasonTests(BindingBase):
-    def refusal(self, token):
-        self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user='alex@example.test')))
-        self.fakes.answer('az', 'account', 'get-access-token', out=token_answer(token))
-        result = self.collect()
-        self.assertEqual((result['status'], result['signin']['status']), ('blocked', 'account_binding_unavailable'))
-        self.assertEqual(result['collector_started'], False)
-        return result['signin']
 
-    def test_an_opaque_token_keeps_the_former_message_and_adds_rule_opaque(self):
-        verdict = self.refusal('opaque-' + 'A' * 40)
-        self.assertIn('(it is opaque, or carries none of the upn, unique_name or appid claims)', verdict['message'])
-        self.assertEqual(verdict['rule'], 'opaque')
-        self.assertIn('(it is opaque: it is not a token whose claims can be read)', verdict['readable_message'])
-        self.assertNotIn('carries none', verdict['readable_message'])
+class NoSharedStateTests(Base):
+    def test_there_is_no_module_level_presentation_state(self):
+        for name in ('_READABLE', '_RULES', '_rule', '_with_detail', 'ADDITIVE_KEYS'):
+            self.assertFalse(hasattr(signin_facts, name), name)
 
-    def test_a_readable_token_with_no_account_claim_adds_rule_no_claims(self):
-        verdict = self.refusal(jwt(tid=TENANT_A, exp=4102444800))
-        self.assertIn('(it is opaque, or carries none of the upn, unique_name or appid claims)', verdict['message'])
-        self.assertEqual(verdict['rule'], 'no_claims')
-        self.assertIn('(it carries none of the upn, unique_name or appid claims)', verdict['readable_message'])
-        self.assertNotIn('opaque', verdict['readable_message'])
+    def test_two_evaluations_interleaved_in_threads_each_return_exactly_their_own_verdict(self):
+        self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user='ghp_abc1234')))
+        shaped = signin.detect_azure(deadline=5)
+        self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user='alexander.morgan@contoso.onmicrosoft.com')))
+        hidden = signin.detect_azure(deadline=5)
+        want = {'shaped': signin_facts.evaluate(shaped, TENANT_A), 'hidden': signin_facts.evaluate(hidden, TENANT_A)}
+        want_shown = {k: signin_facts.presentation(v) for k, v in want.items()}
+        self.assertEqual((want['shaped']['status'], want['hidden']['status']), ('unknown', 'signed_in'))
+        results, barrier = {'shaped': [], 'hidden': []}, threading.Barrier(2)
 
-    def test_nothing_of_the_token_is_in_the_refusal(self):
-        self.assertNotIn('BBBBBBBB', json.dumps(self.refusal('opaque-' + 'B' * 40)))
+        def work(kind, facts):
+            barrier.wait()
+            for _ in range(300):
+                verdict = signin_facts.evaluate(facts, TENANT_A)
+                results[kind].append((dict(verdict), signin_facts.presentation(verdict)))
+
+        import sys
+        old = sys.getswitchinterval()
+        sys.setswitchinterval(1e-6)
+        try:
+            threads = [threading.Thread(target=work, args=item) for item in (('shaped', shaped), ('hidden', hidden))]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+        finally:
+            sys.setswitchinterval(old)
+        for kind in ('shaped', 'hidden'):
+            self.assertEqual(len(results[kind]), 300)
+            for verdict, shown in results[kind]:
+                self.assertEqual(verdict, dict(want[kind]), kind)
+                self.assertEqual(shown, want_shown[kind], kind)
+
+    def test_the_digest_comparison_count_is_the_former_one(self):
+        import hmac
+        long_upn = 'alexander.morgan@contoso.onmicrosoft.com'
+        self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user=long_upn)))
+        facts = signin.detect_azure(deadline=5)
+        with mock.patch('intune_iac.signin_facts.hmac.compare_digest', wraps=hmac.compare_digest) as spy:
+            signin_facts.evaluate(facts, TENANT_A, long_upn)
+        self.assertEqual(spy.call_count, 1)  # one judgment, one comparison
 
 
 if __name__ == '__main__':

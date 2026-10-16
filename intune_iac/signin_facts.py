@@ -15,8 +15,9 @@ States: signed_in, not_signed_in, subscription_expired (az lists every subscript
 sign-in expiry, which only a token request shows), unknown, and invalid (gh reported error for a login it checked, which is
 any error after same-host ambiguity is resolved). Verdict statuses add expired (found at token time), wrong_tenant,
 several_accounts, account_mismatch and account_binding_unavailable. The reason is a short code, set when the state is unknown
-or invalid. These status values and the messages are a compatibility contract of `signin status --json`: finer distinctions
-(detail_code two_defaults or credential_shaped_name, the matched rule, a readable message) are additive keys only.
+or invalid. These status values, the messages and the keys are a compatibility contract of `signin status --json` and
+`signin collect`: the finer distinctions (two_defaults, credential_shaped_name, the matched rule, a readable sentence) are in
+presentation(), for the text view only, and never in the verdict.
 """
 from __future__ import annotations
 
@@ -112,30 +113,24 @@ REASON_TEXT = {
 UNKNOWN_REASON_TEXT = 'it cannot be shown safely'
 
 
-# The canonical report (what --json returns) keeps its former keys and values exactly: status, messages and next steps are as they were
-# before the readable text form. The new distinctions travel only in additive keys, detail_code, rule and readable_message, which
-# the text view renders. evaluate() judges twice for that: once in the former form, once in the readable form (_READABLE is
-# on), and attaches what differs. Single-threaded by design, like the rest of this pure module.
-ADDITIVE_KEYS = ('detail_code', 'rule', 'readable_message')
+# The verdict is canonical: its keys and values are exactly what `signin status --json` and `signin collect` printed before the
+# readable text form, and it never gains a key. While it is judged, the facts the text view needs (which hidden names were
+# printed, whether two defaults or a credential signature decided it) are noted on the Verdict object, in a dictionary local to
+# that one evaluation. They are not keys, so no serialization carries them; presentation() reads them for the text view only.
 HIDDEN_NAME = 'an account whose name is not shown here (it is longer than this display allows, or shaped like a credential)'
-FORMER_SIGNATURE = '(a token prefix or an unbroken run of 24 or more letters and digits)'
-_READABLE = False
-_RULES = []  # the rule codes the readable pass named, in order
+FORMER_SIGNATURE = 'a token prefix or an unbroken run of 24 or more letters and digits'
 
 
-def _rule(code):
-    if code not in _RULES:
-        _RULES.append(code)
+class Verdict(dict):
+    """The canonical verdict dictionary, plus private notes for the text view (an attribute, never a key)."""
+    notes = None
 
 
-def hidden_name_text(entry):
-    """The words for an account whose name is not shown: the former text, or (readable pass) the reason that matched."""
-    if not _READABLE:
-        return HIDDEN_NAME
-    reasons = [r for r in (entry.get('hidden_reasons') or ()) if isinstance(r, str) and r in REASON_TEXT]
-    for reason in reasons:
-        _rule(reason)
-    return 'an account whose name is not shown here (%s)' % (' and '.join(REASON_TEXT[r] for r in reasons) or UNKNOWN_REASON_TEXT)
+def hidden_name_text(entry, notes=None):
+    """The words for an account whose name is not shown (the canonical wording); the reasons that matched are noted for the text."""
+    if notes is not None:
+        notes.setdefault('hidden', []).append(_closed_reasons(entry.get('hidden_reasons')))
+    return HIDDEN_NAME
 
 
 def credential_signature(raw):
@@ -150,12 +145,8 @@ def credential_signature(raw):
 SIGNATURE_FALLBACK = 'its form matches a credential signature'
 
 
-def signature_phrase(entry):
-    """The rule(s) that made this name a credential signature, in words; a fallback when the facts recorded none."""
-    codes = [r for r in (entry.get('hidden_reasons') or ()) if r in ('token_prefix', 'unbroken_run')]
-    for code in codes:
-        _rule(code)
-    return ' and '.join(REASON_TEXT[c] for c in codes) or SIGNATURE_FALLBACK
+def _signature_codes(entry):
+    return [r for r in (entry.get('hidden_reasons') or ()) if r in ('token_prefix', 'unbroken_run')]
 
 
 def hidden_reasons(raw):
@@ -403,12 +394,13 @@ def _identity(entry):
 def _verdict(provider, status, message, next_step, tenant, usable=False, signed_in=()):
     # Only display fields leave: the private digest, signature flag and reference stay inside this module.
     shown_keys = ('tenant', 'account', 'cloud', 'default', 'listing_state', 'host', 'active')
-    return {'provider': provider, 'status': status, 'usable': usable, 'tenant_wanted': tenant,
-            'signed_in': [{k: e[k] for k in shown_keys if k in e} for e in signed_in], 'message': message, 'next_step': next_step}
+    return Verdict({'provider': provider, 'status': status, 'usable': usable, 'tenant_wanted': tenant,
+                    'signed_in': [{k: e[k] for k in shown_keys if k in e} for e in signed_in], 'message': message,
+                    'next_step': next_step})
 
 
-def _who(entry):
-    name = entry['account'] if entry['account'] != NOT_SHOWN else hidden_name_text(entry)
+def _who(entry, notes=None):
+    name = entry['account'] if entry['account'] != NOT_SHOWN else hidden_name_text(entry, notes)
     return 'tenant %s as %s (%s)' % (entry['tenant'], name, entry['cloud'])
 
 
@@ -420,41 +412,24 @@ def evaluate(facts, tenant=None, account=None):
     use, and (when the engineer named one) is that account. The next step is the exact thing the engineer does, with every
     placeholder marked; the product runs none of it.
 
-    The result keeps the former form (see ADDITIVE_KEYS). Where the readable judgement differs, the result also carries
-    detail_code (the finer status: two_defaults, credential_shaped_name), readable_message (the message that names the matched
-    rule) and rule (the one rule that was named, when exactly one was).
+    The verdict is canonical (see Verdict); presentation() gives the text view the finer code, the one matched rule and a readable
+    sentence from it, without judging again.
     """
-    verdict = _evaluate(facts, tenant, account)
-    return _with_detail(verdict, lambda: _evaluate(facts, tenant, account))
+    notes = {}
+    verdict = _evaluate(facts, tenant, account, notes)
+    verdict.notes = notes
+    return verdict
 
 
-def _with_detail(verdict, again):
-    """The former verdict plus the additive keys: judge again in the readable form and attach only what differs."""
-    global _READABLE
-    del _RULES[:]
-    _READABLE = True
-    try:
-        readable = again()
-    finally:
-        _READABLE = False
-    result = dict(verdict)
-    if readable['status'] != verdict['status']:
-        result['detail_code'] = readable['status']
-    if readable['message'] != verdict['message']:
-        result['readable_message'] = readable['message']
-        if len(_RULES) == 1:
-            result['rule'] = _RULES[0]
-    return result
-
-
-def _evaluate(facts, tenant, account):
+def _evaluate(facts, tenant, account, notes):
     provider = facts.get('provider') if isinstance(facts, dict) else None
     tenant = shown(tenant, GUID)
     tenant = tenant.lower() if tenant else None
     if provider == 'github':
-        return _evaluate_github(facts)
+        return _evaluate_github(facts, notes)
     wanted = tenant or TENANT_PLACEHOLDER
     login = 'az login --tenant %s' % wanted
+    who = lambda entry: _who(entry, notes)
     if account is not None and not account_argument_ok(account):
         # Never echoed: the account argument is only compared, never repeated in a message.
         return _verdict('azure', 'unknown', 'The account to use is not a plain account name.',
@@ -474,7 +449,7 @@ def _evaluate(facts, tenant, account):
                         'command again.' % login, tenant)
     in_tenant = [a for a in expired if a['tenant'] == tenant]
     if not active or (tenant and not any(a['tenant'] == tenant for a in active) and in_tenant):
-        listing = '; '.join(_who(a) for a in (expired if not active else in_tenant))
+        listing = '; '.join(who(a) for a in (expired if not active else in_tenant))
         return _verdict('azure', 'subscription_expired',
                         'The Azure CLI lists the subscription as Expired for %s. That is the state of the subscription; it does '
                         'not show whether the sign-in itself has expired (a token request shows that). Nothing that needs a token '
@@ -488,8 +463,9 @@ def _evaluate(facts, tenant, account):
     if len(defaults) > 1 or source_rows > 1:
         # Contradictory: more than one row is marked as the one the CLI uses (counted before identical rows are merged).
         # Never resolved by --account or by order.
-        listing = '; '.join(_who(a) for a in defaults)
-        return _verdict('azure', 'two_defaults' if _READABLE else 'several_accounts',
+        listing = '; '.join(who(a) for a in defaults)
+        notes['two_defaults'] = True
+        return _verdict('azure', 'several_accounts',
                         'The Azure CLI marks more than one entry as its default: %s. The product does not pick one.' % listing,
                         'Make exactly one the default with: %s, or sign out the others with: %s; then run this command '
                         'again.' % (SUBSCRIPTION_STEP, LOGOUT_STEP), tenant, signed_in=active)
@@ -499,21 +475,21 @@ def _evaluate(facts, tenant, account):
                         'Choose one with: %s; then run this command again.' % SUBSCRIPTION_STEP, tenant, signed_in=active)
     if tenant and default['tenant'] != tenant:
         others = [a for a in active if a is not default]
-        extra = (' Other sign-ins listed: %s.' % '; '.join(_who(a) for a in others)) if others else ''
+        extra = (' Other sign-ins listed: %s.' % '; '.join(who(a) for a in others)) if others else ''
         return _verdict('azure', 'wrong_tenant',
-                        'Signed in to %s; the context names tenant %s. Nothing proceeds.%s' % (_who(default), tenant, extra),
+                        'Signed in to %s; the context names tenant %s. Nothing proceeds.%s' % (who(default), tenant, extra),
                         'Sign in to the tenant the context names: %s; then run this command again.' % login, tenant, signed_in=active)
     if _signature(default):
         # The usability rule: only an unbroken credential signature blocks (a merely hidden name does not).
-        return _verdict('azure', 'credential_shaped_name' if _READABLE else 'unknown',
+        notes['signature'] = _signature_codes(default)
+        return _verdict('azure', 'unknown',
                         'The account name the Azure CLI uses is shaped like a credential (%s), so it is not used and not shown. '
-                        'Signed in to tenant %s (%s).'
-                        % (signature_phrase(default) if _READABLE else FORMER_SIGNATURE[1:-1], default['tenant'], default['cloud']),
+                        'Signed in to tenant %s (%s).' % (FORMER_SIGNATURE, default['tenant'], default['cloud']),
                         'Run az account list --output json yourself to see the sign-in, or sign in with an ordinary account: '
                         '%s; then run this command again.' % login, tenant, signed_in=active)
     if default['cloud'] == NOT_SHOWN:
         return _verdict('azure', 'unknown', 'The cloud the Azure CLI uses is not a known Azure cloud name, so it is not used. '
-                        'Signed in to tenant %s as %s.' % (default['tenant'], hidden_name_text(default)
+                        'Signed in to tenant %s as %s.' % (default['tenant'], hidden_name_text(default, notes)
                                                            if default['account'] == NOT_SHOWN else default['account']),
                         'Run az account list --output json yourself to see the sign-in.', tenant, signed_in=active)
     if default['cloud'] != PUBLIC_CLOUD:
@@ -521,13 +497,13 @@ def _evaluate(facts, tenant, account):
         # sovereign-cloud sign-in is refused by cloud rather than judged usable.
         return _verdict('azure', 'unknown', 'The Azure CLI is signed in to %s in the %s cloud; this build collects only from the '
                         'public Azure cloud (%s), so that sign-in is not used.' % (
-                            'tenant %s as %s' % (default['tenant'], hidden_name_text(default)
+                            'tenant %s as %s' % (default['tenant'], hidden_name_text(default, notes)
                                                  if default['account'] == NOT_SHOWN else default['account']),
                             default['cloud'], PUBLIC_CLOUD),
                         'Switch the Azure CLI to the public cloud with: az cloud set --name %s; then sign in to the tenant the '
                         'context names: %s; then run this command again.' % (PUBLIC_CLOUD, login), tenant, signed_in=active)
     if len(names) > 1 and not (account is not None and _matches(default, account)):
-        listing = '; '.join('%s%s' % (_who(a), ' (the CLI uses this one)' if a is default else '') for a in active)
+        listing = '; '.join('%s%s' % (who(a), ' (the CLI uses this one)' if a is default else '') for a in active)
         tail = '' if account is None else ' The account you named is not the one the CLI uses by default.'
         return _verdict('azure', 'several_accounts',
                         'Several accounts are signed in: %s. The product does not pick one.%s' % (listing, tail),
@@ -540,7 +516,7 @@ def _evaluate(facts, tenant, account):
                         'To see the account the Azure CLI uses by default, run %s yourself. Then sign in with the account you '
                         'named: az login --tenant %s; or run this command again without --account.' % (DEFAULT_ACCOUNT_STEP, wanted),
                         tenant, signed_in=active)
-    message = 'Signed in to %s; session freshness is checked when a token is requested.' % _who(default)
+    message = 'Signed in to %s; session freshness is checked when a token is requested.' % who(default)
     next_step = ('No sign-in step is needed.' if tenant else
                  'To compare this sign-in with the context tenant, run: intune-iac signin status --tenant %s.' % TENANT_PLACEHOLDER)
     if account is not None:
@@ -551,14 +527,9 @@ def _evaluate(facts, tenant, account):
     return _verdict('azure', 'signed_in', message, next_step, tenant, usable=bool(tenant), signed_in=[default])
 
 
-BINDING_REASON_TEXT = {'opaque': 'it is opaque: it is not a token whose claims can be read',
-                       'no_claims': 'it carries none of the upn, unique_name or appid claims'}
-
-
 def refused(status, tenant, answered=None):
     """A block found at token time rather than in the listing: expired, not_signed_in or wrong_tenant (answered = the tenant).
-
-    For account_binding_unavailable, answered is the reason the token names no account: opaque or no_claims (BINDING_REASON_TEXT)."""
+"""
     tenant = shown(tenant, GUID)
     wanted = tenant.lower() if tenant else TENANT_PLACEHOLDER
     login = 'az login --tenant %s' % wanted
@@ -568,18 +539,12 @@ def refused(status, tenant, answered=None):
                         'proceeds.' % (other.lower(), wanted), 'Sign in to the tenant the context names: %s; then run this '
                         'command again.' % login, tenant)
     if status == 'account_binding_unavailable':
-        # The message is the former one (a compatibility contract); the reason that applies is in the additive keys.
-        verdict = _verdict('azure', 'account_binding_unavailable',
-                           'The token does not say which account it was issued for (it is opaque, or carries none of the upn, '
-                           'unique_name or appid claims), so it cannot be tied to the account that was judged. Nothing proceeds.',
-                           'Sign in again so that the Azure CLI issues a token that names its account: az login --tenant %s; then '
-                           'run this command again. If it happens again, report it: a token that names no account cannot be used '
-                           'here.' % wanted, tenant)
-        if answered in BINDING_REASON_TEXT:
-            verdict['rule'] = answered
-            verdict['readable_message'] = verdict['message'].replace(
-                'it is opaque, or carries none of the upn, unique_name or appid claims', BINDING_REASON_TEXT[answered])
-        return verdict
+        return _verdict('azure', 'account_binding_unavailable',
+                        'The token does not say which account it was issued for (it is opaque, or carries none of the upn, '
+                        'unique_name or appid claims), so it cannot be tied to the account that was judged. Nothing proceeds.',
+                        'Sign in again so that the Azure CLI issues a token that names its account: az login --tenant %s; then run '
+                        'this command again. If it happens again, report it: a token that names no account cannot be used here.'
+                        % wanted, tenant)
     if status == 'account_mismatch':
         return _verdict('azure', 'account_mismatch', 'The token was issued for a different account than the one the Azure CLI '
                         'listed as its default (an unverified claim in the token names another account; such claims may only '
@@ -617,7 +582,7 @@ def claim_binding(facts, claims):
     return entry.get('digest_folded') is not None and hmac.compare_digest(entry['digest_folded'], name_digest(claim.lower()))
 
 
-def _evaluate_github(facts):
+def _evaluate_github(facts, notes):
     accounts = _clean_accounts(facts, 'github')
     state = facts.get('state') if isinstance(facts, dict) else None
     login = 'gh auth login'
@@ -655,13 +620,13 @@ def _evaluate_github(facts):
                         'not finish checking %s.' % listing, 'Run gh auth status yourself to see it.', None)
     shaped = next((a for a in active if _signature(a)), None)
     if shaped is not None:
-        return _verdict('github', 'credential_shaped_name' if _READABLE else 'unknown',
-                        'A GitHub login name is shaped like a credential (%s), so it is not used and not shown.'
-                        % (signature_phrase(shaped) if _READABLE else FORMER_SIGNATURE[1:-1]),
+        notes['signature'] = _signature_codes(shaped)
+        return _verdict('github', 'unknown',
+                        'A GitHub login name is shaped like a credential (%s), so it is not used and not shown.' % FORMER_SIGNATURE,
                         'Run gh auth status yourself to see it.', None, signed_in=active)
     hidden = any(a['account'] == NOT_SHOWN for a in active)
     return _verdict('github', 'signed_in', 'Signed in to %s.' % '; '.join(
-        '%s as %s' % (a['host'], hidden_name_text(a) if a['account'] == NOT_SHOWN else a['account']) for a in active),
+        '%s as %s' % (a['host'], hidden_name_text(a, notes) if a['account'] == NOT_SHOWN else a['account']) for a in active),
         'To see the login name, run gh auth status yourself.' if hidden else 'No sign-in step is needed.', None, usable=False,
         signed_in=active)
 
@@ -686,6 +651,36 @@ def _wrap(text, width, first='', rest=''):
     return wrapper.wrap(_printable(text)) or [first.rstrip()]
 
 
+def _hidden_phrase(reasons):
+    return 'an account whose name is not shown here (%s)' % (' and '.join(REASON_TEXT[r] for r in reasons) or UNKNOWN_REASON_TEXT)
+
+
+def presentation(verdict):
+    """What the text view says beyond the canonical verdict: {'code', 'rule', 'sentence'}.
+
+    code is the finer status (two_defaults, credential_shaped_name) or None; rule is the one matched hiding rule, or None when
+    there is none or the sentence names several accounts' rules; sentence is the message with each hidden name's reason in place of
+    the generic wording. Built from the verdict and the notes made while it was judged, never by judging again. A verdict with no
+    notes (a plain dictionary) presents as itself.
+    """
+    message = verdict.get('message') or ''
+    notes = getattr(verdict, 'notes', None) or {}
+    code, rules = None, []
+    if notes.get('two_defaults'):
+        code = 'two_defaults'
+    hidden = notes.get('hidden') or []
+    parts = message.split(HIDDEN_NAME)
+    if hidden and len(parts) - 1 == len(hidden):
+        message = parts[0] + ''.join(_hidden_phrase(reasons) + part for reasons, part in zip(hidden, parts[1:]))
+        rules += [reasons[0] for reasons in hidden if reasons]
+    if 'signature' in notes and FORMER_SIGNATURE in message:
+        codes = notes['signature']
+        code = 'credential_shaped_name'
+        message = message.replace(FORMER_SIGNATURE, ' and '.join(REASON_TEXT[c] for c in codes) or SIGNATURE_FALLBACK, 1)
+        rules += codes[:1]
+    return {'code': code, 'rule': rules[0] if rules and len(set(rules)) == 1 else None, 'sentence': message}
+
+
 def _verdict_line(label, verdict):
     status = verdict.get('status')
     if verdict.get('usable') or (verdict.get('provider') == 'github' and status == 'signed_in'):
@@ -694,7 +689,7 @@ def _verdict_line(label, verdict):
         return '%s: REPORTED (no tenant was given to compare)' % label
     reason = _REASON.search(verdict.get('message') or '')
     # The finer code (two_defaults, credential_shaped_name) rides in an additive key; the status stays the former one.
-    code = verdict.get('detail_code') or ('%s: %s' % (status, reason.group(1)) if status == 'unknown' and reason else status)
+    code = presentation(verdict)['code'] or ('%s: %s' % (status, reason.group(1)) if status == 'unknown' and reason else status)
     return '%s: BLOCKED (%s)' % (label, _printable(code))
 
 
@@ -728,7 +723,7 @@ def status_lines(report, width, code):
         for row in [_account_row(verdict, entry) for entry in entries] or ['none usable (the cause below names any listed one)']:
             lines += _wrap('Account: %s' % row, width)
         lines.append('Why:')
-        lines += _wrap(verdict.get('readable_message') or verdict.get('message') or '', width, '    ', '    ')
+        lines += _wrap(presentation(verdict)['sentence'], width, '    ', '    ')
         if verdict.get('next_step'):
             lines.append('Next step:')
             lines += _wrap(verdict['next_step'], width, '    ', '    ')

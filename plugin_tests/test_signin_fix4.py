@@ -153,9 +153,7 @@ class SurrogateTests(Base):
         with mock.patch('intune_iac.signin_facts.hmac.compare_digest', wraps=hmac.compare_digest) as spy:
             self.assertTrue(signin_facts.evaluate(facts, TENANT_A, LONG_UPN)['usable'])
             self.assertFalse(signin_facts.evaluate(facts, TENANT_A, OTHER_UPN)['usable'])
-        # Two evaluations, each judged twice (the former form and the readable form, PKG-SETUP-5C round 2): every comparison is
-        # still the constant-time one, and no other comparison is made.
-        self.assertEqual(spy.call_count, 4)
+        self.assertEqual(spy.call_count, 2)
 
 
 class ArgumentTests(Base):

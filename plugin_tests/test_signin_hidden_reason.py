@@ -1,8 +1,7 @@
-"""PKG-SETUP-5C finding 2 (round 2): a hidden name records exactly one reason, and only the readable text says it.
+"""PKG-SETUP-5C finding 2 (round 3): a hidden name has one reason, said only in the text presentation.
 
-The JSON `message` keeps the former wording (a compatibility contract, see test_signin_golden); the one reason that matched is
-in the additive keys `rule` and `readable_message`. The reason is the first match in one fixed order, and it names a rule, never
-any part of the name.
+The verdict (what --json prints) keeps the former wording, two-way text included; the reason that matched is in
+signin_facts.presentation(verdict), which only the text view reads. It names a rule, never any part of the name.
 """
 import json
 import unittest
@@ -13,10 +12,7 @@ from plugin_tests.test_signin_fix1 import Base
 
 OLD_TWO_WAY = 'it is longer than this display allows, or shaped like a credential'
 LONG_UPN = 'alexander.morgan@contoso.onmicrosoft.com'
-
-
-def readable(verdict):
-    return verdict.get('readable_message', verdict['message'])
+CANONICAL = {'provider', 'status', 'usable', 'tenant_wanted', 'signed_in', 'message', 'next_step'}
 
 
 class HiddenReasonTests(Base):
@@ -26,12 +22,14 @@ class HiddenReasonTests(Base):
 
     def assert_reason(self, user, phrase, rule, usable=True):
         verdict = self.verdict(user)
+        shown = signin_facts.presentation(verdict)
         self.assertEqual(verdict['usable'], usable, user)
-        self.assertIn('whose name is not shown here (%s)' % phrase, readable(verdict), user)
-        self.assertEqual(verdict['rule'], rule, user)
-        self.assertNotIn(user, json.dumps(verdict))
-        # the JSON message is the former one, two-way wording included
+        self.assertIn('whose name is not shown here (%s)' % phrase, shown['sentence'], user)
+        self.assertEqual(shown['rule'], rule, user)
+        self.assertNotIn(user, json.dumps(verdict) + json.dumps(shown))
+        # the verdict itself is the former one, two-way wording included, and has no other key
         self.assertIn(OLD_TWO_WAY, verdict['message'])
+        self.assertEqual(set(verdict), CANONICAL)
 
     def test_a_usable_long_name_says_only_that_it_is_too_long(self):
         self.assert_reason(LONG_UPN, 'it is longer than this display allows', 'length')
@@ -49,15 +47,16 @@ class HiddenReasonTests(Base):
         self.assert_reason('.'.join(['ab'] * 25) + '@example.test', 'it is longer than this display allows', 'length')
 
     def test_an_unbroken_run_without_a_prefix_names_the_run(self):
-        verdict = self.verdict('a' * 30 + '@contoso.com', tenant=TENANT_B)
-        self.assertIn('(it holds an unbroken run of 24 or more letters and digits)', readable(verdict))
-        self.assertNotIn('token prefix', readable(verdict))
+        shown = signin_facts.presentation(self.verdict('a' * 30 + '@contoso.com', tenant=TENANT_B))
+        self.assertIn('(it holds an unbroken run of 24 or more letters and digits)', shown['sentence'])
+        self.assertNotIn('token prefix', shown['sentence'])
 
     def test_a_hidden_github_login_says_its_reason_too(self):
         self.fakes.answer('gh', 'auth', 'status', out=github_hosts(('github.com', 'alexander.morgan.longname1234', 'success', True)))
         verdict = signin_facts.evaluate(signin.detect_github(deadline=5))
         self.assertEqual(verdict['status'], 'signed_in')
-        self.assertIn('whose name is not shown here (it is longer than this display allows)', readable(verdict))
+        self.assertIn('whose name is not shown here (it is longer than this display allows)',
+                      signin_facts.presentation(verdict)['sentence'])
         self.assertIn(OLD_TWO_WAY, verdict['message'])
         self.assertNotIn('alexander', json.dumps(verdict))
 
@@ -66,18 +65,29 @@ class HiddenReasonTests(Base):
         facts = signin.detect_azure(deadline=5)
         for account in facts['accounts']:
             account.pop('hidden_reasons', None)
-        verdict = signin_facts.evaluate(facts, TENANT_A)
-        self.assertIn('whose name is not shown here (it cannot be shown safely)', readable(verdict))
-        self.assertNotIn('rule', verdict)
+        shown = signin_facts.presentation(signin_facts.evaluate(facts, TENANT_A))
+        self.assertIn('whose name is not shown here (it cannot be shown safely)', shown['sentence'])
+        self.assertIsNone(shown['rule'])
+
+    def test_several_hidden_names_each_get_their_own_reason_and_no_single_rule(self):
+        self.fakes.answer('az', 'account', 'list', out=azure_list(
+            azure_account(user=LONG_UPN), azure_account(user='alex.password@example.test', default=False)))
+        verdict = signin_facts.evaluate(signin.detect_azure(deadline=5), TENANT_A)
+        shown = signin_facts.presentation(verdict)
+        self.assertEqual(verdict['status'], 'several_accounts')
+        self.assertIn('(it is longer than this display allows)', shown['sentence'])
+        self.assertIn('(it contains a word that credentials carry)', shown['sentence'])
+        self.assertIsNone(shown['rule'])
+        self.assertEqual(verdict['message'].count(OLD_TWO_WAY), 2)
 
     def test_the_private_fields_never_reach_the_verdict(self):
         verdict = self.verdict(LONG_UPN)
         self.assertNotIn('hidden_reasons', json.dumps(verdict))
         self.assertNotIn('digest', json.dumps(verdict))
 
-    def test_a_name_that_is_shown_has_no_additive_keys(self):
-        verdict = self.verdict('alex@example.test')
-        self.assertFalse({'rule', 'detail_code', 'readable_message'} & set(verdict))
+    def test_a_name_that_is_shown_has_nothing_to_present(self):
+        shown = signin_facts.presentation(self.verdict('alex@example.test'))
+        self.assertEqual((shown['code'], shown['rule']), (None, None))
 
 
 if __name__ == '__main__':
