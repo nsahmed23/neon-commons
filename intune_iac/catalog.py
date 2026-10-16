@@ -285,12 +285,12 @@ def _text_build(result, survey, goal, relative_to):
     root = Path(survey['directory']) if survey.get('directory') else None
     show, q, placeholders, directory = entry.text_paths(root, relative_to)
     for row, item in zip(data['projects'], survey.get('items') or []):
-        # Each resume command is written by a path writer of its own: when it had to write DIRECTORY (or DIRECTORY/store), which a
-        # shell takes for a real folder, because the surveyed directory may not be shown, the command is not printed. (A surveyed
-        # file whose own name is refused is still PATH in its command, as before; the sentence under the header says what it is.)
+        # Each resume command is written by a path writer of its own: when it had to write a stand-in for any operand (DIRECTORY or
+        # DIRECTORY/store for a directory the screen may not show, PATH for a surveyed file it may not show), which a shell takes
+        # for a real path, the command is not printed.
         _, own, stood_in, _ = entry.text_paths(root, relative_to)
         command, note = _resume(item, survey['items'], own)
-        row['command'], row['note'] = (None, COMMAND_NOT_SHOWN) if entry.DIRECTORY_PLACEHOLDER in stood_in else (command, note)
+        row['command'], row['note'] = (None, COMMAND_NOT_SHOWN) if stood_in else (command, note)
         row['path'] = entry.screen_path(row['path'], placeholders)
     # the directory as a screen says it, and as the path writer writes it in a command (the refused name is not kept here)
     data.update(entry.screen_directory(survey.get('directory'), directory()))

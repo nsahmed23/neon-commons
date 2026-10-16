@@ -1149,7 +1149,7 @@ class OperandRenderingTests(Base):
                 for row in self.command_rows(text):
                     self.assertNotIn('\\u0301', row, (label, row))
             catalog = self.screens(temp, work)['catalog']
-            self.assertIn('--input PATH', flat(catalog.split('\n')))
+            self.assertNotIn('--input PATH', flat(catalog.split('\n')))   # round 2: no stand-in operand in a catalog command
             self.assertEqual(catalog.count(self.PATH_SAID), 1)
 
     def test_aliases_and_spellings_of_a_refused_directory_are_replaced_too(self):

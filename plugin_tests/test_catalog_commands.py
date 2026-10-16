@@ -127,6 +127,45 @@ class CliTextTests(unittest.TestCase):
         self.assertNotIn('DIRECTORY is the directory this screen is about', flat)
 
 
+class RefusedFileNameTests(unittest.TestCase):
+    """Round 2 (Sol, Medium): PATH stands for a surveyed file whose own name the display rule refuses. It is a valid relative
+    path too, so no catalog command may carry it as an operand; the row says what to do in words."""
+
+    FILES = {'credential': 'ex' + 'ghp_' + 'A1b2C3d4' * 5 + '.json', 'control': 'ex\x1bport.json'}
+
+    def workspace(self, file_name):
+        import shutil
+        from plugin_tests.test_start_goal import ROOT
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        parent = Path(temp.name)
+        folder = parent / 'work'
+        folder.mkdir()
+        shutil.copyfile(ROOT / 'examples/context.json', folder / 'context.json')
+        try:
+            shutil.copyfile(ROOT / 'examples/supported/input/export.json', folder / file_name)
+        except OSError:
+            self.skipTest('this file system refuses that name')
+        return parent
+
+    def test_a_refused_export_name_is_never_a_stand_in_operand_in_a_catalog_command(self):
+        for label, file_name in self.FILES.items():
+            parent = self.workspace(file_name)
+            for argv in ((), ('--goal', 'discover')):
+                with self.subTest(file=label, argv=argv):
+                    text = run_catalog_text(parent, 'work', *argv)
+                    flat = ' '.join(text.replace(' \\', '').split())
+                    self.assertIn('Export PATH', flat)      # the row is there, its name is not shown
+                    for line in text.split('\n'):
+                        self.assertIsNone(STAND_IN.search(line.replace(' \\', '')), line)
+                    self.assertNotIn('--input PATH', flat)
+
+    def test_an_ordinary_export_name_keeps_its_resume_command(self):
+        parent = self.workspace('export.json')
+        text = ' '.join(run_catalog_text(parent, 'work').replace(' \\', '').split())
+        self.assertIn('Resume: intune-iac wizard --session NEW_SESSION.json --input work/export.json', text)
+
+
 class LayerRouteTests(unittest.TestCase):
     def test_the_narrow_route_row_prints_a_notice_never_a_command_with_a_stand_in(self):
         for label, name in NAMES.items():
