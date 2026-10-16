@@ -157,10 +157,19 @@ def read_export(directory, roots=()):
                     duplicates += 1
                 elif event_id not in conflicted:
                     conflicted.add(event_id)
-                    records.pop(event_id, None)
+                    old = records.pop(event_id, None)
                     by_seq = {s: i for s, i in by_seq.items() if i != event_id}
                     faults.append({'code': 'event_conflict', 'line': number, 'event_id': event_id,
                                    'detail': 'the same event id appears with different bodies'})
+                    # Neither copy is kept, but both sequences stay claimed: another id on either is not folded.
+                    for claimed in {seq} | ({old['seq']} if old else set()):
+                        contested.add(claimed)
+                        other = by_seq.pop(claimed, None)
+                        if other is not None:
+                            records.pop(other, None)
+                            faults.append({'code': 'seq_reused', 'line': number, 'event_id': event_id,
+                                           'detail': 'event %s and event %s claim sequence %d; neither is kept'
+                                                     % (escape_text(other), escape_text(event_id), claimed)})
                 continue
             seen[event_id] = digest
             try:

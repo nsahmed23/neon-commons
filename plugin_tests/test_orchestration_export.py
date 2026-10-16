@@ -68,6 +68,29 @@ class ExportAdapterTests(unittest.TestCase):
         self.assertIn('truncated export cannot be told from a quiet system', result['check']['message'])
         self.assertEqual(len(result['events']), 2)
 
+    def conflicted(self, first_seq=5, copy_seq=5):
+        a = dict(event(first_seq, 'dispatch.queued', 'T-1', kind='advisor'), event_id='ev-a')
+        return a, dict(a, seq=copy_seq, data={'kind': 'other'})
+
+    def test_a_conflicted_id_keeps_its_sequence_claimed_so_a_later_id_on_it_is_not_folded(self):
+        a, a_copy = self.conflicted()
+        b = dict(event(5, 'dispatch.queued', 'T-2', kind='advisor'), event_id='ev-b')
+        write_export(self.dir, [a, a_copy, b], header=header_for([a, b]))
+        result = read(self.dir)
+        self.assertEqual(result['events'], [])
+        self.assertEqual(len(self.faults(result, 'event_conflict')), 1)
+        self.assertEqual(len(self.faults(result, 'seq_reused')), 1)
+
+    def test_a_conflicting_copy_on_another_sequence_contests_both_and_drops_the_id_already_holding_it(self):
+        a, a_copy = self.conflicted(first_seq=5, copy_seq=6)
+        c = dict(event(6, 'dispatch.queued', 'T-3', kind='advisor'), event_id='ev-c')
+        d = dict(event(5, 'dispatch.queued', 'T-4', kind='advisor'), event_id='ev-d')
+        write_export(self.dir, [a, c, a_copy, d], header=header_for([a, c, d]))
+        result = read(self.dir)
+        self.assertEqual(result['events'], [])
+        self.assertEqual(len(self.faults(result, 'event_conflict')), 1)
+        self.assertEqual(len(self.faults(result, 'seq_reused')), 2)
+
     def test_a_header_of_another_contract_or_with_bad_fields_is_not_a_header(self):
         events = lifecycle('T-1')
         for bad in (dict(header_for(events), contract='orchestration-export/2'),
