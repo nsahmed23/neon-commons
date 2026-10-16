@@ -1,6 +1,8 @@
 """Optional, advisory-only CLM System One HTTP adapter; no model dependencies."""
 from __future__ import annotations
 
+import base64
+import binascii
 import hashlib
 import http.client
 import ipaddress
@@ -110,7 +112,6 @@ _B64_RUN = re.compile(r"[A-Za-z0-9+/_=-]{32,}")
 _B64_ONLY = re.compile(r"[A-Za-z0-9+/_=-]+")
 _POLICY_KEY = re.compile(r"p_[0-9a-f]{32}_[0-9a-f]{32}")
 _DIGEST_VALUE = re.compile(r"sha256:[0-9a-fA-F]{64}")  # the only prefixed form: lowercase prefix, 64 hex of either case
-_B64_CANONICAL = re.compile(r"[A-Za-z0-9+/]{32,}={0,2}")
 # Under a member named for a secret exactly two value forms are accepted: a whole-value policy key and a relative
 # state path ending in .tfstate (characters [A-Za-z0-9._/-] only, so no ':', '@', '?' or '=', and no '..' segment).
 _STATE_PATH = re.compile(r"[A-Za-z0-9._-][A-Za-z0-9._/-]*\.tfstate")
@@ -138,13 +139,33 @@ def _digest_key(key):
 
 
 def _canonical_base64(run):
-    """Canonical base64 by alphabet, length (32 or more, a multiple of 4 with padding) and padding; no entropy test.
+    """Canonical base64, standard or URL-safe alphabet, strictly decoded with its padding; no entropy test.
 
-    The only allowance is the 32-character floor. A single token of 32 or more base64-alphabet characters whose length
-    is a multiple of 4 is refused even when it is an ordinary compound word (a false positive, documented): remove it
+    The 32-character floor applies to the FULL encoded length, padding included, so a padded value of 32 characters
+    is refused. A single token of 32 or more base64-alphabet characters whose length is a multiple of 4 and that
+    decodes strictly is refused even when it is an ordinary compound word (a false positive, documented): remove it
     from the evidence, or put it under a digest-named key if it is a digest.
     """
-    return len(run) % 4 == 0 and any(c.isalpha() for c in run) and not _HEX.fullmatch(run.rstrip("="))
+    if len(run) < 32 or len(run) % 4 or not any(c.isalpha() for c in run) or _HEX.fullmatch(run.rstrip("=")):
+        return False
+    for candidate in (run, run.replace("-", "+").replace("_", "/")):
+        try:
+            base64.b64decode(candidate, validate=True)
+            return True
+        except (ValueError, binascii.Error):
+            continue
+    return False
+
+
+_REDACTED = frozenset(("redacted", "REDACTED", "<redacted>", "[redacted]", "***"))
+
+
+def _nonempty(child):
+    if child is None:
+        return False
+    if isinstance(child, (str, list, dict, tuple)):
+        return len(child) > 0
+    return True  # numbers and booleans
 
 
 def _state_path(value):
@@ -186,7 +207,7 @@ def _shaped_once(text, digest_ok):
         for run in _B64_RUN.findall(stripped):
             if _base64_like(run) or any(_base64_like(part) for part in run.split("/")):
                 return True
-        if any(_canonical_base64(run) for run in _B64_CANONICAL.findall(stripped)):
+        if any(_canonical_base64(run) for run in _B64_RUN.findall(stripped)):
             return True
     for piece in _PIECE_SPLIT.split(text):
         # A random credential mixes cases and digits with high entropy; identifiers, GUIDs and digests do not.
@@ -229,8 +250,13 @@ def _check_no_secret(value, root, key_value=None):
                 name = _snake(key)
                 # A member whose LAST word is a secret name (password, client_secret) is refused for any nonempty
                 # value; a member that only mentions one (token_required) is refused from six characters.
-                if (type(child) is str and not _placeholder(child) and child
-                        and (_SECRET_KEY_LAST.search(name) or (_SECRET_KEY.search(name) and len(child) >= 6))
+                if _SECRET_KEY_LAST.search(name):
+                    # Every nonempty child (number, boolean, collection, string) is refused except three documented
+                    # string forms: a policy key, a relative .tfstate path, and a fixed already-redacted placeholder.
+                    if _nonempty(child) and not (type(child) is str and (
+                            child in _REDACTED or _POLICY_KEY.fullmatch(child) or _state_path(child))):
+                        raise _Rejected("secret_shaped_value", where)
+                elif (type(child) is str and _SECRET_KEY.search(name) and len(child) >= 6 and not _placeholder(child)
                         and not (_POLICY_KEY.fullmatch(child) or _state_path(child))):
                     raise _Rejected("secret_shaped_value", where)
                 visit(child, where, _digest_key(key))
@@ -499,7 +525,10 @@ def assess(config_path, claim, evidence):
             raise _Rejected("empty_evidence")
         _validate_evidence(evidence)
         frozen_key = _read_key(config)
-        key_value = frozen_key[1] if frozen_key[1] and len(frozen_key[1]) >= 6 else None
+        if frozen_key[1] and len(frozen_key[1]) < 6:
+            # A short key cannot be told from ordinary text, so it is never accepted (the value is not echoed).
+            raise _Rejected("api_key_too_short")
+        key_value = frozen_key[1] or None
         _check_no_secret(claim, "$.claim", key_value)
         _check_no_secret(evidence, "$.evidence", key_value)
         # The result echoes the configured identity and the request carries its alias, so they are scanned before any

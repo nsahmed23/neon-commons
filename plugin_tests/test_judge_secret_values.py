@@ -203,6 +203,56 @@ class JudgeSecretValueTests(unittest.TestCase):
                 self.assertEqual(result['location'], '$.request.model')
                 self.assertNotIn(alias_value, json.dumps(result))
 
+    def test_the_encoded_length_including_padding_meets_the_floor(self):
+        import base64
+        std1 = base64.b64encode(bytes(range(65, 65 + 23))).decode()   # 32 characters, one padding character
+        std2 = base64.b64encode(bytes(range(65, 65 + 22))).decode()   # 32 characters, two padding characters
+        self.assertEqual((len(std1), std1[-1:], len(std2), std2[-2:]), (32, '=', 32, '=='))
+        url1 = base64.urlsafe_b64encode(bytes([251, 255, 254] * 7 + [250, 255])).decode()
+        for name, value in (('sols input', 'QUJDREVGR0hJSktMTU5PUFFSU1RVVg=='), ('one padding', std1),
+                            ('two padding', std2), ('url safe alphabet', url1),
+                            ('url safe two padding', base64.urlsafe_b64encode(bytes([251, 255] * 11)).decode()),
+                            ('36 unpadded', 'QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVph')):
+            with self.subTest(name):
+                self.assertGreaterEqual(len(value), 32, name)
+                self.refused({'detail': value}, location='$.evidence{0}')
+        self.judge.requests.clear()
+        self.assertEqual(self.judge.call(evidence=[{'detail': 'ABCDEFGHIJKLMNOPQRSTUVWXYZab'}])['status'], 'assessed')
+
+    def test_a_short_configured_api_key_is_refused_and_an_accepted_key_never_enters_the_body(self):
+        self.judge.config['api_key_env'] = 'CLM_TEST_KEY'
+        with patch.dict(os.environ, {'CLM_TEST_KEY': 'Ab1-x'}):
+            result = self.judge.call(claim='The value Ab1-x was observed.')
+        self.judge.assert_safe(result, 'api_key_too_short')
+        self.assertEqual(self.judge.requests, [])
+        self.assertNotIn('Ab1-x', json.dumps(result))
+        self.judge.requests.clear()
+        with patch.dict(os.environ, {'CLM_TEST_KEY': 'Ab1-xyz'}):
+            refused = self.judge.call(claim='The value Ab1-xyz was observed.')
+        self.judge.assert_safe(refused, 'credential_value_in_evidence')
+        self.assertEqual(self.judge.requests, [])
+        with patch.dict(os.environ, {'CLM_TEST_KEY': 'Ab1-xyz'}):
+            ok = self.judge.call()
+        self.assertEqual(ok['status'], 'assessed')
+        self.assertNotIn('Ab1-xyz', json.dumps(self.judge.requests[0]['body']))
+
+    def test_every_nonempty_child_of_a_secret_named_member_is_refused_except_three_documented_forms(self):
+        for name, evidence in (('number', {'token': 123456}), ('zero', {'token': 0}), ('true', {'password': True}),
+                               ('false', {'secret': False}), ('list', {'api_key': ['a']}), ('mapping', {'key': {'a': 'b'}}),
+                               ('lowercase word', {'token': 'redactedx'}), ('placeholder-like', {'token': 'Redacted'}),
+                               ('dashes', {'password': '---'}), ('x run', {'password': 'xxxxx'})):
+            with self.subTest(name):
+                self.refused(evidence, location='$.evidence{0}')
+        policy = 'p_' + 'ab12' * 8 + '_' + 'cd34' * 8
+        for value in ('redacted', 'REDACTED', '<redacted>', '[redacted]', '***', policy, 'x/dev.tfstate'):
+            with self.subTest(exception=value):
+                self.judge.requests.clear()
+                self.assertEqual(self.judge.call(evidence=[{'token': value}])['status'], 'assessed', value)
+        for empty in ('', None, [], {}):
+            with self.subTest(empty=repr(empty)):
+                self.judge.requests.clear()
+                self.assertEqual(self.judge.call(evidence=[{'token': empty}])['status'], 'assessed')
+
     def test_the_api_key_is_read_once_and_the_same_value_is_used_and_checked(self):
         self.judge.config['api_key_env'] = 'CLM_TEST_KEY'
         reads = []
