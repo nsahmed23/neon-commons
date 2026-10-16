@@ -1,7 +1,5 @@
 """The release candidate after Sol's review (PKG-RELEASE-1 round 3): what the demonstration script, the archive check, the identity
-and the sensitive-file control must refuse. The first module of this package, test_release_candidate, holds the earlier tests; this
-one starts where that one passed 1,000 lines and imports its stand-ins and helpers.
-"""
+and the sensitive-file control must refuse. The earlier tests are in test_release_candidate, whose stand-ins and helpers this uses."""
 import contextlib
 import io
 import json
@@ -29,9 +27,9 @@ code_blocks = base.code_blocks
 LOCK = base.LOCK
 
 # A stand-in for sha256sum that does what the real one does and, at the points a test names, changes the files the script is
-# about to use. It counts its calls in SHIM_STATE; after call SHIM_SWAP_AFTER it replaces the caller's own files (the named
-# paths, by rename, in place or by deletion, as SHIM_SWAP_MODE says); and on call SHIM_TAMPER_CALL for a file whose name is
-# SHIM_TAMPER_NAME it overwrites that file before it is read. It also records the mode of the folder holding each file it hashes.
+# about to use. It counts its calls in SHIM_STATE; after call SHIM_SWAP_AFTER it replaces the caller's own files (by rename, in
+# place or by deletion, as SHIM_SWAP_MODE says); on call SHIM_TAMPER_CALL for a file named SHIM_TAMPER_NAME it overwrites that
+# file before it is read; and it records the mode of the folder holding each file it hashes.
 SHA256SUM_SHIM = '''#!/bin/sh
 state=$SHIM_STATE
 count=$(cat "$state/count" 2>/dev/null || echo 0)
@@ -720,12 +718,6 @@ class GitBindingTests(unittest.TestCase):
         record = nested.identity()
         self.assertEqual((record['commit'], record['tree'], record['dirty']), (None, None, None))
 
-    def test_a_tree_outside_any_checkout_names_no_commit(self):
-        outside = GitFixture(self, nested=True)
-        outside.build()
-        record = outside.identity()
-        self.assertEqual((record['commit'], record['tree'], record['dirty']), (None, None, None))
-
 
 # Secret-shaped test data is assembled here, never written out whole, so that this file does not itself hold what the control
 # looks for when a release is built from the checkout this file belongs to.
@@ -767,10 +759,7 @@ class SensitiveFixture:
         return receipt
 
     def digest(self, name):
-        return sha256(( self.root / name).read_bytes())
-
-
-sha256 = base.sha256
+        return sha256((self.root / name).read_bytes())
 
 
 class SensitiveNameTests(unittest.TestCase):
