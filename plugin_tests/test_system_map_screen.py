@@ -835,5 +835,107 @@ class JsonEdgeTests(unittest.TestCase):
         self.assertIn('opens', next(n for n in loaded['nodes'] if n['id'] == 'tofu.engine'))
 
 
+def with_boundary_id(snapshot, old, new):
+    """The snapshot with one boundary's identifier changed, and the nodes that sit in it following."""
+    snapshot = copy.deepcopy(snapshot)
+    for item in snapshot['boundaries']:
+        item['id'] = new if item['id'] == old else item['id']
+    for node in snapshot['nodes']:
+        node['boundary'] = new if node['boundary'] == old else node['boundary']
+    return snapshot
+
+
+def spine_columns(rows):
+    """The column of each node row's spine (the first rows that carry one), top to bottom."""
+    found = []
+    for row in rows:
+        cuts = [row.find(mark) for mark in ('|-', '├─') if row.find(mark) >= 0]
+        if cuts and len(found) < 8:
+            found.append(min(cuts))
+    return found
+
+
+BOUNDARY_IDS = {'a newline': '\n', 'an escape': '\x1b[31m', 'an empty id': '', 'a wide character': '界',
+                'a combining mark': '́', 'a case-expanding letter': 'ß', 'a carriage return': '\r',
+                'a line separator': chr(0x2028), 'a C1 control': '\x85', 'a lower-case letter': 'tenant'}
+
+
+class BoundaryTagTests(unittest.TestCase):
+    def test_a_boundary_id_that_is_not_one_plain_cell_is_tagged_with_a_question_mark(self):
+        for name, identifier in BOUNDARY_IDS.items():
+            snapshot = with_boundary_id(recorded(), 'host', identifier)
+            expected = 'T' if identifier == 'tenant' else '?'
+            for size in SIZES:
+                for colour, unicode in MODES:
+                    rows = screen().render(snapshot, size[0], size[1], colour=colour, unicode=unicode)
+                    shown = plain(rows)
+                    where = (name, size, colour, unicode)
+                    self.assertEqual(controls_in(shown), [], where)
+                    self.assertTrue(all(width_of(row) <= size[0] for row in shown), where)
+                    self.assertEqual(spine_columns(asciified(shown)), [4 + 2 * n['layer'] for n in snapshot['nodes']], where)
+                    host = [row for row in shown if re.match(r'[> ] . ', row) and ('|- opentofu' in row or '├─ opentofu' in row)]
+                    self.assertEqual([row[2] for row in host], [expected], where)
+
+    def test_the_plain_text_form_holds_the_same_tags_without_a_control(self):
+        for name, identifier in BOUNDARY_IDS.items():
+            snapshot = with_boundary_id(recorded(), 'host', identifier)
+            for width in (40, 60, 80, 120):
+                rows = screen().text(snapshot, width)
+                self.assertEqual(controls_in(rows), [], (name, width))
+                self.assertTrue(all(width_of(row) <= width for row in rows), (name, width))
+                if width >= 60:
+                    self.assertEqual(spine_columns(rows), [4 + 2 * n['layer'] for n in snapshot['nodes']], (name, width))
+
+    def test_the_legend_names_a_tag_the_rows_use(self):
+        snapshot = with_boundary_id(recorded(), 'host', '\n')
+        rows = screen().render(snapshot, 80, 24, colour=False, unicode=False)
+        self.assertIn('? this host  R the repository  C the cloud', rows)
+
+
+class EveryFieldTests(unittest.TestCase):
+    """Hostile values in every string the renderer and the plain-text form read."""
+
+    def everywhere(self, boundary_id):
+        snapshot = copy.deepcopy(recorded())
+        snapshot.update(name=HOSTILE, object_id='p' + HOSTILE, evidence_class='e' + HOSTILE, revision='r' + HOSTILE,
+                        tenant_id='t' + HOSTILE)
+        for item in snapshot['boundaries']:
+            item['label'] = 'l' + HOSTILE
+        snapshot = with_boundary_id(snapshot, 'host', boundary_id)
+        basis = {'record': 'r' + HOSTILE, 'field': 'f' + HOSTILE, 'record_id': 'i' + HOSTILE}
+        for index, node in enumerate(copy.deepcopy(snapshot['nodes'])):
+            snapshot = renamed(snapshot, node['id'], 'n%d' % index + HOSTILE)
+        for node in snapshot['nodes']:
+            node.update(reason='x' + HOSTILE, kind='k' + HOSTILE, opens='o' + HOSTILE, basis=dict(basis),
+                        identity={'k' + HOSTILE: 'v' + HOSTILE}, facts={'f' + HOSTILE: 'g' + HOSTILE})
+        for edge in snapshot['edges']:
+            edge.update(id='e' + HOSTILE, basis=dict(basis))
+        return snapshot
+
+    def test_no_string_field_reaches_a_row_as_a_control_or_a_wide_row_or_a_shifted_column(self):
+        for name, identifier in BOUNDARY_IDS.items():
+            snapshot = self.everywhere(identifier)
+            for focus in [None] + [node['id'] for node in snapshot['nodes']][::3]:
+                for size in SIZES:
+                    for colour, unicode in MODES:
+                        rows = plain(screen().render(snapshot, size[0], size[1], colour=colour, unicode=unicode, focus=focus))
+                        where = (name, size, colour, unicode)
+                        self.assertEqual(controls_in(rows), [], where)
+                        self.assertTrue(all(width_of(row) <= size[0] for row in rows), where)
+                        self.assertEqual(spine_columns(asciified(rows)), [4 + 2 * n['layer'] for n in snapshot['nodes']], where)
+            for width in (40, 60, 120):
+                rows = screen().text(snapshot, width)
+                self.assertEqual(controls_in(rows), [], (name, width))
+                self.assertTrue(all(width_of(row) <= width for row in rows), (name, width))
+            self.assertNotIn('\x1b', screen().to_json(snapshot))
+
+    def test_the_sweep_reaches_the_fields_it_claims_to(self):
+        snapshot = self.everywhere('\n')
+        joined = ''.join(row.strip() for row in screen().text(snapshot, 400))
+        for marker in ('p' + 'a\\u001b', 'e' + 'a\\u001b', 'r' + 'a\\u001b', 'l' + 'a\\u001b', 'x' + 'a\\u001b',
+                       'o' + 'a\\u001b', 'v' + 'a\\u001b', 'g' + 'a\\u001b', 'i' + 'a\\u001b', 'f' + 'a\\u001b'):
+            self.assertIn(marker, joined)
+
+
 if __name__ == '__main__':
     unittest.main()

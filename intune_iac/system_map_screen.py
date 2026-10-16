@@ -206,8 +206,17 @@ def _fit_name(name, room):
     return text if cell_width(text) <= room else clip(text, room - 3) + '...'
 
 
+def _tag(identifier):
+    """The one-cell letter a boundary is tagged with: the first letter of its escaped id, upper-cased, when that is exactly
+    one printable ASCII cell (an escape's backslash is not a letter), else `?`. A raw slice could be a newline, nothing, a wide
+    character or a letter that upper-cases to two."""
+    first = safe_text(identifier)[:1].upper()
+    plain = len(first) == 1 and first.isascii() and first.isprintable() and first != '\\' and cell_width(first) == 1
+    return first if plain else '?'
+
+
 def _tags(snapshot):
-    return {item['id']: item['id'][:1].upper() for item in snapshot['boundaries']}
+    return {item['id']: _tag(item['id']) for item in snapshot['boundaries']}
 
 
 def _node_row(node, tag, focused, width, glyphs, colour):
