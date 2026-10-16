@@ -32,8 +32,8 @@ STAGE_IDS = ('observe', 'adopt', 'intent', 'propose', 'review', 'approve_execute
 BRANCH_OF = {'reconcile': 'readback'}
 # The closed set of states. Each is a statement about a record, never a guess.
 STATES = ('done', 'current', 'waiting', 'blocked', 'refused', 'unknown', 'not_recorded', 'not_applicable')
-# A state with no recorded stage behind it; the position is the last stage that has neither.
-NOT_REACHED = ('not_recorded', 'not_applicable')
+# The two states that, by themselves, are no record of where the policy has got to (see _row for when one still is).
+NOT_RECORDED_STATES = ('not_recorded', 'not_applicable')
 # The surface Enter opens for a stage: a tab number as its key says it, or v for Delivery. Stages read from an operation
 # open nothing while the policy has none.
 OPENS = {'observe': '2', 'adopt': '3', 'intent': '9', 'propose': '5', 'review': '5', 'approve_execute': 'v',
@@ -68,8 +68,15 @@ def _facts(source, names):
     return {name: source[name] for name in names if source.get(name) is not None}
 
 
-def _row(state, basis, reason=None, facts=None):
-    return {'state': state, 'basis': basis, 'reason': reason, 'facts': facts or {}}
+def _row(state, basis, reason=None, facts=None, recorded=None):
+    """One stage's reading. `recorded` is whether the row rests on a durable record of its own, which is a different
+    question from its state: a stage that does not apply can be an outcome the records show, and a state can be read
+    from nothing. The default: a state other than not recorded and not applicable rests on a record, unless the
+    operation's evidence could not be read (its basis ends in plain `delivery`). The flag orders the position and is
+    never part of the projection."""
+    if recorded is None:
+        recorded = state not in NOT_RECORDED_STATES and not basis.endswith(' delivery')
+    return {'state': state, 'basis': basis, 'reason': reason, 'facts': facts or {}, 'recorded': recorded}
 
 
 # ---- the stages that read the policy's own records -------------------------------------------------------------------
@@ -252,11 +259,16 @@ def _record(by, tag, error):
         return _row('blocked', basis, 'context_changed', facts) if stage.get('context_changed') else _row('done', basis, None, facts)
     if status == 'available':
         return _row('current', basis, None, facts)
+    # A record that cannot be made, or does not apply, is an outcome the records show once the change was dispatched; before
+    # that it only says how the plan was made (no intent cited), which is nothing of how far the change has got.
+    dispatched = _dict(by.get('execution')).get('status') in ('done', 'unknown')
     if status == 'not_available':
         reason = _text(stage.get('reason'))
-        return _row('blocked' if reason == 'context_changed' else 'not_applicable', basis, reason, facts)
+        if reason == 'context_changed':
+            return _row('blocked', basis, reason, facts)
+        return _row('not_applicable', basis, reason, facts, recorded=dispatched)
     if status == 'not_applicable':
-        return _row('not_applicable', basis, _text(stage.get('reason')), facts)
+        return _row('not_applicable', basis, _text(stage.get('reason')), facts, recorded=dispatched)
     if status == 'not_yet':
         return _row('not_recorded', basis)
     return _row('unknown', basis, _text(status), facts)
@@ -281,7 +293,9 @@ def _observed_after(by, tag, error):
     if status == 'differs':
         return _row('blocked', basis, 'differs', facts)
     if status == 'not_applicable':
-        return _row('not_applicable', basis, _text(stage.get('reason')), facts)
+        # Decided from the plan once dispatch started (a plan with no change dispatches nothing to observe).
+        dispatched = _dict(by.get('execution')).get('status') in ('done', 'unknown')
+        return _row('not_applicable', basis, _text(stage.get('reason')), facts, recorded=dispatched)
     return _row('unknown', basis, _text(stage.get('reason')) or _text(status), facts)
 
 
@@ -414,10 +428,9 @@ def project(read):
     stages = [{'id': stage, 'state': rows[stage]['state'], 'basis': rows[stage]['basis'], 'reason': rows[stage]['reason'],
                'facts': rows[stage]['facts'], 'opens': opens[stage], 'continuation': steps.get(stage),
                'branch_of': BRANCH_OF.get(stage)} for stage in STAGE_IDS]
-    # A stage read from an operation whose evidence could not be read (its basis ends in plain `delivery`) says unknown and
-    # why, but it is not a place the records put the policy at, so the position stops at the last stage that was read.
-    unread = {stage for stage, row in rows.items() if row['basis'].endswith(' delivery')}
-    reached = [item['id'] for item in stages if item['state'] not in NOT_REACHED and item['id'] not in unread]
+    # The position is the last stage that rests on a durable record of its own (see _row): a stage whose evidence could not
+    # be read says unknown and why, but is no place the records put the policy at.
+    reached = [stage for stage in STAGE_IDS if rows[stage]['recorded']]
     observation = _dict(states.get('observation'))
     body = {'schema_version': SCHEMA, 'object_id': object_id, 'tenant_id': read.get('tenant_id'),
             'name': read.get('name') if isinstance(read.get('name'), str) else None,

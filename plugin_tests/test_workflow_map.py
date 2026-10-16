@@ -1577,7 +1577,12 @@ class InvariantTests(unittest.TestCase):
                 self.assertEqual((stages['approve_execute']['state'], stages['readback']['state']), ('done', 'done'), key)
             self.assertTrue(flow['position'] is None or flow['position'] in STAGE_IDS, key)
             if flow['position'] is not None:
-                self.assertNotIn(stages[flow['position']]['state'], ('not_recorded', 'not_applicable'), key)
+                here = stages[flow['position']]['state']
+                self.assertNotEqual(here, 'not_recorded', key)
+                # A stage that does not apply is a position only where the records show it after dispatch.
+                if here == 'not_applicable':
+                    self.assertIn(flow['position'], ('record', 'observed_after'), key)
+                    self.assertIn(execution, ('done', 'unknown'), key)
             json.dumps(flow, allow_nan=False)
         self.assertEqual(count, 7 * 3 * 5 * 4 * 5 * 5)
 
@@ -1692,7 +1697,9 @@ class ReviewStoreTests(LayerFixture):
                          ('unknown', 'maintenance_visibility_pending'))
         self.assertEqual((stages['reconcile']['state'], stages['reconcile']['reason']), ('done', 'desired_state_observed'))
         self.assertEqual([name for name, stage in stages.items() if stage['continuation']], [])
-        self.assertEqual(flow['position'], 'reconcile')
+        # The reconcile is done and the record cannot be made (the readback never verified): that is where the records
+        # put the policy, an outcome the records show after dispatch.
+        self.assertEqual((stages['record']['state'], flow['position']), ('not_applicable', 'record'))
 
     def test_after_a_lost_response_and_a_reconcile_the_step_is_deliverys_collect_on_the_record_stage(self):
         from intune_iac import maintenance
@@ -1869,7 +1876,11 @@ class ReviewInvariantTests(unittest.TestCase):
             flow = project(with_operation(baseline(), delivery=delivery, journal=journal,
                                           review=prepared_review('open', status=journal)))
             stages = by_id(flow)
-            reached = [stage['id'] for stage in flow['stages'] if stage['state'] not in ('not_recorded', 'not_applicable')]
+            # Recorded: any state but not recorded, and a stage that does not apply only where the records show it
+            # after dispatch (the record that cannot be made, the observation after a plan with no change).
+            dispatched = execution in ('done', 'unknown')
+            reached = [stage['id'] for stage in flow['stages'] if stage['state'] != 'not_recorded'
+                       and (stage['state'] != 'not_applicable' or (stage['id'] in ('record', 'observed_after') and dispatched))]
             self.assertEqual(flow['position'], reached[-1], key)
             # The reconcile branch is not applicable exactly when no reconciliation was needed, and present otherwise.
             self.assertEqual(stages['reconcile']['state'] == 'not_applicable', reconciliation == 'not_needed', key)
@@ -2081,6 +2092,82 @@ class StoredNameTests(RecordedNameFixture):
             self.assertEqual(len(frame), size[1])
             for row in frame:
                 self.assertEqual(raw_controls(row), [], (size, rules, row))
+
+
+
+# ---- round 2, item 2: the position follows durable evidence, apart from the semantic state ----------------------------
+
+def delivery_of(journal, **stages):
+    """prepared_delivery with the named stages replaced (by stage name) and the journal status as given."""
+    delivery = prepared_delivery()
+    delivery['journal_status'] = journal
+    delivery['stages'] = [stages.get(stage['stage'], stage) for stage in delivery['stages']]
+    return delivery
+
+
+def verified_stages(**changes):
+    stages = {'approval': stage_row('approval', 'done', opens_at=1_792_000_000, closes_at=1_792_000_300),
+              'execution': stage_row('execution', 'done'),
+              'readback': stage_row('readback', 'done', classification='desired_state_observed'),
+              'reconciliation': stage_row('reconciliation', 'not_needed')}
+    stages.update(changes)
+    return stages
+
+
+def position_of(delivery):
+    journal = delivery['journal_status']
+    read = with_operation(baseline(), delivery=delivery, journal=journal, review=prepared_review('open', status=journal))
+    flow = project(read)
+    return flow['position'], states_of(flow)
+
+
+class PositionEvidenceTests(unittest.TestCase):
+    def test_a_record_that_cannot_be_made_is_where_the_records_put_the_policy_after_a_reconcile(self):
+        position, states = position_of(executed_delivery('reconciled'))
+        self.assertEqual((states['reconcile'], states['record']), ('done', 'not_applicable'))
+        self.assertEqual(position, 'record')
+
+    def test_a_record_that_does_not_apply_marks_the_position_once_the_change_was_dispatched_and_not_before(self):
+        # Dispatched and verified, no repository intent cited: the record stage is decided, the observation after is not yet.
+        delivery = delivery_of('succeeded_verified', **verified_stages(
+            deployment_record=stage_row('deployment_record', 'not_applicable', reason='no_repository_intent_cited')))
+        position, states = position_of(delivery)
+        self.assertEqual((states['record'], states['observed_after']), ('not_applicable', 'not_recorded'))
+        self.assertEqual(position, 'record')
+        # Prepared and not yet approved: the plan cited no intent, which says nothing of how far the change has got.
+        delivery = prepared_delivery()
+        delivery['stages'][6] = stage_row('deployment_record', 'not_applicable', reason='no_repository_intent_cited')
+        position, states = position_of(delivery)
+        self.assertEqual((states['record'], position), ('not_applicable', 'approve_execute'))
+
+    def test_an_observation_after_that_the_plan_made_not_applicable_marks_the_position_and_only_after_dispatch(self):
+        delivery = delivery_of('succeeded_verified', **verified_stages(
+            observed_after=stage_row('observed_after', 'not_applicable', reason='no_configuration_change')))
+        position, states = position_of(delivery)
+        self.assertEqual((states['record'], states['observed_after']), ('not_recorded', 'not_applicable'))
+        self.assertEqual(position, 'observed_after')
+        # Not dispatched: nothing recorded for it, whatever the stage word says.
+        delivery = prepared_delivery()
+        delivery['stages'][7] = stage_row('observed_after', 'not_applicable', reason='no_configuration_change')
+        self.assertEqual(position_of(delivery)[0], 'approve_execute')
+
+    def test_a_reconcile_that_was_never_needed_is_no_place_the_policy_has_got_to(self):
+        position, states = position_of(delivery_of('succeeded_verified', **verified_stages()))
+        self.assertEqual((states['reconcile'], states['record'], states['observed_after']),
+                         ('not_applicable', 'not_recorded', 'not_recorded'))
+        self.assertEqual(position, 'readback')
+
+    def test_a_stage_whose_evidence_could_not_be_read_is_no_place_either(self):
+        read = with_operation(baseline(), delivery={'error_code': 'maintenance_evidence_changed'},
+                              review={'error_code': 'maintenance_evidence_changed'})
+        flow = project(read)
+        stages = by_id(flow)
+        self.assertEqual((stages['review']['state'], stages['record']['state']), ('unknown', 'unknown'))
+        self.assertEqual(flow['position'], 'propose')
+
+    def test_the_evidence_flag_is_not_part_of_the_projection(self):
+        flow = project(with_operation(baseline()))
+        self.assertEqual(set(flow['stages'][0]), {'id', 'state', 'basis', 'reason', 'facts', 'opens', 'continuation', 'branch_of'})
 
 
 if __name__ == "__main__":
