@@ -100,10 +100,10 @@ class VerdictOnTheLastScreenTests(Base):
             entry = entries[name]
             blocked = rows['blocked'].split('. ')[0] if rows['blocked'].startswith('yes, by') else rows['blocked']
             verdict = 'Verdict: operation-ready: %s; blocked: %s' % (rows['operation-ready'], blocked)
-            self.assertIn('    ' + verdict, entry, (fixture, goal, name, 'no verdict line beside the next action in the last rows'))
-            self.assertLessEqual(len(verdict) + 4, WIDTH)
-            after = entry[entry.index('    ' + verdict) + 1:]
-            self.assertIn(flat([item['next_action']]), flat(after), (fixture, goal, name))
+            # the verdict wraps now that it carries its caveats (PKG-CATALOG-6 item 3): read it across its rows
+            text = flat(entry)
+            self.assertIn(verdict, text, (fixture, goal, name, 'no verdict line beside the next action in the last rows'))
+            self.assertIn(flat([item['next_action']]), text[text.index(verdict):], (fixture, goal, name))
             # one source: the words are the state rows' own words, not a second wording of the same state
             self.assertEqual(item['operation_ready']['status'] in rows['operation-ready'], True)
 
@@ -174,6 +174,43 @@ class LiveRowTests(Base):
         for width in (60, 80):
             text = flat(self.lines('offline', width=width))
             self.assertEqual(text.count('recorded blockers for a live run:'), 4, width)
+
+
+class VerdictCaveatsTests(Base):
+    """PKG-CATALOG-6 item 3 (journey 33 run 2, review A finding F3): the closing Verdict line showed `operation-ready: yes` without
+    the `authenticated: not checked` and `live: not run` facts that scrolled off. They ride on the line, from the rows' source."""
+
+    CAVEATS = '; authenticated: not checked; live: not run'
+
+    def test_every_goals_verdict_carries_what_is_not_checked_and_not_run(self):
+        for fixture in ('offline', 'full'):
+            for goal in GOALS:
+                with self.subTest(fixture=fixture, goal=goal):
+                    text = flat(next_action_entries(self.lines(fixture, goal)[-PANE:])[goal])
+                    model = self.model(fixture, goal)['integrations'][0]['goals'][0]
+                    self.assertIn('Verdict: operation-ready: %s (readiness status: %s)' % (
+                        model['operation_ready']['state'], model['operation_ready']['status']), text)
+                    self.assertIn(self.CAVEATS, text)
+
+    def test_the_last_screen_of_inspect_says_ready_with_its_caveats(self):
+        text = flat(self.lines('full', 'inspect')[-PANE:])
+        self.assertIn('operation-ready: yes (readiness status: ready); blocked: no prerequisite is reported as not ready' +
+                      self.CAVEATS, text)
+
+    def test_a_checked_sign_in_drops_the_authenticated_caveat_and_keeps_live(self):
+        from intune_iac import catalog as module
+        from plugin_tests.test_signin_not_permission import GOOD
+        from plugin_tests import test_readiness as tr
+        value = module.build(tc.survey(tr.repository_item(), tr.context_item(tenant=GOOD['accounts'][0]['tenant'])),
+                             doctor=tc.doctor(), signin={'azure': GOOD}, goal='discover')
+        text = flat(next_action_entries(tc.text_of(value, WIDTH))['discover'])
+        self.assertNotIn('authenticated: not checked', text)
+        self.assertIn('; live: not run', text)
+
+    def test_the_verdict_words_come_from_one_source(self):
+        from intune_iac import catalog as module
+        goal = self.model('offline', 'discover')['integrations'][0]['goals'][0]
+        self.assertTrue(module.verdict_words(goal).endswith(self.CAVEATS))
 
 
 class UnsupportedRowTests(Base):
@@ -1191,7 +1228,7 @@ class OperandRenderingTests(Base):
                     self.assertEqual(rows['operation-ready'], module._ready_words(goal), (label, goal['goal']))
                     self.assertTrue(rows['blocked'].startswith(module._blocked_words(goal)), (label, goal['goal']))
                     self.assertTrue(rows['authenticated'].startswith(goal['authenticated']['state'].replace('_', ' ')), (label, goal['goal']))
-                    self.assertIn('    Verdict: ' + module.verdict_words(goal), lines)
+                    self.assertIn('Verdict: ' + module.verdict_words(goal), flat(lines))
 
     def test_plain_data_that_crossed_a_json_boundary_prints_as_the_built_data_does_or_shows_less(self):
         """A result that was written as JSON and read back is plain data: it has no text build. The screens then print the

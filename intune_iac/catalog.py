@@ -62,7 +62,8 @@ NOT_PERMISSION = 'A sign-in is not permission for any operation; access to Graph
 # live blocker it records for the missing cloud route.
 MODELED_ONLY = 'synthetic_local_process_only'
 NO_CLOUD_ROUTE = 'cloud_executor_unavailable'
-CLOUD_ROUTE_CLAUSE = '; no cloud route exists'
+LIVE_STATE = 'not run'  # the live row's state word and the verdict's caveat: one source
+CLOUD_ROUTE_CLAUSE ='; no cloud route exists'
 RESUME_BASE ='Resume commands are typed from the directory this catalog was run in; a path outside it is printed in full.'
 
 
@@ -385,8 +386,12 @@ def _unsupported_words(goal):
 
 
 def verdict_words(goal):
-    """One goal's verdict in the words of its state rows (operation-ready and blocked), for the last screen."""
-    return 'operation-ready: %s; blocked: %s' % (_ready_words(goal), _blocked_words(goal))
+    """One goal's verdict in the words of its state rows (operation-ready and blocked), for the last screen, with the caveats
+    that scroll off beside it: that sign-in was not checked (only when it was not) and that no live run happened (the live row)."""
+    words = 'operation-ready: %s; blocked: %s' % (_ready_words(goal), _blocked_words(goal))
+    if goal['authenticated']['state'] == 'not_checked':
+        words += '; authenticated: not checked'
+    return words + '; live: ' + LIVE_STATE
 
 
 def _state_lines(goal, width):
@@ -431,7 +436,7 @@ def _state_lines(goal, width):
     lines += row('unsupported', _unsupported_words(goal))
     # The live state and what a live run is blocked by are recorded for the product, not for this goal: their own row, so
     # that blocked stays about this goal here and unsupported about what the manifest does not list.
-    lines += row('live', 'not run; recorded blockers for a live run: %s.' % ', '.join(
+    lines += row('live', LIVE_STATE + '; recorded blockers for a live run: %s.' % ', '.join(
         b.replace('_', ' ') for b in unsupported['live_blockers']))
     return lines
 
