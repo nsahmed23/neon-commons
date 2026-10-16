@@ -64,6 +64,58 @@ class EarlyValidationTests(Base):  # items 23 and 24
         signin.check_new_output(str(Path(self.box) / 'fresh'))
         self.assertFalse((Path(self.box) / 'fresh').exists())
 
+    # PKG-SETUP-5B round 3 ---------------------------------------------------------------------------------------------------
+
+    def test_a_host_without_the_primitives_is_refused_before_any_token_never_silently_accepted(self):
+        with patch('intune_iac.signin._output_check_supported', return_value=False):
+            with self.assertRaises(AppError) as caught:
+                signin.collect(TENANT_A, POLICY, str(Path(self.box) / 'new'), deadline=5)
+        # the same code and exit status the capture command itself uses for an unsupported platform
+        self.assertEqual(caught.exception.code, 'capture_platform_unavailable')
+        self.assertEqual(self.fakes.calls(), [])
+        self.assertEqual(self.collectors(), [])
+
+    def test_a_stable_non_writable_parent_is_refused_before_any_token(self):
+        import os
+        if os.geteuid() == 0:
+            self.skipTest('root can write anywhere; the probe cannot refuse')
+        parent = Path(self.box) / 'readonly'
+        parent.mkdir()
+        parent.chmod(0o500)
+        self.addCleanup(parent.chmod, 0o700)
+        with self.assertRaises(AppError) as caught:
+            signin.collect(TENANT_A, POLICY, str(parent / 'new'), deadline=5)
+        self.assertEqual(caught.exception.code, 'capture_output_conflict')
+        self.assertEqual(self.fakes.calls(), [])
+        self.assertEqual(list(parent.iterdir()), [])
+
+    def test_a_writable_parent_is_still_accepted(self):
+        signin.check_new_output(str(Path(self.box) / 'fresh-writable'))
+
+    def test_the_documented_race_limit_is_stated_in_the_module(self):
+        self.assertIn('between the preflight and the child', signin.check_new_output.__doc__)
+        self.assertIn('never exposed', signin.check_new_output.__doc__)
+
+    def test_literal_dot_segments_are_unsafe_in_both_validators_before_any_normalisation(self):
+        from intune_iac import capture
+        existing = Path(self.box) / 'existing'
+        existing.mkdir()
+        for path in ('.', '%s/./new' % existing, '%s/a/../b' % existing, './new', '%s/.' % existing):
+            for name, check in (('signin.check_new_output', signin.check_new_output), ('capture._new_directory', capture._new_directory)):
+                with self.assertRaises(AppError) as caught:
+                    check(path)
+                self.assertEqual(caught.exception.code, 'capture_output_unsafe', (name, path))
+        self.assertEqual(list(existing.iterdir()), [])  # neither validator created anything
+
+    def test_one_shared_helper_does_the_dot_segment_check(self):
+        from intune_iac import capture
+        self.assertTrue(callable(capture.reject_dot_segments))
+        capture.reject_dot_segments('/a/b/c')
+        capture.reject_dot_segments('relative/new')
+        for bad in ('.', '..', 'a/./b', 'a/../b', '/a/.', '/..'):
+            with self.assertRaises(AppError):
+                capture.reject_dot_segments(bad)
+
     def test_start_check_signin_off_posix_is_the_designed_refusal(self):
         args = argparse.Namespace(check_signin='azure', goal='discover')
         with patch('intune_iac.signin.detect', side_effect=AttributeError('killpg')) as detect, \

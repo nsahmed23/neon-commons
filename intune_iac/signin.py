@@ -484,18 +484,33 @@ def collector_schema(value):
     return result
 
 
+def _output_check_supported():
+    """Whether this host has the POSIX primitives the output-path check (and the capture command) need."""
+    return (os.name == 'posix' and hasattr(os, 'O_DIRECTORY') and hasattr(os, 'O_NOFOLLOW')
+            and {os.open, os.stat, os.access} <= os.supports_dir_fd)
+
+
 def check_new_output(destination):
     """The capture command's own output-path rules (capture._new_directory), checked without creating or changing anything.
 
-    The path must be absolute-izable with no '.' or '..' segment, every ancestor must be an existing real directory (never
-    followed through a symlink), and the final name must not exist (not even as a symlink or a file). Raises the codes the
-    capture command raises, so the refusal comes before a token is minted. Platforms without the needed primitives are left to
-    the capture command, which refuses them itself.
+    The original string must hold no literal '.' or '..' component (capture.reject_dot_segments, shared with the capture
+    command), every ancestor must be an existing real directory (never followed through a symlink), the parent must allow the
+    caller to write and search it (os.access W_OK and X_OK), and the final name must not exist (not even as a symlink or a
+    file). Raises the codes the capture command raises, so the refusal comes before a token is minted. A host without the
+    needed POSIX primitives is refused here with capture_platform_unavailable, the capture command's own code for it; it is
+    never silently accepted.
+
+    Limit: this is a preflight, not a reservation. Another process may create the name between the preflight and the child's
+    mkdir; the token has been minted by then but is never exposed (the child refuses the path and the product reports it).
+    A reservation protocol (the child reserves the folder and acknowledges before a token is delivered) is in the backlog.
     """
-    if os.name != 'posix' or not hasattr(os, 'O_DIRECTORY') or not hasattr(os, 'O_NOFOLLOW'):
-        return
+    if not _output_check_supported():
+        raise AppError('capture_platform_unavailable', 'Secure capture persistence is unavailable on this platform; use a '
+                       'supported POSIX host.')
+    from .capture import reject_dot_segments
+    reject_dot_segments(destination)
     path = Path(destination).absolute()
-    if path == Path('/') or any(piece in {'.', '..'} for piece in path.parts[1:]):
+    if path == Path('/'):
         raise AppError('capture_output_unsafe', 'Use a new output directory beneath an existing regular directory.')
     flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
     conflict = AppError('capture_output_conflict', 'Capture requires a new directory with no symlinked ancestors; existing files '
@@ -509,6 +524,8 @@ def check_new_output(destination):
             next_fd = os.open(piece, flags, dir_fd=parent_fd)
             os.close(parent_fd)
             parent_fd = next_fd
+        if not os.access('.', os.W_OK | os.X_OK, dir_fd=parent_fd):
+            raise conflict  # a stable non-writable parent: the capture command's mkdir would fail after the token was minted
         try:
             os.stat(path.name, dir_fd=parent_fd, follow_symlinks=False)
         except FileNotFoundError:

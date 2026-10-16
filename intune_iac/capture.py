@@ -215,8 +215,20 @@ class _Reads:
         raise AssertionError('Bounded retry loop must return.')
 
 
+def reject_dot_segments(destination):
+    """Refuse a literal '.' or '..' component in the ORIGINAL path string.
+
+    pathlib silently drops '.' segments, so this must run before any Path is built from the string. One helper, called by
+    _new_directory and by the sign-in preflight (signin.check_new_output), so both refuse the same paths.
+    """
+    text = os.fspath(destination)
+    if any(piece in ('.', '..') for piece in text.replace(os.sep, '/').split('/')):
+        raise AppError('capture_output_unsafe', 'Use a new output directory beneath an existing regular directory.')
+
+
 def _new_directory(destination):
     """Open every ancestor without following links; create only one new child."""
+    reject_dot_segments(destination)
     path = Path(destination).absolute()
     if path == Path('/') or any(piece in {'.', '..'} for piece in path.parts[1:]):
         raise AppError('capture_output_unsafe', 'Use a new output directory beneath an existing regular directory.')
