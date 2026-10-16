@@ -2312,5 +2312,102 @@ class EvidenceBasisTests(unittest.TestCase):
         self.assertEqual(flow['position'], 'intent')
 
 
+
+# ---- round 2, item 5: --service-root and a stored operation_root are opened by the engine's confining helpers ---------------
+
+class ConfinementTests(LayerFixture):
+    """The workflow map opens the service root and the operation root through the same functions the workspace's own read
+    route does (maintenance._safe refuses a symlink anywhere in a path; the modeled service checks its own), and writes nothing."""
+
+    def tree(self, *roots):
+        import hashlib
+        import os
+        found = {}
+        for root in roots:
+            for here, folders, files in os.walk(root, followlinks=False):
+                for name in folders + files:
+                    path = os.path.join(here, name)
+                    if os.path.islink(path):
+                        found[path] = 'link to ' + os.readlink(path)
+                    elif os.path.isdir(path):
+                        found[path] = 'directory'
+                    else:
+                        with open(path, 'rb') as handle:
+                            found[path] = hashlib.sha256(handle.read()).hexdigest()
+        return found
+
+    def cli(self, *extra):
+        import json
+        import subprocess
+        import sys
+        from pathlib import Path
+        script = Path(__file__).resolve().parents[1] / 'scripts/intune-iac.py'
+        result = subprocess.run([sys.executable, str(script), 'workbench', 'workflow', '--root', str(self.store.root),
+                                 '--policy', OBJECT, '--json', *extra], capture_output=True, text=True, cwd='/tmp')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return json.loads(result.stdout)
+
+    def workspace(self, service_root, *commands):
+        from intune_iac.workbench import run_terminal
+        queue, results = iter(list(commands) + ['quit']), []
+        run_terminal(self.store.root, service_root=str(service_root), input_fn=lambda _: next(queue), result_fn=results.append)
+        return results
+
+    def foreign_service(self):
+        import json
+        from pathlib import Path
+        from intune_iac.modeled_service import ModeledService
+        capture = json.loads((Path(repository_tests.ROOT) / 'examples/supported/input/export.json').read_text())
+        capture['tenant_id'] = '99999999-9999-4999-8999-999999999999'
+        return ModeledService.create(self.root / 'foreign-service', capture, [OBJECT])
+
+    def test_a_service_root_that_is_a_symlink_or_another_tenants_is_refused_or_confined_as_the_workspace_does(self):
+        import os
+        self.prepare()
+        foreign = self.foreign_service()
+        link, parent = self.root / 'service-link', self.root / 'via-parent'
+        os.symlink(self.service.root, link)                       # the service itself behind a link
+        os.symlink(self.root, parent)                             # a real service under a symlinked ancestor
+        cases = {'symlink': link, 'symlinked ancestor': parent / 'service', 'another tenant': foreign.root}
+        watched = (self.store.root, self.service.root, self.operation, foreign.root)
+        before, top = self.tree(*watched), sorted(os.listdir(self.root))
+        for name, bad in cases.items():
+            observe = by_id(self.cli('--service-root', str(bad)))['observe']
+            results = self.workspace(bad, 'select ' + OBJECT, 'inspect', 'workflow')
+            inspected = next(item for item in results if item.get('object_id') == OBJECT and 'observation_eligibility' in item)
+            check = inspected['observation_eligibility']
+            self.assertIsNotNone(check, name)                    # the proposal's own check did not pass, in the workspace too
+            self.assertEqual(observe['reason'], check.get('reason') or check['code'], name)
+            worked = by_id(next(item for item in results if item.get('schema_version') == 'workflow-map/1'))['observe']
+            self.assertEqual({key: observe[key] for key in ('state', 'basis', 'reason')},
+                             {key: worked[key] for key in ('state', 'basis', 'reason')}, name)
+            if name == 'another tenant':
+                self.assertEqual((observe['state'], observe['reason']), ('blocked', 'tenant_mismatch'))
+            else:
+                # Refused before anything was opened: the engine's own code, and the map says the check could not be made.
+                self.assertEqual(check['code'], 'maintenance_unsafe_path', name)
+                self.assertEqual((observe['state'], observe['facts']['proposal_check']), ('unknown', 'could not be made'), name)
+        self.assertEqual(self.tree(*watched), before)
+        self.assertEqual(sorted(os.listdir(self.root)), top)
+
+    def test_a_stored_operation_root_that_is_a_symlink_is_refused_as_the_workspaces_own_review_refuses_it(self):
+        import os
+        import shlex
+        self.prepare()
+        real = self.root / 'operation-real'
+        os.rename(self.operation, real)
+        os.symlink(real, self.operation)                         # the path the store recorded is now a link
+        watched = (self.store.root, self.service.root, real)
+        before, top = self.tree(*watched), sorted(os.listdir(self.root))
+        stages = by_id(self.cli('--service-root', str(self.service.root)))
+        results = self.workspace(self.service.root, 'select ' + OBJECT, 'review ' + shlex.quote(str(self.operation)))
+        refusal = next(item for item in results if item.get('status') == 'error')
+        self.assertEqual(refusal['error']['code'], 'maintenance_unsafe_path')
+        for name in ('review', 'approve_execute', 'readback', 'record', 'observed_after'):
+            self.assertEqual((stages[name]['state'], stages[name]['reason']), ('unknown', 'maintenance_unsafe_path'), name)
+        self.assertEqual(self.tree(*watched), before)
+        self.assertEqual(sorted(os.listdir(self.root)), top)
+
+
 if __name__ == "__main__":
     unittest.main()
