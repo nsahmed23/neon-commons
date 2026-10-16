@@ -28,6 +28,14 @@ from intune_iac.io import write_json
 PROJECT = Path(__file__).resolve().parents[1]
 
 
+def close_if_open(fd):
+    # The command closes the descriptor it consumed; a leftover is closed here.
+    try:
+        os.close(fd)
+    except OSError:
+        pass
+
+
 def canary(label):
     # A distinct, secret-shaped value per route; the label is only a prefix that makes a failure readable.
     return label + '-' + secrets.token_urlsafe(30) + 'A1'
@@ -149,7 +157,7 @@ class RedactionHarness(unittest.TestCase):
                     (provider, backend))
         finally:
             for fd in descriptors:
-                os.close(fd)
+                close_if_open(fd)
         self.assertEqual(json.loads(out)['assurance'], 'laboratory_recorded_responses')
 
     # capture (token by environment-variable name, local fake service) ------------------------------------
@@ -185,7 +193,7 @@ class RedactionHarness(unittest.TestCase):
         path.write_bytes(value.encode())
         path.chmod(0o600)
         fd = os.open(path, os.O_RDONLY)
-        self.addCleanup(os.close, fd)
+        self.addCleanup(close_if_open, fd)
         return fd
 
     def test_capture_and_collect_with_descriptor_tokens(self):

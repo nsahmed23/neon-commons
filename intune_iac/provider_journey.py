@@ -393,6 +393,7 @@ def provider_command(args):
 def read_credential_fd(descriptor):
     """Read one explicitly inherited private file/pipe, never ambient input."""
     if type(descriptor) is not int or descriptor < 3: _fail('identity_explicit_credential_fd_required')
+    os.set_inheritable(descriptor, False)  # at once: no child this process starts later can inherit it
     fd = os.dup(descriptor)
     original_flags = None
     try:
@@ -426,19 +427,41 @@ def read_credential_fd(descriptor):
         finally: os.close(fd)
 
 
-def read_token_fd(descriptor):
-    """A read token from an inherited descriptor: read_credential_fd's rules, minus one trailing line end.
+def close_credential_fd(descriptor):
+    """Close the CLI-owned source descriptor once it has been consumed or refused (never a standard stream)."""
+    if type(descriptor) is int and descriptor >= 3:
+        try: os.close(descriptor)
+        except OSError: pass
 
-    A token written with `echo` or a here-string ends in a newline that is not part of the token. An empty result is
-    refused here so no route sends an empty bearer value.
+
+def read_token_fd(descriptor):
+    """A credential from an inherited descriptor: read_credential_fd's rules, then the content rules, then close it.
+
+    Exactly one trailing line ending (LF or CRLF) is removed, as `echo` or a here-string leaves one; any control
+    character that remains (a second line ending included) is refused, so a value cannot smuggle a header or a line.
+    An empty result is refused so no route sends an empty credential. The source descriptor is closed in all cases.
     """
-    token = read_credential_fd(descriptor).rstrip('\r\n')
-    if not token: _fail('identity_credential_fd_empty')
-    return token
+    try:
+        value = read_credential_fd(descriptor)
+        if value.endswith('\r\n'): value = value[:-2]
+        elif value.endswith('\n'): value = value[:-1]
+        if any(ord(c) < 32 or ord(c) == 127 for c in value): _fail('identity_credential_control_character')
+        if not value: _fail('identity_credential_fd_empty')
+        return value
+    finally:
+        close_credential_fd(descriptor)
 
 
 def authenticate_target(args):
-    """Read-only explicit identity collection; only its redacted report leaves."""
+    """Read-only explicit identity collection; only its redacted report leaves. Both descriptors are closed after."""
+    try:
+        return _authenticate_target(args)
+    finally:
+        close_credential_fd(args.provider_secret_fd)
+        close_credential_fd(args.backend_secret_fd)
+
+
+def _authenticate_target(args):
     from . import identity_binding as ib
     value = load_json(args.input)
     if type(value) is not dict or set(value) != {'cloud', 'provider', 'backend_identity', 'backend'}:
@@ -451,8 +474,8 @@ def authenticate_target(args):
                               ib.BackendSpec(**value['backend']), value['cloud'])
     provider = backend = None
     try:
-        provider = ib.ClientSecretHandle(read_credential_fd(args.provider_secret_fd))
-        backend = ib.ClientSecretHandle(read_credential_fd(args.backend_secret_fd))
+        provider = ib.ClientSecretHandle(read_token_fd(args.provider_secret_fd))
+        backend = ib.ClientSecretHandle(read_token_fd(args.backend_secret_fd))
         return ib.bind_live(config, provider_credential=provider, backend_credential=backend).evidence()
     finally:
         if provider is not None: provider.close()

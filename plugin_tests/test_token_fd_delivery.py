@@ -30,7 +30,18 @@ class Descriptors(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.opened = []
-        self.addCleanup(lambda: [os.close(fd) for fd in self.opened])
+        self.identities = {}
+        self.addCleanup(self.close_leftovers)
+
+    def close_leftovers(self):
+        # The CLI closes the descriptor it consumed, and its number may be reused; close only what is still ours.
+        for fd, identity in self.identities.items():
+            try:
+                info = os.fstat(fd)
+            except OSError:
+                continue
+            if (info.st_dev, info.st_ino) == identity:
+                os.close(fd)
 
     def secret_fd(self, content, name='token', mode=0o600):
         path = self.root / name
@@ -38,6 +49,8 @@ class Descriptors(unittest.TestCase):
         path.chmod(mode)
         fd = os.open(path, os.O_RDONLY)
         self.opened.append(fd)
+        info = os.fstat(fd)
+        self.identities[fd] = (info.st_dev, info.st_ino)
         return fd
 
     def main(self, argv):
@@ -140,6 +153,72 @@ class CaptureFdTests(Descriptors):
         (code, out, err), delivered, _, _ = self.run_capture(self.secret_fd('abc def'), name='out-space')
         self.assertEqual(json.loads(err)['error']['code'], 'capture_token_invalid')
         self.assertEqual(delivered, [])
+
+
+class DescriptorHandlingTests(Descriptors):
+    """Non-inheritable at once, source closed afterwards, exactly one line ending removed."""
+    fake = CaptureFdTests.fake
+    run_capture = CaptureFdTests.run_capture
+
+    def closed(self, fd):
+        with self.assertRaises(OSError):
+            os.fstat(fd)
+
+    def test_the_source_descriptor_is_made_non_inheritable_and_closed_after_the_route(self):
+        token = canary('close')
+        fd = self.secret_fd(token)
+        calls = []
+        real = os.set_inheritable
+
+        def recording(descriptor, value):
+            calls.append((descriptor, value))
+            return real(descriptor, value)
+
+        with patch('os.set_inheritable', recording):
+            (code, out, err), delivered, _, _ = self.run_capture(fd)
+        self.assertEqual((code, delivered), (0, [token]), out + err)
+        self.assertIn((fd, False), calls)
+        self.closed(fd)
+
+    def test_the_source_is_closed_even_when_the_read_is_refused(self):
+        fd = self.secret_fd('tok', name='loose', mode=0o644)
+        (code, out, err), delivered, _, _ = self.run_capture(fd, name='out-refused')
+        self.assertEqual(json.loads(err)['error']['code'], 'identity_credential_fd_private')
+        self.closed(fd)
+
+    def test_target_authenticate_closes_both_descriptors(self):
+        from dataclasses import asdict
+        from intune_iac import identity_binding as ib
+        from plugin_tests.test_identity_binding_v5 import config, RecordedServices, Clock
+        path = self.root / 'identity.json'
+        path.write_text(json.dumps(asdict(config())))
+        a, b = self.secret_fd('provider-' + canary('p'), 'p'), self.secret_fd('backend-' + canary('b'), 'b')
+
+        def laboratory(cfg, **kwargs):
+            return ib.bind_laboratory(cfg, **kwargs, transport=RecordedServices(), clock=Clock())
+
+        with patch.object(ib, 'bind_live', side_effect=laboratory):
+            code, out, err = self.main(['target', 'authenticate', '--input', str(path), '--provider-secret-fd', str(a),
+                                        '--backend-secret-fd', str(b)])
+        self.assertEqual(code, 0, out + err)
+        self.closed(a)
+        self.closed(b)
+
+    def test_exactly_one_line_ending_is_removed_and_other_control_characters_are_refused(self):
+        token = canary('lines')
+        cases = ((token, True), (token + '\n', True), (token + '\r\n', True), (token + '\r\n\r\n', False),
+                 (token + '\n\n', False), (token + '\r', False), (token[:8] + '\x01' + token[8:], False),
+                 (token[:8] + '\t' + token[8:], False), (token[:8] + '\n' + token[8:], False), (token + '\x7f', False))
+        for number, (content, ok) in enumerate(cases):
+            with self.subTest(case=number, accepted=ok):
+                fd = self.secret_fd(content, name='t%d' % number)
+                (code, out, err), delivered, _, _ = self.run_capture(fd, name='o%d' % number)
+                if ok:
+                    self.assertEqual(delivered, [token])
+                else:
+                    self.assertEqual(delivered, [])
+                    self.assertEqual(json.loads(err)['error']['code'], 'identity_credential_control_character')
+                    self.assertNotIn(token, out + err)
 
 
 class CollectFdTests(Descriptors):

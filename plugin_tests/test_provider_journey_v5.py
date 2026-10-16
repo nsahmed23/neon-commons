@@ -311,7 +311,10 @@ class IdentityAuthenticationCliTests(unittest.TestCase):
                 for handle in seen:
                     with self.assertRaises(AppError): handle._get()
             finally:
-                for fd in descriptors: os.close(fd)
+                # target authenticate closes the descriptors it consumed; close only what is still open
+                for fd in descriptors:
+                    try: os.close(fd)
+                    except OSError: pass
 
     def test_no_secret_flags_or_unbounded_fd_inputs(self):
         with patch('sys.stderr', io.StringIO()), self.assertRaises(SystemExit):
