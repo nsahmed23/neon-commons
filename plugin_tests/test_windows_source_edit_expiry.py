@@ -129,5 +129,47 @@ class SourceEditWindowTests(unittest.TestCase):
         self.assertEqual(self.api.renames, 2)
 
 
+class ReplayRecordOrderTests(unittest.TestCase):
+    """The acknowledgment's replay record is the intent journal: it is committed durably, under the source lock, before the
+    candidate exists or anything is renamed, so a call that dies at any later point cannot be replayed."""
+    setUp = base.NativeSourceEditTests.setUp
+    apply = base.NativeSourceEditTests.apply
+
+    def test_the_intent_is_flushed_before_the_candidate_is_prepared_or_anything_is_renamed(self):
+        start = len(self.api.events)
+        self.apply()
+        events = self.api.events[start:]
+        intent = [number for number, event in enumerate(events)
+                  if event[0] == 'flush-file' and subject.INTENT_SUFFIX in str(event[1])]
+        staged = [number for number, event in enumerate(events) if '.candidate' in str(event[1])]
+        self.assertEqual(len(intent), 1)
+        self.assertTrue(staged)
+        self.assertLess(intent[0], staged[0])  # the replay record is flushed before the candidate file is even created
+        barrier = [number for number, event in enumerate(events) if event[0] == 'flush-namespace' and intent[0] < number < staged[0]]
+        self.assertTrue(barrier)  # and the namespace flush that makes its name durable comes before the candidate too
+
+    def test_a_call_that_dies_before_the_first_rename_cannot_be_replayed(self):
+        self.api.fail_before = 1
+        with self.assertRaises(KeyboardInterrupt):
+            self.apply()
+        self.api.fail_before = None
+        self.assertEqual(self.api.renames, 1)  # the first rename was dispatched and never completed
+        with self.assertRaises(AppError) as caught:
+            self.apply()
+        self.assertEqual(caught.exception.code, 'windows_source_edit_replay_denied')
+        self.assertEqual(self.api.renames, 1)  # the replay did not reach a rename
+        self.assertEqual((self.real / 'stacks/defaults.yaml').read_bytes(), self.before)
+
+    def test_a_call_refused_after_the_intent_is_recorded_cannot_be_replayed(self):
+        self.api.fail_clone = True  # the candidate cannot be prepared: the call is refused after the intent was recorded
+        with self.assertRaises(AppError):
+            self.apply()
+        self.api.fail_clone = False
+        with self.assertRaises(AppError) as caught:
+            self.apply()
+        self.assertEqual(caught.exception.code, 'windows_source_edit_replay_denied')
+        self.assertEqual(self.api.renames, 0)
+
+
 if __name__ == '__main__':
     unittest.main()
