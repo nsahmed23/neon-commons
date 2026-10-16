@@ -83,6 +83,35 @@ class JudgeSecretValueTests(unittest.TestCase):
         self.judge.requests.clear()
         self.assertEqual(self.judge.call(evidence=[{'token_required': 'yes', 'tokenizer': 'qwen'}])['status'], 'assessed')
 
+    def test_round_three_inputs_are_refused(self):
+        hex64 = 'deadbeef' * 8
+        for name, evidence in (
+                ('dotted bare key name', {'client.key': 'q'}),
+                ('bare key pair', {'detail': 'key=q'}),
+                ('bare signature pair', {'detail': 'signature=abc'}),
+                ('signature member', {'signature': 'a'}),
+                ('compound word of 32 characters', {'detail': 'correcthorsebatterystaplesecretx'}),
+                ('upper case prefix', {'detail': 'SHA256:' + hex64}),
+                ('mixed case prefix', {'detail': 'Sha256:' + hex64}),
+                ('guid under key', {'key': '3f2504e0-4f89-41d3-9a0c-0305e82c3301'}),
+                ('hex under api_key', {'api_key': hex64[:32]}),
+                ('hex under key', {'key': hex64}),
+                ('base64 under client_secret', {'client_secret': 'YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh'}),
+                ('url with a password under state_key', {'state_key': 'https://a:b@h/x.tfstate'}),
+                ('parent segment under state_key', {'state_key': '../x/dev.tfstate'}),
+                ('absolute path under state_key', {'state_key': '/x/dev.tfstate'}),
+                ('query under state_key', {'state_key': 'x/dev.tfstate?sig=abc'}),
+                ('not a tfstate path under key', {'key': 'reference/x/dev.json'})):
+            with self.subTest(name):
+                self.refused(evidence, location='$.evidence{0}')
+
+    def test_the_products_own_key_records_are_accepted(self):
+        policy = 'p_' + 'ab12' * 8 + '_' + 'cd34' * 8
+        for evidence in ([{'key': policy, 'state_key': 'reference/x/dev.tfstate'}],
+                         [{'state_key': 'dev.tfstate', 'note': 'ok'}], [{'key': 'a/b-c_d.e/f.tfstate'}]):
+            self.judge.requests.clear()
+            self.assertEqual(self.judge.call(evidence=evidence)['status'], 'assessed', evidence)
+
     def test_product_forms_and_ordinary_words_stay_accepted_and_the_floor_is_32_characters(self):
         h = 'ab12' * 16
         evidence = [{'sha256': h, 'commit': h[:40], 'recorded': 'sha256:' + h.upper(),

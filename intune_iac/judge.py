@@ -80,7 +80,7 @@ def _validate_evidence(value):
 # listed here, passes. The judge is optional and advisory; do not put secrets in evidence.
 _SECRET_NAME = (r"(?:password|passwd|pwd|secret|token|apikey|api[_-]?key|accountkey|account[_-]?key|"
                 r"sharedaccesskey|shared[_-]?access[_-]?key|sharedaccesssignature|access[_-]?key|"
-                r"private[_-]?key|credential|authorization|(?<![A-Za-z])sig)")
+                r"private[_-]?key|credential|authorization|signature|(?<![A-Za-z])(?:sig|key))")
 _SECRET_SHAPES = (
     re.compile(r"eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]*"),                  # JWT
     re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]{16,}"),                                    # Authorization value
@@ -109,12 +109,13 @@ _HEX = re.compile(r"[0-9A-Fa-f]+")
 _B64_RUN = re.compile(r"[A-Za-z0-9+/_=-]{32,}")
 _B64_ONLY = re.compile(r"[A-Za-z0-9+/_=-]+")
 _POLICY_KEY = re.compile(r"p_[0-9a-f]{32}_[0-9a-f]{32}")
-_DIGEST_VALUE = re.compile(r"(?i)sha256:[0-9a-f]{64}")  # the only prefixed form; sha1:, sha512: and short bodies are refused
+_DIGEST_VALUE = re.compile(r"sha256:[0-9a-fA-F]{64}")  # the only prefixed form: lowercase prefix, 64 hex of either case
 _B64_CANONICAL = re.compile(r"[A-Za-z0-9+/]{32,}={0,2}")
-# An identifier or path made of words (deviceManagementConfigurationPolicy, resourceGroups/networkSecurity) is not base64.
-_WORDY = re.compile(r"(?:[a-z]+|[A-Z][a-z]+)(?:[A-Z][a-z]+)*")
+# Under a member named for a secret exactly two value forms are accepted: a whole-value policy key and a relative
+# state path ending in .tfstate (characters [A-Za-z0-9._/-] only, so no ':', '@', '?' or '=', and no '..' segment).
+_STATE_PATH = re.compile(r"[A-Za-z0-9._-][A-Za-z0-9._/-]*\.tfstate")
 _SECRET_KEY_LAST = re.compile(r"(?:^|_)(?:password|passwd|pwd|secret|token|apikey|api_key|accountkey|account_key|sharedaccesskey|"
-                              r"shared_access_key|sharedaccesssignature|access_key|private_key|credentials?|authorization|sig)$")
+                              r"shared_access_key|sharedaccesssignature|access_key|private_key|credentials?|authorization|signature|sig|key)$")
 _DIGEST_NAMES = frozenset(("sha1", "sha256", "sha512", "digest", "hash", "checksum", "commit", "tree", "head",
                            "revision", "fingerprint"))
 
@@ -139,16 +140,16 @@ def _digest_key(key):
 def _canonical_base64(run):
     """Canonical base64 by alphabet, length (32 or more, a multiple of 4 with padding) and padding; no entropy test.
 
-    The 32-character floor and the word-shape exemption keep ordinary words, identifiers and paths accepted; a long
-    word-shaped run cannot be told from an identifier, so only a run with a non-word shape is refused here.
+    The only allowance is the 32-character floor. A single token of 32 or more base64-alphabet characters whose length
+    is a multiple of 4 is refused even when it is an ordinary compound word (a false positive, documented): remove it
+    from the evidence, or put it under a digest-named key if it is a digest.
     """
-    if len(run) % 4 or not any(c.isalpha() for c in run) or _HEX.fullmatch(run.rstrip("=")):
-        return False
-    body = run.rstrip("=")
-    if "/" in body:
-        pieces = [p for p in body.split("/") if p]
-        return not (pieces and all(_WORDY.fullmatch(p) for p in pieces))
-    return _WORDY.fullmatch(body) is None
+    return len(run) % 4 == 0 and any(c.isalpha() for c in run) and not _HEX.fullmatch(run.rstrip("="))
+
+
+def _state_path(value):
+    return (_STATE_PATH.fullmatch(value) is not None and not value.startswith("/")
+            and all(part != ".." for part in value.split("/")))
 
 
 def _base64_like(run):
@@ -229,7 +230,8 @@ def _check_no_secret(value, root, key_value=None):
                 # A member whose LAST word is a secret name (password, client_secret) is refused for any nonempty
                 # value; a member that only mentions one (token_required) is refused from six characters.
                 if (type(child) is str and not _placeholder(child) and child
-                        and (_SECRET_KEY_LAST.search(name) or (_SECRET_KEY.search(name) and len(child) >= 6))):
+                        and (_SECRET_KEY_LAST.search(name) or (_SECRET_KEY.search(name) and len(child) >= 6))
+                        and not (_POLICY_KEY.fullmatch(child) or _state_path(child))):
                     raise _Rejected("secret_shaped_value", where)
                 visit(child, where, _digest_key(key))
         elif type(item) is list:
