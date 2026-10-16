@@ -257,19 +257,6 @@ class ExecuteLatchTests:
         self.assert_no_store_touched(other.policy, self.policy)
         self.assert_nothing_happened()
 
-    def test_a_context_whose_phase_is_another_phase_but_whose_copied_fields_are_this_ones_records_nothing(self):
-        if not self.phase_family:
-            self.skipTest('only the plan family has a phase')
-        forged = self.build_context(original=self.original)
-        forged.phase_identifier = str(uuid.uuid4())  # the job and the copied fields are A's, the phase is another
-        signed = self.receipt()
-        self.clocks.elapse(LIFETIME + 1)
-        with self.assertRaises(AppError):
-            self.module.execute(self.manifest, signed, context=forged, policy=self.recovery_policy,
-                                output=self.root / 'out' / uuid.uuid4().hex)
-        self.assert_no_store_touched(self.policy)
-        self.assert_nothing_happened()
-
     def test_an_authentic_approval_issued_in_the_future_writes_no_clock_record_and_no_expiry(self):
         signed = self.receipt(issued_at=self.start + 30)  # authentic, but dated ahead of this clock
         anchors = dict(clock._ANCHORS)
@@ -487,6 +474,17 @@ class AdoptionPlanRecoveryTests(ExecuteLatchTests, RecoveryFixture):
     profile = 'laboratory_adoption_plan_native_lease_recovery'
     adoption_proof = 'approved_adoption_successor'
     phase_family = True
+
+    def test_a_context_whose_phase_is_another_phase_but_whose_copied_fields_are_this_ones_records_nothing(self):
+        forged = self.build_context(original=self.original)
+        forged.phase_identifier = str(uuid.uuid4())  # the job and the copied fields are A's, the phase is another
+        signed = self.receipt()
+        self.clocks.elapse(LIFETIME + 1)
+        with self.assertRaises(AppError):
+            self.module.execute(self.manifest, signed, context=forged, policy=self.recovery_policy,
+                                output=self.root / 'out' / uuid.uuid4().hex)
+        self.assert_no_store_touched(self.policy)
+        self.assert_nothing_happened()
 
 
 if __name__ == '__main__':
