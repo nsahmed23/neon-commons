@@ -335,34 +335,69 @@ class RedactionTests(Base):
         for forbidden in ('secret', 'key.txt', 'server', 'other/evidence', 'owned\x07'):
             self.assertNotIn(forbidden, text)
         self.assertEqual(model['read']['rejected_evidence'], 4)
-        self.assertIn('\\x1b]0;owned\\x07', text)
+        self.assertNotIn('owned', text)  # a reason is free text: it is not rendered at all
         self.assertTrue(all(c == '\n' or c.isprintable() for c in json.dumps(model, ensure_ascii=False)))
 
-    def test_a_reason_carrying_an_agent_executable_path_never_shows_the_path(self):
+    def test_a_free_text_reason_is_never_rendered_only_the_fact_that_one_was_recorded(self):
         reasons = [
-            'refusing C:\\Users\\someone\\AppData\\Roaming\\npm\\codex.CMD: a .cmd or .bat shim re-parses arguments; set LOOP_CODEX',
-            'codex executable not found: C:/Users/someone/bin/codex.exe (LOOP_CODEX)',
-            'cannot start /home/someone/.config/agent/codex.toml now',
-            'refusing C:\\Users\\Some One\\AppData\\codex.CMD: a shim',
-            'unc \\\\server\\share\\codex.cmd and //server/x']
+            'refusing C:\\Users\\someone\\AppData\\Roaming\\npm\\codex.CMD: a shim; set LOOP_CODEX',
+            'executable:C:\\Users\\Alice\\AppData\\Roaming\\npm\\codex.CMD',
+            'home C:\\Users\\Some One',
+            'label:\\\\?\\C:\\Users\\Bob Jones\\x',
+            '/home/someone/.config/agent/codex.toml',
+            'LOOP_CODEX uses codex.CMD with profile nsahm']
         for number, reason in enumerate(reasons):
-            events = [event(1, 'dispatch.queued', 'T-1', kind='advisor'),
-                      event(2, 'dispatch.unavailable', 'T-1', reason=reason)]
-            model, text = self.view(events)
-            shown = text + json.dumps(model)
-            for forbidden in ('someone', 'Some One', 'codex.', 'CMD', 'AppData', 'server', 'share', '.config'):
-                self.assertNotIn(forbidden, shown, (number, forbidden))
-            self.assertIn('<path>', text)
-        _, text = self.view([event(1, 'dispatch.queued', 'T-1', kind='advisor'),
-                             event(2, 'dispatch.unavailable', 'T-1', reason=reasons[0])])
-        self.assertIn('a .cmd or .bat shim re-parses arguments; set LOOP_CODEX', text)
+            for terminal in ('dispatch.unavailable', 'dispatch.failed', 'dispatch.unknown'):
+                events = [event(1, 'dispatch.queued', 'T-1', kind='advisor'), event(2, terminal, 'T-1', reason=reason)]
+                model, text = self.view(events)
+                shown = text + json.dumps(model)
+                for forbidden in ('someone', 'Alice', 'Some One', 'Bob', 'Jones', 'codex', 'CMD', 'AppData', 'LOOP_CODEX',
+                                  'nsahm', '.config', 'profile'):
+                    self.assertNotIn(forbidden, shown, (number, terminal, forbidden))
+                self.assertIn('reason recorded (free text, not shown)', text)
+                row = model['tasks'][0]
+                self.assertTrue(row['reason_recorded'])
+                self.assertNotIn('reason', row)
+        events = [event(1, 'dispatch.queued', 'T-1', kind='advisor'), event(2, 'dispatch.failed', 'T-1')]
+        model, text = self.view(events)
+        self.assertFalse(model['tasks'][0]['reason_recorded'])
+        self.assertNotIn('reason recorded', text)
 
-    def test_a_path_inside_a_configured_root_in_a_reason_is_scrubbed_too(self):
-        events = [event(1, 'dispatch.queued', 'T-1', kind='advisor'),
-                  event(2, 'dispatch.failed', 'T-1', reason='see C:/p/evidence/secret-name.md for why')]
-        _, text = self.view(events, evidence_roots=['C:/p'])
-        self.assertNotIn('secret-name', text)
-        self.assertIn('see <path> for why', text)
+    def test_a_task_named_like_a_user_is_a_contract_fault_and_is_not_shown(self):
+        events = [dict(event(1, 'dispatch.unavailable', 'nsahm', reason='LOOP_CODEX uses codex.CMD with profile nsahm'),
+                       role='developer')]
+        model, text = self.view(events)
+        self.assertEqual(model['tasks'], [])
+        self.assertEqual(sorted(f['code'] for f in model['faults']), ['invalid_field'])
+        self.assertIn('invalid_field', text)
+        self.assertNotIn('nsahm', text + json.dumps(model))
+        self.assertNotIn('codex', text + json.dumps(model))
+
+    def test_the_task_identifier_must_match_the_loop_grammar(self):
+        # runner.py mints 'T-' + uuid4().hex[:10]; the real export fixture holds T-f445e27aa6
+        for good in ('T-f445e27aa6', 'T-1', 'T-' + 'a' * 32):
+            model, _ = self.view([event(1, 'dispatch.queued', good, kind='advisor')])
+            self.assertEqual([r['task'] for r in model['tasks']], [good])
+        for bad in ('nsahm', 'T-', 'T-ABC', 'T-nsahm', 't-abc', 'T-' + 'a' * 33, 'T-abc def', 'C:\\Users\\x'):
+            model, text = self.view([event(1, 'dispatch.queued', bad, kind='advisor')])
+            self.assertEqual(model['tasks'], [], bad)
+            self.assertEqual([f['code'] for f in model['faults']], ['invalid_field'], bad)
+            self.assertNotIn(bad, text + json.dumps(model))
+
+    def test_a_role_outside_the_loops_closed_list_is_a_contract_fault(self):
+        for good in ('controller', 'verifier', 'watcher', 'runner', 'reporter', 'migration', 'telemetry'):
+            self.assertEqual(self.view([event(1, 'dispatch.queued', 'T-1', kind='advisor', role=good)])[0]['faults'], [])
+        model, text = self.view([event(1, 'dispatch.queued', 'T-1', kind='advisor', role='nsahm')])
+        self.assertEqual(model['tasks'], [])
+        self.assertEqual([f['code'] for f in model['faults']], ['invalid_field'])
+        self.assertNotIn('nsahm', text + json.dumps(model))
+
+    def test_a_dispatch_kind_outside_the_loops_closed_list_is_a_contract_fault(self):
+        for kind in ('dispatch.queued', 'dispatch.refused'):
+            model, text = self.view([event(1, kind, 'T-1', kind='nsahm')])
+            self.assertEqual(model['tasks'], [])
+            self.assertEqual([f['code'] for f in model['faults']], ['invalid_field'])
+            self.assertNotIn('nsahm', text + json.dumps(model))
 
     def test_an_event_type_that_is_an_array_or_an_object_is_a_fault_shown_in_the_view(self):
         from intune_iac.engineering_view import build_view, render_lines

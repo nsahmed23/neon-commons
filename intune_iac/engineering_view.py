@@ -79,7 +79,7 @@ def _fault_line(fault):
 
 def _task_line(row):
     incarnation = ', incarnation %s' % row['incarnation'] if row['adoptions'] and row['incarnation'] else ''
-    reason = 'reason: %s | ' % row['reason'] if row['reason'] else ''
+    reason = 'reason recorded (free text, not shown) | ' if row['reason_recorded'] else ''
     parts = ['%s  %s  %s  %s' % (row['task'], row['kind'] or 'kind not recorded', row['role'], row['words']),
              'last %s seq %d' % (row['last_event_type'], row['last_seq']),
              'adoptions %d%s' % (row['adoptions'], incarnation),

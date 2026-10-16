@@ -10,7 +10,7 @@ prints is a fact the records support and no stronger one:
     verified               only a passing verification that names this task and the exact tree it completed with,
                            and that no correction has withdrawn
     cancelled              only with cleanup confirmed; "(attested by the controller)" when the controller said so
-    unknown, failed        as recorded; blocked is unavailable or refused, with the reason beside it
+    unknown, failed        as recorded; blocked is unavailable or refused; a reason is free text and is never shown, only that one was recorded
     later terminal event   an annotation ("unknown; later cancelled ..."), never a state change
     late result            an annotation on the task, never a state change
 
@@ -21,7 +21,6 @@ an event (the incarnation) is not an attempt and is never used to group events.
 """
 from __future__ import annotations
 
-ATTESTED = 'controller attested'
 FINAL = ('completed', 'verified', 'failed', 'cancelled', 'unknown', 'blocked')
 # Events that change or annotate a task's state; an unattributed one on a multi-attempt task is not applied.
 ATTRIBUTED = frozenset(('dispatch.queued', 'dispatch.refused', 'dispatch.started', 'dispatch.timed_out',
@@ -47,8 +46,8 @@ def _new(event):
 
 def _end(attempt, event, outcome):
     if attempt['terminal'] is None:
-        attempt['terminal'] = {'outcome': outcome, 'seq': event['seq'], 'reason': event['data'].get('reason'),
-                               'attested': event['data'].get('reason') == ATTESTED}
+        attempt['terminal'] = {'outcome': outcome, 'seq': event['seq'], 'reason_recorded': event['data'].get('reason_recorded', False),
+                               'attested': event['data'].get('reason_attested', False)}
         return True
     return False
 
@@ -59,7 +58,7 @@ def _later(event):
     if kind == 'dispatch.cancelled':
         if not data.get('cleanup_confirmed'):
             return 'later cancel recorded, cleanup not confirmed'
-        return 'later cancelled' + (' (attested by the controller)' if data.get('reason') == ATTESTED else '')
+        return 'later cancelled' + (' (attested by the controller)' if data.get('reason_attested') else '')
     return 'later ' + ('blocked' if kind in ('dispatch.unavailable', 'dispatch.refused') else kind.split('.')[1])
 
 
@@ -194,7 +193,7 @@ def _row(task, verifications, corrected):
     clock = (attempt['last'] or last)['wall_utc']
     return {'task': task['task'], 'kind': task['kind'], 'role': task['role'], 'state': state, 'state_words': phrase,
             'words': '; '.join([phrase] + notes), 'notes': list(notes),
-            'reason': attempt['terminal']['reason'] if attempt['terminal'] else None,
+            'reason_recorded': bool(attempt['terminal'] and attempt['terminal']['reason_recorded']),
             'last_event_type': last['event_type'], 'last_seq': last['seq'], 'last_wall_utc': last['wall_utc'],
             'no_news_since': None if state in FINAL else clock, 'adoptions': task['adoptions'],
             'incarnation': task['incarnation'], 'late_result': task['late'], 'evidence': task['evidence']}

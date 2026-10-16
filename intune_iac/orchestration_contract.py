@@ -31,16 +31,27 @@ EVENT_TYPES = frozenset((
     'work_order.approved', 'work_order.rejected', 'work_order.stale', 'approval.expired', 'repair.dispatch_started',
     'repair.reported', 'requirement.accepted', 'requirement.reopened', 'telemetry.degraded'))
 
-TEXT, FLAG, IDENT = 'text', 'flag', 'ident'
-# The only `data` fields shown, by event type, with the type each must have.
+# The loop's closed lists: loop/model.py ROLES and loop/runner.py SCHEMAS (the dispatch kinds).
+ROLES = frozenset(('controller', 'verifier', 'watcher', 'runner', 'reporter', 'migration', 'telemetry'))
+DISPATCH_KINDS = frozenset(('advisor', 'repair'))
+# The loop mints a task id as 'T-' + uuid4().hex[:10] (loop/runner.py:96). Shorter ids are accepted so that a
+# hand-written fixture can say T-1; anything that is not 'T-' and lower-case hex is a contract fault, never shown.
+_TASK = re.compile(r'T-[0-9a-f]{1,32}')
+_INCARNATION = re.compile(r'[0-9a-f]{1,32}')
+ATTESTED = 'controller attested'
+
+TEXT, FLAG, IDENT, REASON = 'text', 'flag', 'ident', 'reason'
+# The only `data` fields shown, by event type, with the type each must have. A REASON is free text from the loop
+# (it can hold agent configuration, a user name or a path): it is never carried, only the fact that one was recorded
+# (and whether it was the controller's attestation, the one value the view reads).
 DATA_FIELDS = {
-    'dispatch.queued': {'kind': TEXT},
-    'dispatch.refused': {'kind': TEXT, 'reason': TEXT},
+    'dispatch.queued': {'kind': DISPATCH_KINDS},
+    'dispatch.refused': {'kind': DISPATCH_KINDS, 'reason': REASON},
     'dispatch.started': {'adopted': FLAG, 'awaiting_controller': FLAG},
-    'dispatch.failed': {'reason': TEXT},
-    'dispatch.unknown': {'reason': TEXT},
-    'dispatch.unavailable': {'reason': TEXT},
-    'dispatch.cancelled': {'cleanup_confirmed': FLAG, 'reason': TEXT},
+    'dispatch.failed': {'reason': REASON},
+    'dispatch.unknown': {'reason': REASON},
+    'dispatch.unavailable': {'reason': REASON},
+    'dispatch.cancelled': {'cleanup_confirmed': FLAG, 'reason': REASON},
     'dispatch.completed': {'tree': TEXT},
     'repair.reported': {'tree': TEXT},
     'verification.completed': {'outcome': TEXT, 'requirement': TEXT, 'gate': TEXT, 'commit': TEXT, 'tree': TEXT},
@@ -189,11 +200,12 @@ def _bad(field):
     return ContractFault('invalid_field', field)
 
 
-def ident(raw, field, required=False):
+def ident(raw, field, required=False, grammar=_IDENT, allowed=None):
+    """A string that matches `grammar` (and is in `allowed` when given), or ContractFault naming only the field."""
     value = raw.get(field)
     if value is None and not required:
         return None
-    if not (isinstance(value, str) and _IDENT.fullmatch(value)):
+    if not (isinstance(value, str) and grammar.fullmatch(value)) or (allowed is not None and value not in allowed):
         raise _bad(field)
     return value
 
@@ -214,6 +226,14 @@ def _data(kind, raw):
             out[name] = value is True
         elif how == IDENT:
             out[name] = ident(data, name)
+        elif how == REASON:
+            if value is not None and not isinstance(value, str):
+                raise _bad('data.' + name)
+            out[name + '_recorded'], out[name + '_attested'] = value is not None, value == ATTESTED
+        elif isinstance(how, frozenset):  # a closed list
+            if value is not None and not (isinstance(value, str) and value in how):
+                raise _bad('data.' + name)
+            out[name] = value
         else:
             if value is not None and not isinstance(value, str):
                 raise _bad('data.' + name)
@@ -264,7 +284,8 @@ def parse_event(raw, roots=()):
         raise _bad('wall_utc')
     evidence, rejected = _evidence(raw, roots)
     record = {'seq': seq, 'event_id': event_id, 'event_type': kind,
-              'role': ident(raw, 'role', required=True), 'task': ident(raw, 'task'),
-              'attempt': ident(raw, 'attempt'), 'incarnation': ident(raw, 'incarnation'), 'wall_utc': stamp,
+              'role': ident(raw, 'role', required=True, allowed=ROLES), 'task': ident(raw, 'task', grammar=_TASK),
+              'attempt': ident(raw, 'attempt'), 'incarnation': ident(raw, 'incarnation', grammar=_INCARNATION),
+              'wall_utc': stamp,
               'evidence': evidence, 'data': _data(kind, raw)}
     return record, rejected

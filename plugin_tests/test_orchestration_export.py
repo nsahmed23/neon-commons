@@ -183,15 +183,12 @@ class ExportAdapterTests(unittest.TestCase):
             self.assertEqual(sorted(record), ['attempt', 'data', 'event_id', 'event_type', 'evidence', 'incarnation',
                                               'role', 'seq', 'task', 'wall_utc'])
 
-    def test_a_free_text_field_is_escaped_and_bounded(self):
+    def test_a_free_text_reason_is_not_carried_only_the_fact_that_one_was_recorded(self):
         events = [event(1, 'dispatch.queued', 'T-1', kind='advisor'),
                   event(2, 'dispatch.failed', 'T-1', reason=ESC + 'x' * 500)]
         write_export(self.dir, events)
-        reason = read(self.dir)['events'][1]['data']['reason']
-        self.assertNotIn('\x1b', reason)
-        self.assertNotIn('\x07', reason)
-        self.assertIn('\\x1b[2J', reason)
-        self.assertLessEqual(len(reason), 203)
+        data = read(self.dir)['events'][1]['data']
+        self.assertEqual(data, {'reason_recorded': True, 'reason_attested': False})
 
     def test_an_identifier_with_control_characters_is_a_fault_and_never_reaches_a_record(self):
         events = [event(1, 'dispatch.queued', 'T-1', kind='advisor'),

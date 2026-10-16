@@ -61,18 +61,19 @@ class ReducerTests(unittest.TestCase):
 
     def test_failed_and_unknown_keep_their_reason_apart_from_the_state_words(self):
         row = self.one(lifecycle('T-1', terminal='dispatch.failed', reason='schema_invalid'))
-        self.assertEqual((row['state'], row['state_words'], row['reason']), ('failed', 'failed', 'schema_invalid'))
+        self.assertEqual((row['state'], row['state_words'], row['reason_recorded']), ('failed', 'failed', True))
         row = self.one(lifecycle('T-1', terminal='dispatch.unknown', reason='cleanup not confirmed after cancel (deadline)'))
         self.assertEqual((row['state'], row['state_words']), ('unknown', 'unknown'))
-        self.assertEqual(row['reason'], 'cleanup not confirmed after cancel (deadline)')
+        self.assertTrue(row['reason_recorded'])
+        self.assertNotIn('cleanup not confirmed after cancel', json.dumps(row))
 
     def test_unavailable_and_refused_read_blocked_with_the_reason(self):
         row = self.one([event(1, 'dispatch.queued', 'T-1', kind='advisor'),
                         event(2, 'dispatch.unavailable', 'T-1', reason='route offline')])
-        self.assertEqual((row['state'], row['state_words'], row['reason']), ('blocked', 'blocked', 'route offline'))
+        self.assertEqual((row['state'], row['state_words'], row['reason_recorded']), ('blocked', 'blocked', True))
         row = self.one([event(1, 'dispatch.refused', 'T-2', kind='advisor', reason='limit: 2 advisor tasks already running')],
                        'T-2')
-        self.assertEqual((row['state'], row['kind'], row['reason']), ('blocked', 'advisor', 'limit: 2 advisor tasks already running'))
+        self.assertEqual((row['state'], row['kind'], row['reason_recorded']), ('blocked', 'advisor', True))
 
     def test_cancelled_reads_cancelled_only_with_cleanup_confirmed_by_the_route(self):
         row = self.one(lifecycle('T-1', terminal='dispatch.cancelled', cleanup_confirmed=True, reason='cleanup confirmed'))
@@ -199,7 +200,7 @@ class ViewTests(unittest.TestCase):
         events = [event(1, 'dispatch.queued', 'T-1', kind='advisor'),
                   event(2, 'dispatch.failed', 'T-1', reason='bad ' + hostile)]
         model, text = self.view(events)
-        self.assertIn('\\x1b[2J', text)
+        self.assertNotIn('owned', text)
         self.assertTrue(all(c == '\n' or c.isprintable() for c in text), repr(text))
         self.assertTrue(all(c == '\n' or c.isprintable() for c in json.dumps(model, ensure_ascii=False)))
 
