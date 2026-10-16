@@ -988,6 +988,8 @@ plugin_tests/test_recovery_expiry_latch.py
 plugin_tests/test_release_artifact_completion.py
 plugin_tests/test_release_audit.py
 plugin_tests/test_release_candidate.py
+plugin_tests/test_release_checks.py
+plugin_tests/test_release_hardening.py
 plugin_tests/test_release_transfer_r4.py
 plugin_tests/test_repository.py
 plugin_tests/test_repository_entry.py
@@ -1183,6 +1185,7 @@ reference/field_accounting.py
 reference/invariants.py
 reference/validation.py
 reference/workflow.py
+release-sensitive-allow.txt
 release-source-files.txt
 repair-traceability.csv
 requirements-runtime-linux-x86_64-cp312.lock
