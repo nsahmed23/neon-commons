@@ -1738,7 +1738,7 @@ class ReviewTextTests(unittest.TestCase):
             lanes = [str(row) for row in workflow_map_lines(flow, 80, rules, detail=False, keyboard=False)
                      if isinstance(row, MapLine)]
             self.assertEqual(len(lanes), 11)
-            self.assertTrue(all(lane in lines for lane in lanes), lanes)         # the text form prints those very lanes
+            self.assertTrue(all(lane.rstrip() in lines for lane in lanes), lanes)   # the text form prints those very lanes
             self.assertFalse(any(row.startswith('>') for row in lanes), lanes)     # the position is @, nothing is focused
             self.assertEqual([row[:2].strip() for row in lanes if row[:2].strip()], ['@'])
             flat = ' '.join(text.split())
@@ -1747,6 +1747,14 @@ class ReviewTextTests(unittest.TestCase):
                 self.assertEqual(sum(item in line for line in text.splitlines()), 1, (rules, item))
             self.assertIn('@ position', flat)
             self.assertTrue(all(len(line) <= 80 for line in text.splitlines()))
+
+    def test_no_line_of_the_text_form_ends_in_a_space_so_it_pastes_and_diffs_clean(self):
+        from intune_iac.workbench_screens import workflow_text_lines
+        for width in (80, 50, 36):
+            for rules in ('ascii', 'unicode'):
+                for name, flow in flows().items():
+                    padded = [line for line in workflow_text_lines(flow, width, rules) if line != line.rstrip()]
+                    self.assertEqual(padded, [], (width, rules, name))
 
 
 class ReviewInvariantTests(unittest.TestCase):

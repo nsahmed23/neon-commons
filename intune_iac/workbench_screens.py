@@ -2467,7 +2467,9 @@ def workflow_text_lines(flow, width, rules='ascii', prefixes=None):
     keyboard reaches one stage's detail at a time; this lists all of them, so no stage's step is left out of a pipe."""
     stages = [stage for stage in flow.get('stages') or [] if isinstance(stage, dict)]
     if width >= WORKFLOW_LANE_WIDTH:
-        lines = [str(row) for row in workflow_map_lines(flow, width, rules, prefixes=prefixes, detail=False, keyboard=False)]
+        # The pane pads each lane to its width; a pipe has no use for that padding.
+        lines = [str(row).rstrip() for row in workflow_map_lines(flow, width, rules, prefixes=prefixes, detail=False,
+                                                                 keyboard=False)]
     else:
         name = flow.get('name') if isinstance(flow.get('name'), str) and flow['name'] else None
         lines = word_wrap('[WORKFLOW] %s (%s) | %s' % (name or '(no name)', short_id(flow.get('object_id'), prefixes),
