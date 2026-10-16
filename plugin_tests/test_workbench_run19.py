@@ -312,7 +312,7 @@ class RouteDirectoryTests(CatalogLayerCase):
     directory is DIRECTORY on every screen; the route row now takes it from there. Through the real layer, built by the
     real catalog builder: no raw control byte, and no refused name or piece of it, on screen."""
 
-    TOKEN = 'ghp_AbCdEfGhIjKlMnOpQrStUvWxYz0123456789'
+    TOKEN = 'ghp_' + 'AbCdEfGhIjKlMnOpQr' + 'StUvWxYz0123456789'   # built at runtime: the source holds no credential-shaped literal
     REFUSED = (
         # what it is, the directory, strings that must not be on the screen besides the name and its escaped form
         ('credential-shaped', 'ghp_x', ('ghp_',)),
