@@ -399,24 +399,36 @@ NO_CHECK_RECORDED = ('No verified sign-in, and no sign-in check was run: start w
                      'for an existing Azure sign-in (it runs az account list --output json and nothing else).')
 NO_CHECK_SCREEN = ('No sign-in check was run. To look for an existing Azure sign-in, run: %s start %s--goal %s --check-signin azure '
                    '(%sit runs az account list --output json and nothing else).')
-# Said once, inside the note's bracket, when the directory is not named: the same words for every reason it was refused.
-DIRECTORY_NOT_SHOWN = 'DIRECTORY is the directory this screen is about; its name is not shown here; '
+# What a screen says, in the same words whatever the reason a directory was refused, when it prints DIRECTORY in the directory's
+# place: on its own line under the header (the screen says it once), or inside a note's bracket when the note stands alone.
+DIRECTORY_NOT_SHOWN_STEM = 'DIRECTORY is the directory this screen is about; its name is not shown here'
+DIRECTORY_NOT_SHOWN = DIRECTORY_NOT_SHOWN_STEM + '; '
+DIRECTORY_NOT_SHOWN_SENTENCE = DIRECTORY_NOT_SHOWN_STEM + '.'
 
 
-def screen_note(note, directory=None):
+def directory_hidden(directory):
+    """True when a screen must not print the surveyed directory: the rule that guards the output path of signin collect refuses it
+    (signin_facts.output_display: printable, within its limit, and not credential-shaped as a whole or in any piece). The
+    directory is user input and may be anything. A survey that names no directory has nothing to hide."""
+    if not directory:
+        return False
+    from .signin_facts import OUTPUT_NOT_SHOWN, output_display
+    return output_display(directory) == OUTPUT_NOT_SHOWN
+
+
+def screen_note(note, directory=None, said=False):
     """A recorded note as a screen says it: the recorded no-sign-in-check note in two grammatical sentences, the command on its
     own rows (a screen puts every printed command there); any other note as it is.
 
     The command names the surveyed directory, so that it runs on what the screen is about and not on the directory it is typed
-    in. The directory is user input, so it is named only when the rule that guards the output path of signin collect accepts it
-    (signin_facts.output_display: printable, within its limit, and not credential-shaped as a whole or in any piece). Otherwise
-    the placeholder DIRECTORY stands for it, and the note says in words that its name is not shown, the same words whatever
-    the reason, so the screen never says which rule applied."""
+    in. The directory is user input, so it is named only when directory_hidden does not refuse it. Otherwise the placeholder
+    DIRECTORY stands for it, and the note says in words that its name is not shown, the same words whatever the reason, so the
+    screen never says which rule applied; said=True when the screen has already said it (under its header), so that the screen
+    says it once."""
     where, legend = '', ''
     if directory:
-        from .signin_facts import OUTPUT_NOT_SHOWN, output_display
-        if output_display(directory) == OUTPUT_NOT_SHOWN:
-            where, legend = 'DIRECTORY ', DIRECTORY_NOT_SHOWN
+        if directory_hidden(directory):
+            where, legend = 'DIRECTORY ', '' if said else DIRECTORY_NOT_SHOWN
         else:
             where = shlex.quote(directory) + ' '
     for operation in OPERATIONS:

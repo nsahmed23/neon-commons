@@ -531,15 +531,20 @@ class DirectoryInCommandTests(Base):
             directory = Path(temp) / 'ghp_abc1234'
             directory.mkdir()
             shutil.copyfile(ROOT / 'examples/context.json', directory / 'context.json')
-            rows = goal_rows(tc.text_of(module.build(entry.survey(directory), doctor=tc.doctor(), goal='discover'), 120), 'discover')
-            self.assertIn('run: intune-iac start DIRECTORY --goal discover --check-signin azure (' + self.NOT_SHOWN, rows['blocked'])
+            lines = tc.text_of(module.build(entry.survey(directory), doctor=tc.doctor(), goal='discover'), 120)
+            rows = goal_rows(lines, 'discover')
+            # a screen says once, under its header, that the name is not shown (round 3); the note only names the placeholder
+            self.assertIn('run: intune-iac start DIRECTORY --goal discover --check-signin azure (it runs az account list', rows['blocked'])
             self.assertNotIn('ghp_', rows['blocked'])
-            _, block = goal_block(run_cli(str(directory), '--goal', 'discover', width=120)[1])
+            self.assertEqual(flat(lines).count('its name is not shown here'), 1)
+            text = run_cli(str(directory), '--goal', 'discover', width=120)[1]
+            _, block = goal_block(text)
             start = next(i for i, line in enumerate(block) if line.startswith('  Integration and service: '))
             stop = next(i for i, line in enumerate(block) if line.startswith('  Exceptional secret input: '))
             row = flat(block[start:stop])
-            self.assertIn('run: intune-iac start DIRECTORY --goal discover --check-signin azure (' + self.NOT_SHOWN, row)
+            self.assertIn('run: intune-iac start DIRECTORY --goal discover --check-signin azure (it runs az account list', row)
             self.assertNotIn('ghp_', row)
+            self.assertEqual(flat(text.split('\n')).count('its name is not shown here'), 1)
 
     def test_a_directory_named_with_an_escape_gets_the_same_placeholder_end_to_end(self):
         import shutil
@@ -555,7 +560,7 @@ class DirectoryInCommandTests(Base):
                 self.skipTest('this file system refuses a control byte in a name')
             shutil.copyfile(ROOT / 'examples/context.json', directory / 'context.json')
             rows = goal_rows(tc.text_of(module.build(entry.survey(directory), doctor=tc.doctor(), goal='discover'), 120), 'discover')
-            self.assertIn('run: intune-iac start DIRECTORY --goal discover --check-signin azure (' + self.NOT_SHOWN, rows['blocked'])
+            self.assertIn('run: intune-iac start DIRECTORY --goal discover --check-signin azure (it runs az account list', rows['blocked'])
             self.assertNotIn('\x1b', rows['blocked'])
 
 
@@ -618,6 +623,177 @@ class CaptureCommandPositionTests(Base):
             if row['needed']:
                 row['next_action'] = self.DECOY_ACTION
         self.assertNotIn(self.SENTENCE, flat(start_lines(value, 120, view)))
+
+
+class DirectoryEchoTests(Base):
+    """Round 3: every text place that prints the surveyed directory (the catalog's header, start's header, start's Directory: line
+    and the catalog pointer at the end of start) applies the rule that guards the output path of signin collect
+    (signin_facts.output_display). A refused name prints as DIRECTORY, and each screen says once, under its header, that the name
+    is not shown. An ordinary directory prints exactly as before."""
+
+    SAID = 'DIRECTORY is the directory this screen is about; its name is not shown here.'
+    # label: (the name of the folder to survey, or None for a path over the display limit; the pieces that must never be printed)
+    NAMES = {
+        'a token prefix': ('ghp_abc1234', ('ghp_', 'abc1234')),
+        'a bearer value': ('Bearer ' + 'Qx7' * 10, ('Bearer', 'Qx7')),
+        'a jwt-shaped piece': ('eyJhbGciOiJIUzI1NiJ9.e30.c2ln', ('eyJ', 'c2ln', 'hbGci')),
+        'an unbroken run': ('a1' * 14, ('a1a1a1',)),
+        'an escape': ('xx9\x1b[31myy9', ('\x1b', 'xx9', 'yy9')),
+        'a carriage return': ('xx9\ryy9', ('\r', 'xx9', 'yy9')),
+        'a line feed': ('xx9\nyy9', ('xx9', 'yy9')),
+        'a path over the display limit': (None, ('abcdefghij',)),
+    }
+    START_HEADER = 'DIRECTORY | offline (no live connection) | synthetic evidence stays labelled synthetic'
+    CATALOG_HEADER = 'DIRECTORY | offline | this lists only what this build holds'
+
+    def folder(self, temp, name):
+        """A folder that holds only the example context (it names a tenant), named as the case says; None when the file system
+        refuses the name."""
+        import shutil
+        from pathlib import Path
+        from plugin_tests.test_start_goal import ROOT
+        directory = Path(temp) / ('/'.join(['abcdefghij'] * 25) if name is None else name)
+        try:
+            directory.mkdir(parents=True)
+        except OSError:
+            return None
+        shutil.copyfile(ROOT / 'examples/context.json', directory / 'context.json')
+        return directory
+
+    def cli(self, *argv, width=120):
+        import contextlib
+        import io
+        from unittest.mock import patch
+        from intune_iac import cli
+        out = io.StringIO()
+        with patch('shutil.get_terminal_size', return_value=os.terminal_size((width, 40))), contextlib.redirect_stdout(out):
+            code = cli.main(list(argv))
+        return code, out.getvalue()
+
+    NEXT_ROW = re.compile(r'^(    [a-z-]+:|  GOAL |[A-Z])')
+
+    def outside_authenticated_rows(self, lines):
+        """The lines of a catalog screen without its `authenticated` rows. Their sign-in command carries the directory in the
+        recorded message (authenticated.message in catalog --json, a frozen form), which this round leaves as it is; a name with a
+        line feed even breaks that row over several lines, so the row runs to the next state row."""
+        kept, inside = [], False
+        for line in lines:
+            if line.startswith('    authenticated:'):
+                inside = True
+                continue
+            if inside and not self.NEXT_ROW.match(line):
+                continue
+            inside = False
+            kept.append(line)
+        return kept
+
+    @staticmethod
+    def blocked_row(lines, goal):
+        """The text of one goal's blocked row, read without the state-row parser (the authenticated row above it may be broken)."""
+        start = lines.index('  GOAL ' + goal)
+        at = next(index for index in range(start, len(lines)) if lines[index].startswith('    blocked:'))
+        parts = [lines[at].split(':', 1)[1]]
+        for line in lines[at + 1:]:
+            if not line.startswith(' ' * 21):
+                break
+            parts.append(line)
+        return ' '.join(' '.join(parts).split())
+
+    def each(self, check):
+        """check(folder, the pieces that must never be printed) for every refused name, each as its own sub-test."""
+        import tempfile
+        for label, (name, forbidden) in self.NAMES.items():
+            with self.subTest(label), tempfile.TemporaryDirectory() as temp:
+                directory = self.folder(temp, name)
+                if directory is None:
+                    self.skipTest('this file system refuses that name')
+                check(directory, forbidden)
+
+    def start_screen(self, directory, *extra):
+        from plugin_tests.test_start_goal import run_cli
+        code, text = run_cli(str(directory), *extra, width=120)
+        self.assertEqual(code, 0)
+        return text, text.split('\n')
+
+    def catalog_screen(self, directory):
+        code, text = self.cli('catalog', str(directory))
+        self.assertEqual(code, 0)
+        return text, text.split('\n')
+
+    def test_place_1_the_catalog_header_prints_the_placeholder_and_the_statement_under_it(self):
+        def check(directory, forbidden):
+            _, lines = self.catalog_screen(directory)
+            self.assertEqual(lines[:4], ['INTEGRATION CATALOG', self.CATALOG_HEADER, self.SAID,
+                                         'No other integration is available in this build.'])
+        self.each(check)
+
+    def test_place_2_the_start_header_prints_the_placeholder_and_the_statement_under_it(self):
+        def check(directory, forbidden):
+            for extra in ((), ('--goal', 'discover')):
+                _, lines = self.start_screen(directory, *extra)
+                self.assertEqual(lines[:3], ['INTUNE WORKBENCH: START', self.START_HEADER, self.SAID], extra)
+        self.each(check)
+
+    def test_place_3_the_directory_line_of_a_goal_screen_prints_the_placeholder(self):
+        def check(directory, forbidden):
+            _, lines = self.start_screen(directory, '--goal', 'discover')
+            self.assertIn('Directory: DIRECTORY', lines)
+        self.each(check)
+
+    def test_place_4_the_catalog_pointer_at_the_end_of_start_prints_the_placeholder(self):
+        from plugin_tests.test_start_goal import StartGoalTests
+
+        def check(directory, forbidden):
+            for extra in ((), ('--goal', 'discover')):
+                _, lines = self.start_screen(directory, *extra)
+                commands = [line.strip() for line in StartGoalTests('logical_lines').logical_lines(lines)]
+                self.assertIn('intune-iac catalog DIRECTORY', commands, extra)
+        self.each(check)
+
+    def test_the_notes_command_names_the_placeholder_on_both_screens(self):
+        from plugin_tests.test_start_goal import StartGoalTests
+
+        def check(directory, forbidden):
+            _, lines = self.start_screen(directory, '--goal', 'discover')
+            commands = [line.strip() for line in StartGoalTests('logical_lines').logical_lines(lines)]
+            self.assertIn('intune-iac start DIRECTORY --goal discover --check-signin azure', commands)
+            _, lines = self.catalog_screen(directory)
+            self.assertIn('run: intune-iac start DIRECTORY --goal discover --check-signin azure (it runs az account list',
+                          self.blocked_row(lines, 'discover'))
+        self.each(check)
+
+    def test_each_screen_says_once_that_the_name_is_not_shown_and_prints_no_piece_of_it(self):
+        def check(directory, forbidden):
+            for text, lines in (self.start_screen(directory), self.start_screen(directory, '--goal', 'discover')):
+                self.assertEqual(text.count('its name is not shown here'), 1)
+                for fragment in forbidden:
+                    self.assertNotIn(fragment, text)
+            text, lines = self.catalog_screen(directory)
+            self.assertEqual(text.count('its name is not shown here'), 1)
+            kept = '\n'.join(self.outside_authenticated_rows(lines))
+            for fragment in forbidden:
+                self.assertNotIn(fragment, kept)
+        self.each(check)
+
+    def test_an_ordinary_directory_is_printed_as_before_and_nothing_says_a_name_is_not_shown(self):
+        import tempfile
+        from plugin_tests.test_start_goal import StartGoalTests, run_cli
+        with tempfile.TemporaryDirectory() as temp:
+            directory = self.folder(temp, 'estate dir')
+            quoted = "'%s'" % directory
+            code, text = run_cli(str(directory), '--goal', 'discover', width=120)
+            lines = text.split('\n')
+            self.assertEqual(lines[1], '%s | offline (no live connection) | synthetic evidence stays labelled synthetic' % directory)
+            self.assertIn('Directory: %s' % directory, lines)
+            commands = [line.strip() for line in StartGoalTests('logical_lines').logical_lines(lines)]
+            self.assertIn('intune-iac start %s --goal discover --check-signin azure' % quoted, commands)
+            self.assertIn('intune-iac catalog %s' % quoted, commands)
+            self.assertNotIn('not shown', text)
+            code, text = self.cli('catalog', str(directory))
+            lines = text.split('\n')
+            self.assertEqual(lines[:3], ['INTEGRATION CATALOG', '%s | offline | this lists only what this build holds' % directory,
+                                         'No other integration is available in this build.'])
+            self.assertNotIn('not shown', text)
 
 
 if __name__ == '__main__':

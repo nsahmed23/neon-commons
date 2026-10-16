@@ -628,11 +628,12 @@ def goal_summary(view):
 
 def _goal_lines(view, width):
     """The goal's readiness: its status, the selected directory, host and tenant, the needed rows and what is not checked."""
-    from .readiness import capture_contact, screen_note
+    from .readiness import capture_contact, directory_hidden, screen_note
     from .workbench_screens import word_wrap
     host = view['host']
     lines = [goal_summary(view)]
-    lines += _flow('Directory: %s' % view['directory'], width, '', '    ')
+    # A refused name prints as DIRECTORY; start_lines said once, under its header, that the name is not shown.
+    lines += _flow('Directory: %s' % ('DIRECTORY' if directory_hidden(view['directory']) else view['directory']), width, '', '    ')
     lines += _flow('Host: os %s, platform %s, machine %s, Python %s' % (host['os_name'], host['sys_platform'], host['machine'],
                                                                        host['python_version']), width, '', '    ')
     lines += _flow('Supported profiles: %s' % (', '.join(host['supported_profiles']) or 'none'), width, '', '    ')
@@ -661,7 +662,7 @@ def _goal_lines(view, width):
         else:
             lines.append('    %s:' % ('Could not check' if row['state'] == 'unknown' else 'Missing'))
             for note in row['missing']:
-                lines += _flow(screen_note(note, view['directory']), width, '      - ', '        ', commands=True)
+                lines += _flow(screen_note(note, view['directory'], said=True), width, '      - ', '        ', commands=True)
         lines.append('    Next action (%s):' % row['owner_role'])
         lines += _flow(row['next_action'], width, '      ', '      ', commands=True)
         contact = capture_contact(row['next_action'])
@@ -684,9 +685,16 @@ def start_lines(value, width, goal=None, goal_hint=False):
     goal is the result of goal_readiness and adds that goal's readiness after the survey; goal_hint adds the one closing line
     that names the goals and the flag. The workspace screen passes neither.
     """
+    from .readiness import DIRECTORY_NOT_SHOWN_SENTENCE, directory_hidden
     from .workbench_screens import word_wrap
     lines = ['INTUNE WORKBENCH: START']
-    lines += word_wrap('%s | offline (no live connection) | synthetic evidence stays labelled synthetic' % value['directory'], width)
+    # The directory is user input: a name the output-path rule of signin collect refuses prints as DIRECTORY, here, in the
+    # Directory: line, in a note's command and in the catalog pointer, and the screen says once, under its header, that it is not shown.
+    hidden = directory_hidden(value['directory'])
+    lines += word_wrap('%s | offline (no live connection) | synthetic evidence stays labelled synthetic' % (
+        'DIRECTORY' if hidden else value['directory']), width)
+    if hidden:
+        lines += word_wrap(DIRECTORY_NOT_SHOWN_SENTENCE, width)
     if value['items']:
         lines.append('FOUND')
         for item in value['items']:
@@ -724,8 +732,9 @@ def start_lines(value, width, goal=None, goal_hint=False):
     if goal or goal_hint:
         # One pointer, not a copy: the catalog holds what each goal needs and the saved projects.
         directory = value['directory']
-        # A name with a control character is never echoed into a command; the placeholder stands for it.
-        shown = shlex.quote(directory) if directory.isprintable() else 'DIRECTORY'
+        # A name the output-path rule refuses (a control character, a credential shape, too long) is never echoed into a command;
+        # the placeholder stands for it.
+        shown = 'DIRECTORY' if hidden else shlex.quote(directory)
         lines += _flow('Catalog of what this build supports and where each goal stands: intune-iac catalog %s' % shown,
                        width, '', '    ', commands=True)
     if goal:

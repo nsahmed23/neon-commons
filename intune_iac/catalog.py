@@ -284,7 +284,9 @@ def _state_lines(goal, width, directory=None):
     lines += row('authenticated', text)
     lines += row('operation-ready', _ready_words(goal))
     if blocked['state'] == 'blocked':
-        text = '%s. %s Next action: %s' % (_blocked_words(goal), readiness_model.screen_note(blocked['missing'] or '', directory),
+        # said=True: a refused directory is said not to be shown once, under the screen's header, not again in each note
+        text = '%s. %s Next action: %s' % (_blocked_words(goal),
+                                          readiness_model.screen_note(blocked['missing'] or '', directory, said=True),
                                           blocked['next_action'])
         contact = readiness_model.capture_contact(blocked['next_action'])
         if contact:
@@ -310,7 +312,14 @@ def catalog_lines(value, width):
     from .entry import _flow
     from .workbench_screens import word_wrap
     lines = ['INTEGRATION CATALOG']
-    lines += word_wrap('%s | offline | this lists only what this build holds' % (value.get('directory') or 'no directory'), width)
+    directory = value.get('directory')
+    # The directory is user input: a name the output-path rule of signin collect refuses prints as DIRECTORY, and the screen says
+    # once, under its header, that the name is not shown (the note under a goal then names only the placeholder).
+    hidden = readiness_model.directory_hidden(directory)
+    lines += word_wrap('%s | offline | this lists only what this build holds' % ('DIRECTORY' if hidden else directory or 'no directory'),
+                       width)
+    if hidden:
+        lines += word_wrap(readiness_model.DIRECTORY_NOT_SHOWN_SENTENCE, width)
     lines += word_wrap(value['other_integrations'], width)
     for record in value['integrations']:
         lines.append('')
