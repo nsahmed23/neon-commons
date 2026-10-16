@@ -259,5 +259,80 @@ class ReasonNameAndCurrentOperationTests(LayerFixture):
         self.assertRegex(self.inspector_actions(), r'1\.\s+Prepare a proposal from the recorded intent \(available\)')
 
 
+class LayerKeyHintTests(LayerFixture):
+    """Journey 34 run 2 review A Low-3: inside the workflow layer, next steps said "a lists it with the other actions" and
+    "(a: actions)", but the layer's keys have no `a`. A hint drawn there names the route that works (Esc closes the layer,
+    then `a`), from one shared function; outside the layer it is unchanged."""
+
+    HINTS = (r'\(a: actions\)', r'\(a lists it\)', r'\ba lists it with the other actions')
+
+    def squash(self, rows):
+        return ' '.join(' '.join(self.plain(rows)).replace('│', ' ').split())
+
+    def lost_response(self):
+        from intune_iac import maintenance
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'], fault='lost-response')
+
+    def stage_rows(self, step, width=100):
+        """The rows the layer draws for a focused stage whose step is `step`."""
+        from intune_iac.workbench_screens import workflow_detail_rows
+        stage = {'id': 'observe', 'state': 'blocked', 'reason': 'service_changed', 'basis': 'a basis', 'facts': {},
+                 'opens': '2', 'continuation': step}
+        return self.squash(workflow_detail_rows({'operation': None}, stage, width))
+
+    def test_the_layers_step_rows_rewrite_each_form_of_the_hint_and_leave_other_text(self):
+        rows = self.stage_rows('Reconcile it (a: actions); it never replays the change')
+        self.assertIn('Reconcile it (Esc, then a: actions); it never replays the change', rows)
+        rows = self.stage_rows('Collect again; a lists it with the other actions.')
+        self.assertIn('Collect again; Esc, then a lists it with the other actions.', rows)
+        rows = self.stage_rows('Record the deployment (a lists it).')
+        self.assertIn('Record the deployment (Esc, then a lists it).', rows)
+        self.assertIn('a proposal is blocked now (service_changed)', self.stage_rows('a proposal is blocked now (service_changed)'))
+        # Said once: a step that already names the route is not rewritten again.
+        self.assertNotIn('Esc, then Esc', self.stage_rows('Reconcile it (Esc, then a: actions)'))
+
+    def test_the_band_names_the_route_that_works_where_it_is_asked_to_in_a_layer(self):
+        from intune_iac.workbench_screens import hazard_rows
+        facts = {'object_id': OBJECT, 'operation': 'unknown', 'operation_id': 'a' * 32,
+                 'signals': [{'area': 'operations', 'code': 'operation_outcome_unknown', 'evidence': {'operation_id': 'a' * 32}}]}
+        plain = ' '.join(hazard_rows(facts, facts['signals'], 140))
+        try:
+            layered = ' '.join(hazard_rows(facts, facts['signals'], 140, layered=True))
+        except TypeError:
+            self.fail('the band cannot be asked to name the route that works inside a layer')
+        self.assertIn('(a: actions)', plain)
+        self.assertIn('(Esc, then a: actions)', layered)
+        self.assertNotIn('(a: actions)', layered)
+
+    def layer_texts(self):
+        """The pane of the layer, below the band, with each of the eleven stages focused."""
+        texts = []
+        for stage in range(11):
+            _, frames = self.open_layer((120, 40), 'unicode', extra=['up'] * 12 + ['down'] * stage)
+            rows = self.plain(frames[-1])
+            start = next(index for index, row in enumerate(rows) if row.startswith('┌'))
+            texts.append(self.squash(rows[start:]))
+        return texts
+
+    def test_inside_the_layer_a_hint_names_esc_then_a_at_every_stage(self):
+        self.lost_response()
+        named = 0
+        for text in self.layer_texts():
+            self.assertIn('[WORKFLOW]', text)
+            for hint in self.HINTS:
+                for found in re.finditer(hint, text):
+                    self.assertTrue(text[:found.start()].rstrip().endswith('Esc, then'),
+                                    'a hint names a key the layer lacks: ...%s' % text[max(0, found.start() - 40):found.end()])
+            named += text.count('Esc, then a')
+        self.assertGreater(named, 0)                                  # the state has steps that name the actions list
+    def test_outside_the_layer_the_hint_is_unchanged(self):
+        self.lost_response()
+        _, frames = self.run_keys(typed('select ' + OBJECT) + [key('9')] + [key('q')], (120, 40), 'unicode')
+        text = self.squash(frames[-1])
+        self.assertIn('Reconcile it (a: actions)', text)             # the hazard band on the Repository surface
+        self.assertNotIn('Esc, then a', text)
+
+
 if __name__ == '__main__':
     unittest.main()

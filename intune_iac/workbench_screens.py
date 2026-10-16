@@ -424,7 +424,7 @@ def _in_list(form, entry):
 
 
 def hazard_rows(facts, signals, width, *, routes=True, here=False, listed=False, repository_here=False, surface=True,
-                keep_essential=False):
+                keep_essential=False, layered=False):
     """The band: the primary hazard with its response, in the longest wording that fits, and the count of other
     findings and any re-read that failed, beside it or on a row of their own so neither is cut. A window too narrow
     for the shortest wording gets it wrapped with the response kept whole. [] when nothing is recorded.
@@ -435,7 +435,9 @@ def hazard_rows(facts, signals, width, *, routes=True, here=False, listed=False,
     surface can be shown (the constrained frame).
     keep_essential: where no form that keeps the hazard's essential words (BAND_ESSENTIAL) fits one row, wrap the shortest
     such form over two rows instead of choosing a shorter form that drops them; the constrained frame sets it, because
-    there a dropped "never replays" leaves an unknown outcome with a response that reads as a retry."""
+    there a dropped "never replays" leaves an unknown outcome with a response that reads as a retry.
+    layered: the band is drawn over the workflow layer, whose keys have no `a`; its response names the route that works
+    (layer_hint). The workspace sets it while that layer is open."""
     primary, others = _band_primary(facts, signals)
     if primary is None:
         return []
@@ -463,6 +465,8 @@ def hazard_rows(facts, signals, width, *, routes=True, here=False, listed=False,
     if listed and routes:
         entry = _band_entry(primary, facts, named)
         forms = [_in_list(form, entry) for form in forms]
+    elif layered and routes:
+        forms = [layer_hint(form) for form in forms]
     if not routes:
         forms = [_without_routes(form) for form in forms]
         reread = [_without_routes(note).replace(': 2 re-reads', '') for note in reread]
@@ -820,8 +824,24 @@ LIFECYCLE = ((8, '9 Repository'), (4, '5 Plan'), (5, '6 Execution'), (None, 'Del
 # Delivery's stage 8 waits for a collection after the change. It is advice, not a rule the product enforces:
 # deployment-record reads the operation, its readback and the cited intent, never the observation, so nothing refuses
 # collecting first (run 8, frames 19 to 21).
+# `a` opens the actions list from the surfaces under the workflow layer; the layer's own keys do not include it, so a hint
+# drawn inside the layer names the route that works: Esc closes the layer, then `a` (PKG-PRES-RUN20 item 5). The one place
+# that words it; outside the layer a hint is unchanged. The last pattern skips a hint that already names the route.
+LAYER_HINTS = ((re.compile(r'\(a: actions\)'), '(Esc, then a: actions)'),
+               (re.compile(r'\(a actions\)'), '(Esc, then a)'),
+               (re.compile(r'\(a lists it\)'), '(Esc, then a lists it)'),
+               (re.compile(r'(?<!Esc, then )\ba lists it with the other actions'), 'Esc, then a lists it with the other actions'))
+
+
+def layer_hint(text):
+    """`text` with each hint that names the `a` key rewritten to the route that works inside the workflow layer."""
+    for pattern, route in LAYER_HINTS:
+        text = pattern.sub(route, text)
+    return text
+
+
 # Reconcile's step, worded as the band words it; one sentence whose parentheses close where the key is named.
-RECONCILE_NEXT = 'Reconcile it (a: actions); it never replays the change. v shows every delivery stage'
+RECONCILE_NEXT ='Reconcile it (a: actions); it never replays the change. v shows every delivery stage'
 
 
 def newest_open_operation(facts, reviewing, prefixes=None):
@@ -2672,7 +2692,7 @@ def workflow_detail_rows(flow, stage, width):
     step = stage.get('continuation')
     if isinstance(step, str) and step:
         # A step that prints commands writes each on its own row after the sentence, as every screen does.
-        first, *commands = _workflow_step_parts(step)
+        first, *commands = _workflow_step_parts(layer_hint(step))
         head = _labelled('next', first, width, WORKFLOW_DETAIL_LABEL)
         rows += [PinnedRow(row) for row in head[:2]] + head[2:]
         rows += [row for part in commands for row in _labelled('', part, width, WORKFLOW_DETAIL_LABEL)]
