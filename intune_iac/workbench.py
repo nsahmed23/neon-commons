@@ -1098,6 +1098,10 @@ def _operation_words(operation_root):
     return '%s (directory %s)' % (identity[:8], quoted) if isinstance(identity, str) and len(identity) >= 8 else quoted
 
 
+# reconcile's parser has no --root (run 16, N3): the operation directory names its store, so the command is complete.
+RECONCILE_ROOT_NOTE = 'reconcile takes no --root: the operation directory names its store.'
+
+
 def interrupted_lines(result):
     """The interrupted session's result as sentences for a person: what was running, what the interrupt left, and the
     exact next step. Scripts read the same facts as JSON."""
@@ -1115,11 +1119,13 @@ def interrupted_lines(result):
                 'Next: reconcile it before anything else. Reconcile reads the service and never replays the change. '
                 'Run:',
                 '  intune-iac workbench reconcile --operation %s' % shlex.quote(str(operation)),
+                RECONCILE_ROOT_NOTE,
                 'or reopen the workspace and choose Reconcile with a.', others]
     if during and during.get('command') == 'reconcile':
         return ['Interrupted while reconciling operation %s.' % _operation_words(during.get('operation_root')),
                 'Reconcile only reads the service, so running it again is safe. Run:',
                 '  intune-iac workbench reconcile --operation %s' % shlex.quote(str(during.get('operation_root'))),
+                RECONCILE_ROOT_NOTE,
                 others]
     if during and during.get('command') == 'collect':
         return ['Interrupted during a collection.',
@@ -1141,7 +1147,10 @@ def interrupted_text(result, width):
     lines = []
     for line in interrupted_lines(result):
         # A command is one physical line: no inserted newline and no POSIX backslash continuation; the terminal wraps it.
-        lines += [line] if line.startswith('  ') else textwrap.wrap(
+        # The sentence that quotes the operation directory is one row too: an inserted newline would break the quoted
+        # path for anyone copying it (run 16, N4).
+        whole = line.startswith('  ') or (line.startswith('Interrupted while') and "(directory '" in line)
+        lines += [line] if whole else textwrap.wrap(
             line, max(20, width), break_long_words=False, break_on_hyphens=False) or ['']
     return lines
 

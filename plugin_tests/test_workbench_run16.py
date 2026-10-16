@@ -99,5 +99,57 @@ class WorkspaceReadsTheDesiredFileTests(unittest.TestCase):
             case.doCleanups()
 
 
+class RootlessCommandsSayWhyTests(unittest.TestCase):
+    """Items 3 and 4 (run16-N3, run15-N3, run16-N4): reconcile and execute take only --operation (the operation directory
+    names its store), said once beside the printed command; the interrupted line is not wrapped inside its path."""
+
+    def setUp(self):
+        import json
+        import tempfile
+        from pathlib import Path
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        directory = Path(tmp.name) / 'journey 28 run 16' / 'operation-22222222-96c94f884625'
+        directory.mkdir(parents=True)
+        (directory / 'plan.json').write_text(json.dumps({'operation_id': '678e749f' + '0' * 24}))
+        self.OPERATION = str(directory)
+    NOTE = 'no --root: the operation directory names its store'
+
+    def interrupted(self, command):
+        from intune_iac.workbench import interrupted_lines
+        return interrupted_lines({'store_root': '/home/engineer/journey 28 run 16/store',
+                                  'interrupted_during': {'command': command, 'operation_root': self.OPERATION}})
+
+    def test_the_interrupted_execute_says_once_why_reconcile_has_no_root(self):
+        lines = self.interrupted('execute')
+        self.assertEqual(sum(self.NOTE in line for line in lines), 1, lines)
+        command = next(index for index, line in enumerate(lines) if line.startswith('  intune-iac workbench reconcile'))
+        self.assertNotIn('--root', lines[command])
+        self.assertIn(self.NOTE, lines[command + 1])
+
+    def test_the_interrupted_reconcile_says_it_too(self):
+        lines = self.interrupted('reconcile')
+        self.assertEqual(sum(self.NOTE in line for line in lines), 1, lines)
+
+    def test_the_plan_review_next_says_why_execute_has_no_root(self):
+        from intune_iac.workbench_screens import lifecycle_next
+        said = lifecycle_next(4, {'status': 'prepared', 'operation_root': self.OPERATION, 'expires_at': 4102444800,
+                                  'approval_window': {'state': 'open'}}, 0)
+        rows = said.split('\n')
+        command = next(index for index, row in enumerate(rows) if row.startswith('  intune-iac workbench execute'))
+        self.assertNotIn('--root', rows[command])
+        self.assertEqual(said.count(self.NOTE), 1, said)
+        self.assertIn(self.NOTE, rows[command + 1])
+
+    def test_the_interrupted_sentence_is_one_row_with_its_directory_whole(self):
+        from intune_iac.workbench import interrupted_text
+        for command in ('execute', 'reconcile'):
+            from intune_iac.workbench import interrupted_lines
+            result = {'store_root': '/s', 'interrupted_during': {'command': command, 'operation_root': self.OPERATION}}
+            first = interrupted_lines(result)[0]
+            self.assertIn("(directory '%s')" % self.OPERATION, first)
+            self.assertIn(first, interrupted_text(result, 80))
+
+
 if __name__ == '__main__':
     unittest.main()

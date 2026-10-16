@@ -831,7 +831,8 @@ def _execute_forms(operation):
     shell with the complete program form. DIGEST stays a placeholder: the engineer copies the digest from the review
     they approve, and it is never filled in (run 12, frames 18, 31, 53, 63, 64)."""
     return ('In the workspace:' + COMMAND_BREAK + '  execute %s DIGEST' % operation + COMMAND_BREAK + 'From a shell:'
-            + COMMAND_BREAK + '  intune-iac workbench execute --operation %s --approve-digest DIGEST' % operation)
+            + COMMAND_BREAK + '  intune-iac workbench execute --operation %s --approve-digest DIGEST' % operation
+            + COMMAND_BREAK + 'The shell form takes no --root: the operation directory names its store.')
 
 
 def lifecycle_lines(tab, width, value=None, now=None, eligibility=None, band_names_refresh=False, band_has_next=False,
