@@ -12,10 +12,14 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import sqlite3
+import tempfile
+from intune_iac import clock
 from intune_iac import worker_evidence as contract
 from intune_iac import workbench_evidence_views as views
 from intune_iac import worker_evidence_posix as host
-from intune_iac.io import AppError
+from intune_iac.io import AppError, digest
+from plugin_tests.test_worker_evidence_freshness_floor import OK, T, expiring, make_policy, make_request, restart, stand_ins, wall
 
 
 class ViewFallbackTests(unittest.TestCase):
@@ -83,6 +87,41 @@ class LooseFileInspectTests(unittest.TestCase):
                                      '--output', 'out.json', *self.COMMON)
         self.assertEqual(code, 0, err)
         self.assertIs(verify.call_args.kwargs['historical'], True)
+
+
+class PosixBootContinuityTests(unittest.TestCase):
+    """A receipt admitted in one boot is not current in another until its window closes; a closed window still wins."""
+
+    def setUp(self):
+        self.addCleanup(clock.reset_process_anchor)
+        clock.reset_process_anchor()
+        self.addCleanup(patch.stopall)
+        stand_ins()
+        self.temp = tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name) / 'store'; self.root.mkdir(mode=0o700)
+        self.policy = make_policy(); self.req = make_request(self.policy)
+        with wall(T + 1):
+            host.ingest(self.root, expiring(self.req), self.req, self.policy, OK)
+
+    def later(self, at, session, historical=False):
+        return restart(kind='posix', root=str(self.root), wall=at, historical=historical, session=session)
+
+    def test_another_boot_holds_current_status_until_the_window_closes(self):
+        self.assertEqual(self.later(T + 5, 'other'), {'ok': False, 'code': 'worker_evidence_clock_continuity_lost'})
+
+    def test_a_closed_window_still_wins_over_the_hold(self):
+        self.assertEqual(self.later(T + 20, 'other'), {'ok': False, 'code': 'worker_evidence_expired'})
+
+    def test_another_boot_still_reads_history(self):
+        self.assertEqual(self.later(T + 5, 'other', historical=True), {'ok': True, 'baseline_admissible': False})
+
+    def test_a_new_process_in_the_same_boot_is_unchanged(self):
+        self.assertEqual(self.later(T + 5, 'real'), {'ok': True, 'baseline_admissible': True})
+
+    def test_a_receipt_with_no_recorded_session_cannot_be_carried(self):
+        with sqlite3.connect(self.root / 'evidence.sqlite3') as db:
+            db.execute('DROP TABLE IF EXISTS received_session')
+        self.assertEqual(self.later(T + 5, 'real'), {'ok': False, 'code': 'worker_evidence_clock_continuity_lost'})
 
 
 if __name__ == '__main__':

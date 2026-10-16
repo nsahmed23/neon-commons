@@ -17,7 +17,7 @@ import uuid
 from . import worker_evidence as contract
 from .io import canonical,digest,parse_json,AppError
 from .provider_journey import _private,_absolute,_outside_repository
-from . import approval_authority as aa,protected
+from . import approval_authority as aa,clock,protected
 
 
 def read(path,limit=contract.MAX_BYTES):
@@ -258,11 +258,16 @@ def ingest_raw(store_root,envelope_raw,request_raw,policy,verifier):
                     db.execute('BEGIN IMMEDIATE')
                     db.execute('CREATE TABLE IF NOT EXISTS received(request_sha256 TEXT PRIMARY KEY,bundle_sha256 TEXT NOT NULL,envelope_byte_sha256 TEXT NOT NULL,request_byte_sha256 TEXT NOT NULL,attempt TEXT NOT NULL)')
                     db.execute('CREATE TABLE IF NOT EXISTS heads(scope TEXT PRIMARY KEY,sequence INTEGER NOT NULL,event_sha256 TEXT NOT NULL)')
+                    db.execute('CREATE TABLE IF NOT EXISTS received_session(request_sha256 TEXT PRIMARY KEY,boot_id TEXT,domain TEXT,boottime REAL,process TEXT NOT NULL)')
                     prior=db.execute('SELECT bundle_sha256,attempt FROM received WHERE request_sha256=?',(digest(req),)).fetchone()
                     scope=binding['scope'];sequence=binding['sequence'];events=binding['event_sha256']
                     head=db.execute('SELECT sequence,event_sha256 FROM heads WHERE scope=?',(scope,)).fetchone()
                     contract.admit_received(binding,prior[0] if prior else None,dict(zip(('sequence','event_sha256'),head)) if head else None)
                     if prior is None:db.execute('INSERT INTO received VALUES (?,?,?,?,?)',(digest(req),result['bundle_sha256'],result['received_byte_sha256'],result['request_byte_sha256'],attempt.name))
+                    # The boot session that admitted this receipt: a later boot cannot carry it (see _continuity).
+                    boot=clock.session()
+                    db.execute('INSERT OR REPLACE INTO received_session VALUES (?,?,?,?,?)',(digest(req),None if boot is None else boot['boot_id'],
+                        None if boot is None else boot['domain'],None if boot is None else boot['boottime'],clock.process_token()))
                     db.execute('INSERT INTO heads VALUES (?,?,?) ON CONFLICT(scope) DO UPDATE SET sequence=excluded.sequence,event_sha256=excluded.event_sha256',(scope,sequence,events))
                     db.execute('COMMIT')
             except (sqlite3.Error,OSError):
@@ -296,9 +301,25 @@ def reopen(store_root,request_sha256,policy,verifier,*,historical=False):
     contract.verify_envelope(envelope,req,policy,verifier,now=contract.fresh_now(floor=root/'clock.json'),historical=True)
     with _locked_now(root) as (now,recorded,cleanup_notes):
         verified=_decide(envelope,req,policy,verifier,now,recorded)
+        _continuity(root,request_sha256)
         result=_stored(root,row,request_sha256,verified)
     if cleanup_notes:result['lock_cleanup_failures']=list(cleanup_notes)
     return result
+
+
+def _continuity(root,request_sha256):
+    """A receipt admitted in another boot (or whose session was never recorded) cannot be carried on this boot's wall: current
+    status is held, the way validity._view treats an open row, until the window closes (the temporal decision, which ran
+    first, then refuses it as expired). Historical reads never come here."""
+    try:
+        with readonly_database(root/'evidence.sqlite3') as (db,_):
+            row=db.execute('SELECT boot_id,domain,boottime,process FROM received_session WHERE request_sha256=?',(request_sha256,)).fetchone()
+    except (sqlite3.OperationalError,AppError):row=None  # no readable session record (a store from before it was recorded): held
+    now=clock.session()
+    if row is None:lost=True
+    elif row[0] is None:lost=not (now is None and row[3]==clock.process_token())
+    else:lost=not clock.same_session({'boot_id':row[0],'domain':row[1],'boottime':row[2]},now)
+    if lost:contract.fail('worker_evidence_clock_continuity_lost')
 
 
 def _stored(root,row,request_sha256,verified):

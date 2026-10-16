@@ -21,7 +21,7 @@ def _read(store,object_id,evidence_store,request_sha256,trust_path,verifier_path
         reopen=lambda historical=False:host.reopen(evidence_store,request_sha256,policy,verifier,historical=historical)
     try:result=reopen()
     except AppError as error:
-        if error.code not in ('worker_evidence_expired','worker_evidence_stale_snapshot','worker_evidence_clock_unrecorded'):raise
+        if error.code not in ('worker_evidence_expired','worker_evidence_stale_snapshot','worker_evidence_clock_unrecorded','worker_evidence_clock_continuity_lost'):raise
         # Actual current trust/signatures remain mandatory in historical mode.
         result=reopen(historical=True)
     if result['tenant_id']!=store.tenant_id or result['object_id']!=object_id:_fail('workbench_evidence_identity')

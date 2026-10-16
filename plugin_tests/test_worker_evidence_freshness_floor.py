@@ -93,7 +93,11 @@ def wall(value):
 def child(spec):
     """Runs in a fresh process: no process anchors, no boot session; prints the outcome as JSON."""
     stand_ins()
-    patch.object(clock, 'session', return_value=None).start()
+    boot = spec.get('session', 'none')  # 'none' = no boot source, 'other' = a different boot, 'real' = this host's own
+    if boot == 'none':
+        patch.object(clock, 'session', return_value=None).start()
+    elif boot == 'other':
+        patch.object(clock, 'session', return_value={'boot_id': 'another-boot', 'domain': 'd', 'boottime': 5.0}).start()
     policy = make_policy(); req = make_request(policy)
     try:
         with wall(spec['wall']):
