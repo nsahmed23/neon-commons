@@ -83,6 +83,23 @@ class JudgeSecretValueTests(unittest.TestCase):
         self.judge.requests.clear()
         self.assertEqual(self.judge.call(evidence=[{'token_required': 'yes', 'tokenizer': 'qwen'}])['status'], 'assessed')
 
+    def test_plural_digit_and_compound_secret_names_are_refused_like_the_singular(self):
+        # PKG-SETUP-5B finding 22: the member-name rule must not be dodged by a plural, a trailing digit or a compound word.
+        for name in ('secrets', 'passwords', 'tokens', 'keys', 'credentials', 'password2', 'secret1', 'token2', 'api_keys',
+                     'client_secrets', 'adminpassword', 'adminPassword', 'clientsecret', 'clientSecret', 'accesstoken',
+                     'accessToken', 'refreshtoken', 'refreshToken', 'idtoken', 'bearertoken', 'authtoken', 'sessiontoken',
+                     'rootpassword', 'dbpassword', 'userpassword', 'adminpasswords', 'clientsecret2'):
+            with self.subTest(name):
+                self.refused({name: 'abcde'}, location='$.evidence{0}')
+                self.refused({name: ['a']}, location='$.evidence{0}')
+
+    def test_ordinary_names_near_those_forms_stay_accepted(self):
+        for name in ('tokenizer', 'token_required', 'secretary', 'keyboard', 'monkey', 'passwordless_enabled', 'keystone',
+                     'hotkeys_enabled', 'password_policy_enabled', 'tokens_per_minute'):
+            with self.subTest(name):
+                self.judge.requests.clear()
+                self.assertEqual(self.judge.call(evidence=[{name: 'qwen'}])['status'], 'assessed', name)
+
     def test_settings_catalog_definition_ids_are_a_fourth_accepted_product_form(self):
         setting = 'device_vendor_msft_policy_config_privacy_letappsaccesslocation'
         while len(setting) % 4:

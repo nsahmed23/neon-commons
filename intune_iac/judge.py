@@ -121,8 +121,13 @@ _DIGEST_VALUE = re.compile(r"sha256:[0-9a-fA-F]{64}")  # the only prefixed form:
 # Under a member named for a secret exactly two value forms are accepted: a whole-value policy key and a relative
 # state path ending in .tfstate (characters [A-Za-z0-9._/-] only, so no ':', '@', '?' or '=', and no '..' segment).
 _STATE_PATH = re.compile(r"[A-Za-z0-9._-][A-Za-z0-9._/-]*\.tfstate")
-_SECRET_KEY_LAST = re.compile(r"(?:^|_)(?:password|passwd|pwd|secret|token|apikey|api_key|accountkey|account_key|sharedaccesskey|"
-                              r"shared_access_key|sharedaccesssignature|access_key|private_key|credentials?|authorization|signature|sig|key)$")
+# The last word of the snake-cased member name. A plural and a trailing number are the same name (secrets, password2), and the
+# common compound words written without an underscore (adminpassword, clientsecret, accesstoken, refreshtoken) count too.
+_SECRET_KEY_LAST = re.compile(
+    r"(?:^|_)(?:password|passwd|pwd|secret|token|apikey|api_key|accountkey|account_key|sharedaccesskey|"
+    r"shared_access_key|sharedaccesssignature|access_key|private_key|credentials?|authorization|signature|sig|key|"
+    r"(?:admin|root|user|db|client|app|service)(?:password|passwd|pwd|secret)|"
+    r"(?:access|refresh|id|bearer|auth|session|api)token)s?\d*$")
 _DIGEST_NAMES = frozenset(("sha1", "sha256", "sha512", "digest", "hash", "checksum", "commit", "tree", "head",
                            "revision", "fingerprint"))
 
