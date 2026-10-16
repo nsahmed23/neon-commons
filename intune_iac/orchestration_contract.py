@@ -41,6 +41,8 @@ DATA_FIELDS = {
     'dispatch.unknown': {'reason': TEXT},
     'dispatch.unavailable': {'reason': TEXT},
     'dispatch.cancelled': {'cleanup_confirmed': FLAG, 'reason': TEXT},
+    'dispatch.completed': {'tree': TEXT},
+    'repair.reported': {'tree': TEXT},
     'verification.completed': {'outcome': TEXT, 'requirement': TEXT, 'gate': TEXT, 'commit': TEXT, 'tree': TEXT},
     'verification.corrected': {'corrects': IDENT, 'replaced_by': IDENT},
 }

@@ -698,6 +698,9 @@ native/worker-relay/relay.c
 permission-matrix.csv
 plugin.json
 plugin_tests/__init__.py
+plugin_tests/fixtures/orchestration/real-export/README.md
+plugin_tests/fixtures/orchestration/real-export/events.jsonl
+plugin_tests/fixtures/orchestration/real-export/header.json
 plugin_tests/fixtures/pre_pin_migration/GENERATE.sh
 plugin_tests/fixtures/pre_pin_migration/MANIFEST.json
 plugin_tests/fixtures/pre_pin_migration/adoption/handoff/adoption.json
@@ -868,6 +871,7 @@ plugin_tests/test_earlier_set_cancel_recover.py
 plugin_tests/test_edge_input_audit.py
 plugin_tests/test_edge_workflow_audit.py
 plugin_tests/test_engine.py
+plugin_tests/test_engineering_falsifiers.py
 plugin_tests/test_engineering_view.py
 plugin_tests/test_enterprise_cli.py
 plugin_tests/test_entry.py

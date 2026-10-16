@@ -57,7 +57,8 @@ def controller_log_counts(path):
 def build_view(records, evidence_roots=(), controller_log=None):
     """The whole view as plain data. Every string in it is either a validated identifier or already escaped."""
     export = read_export(records, roots=evidence_roots)
-    tasks = reduce_events(export['events'])['tasks']
+    reduced = reduce_events(export['events'])
+    tasks = reduced['tasks']
     log = None
     if controller_log is not None:
         dispatches, unreadable = controller_log_counts(controller_log)
@@ -67,7 +68,8 @@ def build_view(records, evidence_roots=(), controller_log=None):
             'source': {'header': export['header'], 'check': export['check']},
             'read': {'events': len(export['events']), 'lines': export['lines'],
                      'duplicate_lines': export['duplicate_lines'], 'rejected_evidence': export['rejected_evidence']},
-            'faults': export['faults'], 'tasks': tasks, 'controller_log': log}
+            'faults': export['faults'], 'tasks': tasks, 'verifications': reduced['verifications'],
+            'notes': reduced['notes'], 'controller_log': log}
 
 
 def _fault_line(fault):
@@ -83,6 +85,17 @@ def _task_line(row):
              'adoptions %d%s' % (row['adoptions'], incarnation),
              '%sevidence %s' % (reason, row['evidence'] or 'none')]
     return escape_text(' | '.join(parts), 600)
+
+
+def _verification_lines(counts):
+    """A verification record that names no task cannot verify one, so the count is said out loud."""
+    if not counts['records']:
+        return []
+    if counts['unattached'] == counts['records']:
+        return ['%d verification records, none attached to a task; no task reads verified from them' % counts['records']]
+    if counts['unattached']:
+        return ['%d verification records, %d not attached to a task' % (counts['records'], counts['unattached'])]
+    return []
 
 
 def render_lines(view):
@@ -109,6 +122,8 @@ def render_lines(view):
     tasks = view['tasks']
     out.append('Tasks (%d):' % len(tasks) if tasks else 'Tasks: none recorded in this export.')
     out += [_task_line(row) for row in tasks]
+    out += [escape_text(note, 400) for note in view['notes']]
+    out += _verification_lines(view['verifications'])
     log = view['controller_log']
     if log:
         out.append('Controller log: %d dispatches recorded only in the controller log; not modelled '
