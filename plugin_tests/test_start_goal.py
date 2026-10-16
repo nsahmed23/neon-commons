@@ -398,14 +398,15 @@ class StartGoalTests(unittest.TestCase):
         from plugin_tests.test_readiness import ReadinessTests
         extractor = ReadinessTests('printed_commands')
         for fixture in self.dirs:
-            model = readiness(survey(self.dirs[fixture]), report(), doctor(executables=False))
+            value = survey(self.dirs[fixture])
+            model = readiness(value, report(), doctor(executables=False))
             for goal in GOALS:
                 expected = []
                 for row in model['operations'][goal]['rows']:
                     if row['needed']:
                         # The screen says each recorded note through screen_note (PKG-CATALOG-5, item 4); a note may hold a command.
                         for note in row['missing']:
-                            expected += extractor.printed_commands(screen_note(note))
+                            expected += extractor.printed_commands(screen_note(note, value['directory']))
                         expected += extractor.printed_commands(row['next_action'])
                 for width in (50, 120):
                     _, block = goal_block(self.goal(fixture, goal, width=width))

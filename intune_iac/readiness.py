@@ -28,6 +28,7 @@ per-operation scopes, CI identity), the row says so in words.
 from __future__ import annotations
 
 import re
+import shlex
 
 VERSION = 'workbench-readiness/1'
 PROGRAM = 'intune-iac'
@@ -382,16 +383,20 @@ NO_SIGN_IN_ROUTE = ('The product has no route yet for device-code or browser sig
 # it is frozen; a screen says it through screen_note instead, in two sentences with the command on its own rows.
 NO_CHECK_RECORDED = ('No verified sign-in, and no sign-in check was run: start with --goal %s --check-signin azure looks '
                      'for an existing Azure sign-in (it runs az account list --output json and nothing else).')
-NO_CHECK_SCREEN = ('No sign-in check was run. To look for an existing Azure sign-in, run: %s start --goal %s --check-signin azure '
+NO_CHECK_SCREEN = ('No sign-in check was run. To look for an existing Azure sign-in, run: %s start %s--goal %s --check-signin azure '
                    '(it runs az account list --output json and nothing else).')
 
 
-def screen_note(note):
+def screen_note(note, directory=None):
     """A recorded note as a screen says it: the recorded no-sign-in-check note in two grammatical sentences, the command on its
-    own rows (a screen puts every printed command there); any other note as it is."""
+    own rows (a screen puts every printed command there); any other note as it is.
+
+    The command names the surveyed directory, so that it runs on what the screen is about and not on the directory it is typed
+    in; a name with a control character is never put in a command, the placeholder stands for it (as start does)."""
+    where = '' if not directory else (shlex.quote(directory) if directory.isprintable() else 'DIRECTORY') + ' '
     for operation in OPERATIONS:
         if note == NO_CHECK_RECORDED % operation:
-            return NO_CHECK_SCREEN % (PROGRAM, operation)
+            return NO_CHECK_SCREEN % (PROGRAM, where, operation)
     return note
 
 

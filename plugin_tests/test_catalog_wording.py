@@ -192,19 +192,26 @@ class GarbledSentenceTests(Base):
     """Item 4: a recorded sentence that read "no sign-in check was run: start with --goal discover ... looks for" becomes two
     sentences with the command on its own rows."""
 
-    def sentence(self, goal):
-        return ('No sign-in check was run. To look for an existing Azure sign-in, run: intune-iac start --goal %s --check-signin '
-                'azure (it runs az account list --output json and nothing else).' % goal)
+    def sentence(self, goal, directory=None):
+        """The note as a screen says it; the command names the surveyed directory so that it runs on what the screen is about."""
+        import shlex
+        where = '' if directory is None else shlex.quote(str(directory)) + ' '
+        return ('No sign-in check was run. To look for an existing Azure sign-in, run: intune-iac start %s--goal %s --check-signin '
+                'azure (it runs az account list --output json and nothing else).' % (where, goal))
+
+    def command_rows(self, lines):
+        from plugin_tests.test_start_goal import StartGoalTests
+        return [line.strip() for line in StartGoalTests('logical_lines').logical_lines(lines)]
 
     def test_the_catalog_says_it_in_two_sentences_with_the_command_on_its_own_rows(self):
+        directory = self.dirs['context']
         for width in (120, 100):
             # a context names the tenant, so the blocked row shows the sign-in note first (an empty directory shows the tenant note)
             lines = self.lines('context', 'discover', width=width)
-            self.assertIn(self.sentence('discover'), flat(lines), width)
+            self.assertIn(self.sentence('discover', directory), flat(lines), width)
             self.assertNotIn('start with --goal', flat(lines))
             self.assertNotIn('was run:', flat(lines))
-            rows = [line.strip() for line in lines]
-            self.assertIn('intune-iac start --goal discover --check-signin azure', rows, width)
+            self.assertIn('intune-iac start %s --goal discover --check-signin azure' % directory, self.command_rows(lines), width)
 
     def test_the_start_screen_says_it_the_same_way_for_every_goal_that_needs_a_sign_in(self):
         from plugin_tests.test_start_goal import goal_block, run_cli
@@ -213,12 +220,12 @@ class GarbledSentenceTests(Base):
                 code, text = run_cli(str(self.dirs['offline']), '--goal', goal, width=width)
                 self.assertEqual(code, 0)
                 _, block = goal_block(text)
-                self.assertIn(self.sentence(goal), flat(block), (goal, width))
+                directory = self.dirs['offline']
+                self.assertIn(self.sentence(goal, directory), flat(block), (goal, width))
                 self.assertNotIn('start with --goal', flat(block))
                 # on its own rows: a command wider than the pane breaks between arguments, each row but the last ending in a backslash
-                from plugin_tests.test_start_goal import StartGoalTests
-                commands = [line.strip() for line in StartGoalTests('logical_lines').logical_lines(block)]
-                self.assertIn('intune-iac start --goal %s --check-signin azure' % goal, commands, (goal, width))
+                self.assertIn('intune-iac start %s --goal %s --check-signin azure' % (directory, goal), self.command_rows(block),
+                              (goal, width))
 
     def test_the_command_it_prints_is_one_the_product_parser_accepts(self):
         import contextlib
@@ -233,11 +240,37 @@ class GarbledSentenceTests(Base):
                 _, block = goal_block(run_cli(str(self.dirs['offline']), '--goal', goal, width=width)[1])
                 commands = [tokens for line in StartGoalTests('logical_lines').logical_lines(block)
                             for tokens in extractor.printed_commands(line)]
-                wanted = ['start', '--goal', goal, '--check-signin', 'azure']
+                wanted = ['start', str(self.dirs['offline']), '--goal', goal, '--check-signin', 'azure']
                 self.assertIn(wanted, commands, (goal, width))
                 with contextlib.redirect_stderr(io.StringIO()):
                     args = parser.parse_args(wanted)
-                self.assertEqual((args.command, args.goal, args.check_signin), ('start', goal, 'azure'))
+                self.assertEqual((args.command, args.directory, args.goal, args.check_signin),
+                                 ('start', str(self.dirs['offline']), goal, 'azure'))
+
+    def test_a_directory_with_a_space_is_quoted_and_one_with_a_control_character_is_a_placeholder(self):
+        import contextlib
+        import io
+        import shlex
+        import shutil
+        import tempfile
+        from pathlib import Path
+        from intune_iac import catalog as module, cli, entry, readiness
+        recorded = readiness.NO_CHECK_RECORDED % 'discover'
+        self.assertIn("run: intune-iac start '/tmp/a b' --goal discover", readiness.screen_note(recorded, '/tmp/a b'))
+        shown = readiness.screen_note(recorded, '/tmp/a\x1b[31mb')
+        self.assertIn('run: intune-iac start DIRECTORY --goal discover', shown)
+        self.assertNotIn('\x1b', shown)
+        with tempfile.TemporaryDirectory() as temp:
+            directory = Path(temp) / 'estate dir'
+            directory.mkdir()
+            shutil.copyfile(Path(__file__).resolve().parents[1] / 'examples/context.json', directory / 'context.json')
+            lines = tc.text_of(module.build(entry.survey(directory), doctor=tc.doctor(), goal='discover'), 100)
+            command = next(row for row in self.command_rows(lines) if row.startswith('intune-iac start '))
+            argv = shlex.split(command)
+            self.assertEqual(argv[2], str(directory))
+            with contextlib.redirect_stderr(io.StringIO()):
+                args = cli.parser().parse_args(argv[1:])
+            self.assertEqual((args.directory, args.goal, args.check_signin), (str(directory), 'discover', 'azure'))
 
     def test_the_recorded_note_is_unchanged_because_the_json_form_is_frozen(self):
         from intune_iac import readiness
@@ -247,6 +280,7 @@ class GarbledSentenceTests(Base):
             recorded = readiness.NO_CHECK_RECORDED % goal
             self.assertIn(recorded, row['missing'])
             self.assertEqual(readiness.screen_note(recorded), self.sentence(goal))
+            self.assertEqual(readiness.screen_note(recorded, '/work/here'), self.sentence(goal, '/work/here'))
         self.assertEqual(readiness.screen_note('Any other note stays as it is.'), 'Any other note stays as it is.')
 
     def test_after_a_sign_in_check_the_note_is_not_there(self):

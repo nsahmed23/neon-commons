@@ -255,7 +255,7 @@ def verdict_words(goal):
     return 'operation-ready: %s; blocked: %s' % (_ready_words(goal), _blocked_words(goal))
 
 
-def _state_lines(goal, width):
+def _state_lines(goal, width, directory=None):
     from .entry import _flow
     rest = ' ' * (4 + LABEL)
 
@@ -284,7 +284,7 @@ def _state_lines(goal, width):
     lines += row('authenticated', text)
     lines += row('operation-ready', _ready_words(goal))
     if blocked['state'] == 'blocked':
-        text = '%s. %s Next action: %s' % (_blocked_words(goal), readiness_model.screen_note(blocked['missing'] or ''),
+        text = '%s. %s Next action: %s' % (_blocked_words(goal), readiness_model.screen_note(blocked['missing'] or '', directory),
                                           blocked['next_action'])
         contact = readiness_model.capture_contact(blocked['next_action'])
         if contact:
@@ -318,7 +318,7 @@ def catalog_lines(value, width):
         lines.append('GOALS')
         for goal in record['goals']:
             lines.append('  GOAL ' + goal['goal'])
-            lines += _state_lines(goal, width)
+            lines += _state_lines(goal, width, value.get('directory'))
         lines += _flow('An object kind or goal not listed here is unsupported; a level word appears only where a record '
                        'establishes it.', width, '', '')
         lines.append('OBJECT KINDS')

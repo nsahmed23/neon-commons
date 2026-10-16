@@ -654,7 +654,7 @@ def _goal_lines(view, width):
         else:
             lines.append('    %s:' % ('Could not check' if row['state'] == 'unknown' else 'Missing'))
             for note in row['missing']:
-                lines += _flow(screen_note(note), width, '      - ', '        ', commands=True)
+                lines += _flow(screen_note(note, view['directory']), width, '      - ', '        ', commands=True)
         lines.append('    Next action (%s):' % row['owner_role'])
         lines += _flow(row['next_action'], width, '      ', '      ', commands=True)
         contact = capture_contact(row['next_action'])
