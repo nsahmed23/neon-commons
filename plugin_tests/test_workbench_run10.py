@@ -689,7 +689,9 @@ class StripOperationTests(unittest.TestCase):
 
     def test_the_note_names_the_strip_operation_and_the_one_the_screen_is_about(self):
         text = ' '.join(' '.join(self.refusal()._strip_note(118)).split())
-        self.assertEqual(text, 'The strip shows operation a23983bd (prepared), not operation f728f275, the one this screen is about.')
+        # Run 12 item 2: the strip prints `OP prepared`, no id, so the sentence says what OP stands for.
+        self.assertEqual(text, "The strip's OP prepared is operation a23983bd, the newest for this policy, not operation "
+                               "f728f275, the one this screen is about.")
 
     def test_no_note_where_the_screen_is_about_the_strip_operation(self):
         self.assertEqual(self.refusal(about=self.STRIP)._strip_note(118), [])
@@ -702,4 +704,4 @@ class StripOperationTests(unittest.TestCase):
         workspace = self.refusal()
         workspace.tab = 5
         body = ' '.join(' '.join(workspace._body_lines(118, 'unicode')).split())
-        self.assertEqual(body.count('The strip shows operation'), 1, body)
+        self.assertEqual(body.count("The strip's OP"), 1, body)

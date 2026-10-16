@@ -1444,8 +1444,11 @@ class Workspace:
             strip = facts.get('operation_id') or _newest_operation_id(facts)
             word = facts.get('operation') or _operation_from_states(facts)
             if about and strip and word and about != strip:
-                return [''] + word_wrap('The strip shows operation %s (%s), not operation %s, the one this screen is about.' % (
-                    short_id(strip, prefixes), word, short_id(about, prefixes)), width)
+                # The strip prints `OP prepared` and no id when its operation is the newest, so the sentence says what
+                # the strip's OP stands for rather than claim the strip shows an id (run 12, frame 67; widths unchanged).
+                newest = ', the newest for this policy,' if strip == _newest_operation_id(facts) else ''
+                return [''] + word_wrap("The strip's OP %s is operation %s%s not operation %s, the one this screen is about." % (
+                    word, short_id(strip, prefixes), newest or ',', short_id(about, prefixes)), width)
         if shown is None or inspector or self._states_here(value):
             return []
         return [''] + word_wrap('The strip shows operation %s (%s), not the newest for this policy, %s.' % (
