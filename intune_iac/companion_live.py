@@ -221,6 +221,16 @@ def _class_notes(error):
     return names
 
 
+def _carry_classes(target, report):
+    """Name on `target` the failure classes that `report` stands for: the failure it is chained from and every class it names."""
+    cause = report.__cause__
+    names = ([type(cause).__name__] if cause is not None else []) + _class_notes(report)
+    for name in names:
+        note = '%s%s' % (_ALSO, name)
+        if note not in getattr(target, '__notes__', ()):
+            target.add_note(note)
+
+
 def note_cleanup_failure(primary, failure):
     """Attach a cleanup failure to the error that is already escaping, so the engineer still gets that error. The note
     carries the code and the class only: never an address, a token or a message. Every class the report names, in its own
@@ -653,9 +663,14 @@ class LiveCompanion:
                 self._join_watchdog()
         except BaseException as error:
             interrupted = error
+        if interrupted is not None and not isinstance(interrupted, Exception):
+            # The one precedence rule: an interrupt is primary and carries the classes of the delivery it displaces.
+            if failure is not None:
+                _carry_classes(interrupted, failure)
+            raise interrupted
         if failure is not None:
             if interrupted is not None:
-                _add_class_note(failure, interrupted)
+                _add_class_note(failure, interrupted)       # an ordinary join failure stays secondary to a delivery
             raise failure
         if interrupted is not None:
             raise interrupted

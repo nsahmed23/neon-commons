@@ -1534,6 +1534,17 @@ class StopTests(Fixture):
         with self.assertRaises(OSError):                 # the fallback still stopped it
             socket.create_connection(('127.0.0.1', live.port), timeout=2)
 
+    def test_an_interrupt_from_the_watchdog_join_stays_primary_over_a_delivery(self):
+        live = self.start()
+        queued = OSError('queued by a background stop')
+        self.scripted_drain(live, queued)
+        live.end('idle', wait=False)
+        self.settle(live)
+        with mock.patch.object(live, '_join_watchdog', side_effect=KeyboardInterrupt('interrupted')):
+            with self.assertRaises(KeyboardInterrupt) as caught:
+                live.stop()                   # the retry closes, claims the queued failure, then the join is interrupted
+        self.assertIn('OSError', ' '.join(getattr(caught.exception, '__notes__', [])))
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500
