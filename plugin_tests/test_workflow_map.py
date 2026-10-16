@@ -2881,5 +2881,35 @@ class ConstrainedBandFrameTests(LayerFixture):
         self.assertIn('intune-iac workbench workflow --root', self.text(layer).replace(' \\', ''))
 
 
+# ---- PKG-UXVIS-5b item 5: three recorded test gaps (mutants P28, P39 and W06 of the workflow map's mutation run) ----------
+
+class RecordedGapTests(unittest.TestCase):
+    def test_a_delivery_review_that_is_not_done_is_unknown_never_done(self):
+        # P28: a review stage that is not done read done. Only a stage the records call done is a review that was made.
+        for status in ('not_started', 'waiting', 'unknown', 'failed', None):
+            delivery = delivery_of('prepared', review=stage_row('review', status, changes=[OBJECT + ':description_changed']))
+            stage = by_id(project(with_operation(baseline(), delivery=delivery)))['review']
+            self.assertEqual((stage['state'], stage['basis']), ('unknown', 'operation 4d972e93 delivery stage review'), status)
+        done = by_id(project(with_operation(baseline())))['review']
+        self.assertEqual(done['state'], 'done')
+
+    def test_an_unknown_execution_keeps_its_recorded_error_code_at_the_approve_stage_and_says_outcome_unknown_without_one(self):
+        # P39: the approve stage lost the execution's recorded code. The readback stage already keeps it (P40).
+        read = with_operation(baseline(), delivery=executed_delivery('unknown'), journal='outcome_unknown',
+                              review=prepared_review('open', status='outcome_unknown'))
+        stages = by_id(project(read))
+        self.assertEqual((stages['approve_execute']['state'], stages['approve_execute']['reason']),
+                         ('unknown', 'maintenance_service_incomplete'))
+        self.assertEqual(stages['approve_execute']['basis'], 'operation 4d972e93 journal_status')
+        bare = executed_delivery('unknown', execution={'error_code': None})
+        read = with_operation(baseline(), delivery=bare, journal='outcome_unknown',
+                              review=prepared_review('open', status='outcome_unknown'))
+        self.assertEqual(by_id(project(read))['approve_execute']['reason'], 'outcome_unknown')
+
+
+# W06 (the read model reports no policy name) needs no test here: the whole module already fails under it, in
+# StoredNameTests and StoredSeparatorTests (three tests), which read the stored name back through the real read model.
+
+
 if __name__ == "__main__":
     unittest.main()
