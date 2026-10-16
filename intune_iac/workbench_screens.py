@@ -125,12 +125,16 @@ def _operation_from_states(facts):
 # (P-PRES-15); the screen defines each one it shows, once (run 11 item 12).
 STRIP_DEFINITIONS = {
     'T': 'T = tenant', 'P': 'P = policy',
-    'succeeded_verified': 'verified = succeeded verified', 'not checked': 'unchecked = not checked',
-    'outcome_unknown': 'unknown = outcome unknown',
-    'recorded_intent_not_revalidated': 'not revalidated = recorded intent not revalidated',
-    'desired_state_observed': 'observed = desired state observed', 'age unknown': 'age? = age unknown',
-    'age unknown (stamped ahead)': "age? = age unknown, stamped ahead of this host's clock",
-    'stale (later collection incomplete)': 'stale = stale, a later collection did not complete'}
+    # Each row says what the word stands for and what it means for the next action, not the state's own words again
+    # (run 12 item 6). The Context help (help_lines) keeps the full state words beside each short word.
+    'succeeded_verified': 'verified = executed and read back as desired; v shows the rest',
+    'not checked': 'unchecked = the repository was not compared with the recorded intent',
+    'outcome_unknown': 'unknown = the change may have reached the service; reconcile it (a)',
+    'recorded_intent_not_revalidated': 'not revalidated = shown from the recorded intent; repository not re-read',
+    'desired_state_observed': 'observed = a readback found the service already holds the desired state',
+    'age unknown': "age? = the observation's age cannot be judged; collect again (a)",
+    'age unknown (stamped ahead)': "age? = stamped ahead of this host's clock, age unknown; collect again (a)",
+    'stale (later collection incomplete)': 'stale = a later collection did not finish; collect again (a)'}
 
 
 # What a strip that leaves states out ends with: how many, and the key that shows them in full (Help prints the line).

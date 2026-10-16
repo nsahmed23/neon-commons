@@ -8,6 +8,7 @@ import unittest
 from plugin_tests import test_workbench_repository as repository_tests
 from plugin_tests import test_workbench_states as states_tests
 from plugin_tests.test_workbench_map_truth import MapTruth
+from intune_iac.workbench_screens import STRIP_DEFINITIONS
 from plugin_tests.test_workbench_run10 import action
 
 OBJECT, TENANT = repository_tests.OBJECT, repository_tests.TENANT
@@ -499,13 +500,14 @@ class StripKeyTests(MapTruth):
     # The form as the strip spells it, and the definition the screen must carry once.
     FORMS = (
         (r'\| T [0-9a-f]{8}', 'T = tenant'), (r'\| P [0-9a-f]{8}', 'P = policy'),
-        (r'OP (?:[0-9a-f]{8} )?verified\b', 'verified = succeeded verified'),
-        (r'OP (?:[0-9a-f]{8} )?unknown\b', 'unknown = outcome unknown'),
-        (r'REPO unchecked', 'unchecked = not checked'),
-        (r'REPO not revalidated', 'not revalidated = recorded intent not revalidated'),
-        (r'REPO observed', 'observed = desired state observed'),
-        (r'OBS age\?', 'age? = age unknown'),
-        (r'OBS stale(?! \()', 'stale = stale, a later collection did not complete'))
+        # Run 12 item 6: the rows carry meanings (STRIP_DEFINITIONS); this test checks where they stand, not their words.
+        (r'OP (?:[0-9a-f]{8} )?verified\b', STRIP_DEFINITIONS['succeeded_verified']),
+        (r'OP (?:[0-9a-f]{8} )?unknown\b', STRIP_DEFINITIONS['outcome_unknown']),
+        (r'REPO unchecked', STRIP_DEFINITIONS['not checked']),
+        (r'REPO not revalidated', STRIP_DEFINITIONS['recorded_intent_not_revalidated']),
+        (r'REPO observed', STRIP_DEFINITIONS['desired_state_observed']),
+        (r'OBS age\?', STRIP_DEFINITIONS['age unknown']),
+        (r'OBS stale(?! \()', STRIP_DEFINITIONS['stale (later collection incomplete)']))
 
     def screen(self, size, facts, tab=1):
         ws = self.workspace(size, tab=tab, facts=dict({'object_id': self.object_id, 'name': 'Windows Privacy Pilot'}, **facts))
@@ -521,17 +523,19 @@ class StripKeyTests(MapTruth):
                 strip = rows[2]
                 for pattern, meaning in self.FORMS:
                     if re.search(pattern, strip):
+                        if meaning == STRIP_DEFINITIONS['age unknown'] and 'stamped' in facts['observation']:
+                            meaning = STRIP_DEFINITIONS['age unknown (stamped ahead)']  # the same word, its own row
                         seen.add(meaning)
                         self.assertEqual(text.count(meaning), 1, (size, facts, strip, meaning, rows))
                         self.assertNotIn(meaning, strip)
         # The battery reached the width forms the brief names, at the sizes it names.
-        for meaning in ('T = tenant', 'P = policy', 'verified = succeeded verified', 'unknown = outcome unknown'):
+        for meaning in ('T = tenant', 'P = policy', STRIP_DEFINITIONS['succeeded_verified'], STRIP_DEFINITIONS['outcome_unknown']):
             self.assertIn(meaning, seen)
 
     def test_a_strip_with_no_abbreviated_form_carries_no_key(self):
         rows, text = self.screen((140, 40), self.BATTERY[1])
         self.assertNotIn(' = tenant', text)
-        self.assertNotIn(' = outcome unknown', text)
+        self.assertNotIn(STRIP_DEFINITIONS['outcome_unknown'], text)
 
     def test_the_map_screen_defines_them_in_its_pinned_legend_row(self):
         checked = 0
@@ -540,10 +544,11 @@ class StripKeyTests(MapTruth):
             if 'OP unknown' not in rows[2]:
                 continue
             checked += 1
-            self.assertEqual(text.count('unknown = outcome unknown'), 1, rows)
-            holder = next(row for row in rows if 'unknown = outcome unknown' in row)
+            meaning = STRIP_DEFINITIONS['outcome_unknown']
+            self.assertEqual(text.count(meaning), 1, rows)
+            holder = next(row for row in rows if meaning in row)
             self.assertTrue(holder.startswith('│'), holder)  # inside the frame, with the map's legend
-            self.assertNotIn('unknown = outcome unknown', rows[-1] + rows[-2])
+            self.assertNotIn(meaning, rows[-1] + rows[-2])
             legend = rows.index(holder)
             self.assertTrue(any('focus' in row for row in rows[legend - 3:legend + 1]), rows[legend - 3:legend + 1])
         self.assertGreaterEqual(checked, 1)

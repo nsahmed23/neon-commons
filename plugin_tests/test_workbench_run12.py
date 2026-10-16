@@ -164,3 +164,37 @@ class EqualityDefinedTests(unittest.TestCase):
         self.assertEqual(field_changes(body, bag_order)['status'], 'no_change')
         reordered = dict(body, settings={'settings': list(reversed(body['settings']['settings']))})
         self.assertEqual(field_changes(body, reordered)['status'], 'changed')
+
+
+class LegendMeaningTests(unittest.TestCase):
+    """Item 6: a legend row says what the abbreviation stands for and what it means for the next action, not the
+    state's own words again (`unknown = outcome unknown`)."""
+    EXPECTED = {
+        'succeeded_verified': 'verified = executed and read back as desired; v shows the rest',
+        'not checked': 'unchecked = the repository was not compared with the recorded intent',
+        'outcome_unknown': 'unknown = the change may have reached the service; reconcile it (a)',
+        'recorded_intent_not_revalidated': 'not revalidated = shown from the recorded intent; repository not re-read',
+        'desired_state_observed': 'observed = a readback found the service already holds the desired state',
+        'age unknown': "age? = the observation's age cannot be judged; collect again (a)",
+        'stale (later collection incomplete)': 'stale = a later collection did not finish; collect again (a)'}
+
+    def test_each_row_carries_its_meaning(self):
+        from intune_iac.workbench_screens import STRIP_DEFINITIONS
+        for key, row in self.EXPECTED.items():
+            self.assertEqual(STRIP_DEFINITIONS[key], row, key)
+
+    def test_no_row_restates_its_own_key(self):
+        import re
+        from intune_iac.workbench_screens import STRIP_DEFINITIONS
+        for key, row in STRIP_DEFINITIONS.items():
+            short, _, meaning = row.partition(' = ')
+            self.assertNotEqual(meaning, key.replace('_', ' '), row)
+            if key in ('T', 'P'):
+                continue
+            extra = set(re.findall(r'[a-z]+', meaning)) - set(re.findall(r'[a-z]+', key.replace('_', ' '))) - {'the', 'a'}
+            self.assertGreaterEqual(len(extra), 3, row)
+
+    def test_rows_stay_short_enough_for_an_80_column_screen(self):
+        from intune_iac.workbench_screens import STRIP_DEFINITIONS
+        for key, row in STRIP_DEFINITIONS.items():
+            self.assertLessEqual(len(row), 80, row)
