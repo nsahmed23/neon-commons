@@ -53,6 +53,31 @@ def _parser_message(message):
     return 'invalid arguments (values are not shown)'
 
 
+# The last line of defence at the text output boundary. Renderers escape record text through safe_text; this is for the surface
+# that forgot. Every C0 control (the line feed, carriage return and tab as safe_text writes them), DEL, the C1 controls, the line and
+# paragraph separators and the bidirectional overrides and isolates are shown as a visible escape, so no text-mode command can
+# move the cursor, rewrite the terminal, start a row of its own or reorder what a person reads. Text safe_text already escaped
+# holds none of these and is unchanged. Not applied to --json: JSON output keeps its own escaping.
+_TEXT_GUARDED=re.compile('[\x00-\x1f\x7f-\x9f\u2028\u2029\u202a-\u202e\u2066-\u2069]')
+_TEXT_NAMED={'\n':'\\n','\r':'\\r','\t':'\\t'}
+
+
+def text_guard(text):
+    """One row of text with every guarded character shown as the escape safe_text uses."""
+    return _TEXT_GUARDED.sub(lambda m:_TEXT_NAMED.get(m.group(),'\\u%04x'%ord(m.group())),text)
+
+
+def text_guard_rows(rows):
+    """The rows of a text screen as the one string to write: each row guarded alone, so a line feed inside a value is escaped and
+    cannot start a row of its own; the newline between rows is the only one left."""
+    return '\n'.join(text_guard(row) for row in rows)
+
+
+def _write_text(rows):
+    """The one place text-mode commands write their screen."""
+    print(text_guard_rows(rows));sys.stdout.flush()
+
+
 def _descriptor(value):
     # A descriptor flag is parsed here, not with type=int: int()'s error text carries the value, and a token is exactly
     # what a person may paste there by mistake.
@@ -486,12 +511,12 @@ def main(argv=None):
             value=survey(args.directory,relative_to=os.getcwd())
             goal=goal_readiness(value,args.goal,_start_signin(args)) if args.goal else None
             if goal is None:_start_signin(args)
-            print('\n'.join(start_lines(value,shutil.get_terminal_size((100,40)).columns,goal,goal_hint=goal is None)))
+            _write_text(start_lines(value,shutil.get_terminal_size((100,40)).columns,goal,goal_hint=goal is None))
             return 0
         if args.command=='simulate' and args.format=='text':
             # A person reads this; --format json keeps the machine form, which is the schema result.
             from .sim_cli import text_lines
-            print('\n'.join(text_lines(args)));sys.stdout.flush()
+            _write_text(text_lines(args))
             return 0
         if args.command=='signin' and not args.json:
             # A person reads the sign-in status or the collect result; --json keeps the data form for scripts. The exit code is the
@@ -500,18 +525,18 @@ def main(argv=None):
             result,shown=_signin_command(args,presentation=True)
             code=exit_code(result)
             render=collect_lines if args.signin_command=='collect' else status_lines
-            print('\n'.join(render(result,shutil.get_terminal_size((100,40)).columns,code,shown)));sys.stdout.flush()
+            _write_text(render(result,shutil.get_terminal_size((100,40)).columns,code,shown))
             return code
         result=execute(args)
         if args.command=='catalog' and not args.json:
             # A person reads the catalog; --json keeps the data form. Read-only, so the exit is 0.
             from .catalog import catalog_lines
-            print('\n'.join(catalog_lines(result,shutil.get_terminal_size((100,40)).columns)));sys.stdout.flush()
+            _write_text(catalog_lines(result,shutil.get_terminal_size((100,40)).columns))
             return 0
         if args.command=='engineering' and not args.json:
             # A person reads the engineering view; --json keeps the data form. Read-only, so the exit is 0.
             from .engineering_view import lines_for
-            print('\n'.join(lines_for(result)));sys.stdout.flush()
+            _write_text(lines_for(result))
             return 0
         if args.command=='workbench' and getattr(args,'workbench_command',None)=='workflow' and not args.json:
             # A person reads the workflow map; --json keeps the data form. The same lanes as the workspace layer, 80 columns
@@ -519,13 +544,13 @@ def main(argv=None):
             from .engineering_view import output_width
             from .workbench_screens import workflow_text_lines
             encoding=(getattr(sys.stdout,'encoding',None) or '').lower().replace('-','').replace('_','')
-            print('\n'.join(workflow_text_lines(result,output_width(),'unicode' if encoding=='utf8' else 'ascii')));sys.stdout.flush()
+            _write_text(workflow_text_lines(result,output_width(),'unicode' if encoding=='utf8' else 'ascii'))
             return 0
         if (getattr(args,'workbench_command',None)=='workspace' and isinstance(result,dict)
                 and result.get('status')=='interrupted' and sys.stdout.isatty()):
             # A person reads this after Ctrl-C: sentences with the exact next step; a pipe keeps the JSON.
             from .workbench import interrupted_text
-            print('\n'.join(interrupted_text(result,shutil.get_terminal_size((100,40)).columns)));sys.stdout.flush()
+            _write_text(interrupted_text(result,shutil.get_terminal_size((100,40)).columns))
             return exit_code(result)
         try:
             print(json.dumps(result,ensure_ascii=True,sort_keys=True,allow_nan=False));sys.stdout.flush()
