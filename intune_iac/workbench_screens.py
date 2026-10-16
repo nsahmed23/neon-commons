@@ -2914,7 +2914,7 @@ REFUSALS = {
         'The repository changed after you reviewed its difference.',
         'Review the new difference (9), then Refresh the repository intent (a: actions).'),
     'maintenance_source_changed': (
-        'A file this proposal bound changed after it was prepared (its context file), so its review no longer '
+        'A file it bound (its desired file or its context file) changed after it was prepared, so its review no longer '
         'describes what would run.',
         'Prepare a proposal from the recorded intent (a: actions); nothing from this one is used.'),
     'workbench_deployment_intent': (
@@ -3150,7 +3150,8 @@ def refusal_lines(value, width, known=None, clock_fact=None, operation=None, ver
     verb: the command's own word; a restore reads the code in its own terms.
     recorded: the deployment record the named operation already has, for a refused deployment-record command; the
     refusal then says so and names it, and never asks for a record that exists (run 9, frame 67).
-    context_file: the path of the context file the plan bound, for a changed-file refusal, so the cause names it.
+    context_file: the path of the context file the plan bound. The cause does not name it: the engine raises this code
+    for the desired file and for the context file alike and does not say which changed (review 19).
     given: the intent the command named, for a refused deployment-record, shown beside the cited one (run 12, frame 67).
     """
     error = value.get('error') if isinstance(value.get('error'), dict) else {}
@@ -3160,12 +3161,10 @@ def refusal_lines(value, width, known=None, clock_fact=None, operation=None, ver
     lines = word_wrap('[REFUSED] %s (%s)' % (restore[0], code) if restore else refusal_header(code), width)
     named = 'operation %s' % operation if operation else 'that operation'
     override = None
-    if code == 'maintenance_source_changed' and not restore and (operation or context_file):
-        # Names the operation and the file (run 12, frame 66); with neither known the general meaning stands.
-        prepared = 'operation %s was prepared' % operation if operation else 'it was prepared'
-        which = 'the context file %s' % _path_words(context_file) if context_file else 'its context file'
-        override = ('A file this proposal bound changed after %s (%s), so its review no longer describes what would run.'
-                    % (prepared, which), REFUSALS[code][1])
+    if code == 'maintenance_source_changed' and not restore and operation:
+        # Names the operation (run 12, frame 66) and both kinds of file it bound, never one path (review 19).
+        override = ('A file it bound (its desired file or its context file) changed after operation %s was prepared, so its '
+                    'review no longer describes what would run.' % operation, REFUSALS[code][1])
     if operation and message.startswith('This operation '):
         # The engine's message says "This operation"; with the operation known, it says which one.
         message = 'Operation %s %s' % (operation, message[len('This operation '):])

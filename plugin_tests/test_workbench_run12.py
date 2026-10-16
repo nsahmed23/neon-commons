@@ -360,19 +360,15 @@ class ChangedFileNamedTests(Proposed):
         value = {'status': 'error', 'error': {'code': 'maintenance_source_changed', 'message': 'A bound file changed.'}}
         return ' '.join(' '.join(refusal_lines(value, 118, **kw)).split())
 
-    def test_the_cause_names_the_operation_and_the_context_file(self):
+    def test_the_cause_names_the_operation_and_both_kinds_of_bound_file(self):
+        # PKG-PRES-RUN15 item 2 (review 19): which file changed is not carried, so no path is named.
         text = self.refusal(operation='650a1a61', verb='execute', context_file='/w/my ctx.json')
-        self.assertIn("Cause: A file this proposal bound changed after operation 650a1a61 was prepared (the context file "
-                      "'/w/my ctx.json'), so its review no longer describes what would run.", text)
-
-    def test_with_only_the_operation_known_it_says_which_operation(self):
-        text = self.refusal(operation='650a1a61', verb='execute')
-        self.assertIn('Cause: A file this proposal bound changed after operation 650a1a61 was prepared (its context file), '
-                      'so its review no longer describes what would run.', text)
+        self.assertIn('Cause: A file it bound (its desired file or its context file) changed after operation 650a1a61 was '
+                      'prepared, so its review no longer describes what would run.', text)
 
     def test_neither_known_keeps_the_general_cause(self):
-        self.assertIn('Cause: A file this proposal bound changed after it was prepared (its context file), so its review '
-                      'no longer describes what would run.', self.refusal(verb='execute'))
+        self.assertIn('Cause: A file it bound (its desired file or its context file) changed after it was prepared, so its '
+                      'review no longer describes what would run.', self.refusal(verb='execute'))
 
     def test_the_workspace_reads_the_context_file_the_plan_bound(self):
         from intune_iac.workbench_tui import Workspace

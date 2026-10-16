@@ -58,3 +58,27 @@ class QueueRoutesActOnTheFindingsPolicyTests(unittest.TestCase):
         workspace = states_tests.StateSurfaceTests.workspace(None, 6, {'findings': [self.finding(OTHER)]})
         workspace.selected = SELECTED
         self.assertIn(':select ' + OTHER, [row.strip() for row in workspace._surface_summary(118)])
+
+
+class ChangedBoundFileWordingTests(unittest.TestCase):
+    """Item 2 (review 19): maintenance_source_changed is raised for the desired file and for the context file alike, and
+    the refusal does not carry which one, so the cause must not name the unchanged context file."""
+    WORDS = 'A file it bound (its desired file or its context file) changed after %s, so its review no longer describes what would run.'
+
+    def refusal(self, **kw):
+        from intune_iac.workbench_screens import refusal_lines
+        value = {'status': 'error', 'error': {'code': 'maintenance_source_changed', 'message': 'A bound file changed.'}}
+        return ' '.join(' '.join(refusal_lines(value, 118, **kw)).split())
+
+    def test_the_cause_names_both_files_by_kind_and_no_path(self):
+        text = self.refusal(operation='650a1a61', verb='execute', context_file='/w/my ctx.json')
+        self.assertIn('Cause: ' + self.WORDS % 'operation 650a1a61 was prepared', text)
+        self.assertNotIn('my ctx.json', text)
+
+    def test_with_the_operation_unknown_the_cause_says_the_same_of_it(self):
+        text = self.refusal(verb='execute')
+        self.assertIn('Cause: ' + self.WORDS % 'it was prepared', text)
+
+    def test_the_general_meaning_names_both_files_too(self):
+        from intune_iac.workbench_screens import REFUSALS
+        self.assertIn('(its desired file or its context file)', REFUSALS['maintenance_source_changed'][0])
