@@ -1034,6 +1034,7 @@ plugin_tests/test_workbench_diff.py
 plugin_tests/test_workbench_effects.py
 plugin_tests/test_workbench_m33.py
 plugin_tests/test_workbench_repository.py
+plugin_tests/test_workbench_run15.py
 plugin_tests/test_workbench_screens.py
 plugin_tests/test_workbench_evidence_views_r4.py
 plugin_tests/test_workbench_families.py
