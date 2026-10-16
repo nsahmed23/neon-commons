@@ -2,17 +2,39 @@
 
 Item 1 (truth): a listed entry carries the state word the CLI printed (listing_state), never a "session"; a GitHub host whose
 gh state is error is invalid with its reason code, not expired; a ready report says once what it is ready for.
+Item 2 (next steps): the withheld-output failure says whether the output folder was written (it is never removed) and gives
+the exact next step; the account-mismatch refusal gives the command that shows the default account; every placeholder in a
+printed step is marked, and "check again" is the command to run.
 Fake az and gh and a fake collecting child stand in for the real ones; no canary or token value is ever printed.
 """
 import json
+from pathlib import Path
+import re
+import shlex
+import sys
 import unittest
 
 from intune_iac import signin, signin_facts
 from plugin_tests.signin_fakes import TENANT_A, TENANT_B, azure_account, azure_list, github_hosts
-from plugin_tests.test_signin_fix1 import Base
+from plugin_tests.test_signin_fix1 import Base, POLICY
 
 READY_FOR = ('The Azure CLI sign-in is usable for tenant %s; Graph, Intune and state-storage access are not known until a '
              'read is attempted.')
+# An upper-case word of three or more letters in a printed step is a placeholder (a few product and tool names aside); it must
+# be followed at once by its meaning in brackets, which starts like a description ("the ...", "your ...", "a ..."), so an
+# unrelated bracket that happens to follow it does not count as the mark.
+PLACEHOLDER = re.compile(r'\b[A-Z][A-Z_]{2,}\b')
+NOT_PLACEHOLDERS = frozenset({'CLI', 'JSON', 'GUID'})
+MARK = re.compile(r' \((?:the|your|a|an|that) [^()]+\)')
+# The child creates the output folder, then prints what it received on the descriptor: the withheld route, folder written.
+WRITER = ('import os, sys; received = os.read(int(sys.argv[2]), 8192); os.mkdir(sys.argv[1]); '
+          'sys.stdout.write(received.decode())')
+LONG_UPN = 'alexander.morgan@contoso.onmicrosoft.com'  # hidden from display (as in test_signin_fix4), not a secret
+
+
+def unmarked(step):
+    return [match.group(0) for match in PLACEHOLDER.finditer(step)
+            if match.group(0) not in NOT_PLACEHOLDERS and not MARK.match(step, match.end())]
 
 
 def keys(value):
@@ -128,6 +150,99 @@ class ReadyForTests(Base):  # item 1c, finding 2
         self.assertEqual((blocked['status'], reported['status']), ('blocked', 'reported'))
         self.assertNotIn('ready_for', blocked)
         self.assertNotIn('ready_for', reported)
+
+
+class WithheldTests(Base):  # item 2a, finding 8
+    def command(self, tenant, policy, output, descriptor):
+        if self.mode == 'mkdir-echo':
+            return [sys.executable, '-I', '-c', WRITER, output, str(descriptor)]
+        return super().command(tenant, policy, output, descriptor)
+
+    def withheld(self):
+        result = self.collect()
+        self.assertEqual((result['status'], result['error_code']), ('failed', 'collector_output_withheld'))
+        self.assertNotIn(self.token, json.dumps(result))
+        self.assertEqual(result['output_removed'], False)
+        self.assertEqual(unmarked(result['next_step']), [])
+        return result
+
+    def test_a_folder_the_collector_wrote_is_reported_written_and_left_with_the_exact_step(self):
+        self.mode = 'mkdir-echo'
+        result = self.withheld()
+        self.assertEqual(result['output_folder'], 'written')
+        self.assertTrue(Path(self.output).is_dir())  # today's behaviour: collect never removes the folder
+        self.assertIn('rm -r -- %s' % shlex.quote(self.output), result['next_step'])
+        self.assertIn('intune-iac signin collect --tenant %s --policy %s --output NEW_DIR (' % (TENANT_A, POLICY),
+                      result['next_step'])
+        self.assertIn('left in place', result['message'])
+
+    def test_a_folder_the_collector_did_not_write_is_reported_not_written(self):
+        self.mode = 'echo'
+        result = self.withheld()
+        self.assertEqual(result['output_folder'], 'not_written')
+        self.assertFalse(Path(self.output).exists())
+        self.assertNotIn('rm -r', result['next_step'])
+        self.assertIn('intune-iac signin collect --tenant %s --policy %s --output NEW_DIR (' % (TENANT_A, POLICY),
+                      result['next_step'])
+
+    def test_a_folder_that_existed_before_the_run_is_reported_as_such_and_never_offered_for_deletion(self):
+        self.mode = 'echo'
+        Path(self.output).mkdir()
+        result = self.withheld()
+        self.assertEqual(result['output_folder'], 'existed_before')
+        self.assertNotIn('rm -r', result['next_step'])
+
+
+class AccountMismatchTests(Base):  # item 2b, finding 9
+    def test_the_mismatch_refusal_gives_the_command_that_shows_the_default_account(self):
+        verdict = signin_facts.evaluate(signin.detect_azure(deadline=5), TENANT_A, 'sam@example.test')
+        self.assertEqual(verdict['status'], 'account_mismatch')
+        self.assertIn('az account show --query user.name -o tsv', verdict['next_step'])
+        self.assertNotIn('sam@', json.dumps(verdict))
+        result = self.collect(account='sam@example.test')
+        self.assertIn('az account show --query user.name -o tsv', result['signin']['next_step'])
+        self.assertEqual(self.collectors(), [])
+
+
+class PlaceholderTests(Base):  # item 2c, finding 7
+    def azure(self, *accounts, tenant=TENANT_A, account=None):
+        self.fakes.answer('az', 'account', 'list', out=azure_list(*accounts))
+        return signin_facts.evaluate(signin.detect_azure(deadline=5), tenant, account)['next_step']
+
+    def github(self, out, code=0, err=''):
+        self.fakes.answer('gh', 'auth', 'status', out=out, code=code, err=err)
+        return signin_facts.evaluate(signin.detect_github(deadline=5))['next_step']
+
+    def steps(self):
+        other = azure_account(user='sam@example.test', default=False, sub='s2')
+        return {
+            'two defaults': self.azure(azure_account(), azure_account(user='sam@example.test', sub='s2')),
+            'no default': self.azure(azure_account(default=False)),
+            'several accounts': self.azure(azure_account(), other),
+            'hidden name': self.azure(azure_account(user=LONG_UPN)),
+            'not signed in, no tenant': self.azure(tenant=None),
+            'signed in, no tenant': self.azure(azure_account(), tenant=None),
+            'account argument not plain': self.azure(azure_account(), account='not a plain name!'),
+            'refused at token time, no tenant': signin_facts.refused('expired', None)['next_step'],
+            'github several accounts': self.github(github_hosts(('github.com', 'octo-user', 'success', True),
+                                                                ('github.com', 'other-user', 'success', False))),
+            'github not signed in': self.github('', code=1, err='You are not logged into any GitHub hosts.'),
+            'github error': self.github(github_hosts(('github.com', 'octo-user', 'error', True)), code=1),
+        }
+
+    def test_every_placeholder_in_a_printed_step_is_marked(self):
+        for name, step in self.steps().items():
+            with self.subTest(name):
+                self.assertEqual(unmarked(step), [], step)
+
+    def test_a_step_that_was_a_sentence_is_now_the_command_to_run(self):
+        steps = self.steps()
+        for name in ('github several accounts', 'github not signed in', 'github error'):
+            with self.subTest(name):
+                self.assertNotIn('check again', steps[name])
+                self.assertIn('intune-iac signin status --provider github', steps[name])
+        self.assertIn('intune-iac signin status --tenant TENANT_ID (', steps['signed in, no tenant'])
+        self.assertIn('az account show --query user.name -o tsv', steps['account argument not plain'])
 
 
 if __name__ == '__main__':

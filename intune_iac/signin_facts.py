@@ -34,6 +34,12 @@ AZURE_EXPIRED_STATES = frozenset({'Expired'})
 GITHUB_USABLE, GITHUB_ERROR, GITHUB_TIMEOUT = 'success', 'error', 'timeout'
 LISTING_STATES = {'azure': AZURE_ACTIVE_STATES | AZURE_EXPIRED_STATES,
                   'github': frozenset({GITHUB_USABLE, GITHUB_ERROR, GITHUB_TIMEOUT})}
+# Every placeholder in a printed step is followed by its meaning in brackets, so no step is mistaken for one to paste as is.
+TENANT_PLACEHOLDER = 'TENANT_ID (the tenant id the context names)'
+SUBSCRIPTION_STEP = 'az account set --subscription SUBSCRIPTION (the subscription id or name)'
+LOGOUT_STEP = 'az logout --username NAME (the account name to sign out)'
+DEFAULT_ACCOUNT_STEP = 'az account show --query user.name -o tsv'
+GITHUB_RECHECK = 'intune-iac signin status --provider github'
 
 
 def shown(value, pattern=NAME):
@@ -318,21 +324,22 @@ def evaluate(facts, tenant=None, account=None):
     """Judge facts against the tenant the context names (and the account the engineer named, if any).
 
     Pure. status is signed_in, not_signed_in, expired, invalid (GitHub only), wrong_tenant, several_accounts, account_mismatch
-    or unknown; usable is
-    true only for an azure sign-in that is in the context's tenant, is the one account the CLI would use, and (when the
-    engineer named one) is that account. The next step is the exact thing the engineer does; the product runs none of it.
+    or unknown; usable is true only for an azure sign-in that is in the context's tenant, is the one account the CLI would
+    use, and (when the engineer named one) is that account. The next step is the exact thing the engineer does, with every
+    placeholder marked; the product runs none of it.
     """
     provider = facts.get('provider') if isinstance(facts, dict) else None
     tenant = shown(tenant, GUID)
     tenant = tenant.lower() if tenant else None
     if provider == 'github':
         return _evaluate_github(facts)
-    wanted = tenant or 'TENANT_ID'
+    wanted = tenant or TENANT_PLACEHOLDER
     login = 'az login --tenant %s' % wanted
     if account is not None and not account_argument_ok(account):
         # Never echoed: the account argument is only compared, never repeated in a message.
         return _verdict('azure', 'unknown', 'The account to use is not a plain account name.',
-                        'Name the account as the Azure CLI lists it, or leave --account out.', tenant)
+                        'To see the account the Azure CLI uses by default, run %s; then pass that name with --account NAME '
+                        '(that account name), or leave --account out.' % DEFAULT_ACCOUNT_STEP, tenant)
     state = facts.get('state') if isinstance(facts, dict) else None
     accounts = _clean_accounts(facts, 'azure')
     active = [a for a in accounts if a['listing_state'] in AZURE_ACTIVE_STATES]
@@ -360,13 +367,12 @@ def evaluate(facts, tenant=None, account=None):
         listing = '; '.join(_who(a) for a in defaults)
         return _verdict('azure', 'several_accounts',
                         'The Azure CLI marks more than one entry as its default: %s. The product does not pick one.' % listing,
-                        'Make exactly one the default with: az account set --subscription SUBSCRIPTION (or sign out the others '
-                        'with: az logout --username NAME); then run this command again.', tenant, signed_in=active)
+                        'Make exactly one the default with: %s, or sign out the others with: %s; then run this command '
+                        'again.' % (SUBSCRIPTION_STEP, LOGOUT_STEP), tenant, signed_in=active)
     default = defaults[0] if defaults else None
     if default is None:
         return _verdict('azure', 'unknown', 'The Azure CLI lists signed-in accounts but marks none as the one it uses.',
-                        'Choose one with: az account set --subscription SUBSCRIPTION; then run this command again.', tenant,
-                        signed_in=active)
+                        'Choose one with: %s; then run this command again.' % SUBSCRIPTION_STEP, tenant, signed_in=active)
     if tenant and default['tenant'] != tenant:
         others = [a for a in active if a is not default]
         extra = (' Other sign-ins listed: %s.' % '; '.join(_who(a) for a in others)) if others else ''
@@ -390,27 +396,30 @@ def evaluate(facts, tenant=None, account=None):
         tail = '' if account is None else ' The account you named is not the one the CLI uses by default.'
         return _verdict('azure', 'several_accounts',
                         'Several accounts are signed in: %s. The product does not pick one.%s' % (listing, tail),
-                        'Name the account with --account NAME; it must be the one the Azure CLI uses by default (change that '
-                        'with: az account set --subscription SUBSCRIPTION), or sign out the others with: az logout --username NAME.',
+                        'Name the account with --account NAME (your account name); it must be the one the Azure CLI uses by '
+                        'default, which you change with: %s. Or sign out the others with: %s.' % (SUBSCRIPTION_STEP, LOGOUT_STEP),
                         tenant, signed_in=active)
     if account is not None and not _matches(default, account):
         return _verdict('azure', 'account_mismatch',
                         'The account you named is not the one the Azure CLI uses by default. Nothing proceeds.',
-                        'Sign in with that account (az login --tenant %s) or leave --account out.' % wanted, tenant, signed_in=active)
+                        'To see the account the Azure CLI uses by default, run %s yourself. Then sign in with the account you '
+                        'named: az login --tenant %s; or run this command again without --account.' % (DEFAULT_ACCOUNT_STEP, wanted),
+                        tenant, signed_in=active)
     message = 'Signed in to %s; session freshness is checked when a token is requested.' % _who(default)
-    next_step = 'No sign-in step is needed.' if tenant else 'Name the context tenant to compare it with this sign-in.'
+    next_step = ('No sign-in step is needed.' if tenant else
+                 'To compare this sign-in with the context tenant, run: intune-iac signin status --tenant %s.' % TENANT_PLACEHOLDER)
     if account is not None:
         message += ' The account matches.'  # the product says so; it never prints either value
     elif default['account'] == NOT_SHOWN:
-        next_step = ('To see the account name, run az account show --query user.name -o tsv yourself; to confirm it, pass '
-                     '--account NAME. ') + next_step
+        next_step = ('To see the account name, run %s yourself; to confirm it, pass --account NAME (that account name). '
+                     % DEFAULT_ACCOUNT_STEP) + next_step
     return _verdict('azure', 'signed_in', message, next_step, tenant, usable=bool(tenant), signed_in=[default])
 
 
 def refused(status, tenant, answered=None):
     """A block found at token time rather than in the listing: expired, not_signed_in or wrong_tenant (answered = the tenant)."""
     tenant = shown(tenant, GUID)
-    wanted = tenant.lower() if tenant else 'TENANT_ID'
+    wanted = tenant.lower() if tenant else TENANT_PLACEHOLDER
     login = 'az login --tenant %s' % wanted
     if status == 'wrong_tenant':
         other = shown(answered, GUID) or 'another tenant'
@@ -430,7 +439,8 @@ def _evaluate_github(facts):
     state = facts.get('state') if isinstance(facts, dict) else None
     login = 'gh auth login'
     if state == 'not_signed_in':
-        return _verdict('github', 'not_signed_in', 'Not signed in to GitHub.', 'Sign in: %s; then check again.' % login, None)
+        return _verdict('github', 'not_signed_in', 'Not signed in to GitHub.', 'Sign in: %s; then run: %s.' % (login, GITHUB_RECHECK),
+                        None)
     # A timeout from gh's own check leaves the facts unknown but with the entries listed; they are still judged below.
     if state not in ('signed_in', 'invalid', 'unknown') or not accounts:
         reason = shown(facts.get('reason') if isinstance(facts, dict) else None, NAME) or 'not_established'
@@ -448,14 +458,15 @@ def _evaluate_github(facts):
                             for key, entries in sorted(crowded.items(), key=lambda item: item[0]))
         return _verdict('github', 'several_accounts',
                         'Several accounts are listed for one host: %s. The product does not pick one.' % listing,
-                        'Make one active with: gh auth switch --user NAME, and remove the others you do not use with: '
-                        'gh auth logout --user NAME; then check again.', None, signed_in=active)
+                        'Make one active with: gh auth switch --user NAME (the login name to use), and remove the others you do '
+                        'not use with: gh auth logout --user NAME (a login name you do not use); then run: %s.' % GITHUB_RECHECK,
+                        None, signed_in=active)
     if not active:
         # gh never reports a login as expired: error means its check of the stored login failed, timeout that it did not finish.
         listing = '; '.join('%s as %s (gh state: %s)' % (a['host'], a['account'], a['listing_state']) for a in accounts)
         if any(a['listing_state'] == GITHUB_ERROR for a in accounts):
             return _verdict('github', 'invalid', 'gh reports the GitHub sign-in as invalid (reason: gh_state_error): %s.'
-                            % listing, 'Sign in again: %s; then check again.' % login, None)
+                            % listing, 'Sign in again: %s; then run: %s.' % (login, GITHUB_RECHECK), None)
         return _verdict('github', 'unknown', 'The GitHub sign-in could not be determined (reason: gh_state_timeout): gh did '
                         'not finish checking %s.' % listing, 'Run gh auth status yourself to see it.', None)
     if any(_signature(a) for a in active):

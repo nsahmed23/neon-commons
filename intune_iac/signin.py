@@ -31,6 +31,7 @@ import os
 from pathlib import Path
 import re
 import selectors
+import shlex
 import shutil
 import signal
 import subprocess
@@ -469,6 +470,9 @@ def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, col
     except SigninBlocked as blocked:
         return {'status': 'blocked', 'signin': blocked.verdict, 'collector_started': False}
     watch = _Watch(token)
+    # Looked at once before the child starts, only to report truthfully what became of the folder if the output is withheld
+    # (collect never removes it); nothing here creates, changes or removes it.
+    existed = os.path.lexists(output)
     read_end, write_end = os.pipe()
     try:
         try:
@@ -492,17 +496,39 @@ def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, col
             raise AppError('signin_collect_unavailable', 'The collecting command could not be started.') from None
     finally:
         os.close(read_end)
-    return _collector_result(code, out, err, watch, output)
+    rerun = 'intune-iac signin collect --tenant %s --policy %s --output NEW_DIR (a folder that does not exist yet)%s' % (
+        tenant, policy, ' --account NAME (the account you named)' if account is not None else '')
+    return _collector_result(code, out, err, watch, output, lambda child_exit: _withheld(child_exit, output, existed, rerun))
 
 
-def _withheld(code):
-    return {'status': 'failed', 'error_code': 'collector_output_withheld', 'collector_started': True, 'child_exit': code}
+def _withheld(code, output, existed, rerun):
+    """The child printed the token, so nothing of its output is shown: say what became of the output folder and the next step.
+
+    collect never removes the folder. It existed before the run (left as found), was written by the collecting command (left
+    in place, and it may hold the token, so the step deletes it without opening it), or was not written.
+    """
+    if existed:
+        folder, where = 'existed_before', ('existed before this run and is left as it was found (this command neither removed it '
+                                           'nor looked inside it)')
+    elif os.path.lexists(output):
+        folder, where = 'written', ('was written by the collecting command and is left in place (this command does not remove '
+                                    'it); it may hold the token')
+    else:
+        folder, where = 'not_written', 'was not written'
+    first = ('Delete the folder without opening it: rm -r -- %s; then run: ' % shlex.quote(output) if folder == 'written'
+             else 'Run: ')
+    return {'status': 'failed', 'error_code': 'collector_output_withheld', 'collector_started': True, 'child_exit': code,
+            'output_folder': folder, 'output_removed': False,
+            'message': 'The collecting command printed the access token, so nothing of its output is shown. The output folder '
+                       '%s.' % where,
+            'next_step': first + rerun + '. If the output is withheld again, the collecting command itself prints the token: '
+                                         'stop and report it.'}
 
 
-def _collector_result(code, out, err, watch, output):
+def _collector_result(code, out, err, watch, output, withheld):
     text_out, text_err = out.decode('utf-8', 'replace'), err.decode('utf-8', 'replace')
     if watch.hit(text_out) or watch.hit(text_err):
-        return _withheld(code)
+        return withheld(code)
     if code != 0:
         return {'status': 'failed', 'error_code': _error_code(text_err), 'collector_started': True, 'child_exit': code}
     try:
@@ -514,10 +540,10 @@ def _collector_result(code, out, err, watch, output):
         return {'status': 'failed', 'error_code': 'collector_output_invalid', 'collector_started': True, 'child_exit': 0}
     # Decoded strings (JSON escapes undone), one by one and joined, so a token split over fields is still recognised.
     if watch.hit(''.join(found)) or any(watch.hit(item) for item in found):
-        return _withheld(0)
+        return withheld(0)
     for key, item in (value.items() if isinstance(value, dict) else ()):
         if key not in _PATH_FIELDS and isinstance(item, str) and _TOKEN_SHAPE.fullmatch(item):
-            return _withheld(0)
+            return withheld(0)
     shown = collector_schema(value)
     if shown is None:
         return {'status': 'failed', 'error_code': 'collector_output_invalid', 'collector_started': True, 'child_exit': 0}
