@@ -29,8 +29,8 @@ TENANT_B = "33333333-3333-4333-8333-333333333333"
 class FakeClis:
     """A directory holding fake az and gh; use path_entry() as the first search path entry."""
 
-    def __init__(self):
-        self.temp = tempfile.TemporaryDirectory()
+    def __init__(self, base=None):
+        self.temp = tempfile.TemporaryDirectory(dir=base)
         self.directory = Path(self.temp.name).resolve()
         for tool in ("az", "gh"):
             path = self.directory / tool

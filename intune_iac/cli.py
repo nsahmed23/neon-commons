@@ -69,6 +69,13 @@ def _tenant(value):
     return value.lower()
 
 
+def _policy(value):
+    from .signin_facts import GUID
+    if not isinstance(value,str) or not GUID.fullmatch(value):
+        raise argparse.ArgumentTypeError('expects a policy GUID')
+    return value.lower()
+
+
 def _account(value):
     from .signin_facts import shown
     if not isinstance(value,str) or shown(value) is None:
@@ -242,6 +249,13 @@ def parser():
     status.add_argument('--account',type=_account,help='The account to use when several are signed in; it must be the one the Azure CLI uses by default')
     status.add_argument('--provider',choices=('azure','github','all'),default='azure')
     status.add_argument('--deadline',type=float,default=15.0,help='Seconds allowed for each CLI call (greater than zero, at most 60)')
+    collect_with=signin.add_parser('collect',help='Collect read-only evidence (like capture) with the reused Azure sign-in: a short-lived token goes to the collecting child on an inherited file descriptor, never an argument or the environment')
+    collect_with.add_argument('--tenant',required=True,type=_tenant)
+    collect_with.add_argument('--policy',required=True,type=_policy)
+    collect_with.add_argument('--output',required=True,help='New directory for the capture')
+    collect_with.add_argument('--account',type=_account,help='The account to use when several are signed in; it must be the one the Azure CLI uses by default')
+    collect_with.add_argument('--deadline',type=float,default=15.0,help='Seconds allowed for each az call (greater than zero, at most 60)')
+    collect_with.add_argument('--collect-deadline',type=float,default=120.0,help='Seconds allowed for the collecting command (greater than zero, at most 600)')
     provider=commands.add_parser('provider',help='Use an operator-admitted generated executor with external signed approval; network denied').add_subparsers(dest='provider_command',required=True)
     for operation in ('prepare','review','execute','reconcile','status','wizard'):
         command=provider.add_parser(operation)
@@ -374,6 +388,10 @@ def _deadline(value):
 
 def _signin_command(args):
     from . import signin
+    if args.signin_command=='collect':
+        if not isinstance(args.collect_deadline,float) or not 0<args.collect_deadline<=600:
+            raise AppError('signin_deadline_invalid','The collect deadline must be greater than zero and at most 600 seconds.')
+        return signin.collect(args.tenant,args.policy,args.output,args.account,_deadline(args.deadline),args.collect_deadline)
     return signin.status_report(args.tenant,args.account,args.provider,_deadline(args.deadline))
 
 

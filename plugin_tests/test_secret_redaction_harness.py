@@ -11,6 +11,7 @@ IdentityAuthenticationCliTests.
 """
 import base64
 import contextlib
+import fcntl
 import io
 import json
 import os
@@ -291,8 +292,12 @@ class RedactionHarness(unittest.TestCase):
                 kept.append(body)
         return b"\n".join(kept)
 
-    def run_cli(self, argv, canaries, env=None, expect=0, outputs=(), bearer_ok=None, entry=None, fds=()):
+    def run_cli(self, argv, canaries, env=None, expect=0, outputs=(), bearer_ok=None, entry=None, fds=(), pipe_delivery=None):
         """Run cli.main (or entry) in process with the work root as the working directory.
+
+        pipe_delivery: the one canary a route may hand to exactly one child on a pipe (the sign-in reuse route). Any pipe
+        passed to a child on a route that declares none fails; a declared one must be passed once, read-only, must carry
+        exactly that canary (the bytes the parent wrote to pipes), and must not be inheritable in the parent afterwards.
 
         Returns (exit code, stdout, stderr, children). The call must exit with `expect`. Channels observed, each shown
         non-vacuous by a planted-leak test below (fds: the credential descriptors the test supplied, of any type; none may
@@ -313,6 +318,7 @@ class RedactionHarness(unittest.TestCase):
         stdin_data, launches, deleted, unresolved = [], [], [], []
         child_stdin_fds = set()
         uninspectable = []
+        pipes_passed, pipe_writes = [], []
         real_os_write = os.write
         allowed_routes = dict(bearer_ok)
         real_popen = subprocess.Popen
@@ -376,7 +382,9 @@ class RedactionHarness(unittest.TestCase):
                                  'close_fds': k.get('close_fds', True)})
                 for fd in passed:
                     try:
-                        if leaks.in_bytes(os.pread(fd, 1 << 20, 0)):
+                        if stat.S_ISFIFO(os.fstat(fd).st_mode):
+                            pipes_passed.append((fd, fcntl.fcntl(fd, fcntl.F_GETFL) & os.O_ACCMODE))
+                        elif leaks.in_bytes(os.pread(fd, 1 << 20, 0)):
                             inherited.append(fd)
                     except OSError:
                         pass
@@ -404,6 +412,11 @@ class RedactionHarness(unittest.TestCase):
             def watching_write(fd, data):
                 if fd in child_stdin_fds:
                     stdin_data.append(bytes(data))
+                try:
+                    if stat.S_ISFIFO(os.fstat(fd).st_mode):
+                        pipe_writes.append(bytes(data))
+                except OSError:
+                    pass
                 return real_os_write(fd, data)
 
             os.write = watching_write
@@ -458,6 +471,14 @@ class RedactionHarness(unittest.TestCase):
         self.assertEqual(terminal, [], 'the command opened a terminal device')
         self.assertEqual(inherited, [], 'a canary-bearing or supplied credential descriptor was passed to a child or '
                                         'left inheritable')
+        if pipe_delivery is None:
+            self.assertEqual(pipes_passed, [], 'a pipe was passed to a child on a route that declares no pipe delivery')
+        else:
+            self.assertEqual(len(pipes_passed), 1, 'the declared pipe must be passed to exactly one child, once')
+            self.assertEqual(pipes_passed[0][1], os.O_RDONLY, 'the child must get the read end only')
+            self.assertEqual(b''.join(pipe_writes), pipe_delivery.encode(), 'the pipe must carry exactly the declared canary')
+            self.assertFalse(self.descriptor_open_and_inheritable(pipes_passed[0][0]),
+                             'the pipe descriptor is still inheritable in the parent')
         sent = self.socket_scan_text(wire, allowed_routes)
         self.assertEqual(leaks.in_bytes(sent), [], 'canary written to a socket')
         after_tmp = self.snapshot(system_tmp, skip=None)
@@ -1059,6 +1080,78 @@ class RedactionHarness(unittest.TestCase):
         self.assertEqual(request['authorization'], 'Bearer ' + key, 'the key must have been consumed where it belongs')
         self.assertEqual(Leaks(key).in_bytes(json.dumps(request['body']).encode()), [], 'the key reached the body')
         self.assertEqual(json.loads(out)['status'], 'assessed')
+
+    # sign-in reuse (fake az; the token goes to the collecting child on one pipe) -----------------------------
+
+    def test_planted_pipe_deliveries_are_each_caught(self):
+        def pipe_to_child(v, payload=None, close_parent=True, children=1):
+            for _ in range(children):
+                read_end, write_end = os.pipe()
+                os.write(write_end, (v if payload is None else payload).encode())
+                os.close(write_end)
+                subprocess.run(['true'], pass_fds=(read_end,))
+                if close_parent:
+                    os.close(read_end)
+                else:
+                    os.set_inheritable(read_end, True)
+                    self.addCleanup(close_if_open, read_end)
+            return 0
+
+        value = canary('pipe')
+        with self.assertRaisesRegex(AssertionError, 'declares no pipe delivery'):
+            self.run_cli([], (value,), entry=lambda argv: pipe_to_child(value))
+        with self.assertRaisesRegex(AssertionError, 'exactly the declared canary'):
+            self.run_cli([], (value,), entry=lambda argv: pipe_to_child(value, payload=value + 'x'), pipe_delivery=value)
+        with self.assertRaisesRegex(AssertionError, 'exactly to one child|exactly one child'):
+            self.run_cli([], (value,), entry=lambda argv: pipe_to_child(value, children=2), pipe_delivery=value)
+        with self.assertRaisesRegex(AssertionError, 'still inheritable'):
+            self.run_cli([], (value,), entry=lambda argv: pipe_to_child(value, close_parent=False), pipe_delivery=value)
+        self.run_cli([], (value,), entry=lambda argv: pipe_to_child(value), pipe_delivery=value)  # the declared route passes
+
+    def signin_route(self, listing_state='Enabled', tenant=None):
+        from plugin_tests import signin_fakes as sf
+        fakes = sf.FakeClis(base=self.inputs)
+        self.addCleanup(fakes.cleanup)
+        token = canary('signin')
+        fakes.answer('az', 'account', 'list', out=sf.azure_list(sf.azure_account(state=listing_state, tenant=tenant or sf.TENANT_A)))
+        fakes.answer('az', 'account', 'get-access-token', out=json.dumps({'accessToken': token, 'tenant': sf.TENANT_A}))
+        return fakes, token
+
+    def test_signin_collect_delivers_the_token_on_one_pipe_and_nowhere_else(self):
+        from plugin_tests import signin_fakes as sf
+        fakes, token = self.signin_route()
+        collector = str(PROJECT / 'plugin_tests' / 'signin_collector.py')
+
+        def command(tenant, policy, output, descriptor):
+            return [sys.executable, '-I', collector, str(PROJECT), '--token-fd', str(descriptor)]
+
+        path = fakes.path_entry() + os.pathsep + os.environ.get('PATH', '')
+        with patch('intune_iac.signin.collector_command', command):
+            code, out, err, children = self.run_cli(
+                ['signin', 'collect', '--tenant', sf.TENANT_A, '--policy', '22222222-2222-4222-8222-222222222222',
+                 '--output', str(self.work / 'signin-out')], (token,), {'PATH': path}, pipe_delivery=token)
+        report = json.loads(out)
+        self.assertEqual(report['status'], 'collected')
+        import hashlib
+        self.assertEqual(report['result']['received_sha256'], hashlib.sha256(token.encode()).hexdigest(),
+                         'the child must have received the token, or the test proves nothing')
+        collectors = [c for c in children if c['argv'][0] == sys.executable]
+        self.assertEqual(len(collectors), 1)
+        self.assertEqual(len(collectors[0]['pass_fds']), 1)
+        self.assertEqual(fakes.calls(), ['account list --output json', 'account get-access-token --resource '
+                                         'https://graph.microsoft.com --tenant %s --output json' % sf.TENANT_A])
+
+    def test_signin_collect_blocked_runs_no_token_command_and_passes_no_pipe(self):
+        from plugin_tests import signin_fakes as sf
+        for state, tenant in (('Expired', None), ('Enabled', sf.TENANT_B)):
+            fakes, token = self.signin_route(state, tenant)
+            path = fakes.path_entry() + os.pathsep + os.environ.get('PATH', '')
+            code, out, err, children = self.run_cli(
+                ['signin', 'collect', '--tenant', sf.TENANT_A, '--policy', '22222222-2222-4222-8222-222222222222',
+                 '--output', str(self.work / 'blocked-out')], (token,), {'PATH': path}, expect=2)
+            self.assertEqual(json.loads(out)['collector_started'], False)
+            self.assertEqual(fakes.calls(), ['account list --output json'])
+            self.assertEqual([c for c in children if c['argv'][0] == sys.executable], [])
 
 
 if __name__ == '__main__':

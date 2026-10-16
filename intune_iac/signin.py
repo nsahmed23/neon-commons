@@ -15,9 +15,11 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 
 from . import signin_facts
 from .io import AppError
@@ -178,3 +180,79 @@ def _token_from(text, tenant):
     if answered is not None and (not isinstance(answered, str) or answered.lower() != tenant.lower()):
         raise SigninBlocked(signin_facts.refused('wrong_tenant', tenant, answered if isinstance(answered, str) else None))
     return token
+
+
+# Delivery --------------------------------------------------------------------------------------------------------
+
+COLLECT_DEADLINE = 120.0
+_SCRIPT = Path(__file__).resolve().parents[1] / 'scripts' / 'intune-iac.py'
+
+
+def collector_command(tenant, policy, output, descriptor):
+    """The collecting child: the product's own capture command, reading its token from the inherited descriptor."""
+    return [sys.executable, '-B', str(_SCRIPT), 'capture', '--tenant', tenant, '--policy', policy, '--output', output,
+            '--token-fd', str(descriptor)]
+
+
+def collect(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE, collect_deadline=COLLECT_DEADLINE):
+    """Collect with the reused sign-in: obtain a short-lived read token and hand it to the one collecting child.
+
+    Order: the listing judges the sign-in (a block ends the call with no token command and no child); the token is obtained;
+    a pipe is created, the token is written to it and its write end is closed; the child is started with the read end as
+    its only extra descriptor (pass_fds), a scrubbed environment and no stdin; the parent closes the read end at once.
+    The token is never an argument, never in either environment, never written to a file, and never printed. A child that
+    echoes it has its whole output withheld.
+    """
+    if signin_facts.shown(policy, signin_facts.GUID) is None:
+        raise AppError('signin_policy_invalid', 'The policy must be a GUID.')
+    if not isinstance(output, str) or not output or '\x00' in output:
+        raise AppError('signin_output_invalid', 'The output path is not valid.')
+    try:
+        token = obtain_token(tenant, account, deadline)
+    except SigninBlocked as blocked:
+        return {'status': 'blocked', 'signin': blocked.verdict, 'collector_started': False}
+    read_end, write_end = os.pipe()
+    try:
+        try:
+            os.write(write_end, token.encode('ascii'))  # at most TOKEN_LIMIT bytes: fits the pipe buffer, never blocks
+        finally:
+            os.close(write_end)
+        try:
+            done = subprocess.run(collector_command(tenant, policy, output, read_end), stdin=subprocess.DEVNULL,
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=scrubbed_environment(),
+                                  pass_fds=(read_end,), close_fds=True, timeout=collect_deadline, shell=False)
+        except subprocess.TimeoutExpired:
+            raise AppError('signin_collect_deadline', 'The collecting command did not finish in time and was stopped.') from None
+        except OSError:
+            raise AppError('signin_collect_unavailable', 'The collecting command could not be started.') from None
+    finally:
+        os.close(read_end)
+    return _collector_result(done, token)
+
+
+def _collector_result(done, token):
+    needle = token.encode('ascii')
+    if needle in done.stdout or needle in done.stderr:
+        return {'status': 'failed', 'error_code': 'collector_output_withheld', 'collector_started': True,
+                'child_exit': done.returncode}
+    if done.returncode != 0:
+        return {'status': 'failed', 'error_code': _error_code(done.stderr), 'collector_started': True,
+                'child_exit': done.returncode}
+    try:
+        value = json.loads(done.stdout.decode('utf-8'))
+    except ValueError:
+        value = None
+    return {'status': 'collected', 'collector_started': True, 'child_exit': 0, 'result': value if isinstance(value, dict) else None}
+
+
+def _error_code(stderr):
+    """The error code on the child's last JSON line of stderr when it is a plain code; never any other text."""
+    for line in reversed(stderr.decode('utf-8', 'replace').splitlines()):
+        try:
+            value = json.loads(line)
+        except ValueError:
+            continue
+        error = value.get('error') if isinstance(value, dict) else None
+        code = error.get('code') if isinstance(error, dict) else None
+        return signin_facts.shown(code, signin_facts.NAME) or 'collector_failed'
+    return 'collector_failed'
