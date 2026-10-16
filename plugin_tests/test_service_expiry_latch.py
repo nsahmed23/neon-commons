@@ -375,6 +375,16 @@ class PermitLatchTests(ServiceFixture):
             db.execute('INSERT INTO revoked VALUES (?,?)', ('fixture', 'key'))
         self.assertEqual(self.refused(permit.inflight_active).code, 'service_permit_inactive')
 
+    def test_the_inflight_check_runs_the_runtime_check_without_the_window_and_the_authorizing_check_with_it(self):
+        permit = self.dispatch_running(self.start + 10)
+        check = service.ServiceRuntime.check
+        check.reset_mock()
+        permit.inflight_active()
+        check.assert_called_once_with(self.job.manifest, check_window=False)
+        check.reset_mock()
+        permit.check_active()
+        check.assert_called_once_with(self.job.manifest)
+
     def test_a_refused_authorization_commits_no_marker(self):
         permit = self.dispatch_running(self.start + 10)
         with self.policy.connection() as db:

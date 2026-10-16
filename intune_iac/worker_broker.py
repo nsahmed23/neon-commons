@@ -125,12 +125,13 @@ def live_guard(execution_binding_sha256, *, binding, recheck, inflight):
     return BrokerGuard(_SEAL, execution_binding_sha256, recheck, binding, inflight)
 
 
-def validate_backend_targets(policy, backend, *, adoption_contract=None):
-    """Validate declared routes against one bound backend; no authentication grant."""
+def validate_backend_targets(policy, backend, *, adoption_contract=None, check_window=True):
+    """Validate declared routes against one bound backend; no authentication grant. check_window=False skips the policy's
+    expiry bounds, for the checks made after a dispatch has started."""
     if type(backend) is not ib.BackendSpec: _fail('broker_backend_target_invalid')
     if adoption_contract is not None and (type(adoption_contract) is not NativeAdoptionStateContract or adoption_contract.binding()['backend'] != asdict(backend)):
         _fail('broker_adoption_binding')
-    value = validate_policy(policy, adoption_contract=adoption_contract)
+    value = validate_policy(policy, adoption_contract=adoption_contract, check_window=check_window)
     host = urlsplit(backend.blob_endpoint).hostname
     state_path = '/' + backend.container + '/' + backend.key
     if value.get('native_lock') not in (None, {'host': host, 'path': state_path}): _fail('broker_backend_target_invalid')
@@ -166,7 +167,9 @@ class BrokerCredentials:
     def __repr__(self): return '<BrokerCredentials redacted>'
     def __reduce_ex__(self, protocol): raise TypeError('Broker credentials cannot be serialized.')
 
-    def check(self, policy, *, adoption_contract=None):
+    def check(self, policy, *, adoption_contract=None, check_window=True):
+        """check_window=False is the mode after a dispatch has started: every check but the policy's expiry bounds, because the
+        window bounds when a dispatch may start and not when its response may arrive."""
         if self.closed or self.pid != os.getpid() or policy['execution_binding_sha256'] != self.execution_binding_sha256:
             _fail('broker_credential_binding')
         if ((policy['profile'] == 'azure_public_pilot') != (type(self.binding) is ib.LiveIdentityBinding) or
@@ -174,7 +177,8 @@ class BrokerCredentials:
             _fail('broker_credential_binding')
         self.binding.assert_fresh()
         _, target = self.binding.backend_configuration(self.backend_credential)
-        if policy['profile'] != 'laboratory_tls_fixture': validate_backend_targets(policy, target, adoption_contract=adoption_contract)
+        if policy['profile'] != 'laboratory_tls_fixture':
+            validate_backend_targets(policy, target, adoption_contract=adoption_contract, check_window=check_window)
 
     def worker_environment(self):
         """Only placeholders and declared IDs; no actual credential is returned."""
@@ -235,7 +239,9 @@ class LaboratoryUpstream:
         finally: conn.close()
 
 
-def validate_policy(value, *, adoption_contract=None):
+def validate_policy(value, *, adoption_contract=None, check_window=True):
+    """Validate a policy's structure. check_window=False skips the expires_at bounds (still an int), which are about when a
+    dispatch may start; it is for the checks made after the dispatch."""
     if adoption_contract is not None and type(adoption_contract) is not NativeAdoptionStateContract:
         _fail('broker_adoption_contract_required')
     if (type(value) is not dict or set(value) - {'native_lock'} != {'schema_version', 'profile', 'operation_id', 'execution_binding_sha256',
@@ -243,7 +249,8 @@ def validate_policy(value, *, adoption_contract=None):
             value['profile'] not in ('laboratory_tls_fixture', 'laboratory_native_protocol', 'azure_public_pilot') or
             type(value['operation_id']) is not str or not re.fullmatch(r'[0-9a-f-]{32,36}', value['operation_id']) or
             type(value['execution_binding_sha256']) is not str or not _HASH.fullmatch(value['execution_binding_sha256']) or
-            type(value['expires_at']) is not int or not time.time() < value['expires_at'] <= time.time() + 900 or
+            type(value['expires_at']) is not int or
+            (check_window and not time.time() < value['expires_at'] <= time.time() + 900) or
             type(value['worker_uid']) is not int or not 0 <= value['worker_uid'] <= 2147483647 or
             type(value['routes']) is not list or not 1 <= len(value['routes']) <= 128):
         _fail('broker_policy_invalid')
@@ -491,7 +498,8 @@ class EgressBroker:
         """Integrity and in-flight cancellation or revocation after the upstream answered; never the approval's window."""
         if self.closed or digest(self.policy) != self.policy_sha256: _fail('broker_policy_changed_or_closed')
         self.guard.check_after_dispatch(self.policy)
-        if self.credentials is not None: self.credentials.check(self.policy, adoption_contract=self.adoption_contract)
+        if self.credentials is not None:
+            self.credentials.check(self.policy, adoption_contract=self.adoption_contract, check_window=False)
 
     @contextmanager
     def _database(self):

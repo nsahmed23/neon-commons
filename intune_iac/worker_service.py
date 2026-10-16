@@ -381,7 +381,8 @@ class ServiceRuntime:
         self.pid = os.getpid()
     def __repr__(self): return '<ServiceRuntime redacted>'
     def __reduce_ex__(self, protocol): raise TypeError('Service runtime cannot be serialized.')
-    def check(self, manifest):
+    def check(self, manifest, *, check_window=True):
+        """check_window=False is the mode after a dispatch has started (see BrokerCredentials.check)."""
         if self.pid != os.getpid() or self.profile != manifest['profile']: _fail('service_runtime_profile')
         if manifest['schema_version'] == INTENT_VERSION:
             from .worker_source_intent import RepositoryExecutionIntent, validate_operation_binding
@@ -404,7 +405,7 @@ class ServiceRuntime:
         elif manifest['identity_binding_sha256'] is not None: _fail('service_identity_required')
         if {key: item.binding() for key, item in self.state_contracts.items()} != manifest['state_contracts']:
             _fail('service_state_contract_binding')
-        if self.credentials is not None: self.credentials.check(manifest['broker_policy'])
+        if self.credentials is not None: self.credentials.check(manifest['broker_policy'], check_window=check_window)
         from .worker_precondition import LiveGraphPrecondition, LaboratoryGraphPrecondition
         if manifest['precondition_binding'] is not None:
             expected = LiveGraphPrecondition if self.profile == 'azure_public_pilot' else LaboratoryGraphPrecondition
@@ -730,7 +731,7 @@ class ServicePermit:
         self.job._check(expiry=False)
         with self.job.policy.connection() as db:
             if self._stopped_or_changed(db): _fail('service_permit_inactive')
-        self.runtime.check(self.job.manifest)
+        self.runtime.check(self.job.manifest, check_window=False)
     def check_active(self):
         """The authorization check that gates every broker request. It enters the shared critical section, judges the
         window, rereads the job state, the signer revocation and the expiry record inside it, and commits the

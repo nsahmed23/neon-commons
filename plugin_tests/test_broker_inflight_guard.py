@@ -119,5 +119,53 @@ class InflightGuardTests(unittest.TestCase):
         self.assertEqual(error.code, 'broker_upstream_outcome_unknown')
 
 
+class CredentialedInflightTests(unittest.TestCase):
+    """A credentialed laboratory_native_protocol broker, with no stub in the credential check: the host-held credentials
+    re-validate the policy on every check, and that validation judged the window on the bare clock after the dispatch had
+    already gone out (a response arriving after the expiry was discarded as an unknown outcome)."""
+    refused = InflightGuardTests.refused
+    attempts = InflightGuardTests.attempts
+    upstream_crossing_the_expiry = InflightGuardTests.upstream_crossing_the_expiry
+
+    def setUp(self):
+        InflightGuardTests.setUp(self)
+        from plugin_tests.test_identity_binding_v5 import RecordedServices, config
+        provider = ib.ClientSecretHandle('synthetic-provider-secret')
+        backend = ib.ClientSecretHandle('synthetic-backend-secret')
+        self.addCleanup(provider.close)
+        self.addCleanup(backend.close)
+        binding = ib.bind_laboratory(config(), provider_credential=provider, backend_credential=backend,
+                                     transport=RecordedServices())
+        self.credentials = wb.broker_credentials(binding=binding, backend_credential=backend,
+                                                 execution_binding_sha256=self.policy['execution_binding_sha256'])
+        self.addCleanup(self.credentials.close)
+        identity = self.credentials.identities['provider']
+        self.form = urlencode({'client_id': identity['client_id'], 'client_secret': self.credentials.placeholders['provider'],
+                               'grant_type': 'client_credentials',
+                               'scope': wb._AUDIENCES['graph'] + ' openid offline_access profile'}).encode()
+        self.path = '/' + identity['tenant_id'] + '/oauth2/v2.0/token'
+        self.headers = {'content-type': 'application/x-www-form-urlencoded; charset=utf-8'}
+        self.policy.update(profile='laboratory_native_protocol', identities={'provider': dict(identity)})
+        self.policy['routes'][0].update(host='login.microsoftonline.com', path=self.path, body_sha256=sha256(self.form).hexdigest(), headers=dict(self.headers))
+        self.guard = wb.laboratory_guard(self.policy['execution_binding_sha256'], lambda: None, lambda: None)
+        patcher = patch.object(wb.LaboratoryUpstream, 'request', side_effect=self.upstream_crossing_the_expiry)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.broker = wb.EgressBroker(self.policy, journal=self.root / 'journal.sqlite3', guard=self.guard,
+                                      upstream=object.__new__(wb.LaboratoryUpstream), credentials=self.credentials)
+
+    def request(self):
+        return self.broker.handle('login.microsoftonline.com', 'POST', self.path, self.headers, self.form)
+
+    def test_a_response_that_arrives_after_the_expiry_is_delivered_by_a_credentialed_broker(self):
+        self.assertEqual(self.request().status, 200)
+        self.assertEqual(self.attempts(), [('token', 'response_received')])
+
+    def test_a_dispatch_that_starts_after_the_expiry_is_still_refused(self):
+        self.clocks.elapse(LIFETIME + 1)
+        self.assertEqual(self.refused(self.request).code, 'broker_expired')
+        self.assertEqual(self.attempts(), [])
+
+
 if __name__ == '__main__':
     unittest.main()
