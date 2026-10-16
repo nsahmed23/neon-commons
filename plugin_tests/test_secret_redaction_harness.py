@@ -117,10 +117,15 @@ class ConnectionRegistry:
 _WATCH = {'terminal': None, 'launch': None, 'deleted': None}  # lists/dicts while a command runs, else None
 
 
-def _scan_before_removal(path):
+def _scan_before_removal(path, dir_fd=None):
+    """Read what is about to be removed. A relative path is resolved against dir_fd (through /proc/self/fd on Linux);
+    if it cannot be resolved the route fails, because the removal could not be inspected."""
     state = _WATCH['deleted']
     try:
-        target = Path(os.fsdecode(path)).resolve()
+        text = os.fsdecode(path)
+        if not os.path.isabs(text) and dir_fd is not None and dir_fd != -1:
+            text = os.path.join(os.readlink('/proc/self/fd/%d' % dir_fd), text)
+        target = Path(text).resolve()
         if not any(root == target or root in target.parents for root in state['roots']):
             return
         files = [target] if target.is_file() else [q for q in target.rglob('*') if q.is_file()] if target.is_dir() else []
@@ -128,7 +133,7 @@ def _scan_before_removal(path):
             if state['leaks'].in_bytes(item.read_bytes()):
                 state['found'].append(item.name)
     except OSError:
-        pass
+        state['unresolved'].append(repr(path))  # a removal that could not be inspected fails the route
 
 
 def _audit(event, args):
@@ -142,7 +147,7 @@ def _audit(event, args):
         _WATCH['launch'].append((event, repr(args)))
     elif event in ('os.remove', 'shutil.rmtree') and _WATCH['deleted'] is not None and isinstance(
             args[0], (str, bytes, os.PathLike)):
-        _scan_before_removal(args[0])
+        _scan_before_removal(args[0], args[1] if len(args) > 1 else None)
 
 
 sys.addaudithook(_audit)
@@ -305,7 +310,9 @@ class RedactionHarness(unittest.TestCase):
         leaks = Leaks(*canaries)
         baseline = dict(os.environ)
         children, terminal, wire, inherited = [], [], [], []
-        stdin_data, launches, deleted = [], [], []
+        stdin_data, launches, deleted, unresolved = [], [], [], []
+        child_stdin_fds = set()
+        real_os_write = os.write
         allowed_routes = dict(bearer_ok)
         real_popen = subprocess.Popen
         real_send, real_sendall = socket.socket.send, socket.socket.sendall
@@ -325,6 +332,12 @@ class RedactionHarness(unittest.TestCase):
 
             def __init__(self, stream):
                 self.__dict__['stream'] = stream
+                self.__dict__['number'] = stream.fileno()
+                child_stdin_fds.add(self.number)
+
+            def close(self):
+                child_stdin_fds.discard(self.number)  # the number may be reused once closed
+                return self.stream.close()
 
             def write(self, data):
                 stdin_data.append(data if isinstance(data, bytes) else str(data).encode())
@@ -340,6 +353,14 @@ class RedactionHarness(unittest.TestCase):
                 return super().communicate(input, timeout)
 
             def __init__(self, args, *a, **k):
+                supplied = k.get('stdin')
+                if supplied is not None and supplied not in (subprocess.PIPE, subprocess.DEVNULL):
+                    # A file object (or descriptor number) given as stdin: read its content without moving its position.
+                    try:
+                        number = supplied if isinstance(supplied, int) else supplied.fileno()
+                        stdin_data.append(os.pread(number, 1 << 20, 0))
+                    except (OSError, AttributeError, ValueError):
+                        pass  # a pipe or a non-seekable object cannot be read ahead
                 passed = list(k.get('pass_fds') or ())
                 children.append({'argv': [str(x) for x in args] if isinstance(args, (list, tuple)) else [str(args)],
                                  'env': dict(k.get('env') or os.environ), 'pass_fds': passed,
@@ -371,10 +392,17 @@ class RedactionHarness(unittest.TestCase):
         try:
             for number, handle in fd_files.items():
                 os.dup2(handle.fileno(), number)
+            def watching_write(fd, data):
+                if fd in child_stdin_fds:
+                    stdin_data.append(bytes(data))
+                return real_os_write(fd, data)
+
+            os.write = watching_write
             _WATCH['terminal'] = terminal
             _WATCH['launch'] = launches
             _WATCH['deleted'] = {'leaks': leaks, 'roots': [self.work.resolve(), system_tmp.resolve(),
-                                                           *[Path(o).resolve() for o in outputs]], 'found': deleted}
+                                                           *[Path(o).resolve() for o in outputs]], 'found': deleted,
+                                 'unresolved': unresolved}
             with patch('subprocess.Popen', Recording), patch.dict(os.environ, {**env, 'TMPDIR': str(system_tmp)}), \
                     patch.object(tempfile, 'tempdir', str(system_tmp)), \
                     patch.object(socket.socket, 'send', watching_send), patch.object(socket.socket, 'sendall', watching_sendall):
@@ -388,6 +416,7 @@ class RedactionHarness(unittest.TestCase):
                 inherited.extend(self.inheritable_leaks(leaks))
                 inherited.extend(fd for fd in fds if self.descriptor_open_and_inheritable(fd))
         finally:
+            os.write = real_os_write
             _WATCH['terminal'] = _WATCH['launch'] = _WATCH['deleted'] = None
             for number in (1, 2):
                 os.dup2(saved[number], number)
@@ -409,6 +438,7 @@ class RedactionHarness(unittest.TestCase):
             self.assertEqual(leaks.in_bytes(data), [], 'canary written to file descriptor %d' % number)
         self.assert_clean(canaries, out.getvalue(), err.getvalue(), children)
         self.assertEqual(deleted, [], 'a file held a canary before it was removed')
+        self.assertEqual(unresolved, [], 'a removal could not be resolved and so could not be inspected')
         self.assertEqual(leaks.in_bytes(b''.join(stdin_data)), [], 'canary sent to a child process stdin')
         self.assertEqual([event for event, _ in launches if leaks.in_bytes(repr(_).encode())], [],
                          'canary in the arguments of a launch API')
@@ -706,7 +736,29 @@ class RedactionHarness(unittest.TestCase):
             os.remove(path)
             return 0
 
-        for name, entry, pattern in (('fd 1', to_fd1, 'file descriptor 1'), ('fd 2', to_fd2, 'file descriptor 2'),
+        def removed_with_dir_fd(v):
+            Path('nested').mkdir()
+            (Path('nested') / 'leak.txt').write_text(v)
+            directory_fd = os.open('nested', os.O_RDONLY)
+            try:
+                os.remove('leak.txt', dir_fd=directory_fd)
+            finally:
+                os.close(directory_fd)
+            return 0
+
+        def tree_removed_with_dir_fd(v):
+            (Path('outer') / 'inner').mkdir(parents=True)
+            (Path('outer') / 'inner' / 'leak.txt').write_text(v)
+            directory_fd = os.open('outer', os.O_RDONLY)
+            try:
+                shutil.rmtree('inner', dir_fd=directory_fd)
+            finally:
+                os.close(directory_fd)
+            return 0
+
+        for name, entry, pattern in (('removed with dir_fd', removed_with_dir_fd, 'before it was removed'),
+                                     ('rmtree with dir_fd', tree_removed_with_dir_fd, 'before it was removed'),
+                                     ('fd 1', to_fd1, 'file descriptor 1'), ('fd 2', to_fd2, 'file descriptor 2'),
                                      ('deleted work file', written_and_deleted, 'before it was removed'),
                                      ('removed tree', tree_written_and_removed, 'before it was removed'),
                                      ('deleted temporary file', temporary_written_and_deleted, 'before it was removed')):
@@ -725,6 +777,20 @@ class RedactionHarness(unittest.TestCase):
             child.wait()
             return 0
 
+        def descriptor_write_to_stdin(v):
+            child = subprocess.Popen(['cat'], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL)
+            os.write(child.stdin.fileno(), v.encode())
+            child.stdin.close()
+            child.wait()
+            return 0
+
+        def stdin_file_object(v):
+            with tempfile.TemporaryFile() as handle:
+                handle.write(v.encode())
+                handle.seek(0)
+                subprocess.run(['cat'], stdin=handle, stdout=subprocess.DEVNULL)
+            return 0
+
         def system_call(v):
             # Deliberate: os.system is the launch API this plant exercises; the harness must catch it. Fixed command.
             os.system('true ' + v)
@@ -734,7 +800,9 @@ class RedactionHarness(unittest.TestCase):
             os.system('true')  # deliberate plant: a launch on a route that declares none
             return 0
 
-        for name, entry, pattern in (('communicate input', communicate_input, 'child process stdin'),
+        for name, entry, pattern in (('descriptor-level write to stdin', descriptor_write_to_stdin, 'child process stdin'),
+                                     ('file object supplied as stdin', stdin_file_object, 'child process stdin'),
+                                     ('communicate input', communicate_input, 'child process stdin'),
                                      ('stdin pipe write', stdin_pipe_write, 'child process stdin'),
                                      ('os.system with the canary', system_call, 'launch API'),
                                      ('os.system on a route that declares none', unneeded_launch, 'launch API')):
