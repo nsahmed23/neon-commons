@@ -33,9 +33,17 @@ class ExportUnreadable(ValueError):
 
 
 def open_regular(path):
-    flags = os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0) | getattr(os, 'O_BINARY', 0)
+    # O_NONBLOCK is only the guard for a file swapped for a pipe after the lstat below: opening a FIFO read-only
+    # would otherwise wait for a writer forever. A regular file is unaffected by it.
+    flags = os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0) | getattr(os, 'O_BINARY', 0) | getattr(os, 'O_NONBLOCK', 0)
     if os.path.islink(path):  # O_NOFOLLOW is 0 on Windows, so the link is refused here as well
         raise ExportUnreadable('%s is a symbolic link' % os.path.basename(path))
+    try:
+        mode = os.lstat(path).st_mode  # before any open: opening a pipe or a device can block or have effects
+    except OSError as error:
+        raise ExportUnreadable('cannot open %s' % os.path.basename(path)) from error
+    if not stat.S_ISREG(mode):
+        raise ExportUnreadable('%s is not a regular file' % os.path.basename(path))
     try:
         descriptor = os.open(path, flags)
     except OSError as error:

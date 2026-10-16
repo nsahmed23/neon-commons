@@ -263,6 +263,44 @@ class ExportAdapterTests(unittest.TestCase):
             with self.assertRaises(ExportUnreadable):
                 read(self.dir)
 
+    @unittest.skipUnless(hasattr(os, 'mkfifo'), 'needs named pipes')
+    def test_a_named_pipe_in_place_of_a_file_is_refused_without_blocking(self):
+        import subprocess
+        import sys
+        code = ('import sys\n'
+                'from intune_iac.engineering_view import build_view\n'
+                'try:\n'
+                '    view = build_view(sys.argv[1], controller_log=sys.argv[2] if len(sys.argv) > 2 else None)\n'
+                'except Exception as error:\n'
+                '    print("REFUSED", type(error).__name__)\n'
+                'else:\n'
+                '    print("VIEW", [f["code"] for f in view["faults"]], view["source"]["check"]["state"])\n')
+        events = lifecycle('T-1', terminal='dispatch.completed')
+
+        def run(*extra):
+            try:
+                return subprocess.run([sys.executable, '-c', code, str(self.dir), *extra], capture_output=True,
+                                      text=True, timeout=10, cwd=str(Path(__file__).resolve().parents[1])).stdout
+            except subprocess.TimeoutExpired:
+                self.fail('the view blocked on a named pipe')
+
+        write_export(self.dir, events)
+        os.remove(self.dir / 'header.json')
+        os.mkfifo(self.dir / 'header.json')
+        out = run()
+        self.assertIn('VIEW', out)
+        self.assertIn('invalid_header', out)
+        self.assertIn('no_header', out)
+        os.remove(self.dir / 'header.json')
+        write_export(self.dir, events)
+        os.remove(self.dir / 'events.jsonl')
+        os.mkfifo(self.dir / 'events.jsonl')
+        self.assertIn('REFUSED ExportUnreadable', run())
+        os.remove(self.dir / 'events.jsonl')
+        write_export(self.dir, events)
+        os.mkfifo(self.root / 'controller.log')
+        self.assertIn('REFUSED ControllerLogUnreadable', run(str(self.root / 'controller.log')))
+
     def test_an_oversized_line_is_a_fault_and_the_rest_still_reads(self):
         good = [json.dumps(item) for item in lifecycle('T-1')]
         write_export(self.dir, [], raw_lines=[good[0], '{"x": "' + 'a' * (2 * 1024 * 1024) + '"}', good[1]],
