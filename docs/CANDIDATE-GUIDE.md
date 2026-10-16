@@ -405,7 +405,7 @@ independent security review and the owner's production decision); none is closed
 
 **The terminal.** The visual workspace needs a window of at least 40 columns by 12 rows. Below that it shows only the
 session, the hazard and the prompt, never the body. The relationship map, the catalog layer and the workflow layer
-each need at least 60 columns by 20 rows and say so in one sentence below that.
+each need at least 60 columns by 20 rows; in a smaller window they say that they need a larger one.
 
 More detail: `docs/PRODUCT-STATUS.md` (the requirement-to-evidence table and the stages still open),
 `docs/OPERATING-PROFILE-R4.md`, `docs/EXTERNAL-GATES-R4.md` and `docs/DATA-HANDLING.md`.
@@ -514,7 +514,8 @@ terminal with `intune-iac catalog demo` or the `workbench workflow` command of s
 
 ## Reporting an issue
 
-**The channel for sending a report is awaiting the owner's choice, so this guide names no address; until the owner names one, give the report to the person who shared this build with you.**
+**The channel for sending a report is awaiting the owner's choice, so this guide names no address; until the owner
+names one, give the report to the person who shared this build with you.**
 
 Include these four things:
 
