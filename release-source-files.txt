@@ -838,6 +838,7 @@ plugin_tests/signin_fakes.py
 plugin_tests/signing_fixture.py
 plugin_tests/sim_cases.py
 plugin_tests/sim_support.py
+plugin_tests/test_adoption_crossing_real_runtime.py
 plugin_tests/test_adoption_expiry_latch.py
 plugin_tests/test_adoption_lab.py
 plugin_tests/test_adoption_recovery_expiry_latch.py
