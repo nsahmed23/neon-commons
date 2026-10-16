@@ -34,6 +34,8 @@ class ExportUnreadable(ValueError):
 
 def open_regular(path):
     flags = os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0) | getattr(os, 'O_BINARY', 0)
+    if os.path.islink(path):  # O_NOFOLLOW is 0 on Windows, so the link is refused here as well
+        raise ExportUnreadable('%s is a symbolic link' % os.path.basename(path))
     try:
         descriptor = os.open(path, flags)
     except OSError as error:
@@ -124,7 +126,7 @@ def read_export(directory, roots=()):
     seen = {}        # event id -> digest of the first body seen
     records = {}     # event id -> accepted record
     by_seq = {}      # sequence -> event id that holds it
-    conflicted, duplicates, rejected, lines = set(), 0, 0, 0
+    conflicted, contested, duplicates, rejected, lines = set(), set(), 0, 0, 0
     last_seq = 0
     with open_regular(events_path) as handle:
         if os.fstat(handle.fileno()).st_size > MAX_FILE_BYTES:
@@ -167,12 +169,15 @@ def read_export(directory, roots=()):
                 faults.append({'code': fault.code, 'line': number, 'event_id': event_id, 'detail': fault.detail})
                 continue
             rejected += refused
-            if seq in by_seq:
-                other = by_seq.pop(seq)
-                records.pop(other, None)
+            if seq in contested or seq in by_seq:
+                other = by_seq.pop(seq, None)
+                if other is not None:
+                    records.pop(other, None)
+                contested.add(seq)  # a third claimant is refused too, never kept because the first two were dropped
                 faults.append({'code': 'seq_reused', 'line': number, 'event_id': event_id,
                                'detail': 'event %s and event %s claim sequence %d; neither is kept'
-                                         % (escape_text(other), escape_text(event_id), seq)})
+                                         % (escape_text(other) if other else 'an earlier event',
+                                            escape_text(event_id), seq)})
                 continue
             records[event_id] = record
             by_seq[seq] = event_id

@@ -119,6 +119,18 @@ class ExportAdapterTests(unittest.TestCase):
         self.assertEqual(len(self.faults(result, 'seq_reused')), 1)
         self.assertEqual([e['event_id'] for e in result['events']].count('ev-other'), 0)
 
+    def test_a_third_claimant_of_a_contested_sequence_is_not_kept(self):
+        events = lifecycle('T-1')
+        first = dict(events[1], event_id='x1')
+        third = dict(events[1], event_id='x2', task='T-9')
+        write_export(self.dir, events, extra_lines=[json.dumps(first, sort_keys=True), json.dumps(third, sort_keys=True)],
+                     header=header_for(events))
+        result = read(self.dir)
+        ids = [e['event_id'] for e in result['events']]
+        self.assertEqual(ids, ['ev-1'])
+        self.assertEqual(len(self.faults(result, 'seq_reused')), 2)
+        self.assertNotIn('T-9', [e['task'] for e in result['events']])
+
     def test_only_allowlisted_fields_survive(self):
         events = lifecycle('T-1', terminal='dispatch.completed')
         poisoned = []
@@ -204,6 +216,17 @@ class ExportAdapterTests(unittest.TestCase):
         os.symlink(self.root / 'real' / 'events.jsonl', self.dir / 'events.jsonl')
         with self.assertRaises(ExportUnreadable):
             read(self.dir)
+
+    @unittest.skipUnless(hasattr(os, 'symlink'), 'needs symbolic links')
+    def test_a_symbolic_link_is_refused_where_the_platform_has_no_no_follow_flag(self):
+        from unittest import mock
+        from intune_iac.orchestration_export import ExportUnreadable
+        write_export(self.root / 'real', lifecycle('T-1'))
+        self.dir.mkdir()
+        os.symlink(self.root / 'real' / 'events.jsonl', self.dir / 'events.jsonl')
+        with mock.patch.object(os, 'O_NOFOLLOW', 0, create=True):  # as on Windows
+            with self.assertRaises(ExportUnreadable):
+                read(self.dir)
 
     def test_an_oversized_line_is_a_fault_and_the_rest_still_reads(self):
         good = [json.dumps(item) for item in lifecycle('T-1')]
