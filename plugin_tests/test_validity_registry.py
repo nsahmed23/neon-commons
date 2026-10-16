@@ -12,7 +12,8 @@ from pathlib import Path
 from intune_iac import validity
 from intune_iac.io import AppError
 
-PACKAGE = Path(__file__).resolve().parent.parent / 'intune_iac'
+ROOT = Path(__file__).resolve().parent.parent
+SCANNED = ('intune_iac', 'scripts', 'tools')  # the package and every script or tool that could build a Store
 
 
 def _strings(node):
@@ -21,15 +22,18 @@ def _strings(node):
 
 class RegistryGuardTests(unittest.TestCase):
     def modules(self):
-        for path in sorted(PACKAGE.glob('*.py')):
-            yield path, ast.parse(path.read_text(encoding='utf-8'))
+        for directory in SCANNED:
+            for path in sorted((ROOT / directory).rglob('*.py')):
+                yield path, ast.parse(path.read_text(encoding='utf-8'))
 
     def test_every_store_constructed_in_the_package_names_a_registered_family(self):
         seen = []
         for path, tree in self.modules():
             for node in ast.walk(tree):
-                if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == 'Store'
-                        and isinstance(node.func.value, ast.Name) and node.func.value.id == 'validity'):
+                if isinstance(node, ast.Call) and (
+                        (isinstance(node.func, ast.Attribute) and node.func.attr == 'Store'
+                         and isinstance(node.func.value, ast.Name) and node.func.value.id == 'validity')
+                        or (isinstance(node.func, ast.Name) and node.func.id == 'Store')):
                     table = node.args[2] if len(node.args) > 2 else None
                     literal = _strings(table)
                     seen.append((path.name, node.lineno, literal))

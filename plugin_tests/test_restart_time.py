@@ -240,7 +240,7 @@ class MigrationTests(StoreFixture):
         return dict(self.payload, issued_at=at, **changes)
 
     def cutoff(self):
-        return self.rows('SELECT cutoff FROM validity_cutoff')
+        return self.rows('SELECT cutoff FROM _validity_cutoff')
 
     def test_a_pre_migration_approval_cannot_reopen_after_a_restart_with_the_wall_set_back(self):
         self.legacy_store()  # old code judged it open at T50 and left only the mark
@@ -292,7 +292,7 @@ class MigrationTests(StoreFixture):
         self.enter(self.issued(START + 70, nonce='b' * 32))
         self.assertEqual(self.cutoff(), first)
         with self.connect() as db:
-            for statement in ('UPDATE validity_cutoff SET cutoff = 0', 'DELETE FROM validity_cutoff'):
+            for statement in ('UPDATE _validity_cutoff SET cutoff = 0', 'DELETE FROM _validity_cutoff'):
                 with self.assertRaises(sqlite3.DatabaseError):
                     db.execute(statement)
         self.assertEqual(self.cutoff(), first)
@@ -351,7 +351,7 @@ class MigrationTests(StoreFixture):
         self.clocks.elapse(10)
         # a second family is judged for the first time later, with an approval issued after the first judgment
         self.other_family(self.issued(START + 55, nonce='c' * 32, operation_id='operation-3'))
-        self.assertEqual(self.rows('SELECT cutoff FROM validity_cutoff'), [(0.0,)])
+        self.assertEqual(self.rows('SELECT cutoff FROM _validity_cutoff'), [(0.0,)])
 
     def test_a_family_with_no_history_judged_first_does_not_hide_another_familys_legacy_rows(self):
         # Another family's pre-upgrade (version 1) rows are in the database, and there is no recorded time. A family with
@@ -443,14 +443,80 @@ class MigrationTests(StoreFixture):
         self.enter(self.issued(START + 40))
         self.assertEqual(self.cutoff(), [(0.0,)])
 
-    def test_the_earliest_non_zero_cutoff_of_the_per_family_code_is_kept(self):
+    def legacy_row_in_second(self):
+        with self.connect() as db:
+            db.execute(validity.table_sql('second'))
+            db.execute("INSERT INTO second VALUES ('issuer-1', 'old', 'operation-8', 'q', ?, ?, ?)", (START + 100, START + 50, START + 50))
+
+    def test_a_per_family_cutoff_row_of_any_value_and_any_name_never_changes_the_result(self):
+        # With history in a registered family the cutoff is the migration time, whatever older cutoff tables say.
         self.old_cutoff('latched_cutoff', START + 30.0)
-        self.old_cutoff('second_cutoff', START + 20.0)
         self.old_cutoff('third_cutoff', 0.0)
+        self.old_cutoff('lookalike', START + 10.0)
+        self.legacy_row_in_second()
         self.clocks.wall = START + 60
-        self.refused(lambda: self.enter(self.issued(START + 15, nonce='b' * 32)))  # issued before the kept cutoff: held
-        self.assertEqual(self.cutoff(), [(START + 20.0,)])
-        self.enter(self.issued(START + 25, nonce='c' * 32, operation_id='operation-3'))  # issued after the kept cutoff (START+20), before the later one (START+30): current
+        self.held_in('second')
+        self.assertEqual(self.cutoff(), [(START + 60,)])
+
+    def test_per_family_cutoff_rows_do_not_create_history_either(self):
+        self.old_cutoff('latched_cutoff', START + 30.0)
+        self.clocks.wall = START + 60
+        self.enter(self.issued(START + 40))
+        self.assertEqual(self.cutoff(), [(0.0,)])
+
+    def test_a_legacy_table_named_like_the_canonical_one_does_not_hide_legacy_history(self):
+        # Older code built the per-family table of a family named validity as validity_cutoff, holding 0.
+        self.old_cutoff('validity_cutoff', 0.0)
+        self.legacy_row_in_second()
+        self.clocks.wall = START + 60
+        self.held_in('second')
+        self.assertEqual(self.cutoff(), [(START + 60,)])
+
+    def test_the_canonical_name_cannot_be_derived_from_any_valid_family_name(self):
+        for suffix in ('', '_v2', '_open', '_cutoff'):
+            if validity.CUTOFF_TABLE.endswith(suffix):
+                base = validity.CUTOFF_TABLE[:len(validity.CUTOFF_TABLE) - len(suffix)]
+                self.assertIsNone(validity._TABLE.fullmatch(base), 'the canonical name is derivable as base%s' % suffix)
+
+    def test_an_insert_or_replace_cannot_overwrite_the_cutoff(self):
+        self.legacy_store()
+        self.clocks.wall = START + 60
+        self.refused(lambda: self.enter(self.issued(START + 40)))
+        first = self.cutoff()
+        self.assertEqual(first, [(START + 60,)])
+        with self.connect() as db:
+            for statement in ('INSERT OR REPLACE INTO _validity_cutoff VALUES (1, 0, 0, NULL)',
+                              'INSERT INTO _validity_cutoff VALUES (2, 0, 0, NULL)'):
+                with self.assertRaises(sqlite3.DatabaseError):
+                    db.execute(statement)
+        self.assertEqual(self.cutoff(), first)
+
+    def damaged(self, create, rows=()):
+        with self.connect() as db:
+            db.execute(create)
+            for row in rows:
+                db.execute('INSERT INTO _validity_cutoff VALUES ' + row)
+        with self.assertRaises(AppError) as raised:
+            self.enter(self.issued(START + 40))
+        self.assertEqual(raised.exception.code, 'validity_cutoff_invalid')
+        self.assertNotIn('_validity_cutoff', raised.exception.message)
+
+    def test_a_canonical_row_that_is_not_valid_refuses_judgment(self):
+        columns = '(id INTEGER PRIMARY KEY, cutoff REAL NOT NULL, written_wall REAL NOT NULL, boot_id TEXT)'
+        self.clocks.wall = START + 60
+        self.damaged('CREATE TABLE _validity_cutoff ' + columns, ['(1, -5.0, 0, NULL)'])  # negative
+        with self.connect() as db:
+            db.execute('DROP TABLE _validity_cutoff')
+        self.damaged('CREATE TABLE _validity_cutoff ' + columns, ['(1, 1e999, 0, NULL)'])  # not finite
+        with self.connect() as db:
+            db.execute('DROP TABLE _validity_cutoff')
+        self.damaged('CREATE TABLE _validity_cutoff ' + columns, ['(2, 5.0, 0, NULL)'])  # not id 1
+        with self.connect() as db:
+            db.execute('DROP TABLE _validity_cutoff')
+        self.damaged('CREATE TABLE _validity_cutoff ' + columns, ['(1, 5.0, 0, NULL)', '(2, 5.0, 0, NULL)'])  # two rows
+        with self.connect() as db:
+            db.execute('DROP TABLE _validity_cutoff')
+        self.damaged('CREATE TABLE _validity_cutoff (id INTEGER PRIMARY KEY, cutoff REAL NOT NULL, extra TEXT)', [])  # schema
 
     def test_an_artifact_without_an_issue_time_is_judged_normally(self):
         self.legacy_store()
