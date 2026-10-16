@@ -330,6 +330,18 @@ class StandInCommandSegmentTests(unittest.TestCase):
         ('echo ${x?a}', True), ('echo ${x:?a}', True), ('echo "${x:=a}"', True), ("echo '${x:=a}'", False),
         ('echo ${x-a}', False), ('echo ${x:-a}', False), ('echo ${x+a}', False), ('echo ${x:+a}', False),
         ('echo \\${x:=a}', False),
+        # Round 10: a parameter can hold anything at copy time (the shell's own name, a caller's arguments), so every ACTIVE
+        # special-parameter expansion fails closed, plain or braced, bare or in double quotes, with or without the token in sight;
+        # in single quotes, ANSI-C quotes or after a backslash it is inactive text.
+        ('echo $0', True), ('echo $1', True), ('echo $9', True), ('echo $@', True), ('echo $*', True), ('echo $#', True),
+        ('echo $?', True), ('echo $-', True), ('echo $$', True), ('echo $!', True), ('echo "$@"', True), ('echo "$0"', True),
+        ('echo ${0}', True), ('echo ${1}', True), ('echo ${@}', True), ('echo ${#}', True), ('echo "${?}"', True),
+        ('echo ${0-a}', True), ('echo ${#+a}', True), ("echo '$?'", False), ("echo $'$?'", False), ('echo \\$?', False),
+        ("echo '${0}'", False), ('echo $x $xy $_a', False), ('echo ${x}', False),
+        # a comment is not in the grammar; a word-start # hides what follows from a quote reader (an apostrophe in it, a $* after
+        # its newline), so a part with one fails closed. A # inside a word, quoted or escaped is text.
+        ("X #a'b\n$*", True), ('X #a', True), ('X\t#a', True), ('# a', True), ("X a#b", False), ("X '#a'", False),
+        ('X "#a"', False), ('X \\#a', False), ('X ${x-#a}', False), ('X $x#a', False),
     )
 
     def test_dollar_constructs_are_read_as_the_shell_reads_them(self):

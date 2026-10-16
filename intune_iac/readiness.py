@@ -487,13 +487,16 @@ def without_stand_in(step):
     quotes, or with an assignment expansion (${NAME=w} ${NAME:=w} ${NAME?w} ${NAME:?w}), which is not modelled. A part without
     the token keeps its bytes.
 
-    Safety is exact: whenever bash would read DIRECTORY in a part, the part is replaced. Precision is not claimed for three
-    declared conservative classes, where the net may replace a part bash would not: special parameters ($0 to $9 $@ $* $# $? $-
-    $$ $! and their brace forms), whose values at copy time are digits, the shell's own name or option letters, none of which can
-    spell DIRECTORY, so reading them as empty (or as their default word) can only replace more, never keep a stand-in; assignment
-    expansions, replaced whole; and text bash itself fails on. Outside the grammar, and not read: redirections, comments, globbing,
-    variables that are set when the line is copied, and encodings in a tampered record such as hex escapes inside $'..'. The
-    test_shell_differential module checks safety and precision against bash over about eighty thousand strings."""
+    One definition of the classes (the test_shell_differential module uses the same names). Fail-closed classes, where the part is
+    replaced whatever it holds: every ACTIVE special-parameter expansion ($0 to $9 $@ $* $# $? $- $$ $!, plain or braced, outside
+    single and ANSI-C quotes and inside double quotes: a parameter can hold anything at copy time), every ACTIVE assignment
+    expansion (${NAME=w} ${NAME:=w} ${NAME?w} ${NAME:?w}) and command substitution ($( or a backtick). Conservative classes,
+    where the net may replace more than bash would read: comments (not in the producers' grammar; the net reads the text after a
+    word-start # as if it were a command, so it can only over-replace) and text bash itself fails on. Safety is exact: whenever
+    bash would read DIRECTORY in a part, the part is replaced, also when $0 and the positional parameters hold DIRECTORY.
+    Outside the grammar, and not read: redirections, globbing, variables that are set when the line is copied, and encodings in
+    a tampered record such as hex escapes inside $'..'. The test_shell_differential module checks safety and precision against
+    bash over about fifty thousand strings, in two invocations."""
     if not step:
         return step
     out, changed = [], False
@@ -510,21 +513,23 @@ def without_stand_in(step):
 NO_NAME_WORDS = 'this step names the directory, which cannot be shown here'
 
 
-def _shell_flatten(text, found=None):
+def _shell_flatten(text, found=None, at_start=True):
     """The text as the shell reads its words, approximately: quotes removed and blanks outside quotes one space. Single quotes
     keep every backslash; double quotes keep a backslash unless it escapes $, a backtick, " , \\ or a newline; outside quotes a
     backslash escapes the next character. Inside $'..' (ANSI-C) every backslash is dropped, the closed side of the approximation.
     A quote that never closes runs to the end of the text.
 
     Expansions are read for a clean environment, where no variable is set: $"..." is a double-quoted string (the $ is dropped, as
-    for $'..'); $NAME (greedy), ${...}, the specials $0 to $9 $@ $* $# $? $- $$ $! are empty, except that ${NAME-word} and
-    ${NAME:-word} are the word, which is what bash gives for an unset NAME. A command substitution, $( or a backtick outside
-    single quotes, an assignment expansion, ${NAME=w} ${NAME:=w} ${NAME?w} ${NAME:?w} (it carries state to later words), and a
-    special parameter with an operator, ${0-w} ${#+w} (whether the word is used depends on the shell), cannot be read: when found
-    is a list, True is appended to it and the caller fails closed."""
+    for $'..'); $NAME (greedy) and ${NAME...} are empty, except that ${NAME-word} and ${NAME:-word} are the word, which is what
+    bash gives for an unset NAME. These cannot be read, and each fails closed (when found is a list, True is appended to it and
+    the caller replaces the part): a command substitution, $( or a backtick outside single quotes; an assignment expansion,
+    ${NAME=w} ${NAME:=w} ${NAME?w} ${NAME:?w} (it carries state to later words); and every active special parameter, $0 to $9
+    $@ $* $# $? $- $$ $! plain or braced (its value is whatever the shell or its caller holds)."""
     out, i, quote, n = [], 0, None, len(text)
+    word_start = at_start
     while i < n:
         char = text[i]
+        was_word_start, word_start = word_start, False
         if quote == "'":
             if char == "'":
                 quote = None
@@ -572,10 +577,15 @@ def _shell_flatten(text, found=None):
             value, i = _expansion(text, i, found)
             out.append(value)
             continue
+        elif char == '#' and was_word_start:
+            _note_substitution(found)       # a comment is not in the grammar and hides what follows from this reading: fails closed
+            out.append(char)
         elif char in ' \t':
+            word_start = True
             if not out or out[-1] != ' ':
                 out.append(' ')
         else:
+            word_start = char == '\n'
             out.append(char)
         i += 1
     return ''.join(out)
@@ -598,18 +608,20 @@ def _expansion(text, i, found):
         close = _matching_brace(text, i + 2)
         if close is None:
             return '', len(text)
-        parts = re.fullmatch(r'([A-Za-z_][A-Za-z0-9_]*|[0-9]+|[@*#?$!-])(:?)([-=+?])(.*)', text[i + 2:close], re.S)
-        if parts and (parts.group(3) in '=?' or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', parts.group(1))):
-            # An assignment expansion carries state to later words, and a special parameter with an operator is set or unset
-            # (so the word is used or not) depending on the shell: neither is modelled, both fail closed.
+        content = text[i + 2:close]
+        parts = re.fullmatch(r'([A-Za-z_][A-Za-z0-9_]*)(:?)([-=+?])(.*)', content, re.S)
+        if content[:1] in tuple('@*#?$!-0123456789') and content[:1] != '' or (parts and parts.group(3) in '=?'):
+            # An active special parameter (its value is whatever the shell or its caller holds) and an assignment expansion (it
+            # carries state to later words) are not modelled: both fail closed.
             _note_substitution(found)
             return '', close + 1
-        value = _shell_flatten(parts.group(4), found) if parts and parts.group(3) == '-' else ''
+        value = _shell_flatten(parts.group(4), found, False) if parts and parts.group(3) == '-' else ''
         return value, close + 1
     name = re.compile(r'[A-Za-z_][A-Za-z0-9_]*').match(text, i + 1)
     if name:
         return '', name.end()
     if following and following in '@*#?$!-0123456789':
+        _note_substitution(found)           # an active special parameter: fails closed
         return '', i + 2
     return '$', i + 1
 
