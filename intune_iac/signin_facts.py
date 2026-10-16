@@ -38,7 +38,7 @@ KNOWN_CLOUDS = frozenset({'AzureCloud', 'AzureChinaCloud', 'AzureUSGovernment', 
 _UPN = re.compile(r'[A-Za-z0-9][A-Za-z0-9._+-]{0,63}@[A-Za-z0-9][A-Za-z0-9-]{0,62}(?:\.[A-Za-z0-9][A-Za-z0-9-]{0,62}){1,4}')
 _PLAIN_HOST = re.compile(r'[a-z0-9][a-z0-9-]{0,23}(?:\.[a-z0-9][a-z0-9-]{0,23}){0,4}', re.I)
 _SEPARATORS = re.compile(r'[^A-Za-z0-9]')
-RUN_LIMIT, DOMAIN_RUN_LIMIT, BLOCK_LIMIT = 24, 48, 12
+RUN_LIMIT, BLOCK_LIMIT = 24, 12
 
 
 def _credential_shaped(normalized, limit):
@@ -52,12 +52,10 @@ def opaque(text):
 
     The one helper for names, hosts and the like. Every separator (anything that is not a letter or a digit) is removed first;
     then the normalised value is refused when it has 24 or more characters, starts with a JWT prefix, or has 12 or more
-    characters and no lower-case letter (a base64 or hex block, not a word). An e-mail-like name is judged in two parts, the
-    local part by the same rule and the domain at 48, so a long but ordinary UPN is still shown.
+    characters and no lower-case letter (a base64 or hex block, not a word). The whole value is judged, '@' and '.' included
+    among the separators, so a credential cannot be divided between the two parts of an e-mail-like name. The cost, accepted as
+    fail-closed: an e-mail-like name shows only while its letters and digits total at most 23.
     """
-    if _UPN.fullmatch(text):
-        local, _, domain = text.partition('@')
-        return _credential_shaped(_SEPARATORS.sub('', local), RUN_LIMIT) or _credential_shaped(_SEPARATORS.sub('', domain), DOMAIN_RUN_LIMIT)
     return _credential_shaped(_SEPARATORS.sub('', text), RUN_LIMIT)
 
 

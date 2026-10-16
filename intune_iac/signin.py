@@ -428,8 +428,12 @@ def collector_schema(value):
     result = {'status': value['status'], 'page_count': value['page_count'], 'attempt_count': value['attempt_count'],
               'retry_count': value['retry_count'], 'cancelled': value['cancelled'], 'coverage': shown}
     problem = value.get('credential_problem')
-    code = problem.get('code') if isinstance(problem, dict) else None
-    if isinstance(code, str) and code in _CREDENTIAL_CODES:
+    if problem is not None:
+        # Present means it must be exactly one of the two known codes; anything else invalidates the whole result, so a
+        # credential failure can never be quietly omitted.
+        code = problem.get('code') if isinstance(problem, dict) else None
+        if not isinstance(code, str) or code not in _CREDENTIAL_CODES:
+            return None
         result['credential_problem'] = code
     return result
 

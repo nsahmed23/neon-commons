@@ -78,9 +78,18 @@ class EnumTests(Base):  # item 1
                     good(page_count=-1), good(page_count=signin.COUNT_BOUND + 1), good(retry_count=1.5), good(attempt_count=True)):
             self.assertIsNone(signin.collector_schema(bad), bad)
 
-    def test_a_credential_problem_outside_the_two_codes_is_dropped(self):
-        shown = signin.collector_schema(good(credential_problem={'code': 'abcdefghijklmnopqrst'}))
-        self.assertNotIn('credential_problem', shown)
+    def test_a_credential_problem_outside_the_two_codes_invalidates_the_result(self):
+        # Round 2 expected such a code to be silently dropped; round 3 requires the whole result to be rejected.
+        for problem in ({'code': 'abcdefghijklmnopqrst'}, {'code': 'token_expired_child_detail'}, {'code': None}, {'code': 7},
+                        {}, 'token_expired', ['token_expired'], 0, False, ''):
+            self.assertIsNone(signin.collector_schema(good(credential_problem=problem)), problem)
+
+    def test_a_credential_problem_that_is_null_or_one_of_the_two_codes_is_accepted(self):
+        self.assertNotIn('credential_problem', signin.collector_schema(good(credential_problem=None)))
+        for code in ('token_expired', 'token_wrong_tenant'):
+            shown = signin.collector_schema(good(credential_problem={'code': code, 'message': 'free text'}))
+            self.assertEqual(shown['credential_problem'], code)
+            self.assertNotIn('free text', json.dumps(shown))
 
     def test_the_watch_is_case_insensitive_and_sees_hex(self):
         watch = signin._Watch(TOKEN_UPPER)
@@ -104,9 +113,25 @@ class NormalisedFilterTests(unittest.TestCase):  # item 2
     def test_known_codes_and_plain_names_are_still_shown(self):
         for code in ('collector_failed', 'collector_output_withheld', 'identity_credential_fd_limit', 'capture_write_failed'):
             self.assertEqual(signin_facts.shown_code(code), code)
-        for name in ('alex@example.test', 'octo-user', 'alexander.morgan@contoso.com'):
+        # An e-mail-like name shows while its letters and digits (separators removed) stay under 24: 'alex.morgan@contoso.com' is 21.
+        for name in ('alex@example.test', 'octo-user', 'alex.morgan@contoso.com'):
             self.assertEqual(signin_facts.shown_name(name), name)
         self.assertEqual(signin_facts.shown_host('github.com'), 'github.com')
+
+    def test_a_long_token_split_across_at_and_dot_is_refused(self):
+        split = 'abcdefghijklmnopqrstuvw@abcdefghijklmnopqrstuvw.abcdefghijklmnopqrstuvwx'
+        self.assertEqual(signin_facts.shown_name(split), signin_facts.NOT_SHOWN)
+        self.assertTrue(signin_facts.opaque(split))
+        for name in ('abcdefghijklmnopqrstuvw@example.com', 'alex@abcdefghijklmnopqrstuvwx.com', 'ABCDEFGHIJKL@EXAMPLE.COM'):
+            self.assertEqual(signin_facts.shown_name(name), signin_facts.NOT_SHOWN, name)
+
+    def test_the_longest_upn_that_still_shows_has_23_letters_and_digits(self):
+        shown_23 = 'alexandra.morg@contoso.com'  # 13 + 10 = 23 letters and digits once separators are removed
+        self.assertEqual(len(''.join(c for c in shown_23 if c.isalnum())), 23)
+        self.assertEqual(signin_facts.shown_name(shown_23), shown_23)
+        hidden_24 = 'alexandra.morga@contoso.com'  # 14 + 10 = 24
+        self.assertEqual(len(''.join(c for c in hidden_24 if c.isalnum())), 24)
+        self.assertEqual(signin_facts.shown_name(hidden_24), signin_facts.NOT_SHOWN)
 
     def test_one_helper_serves_names_hosts_and_codes(self):
         self.assertTrue(signin_facts.opaque('abcdefghijkl.mnopqrstuvwx'))
