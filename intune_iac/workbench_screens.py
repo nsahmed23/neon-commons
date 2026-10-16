@@ -1341,15 +1341,25 @@ def is_inspection(value):
 DISPLAY_FAULT = 'workbench_display_fault'
 
 
+# What a printed command row starts with: the product's own command (the catalog and the next steps print no other).
+COMMAND_START = 'intune-iac '
+
+
 def page_end(lines, room, start):
     """The row after the last one of the page of `lines` that starts at row `start` and holds `room` rows: a page never
     ends between a command's row and the row that continues it (a row ending in a backslash is continued by the next), so
     the break moves before the command and the command stands whole on the next page (journey 33 run 1, review B finding
-    4). A command as tall as the page cannot be kept whole and is broken where the page ends."""
+    4). The line that introduces a command (a row ending in a colon, directly above a row that starts one: `Run:`,
+    `Resume:`, `Next action:`) is part of the same block, so the label moves with its command and a page never ends on a
+    label whose command is on the next (journey 33 run 2, review B finding 2). A block as tall as the page cannot be kept
+    whole and is broken where the page ends."""
     room = max(1, room)
     plain = min(start + room, len(lines))
     end = plain
     while end > start + 1 and lines[end - 1].rstrip().endswith('\\'):
+        end -= 1
+    if (end > start + 1 and end < len(lines) and lines[end - 1].rstrip().endswith(':')
+            and lines[end].lstrip().startswith(COMMAND_START)):
         end -= 1
     return end if end > start + 1 else plain
 

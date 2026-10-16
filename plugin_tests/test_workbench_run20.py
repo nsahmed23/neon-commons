@@ -7,10 +7,8 @@ current operation. Item 5: a hint names a key that works where it is shown.
 import re
 import unittest
 
+from plugin_tests import test_workbench_run19 as run19
 from plugin_tests.test_workflow_map import LayerFixture, OBJECT, typed
-
-GUID = re.compile(r'[0-9A-Fa-f]{8}(?:-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}')
-FRAGMENT = re.compile(r'[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}(?:-[0-9A-Fa-f]{1,4})*-?(?![0-9A-Fa-f-])')
 
 
 def key(char):
@@ -67,6 +65,42 @@ class InspectorGuidTests(LayerFixture):
             rows = self.inspector_rows(size)
             holder = next(row for row in rows if OBJECT in row)
             self.assertIn('Identity  ' + OBJECT, holder, size)
+
+
+class LabelWithCommandPagingTests(run19.CatalogLayerCase):
+    """Journey 33 run 2 review B finding 2: a page kept a command whole but left the line that introduces it (`Run:`,
+    `Resume:`, `Next action:`) at its foot, so a reader paging forward saw an empty label. The label and its command
+    now move together."""
+
+    def test_page_starts_keep_the_introducing_line_with_its_command(self):
+        from intune_iac.workbench_screens import page_starts
+        rows = ['text'] * 4 + ['  not checked; Run:', "    intune-iac catalog 'd' \\", '      --goal discover'] + ['text'] * 6
+        self.assertEqual(page_starts(rows, 5), [0, 4, 9])            # the break was 5, after the label
+        rows = ['text'] * 3 + ['  Next action:', '    intune-iac wizard --session s'] + ['text'] * 6
+        self.assertEqual(page_starts(rows, 4), [0, 3, 7])            # the break was 4, after the label
+        # A line ending in a colon that does not introduce a command stays where it is.
+        rows = ['text'] * 3 + ['  available:', '    something else'] + ['text'] * 6
+        self.assertEqual(page_starts(rows, 4), [0, 4, 8])
+        # A label with a command taller than the page cannot be kept together; the plain break stands.
+        rows = ['Run:'] + ['intune-iac x \\'] * 5 + ['end']
+        self.assertEqual(page_starts(rows, 3), [0, 3, 6])
+
+    def check_pages(self, size):
+        for extra in range(6):
+            pages = [self.body(page) for page in self.pages(self.layer(size, run19.CommandPagingTests.catalog_with(extra)))]
+            self.assertGreater(len(pages), 4)
+            for number, (rows, following) in enumerate(zip(pages, pages[1:]), 1):
+                shown = [row for row in rows if row]
+                self.assertFalse(shown[-1].endswith('\\'), 'extra %d, page %d ends inside a command' % (extra, number))
+                if following:
+                    self.assertFalse(shown[-1].endswith(':') and following[0].startswith('intune-iac'),
+                                     'extra %d, page %d ends on %r and its command starts the next page' % (extra, number, shown[-1]))
+
+    def test_at_80x24_no_page_ends_on_a_label_whose_command_starts_the_next(self):
+        self.check_pages((80, 24))
+
+    def test_at_60x20_no_page_ends_on_a_label_whose_command_starts_the_next(self):
+        self.check_pages((60, 20))
 
 
 if __name__ == '__main__':
