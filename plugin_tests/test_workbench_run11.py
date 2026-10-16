@@ -100,7 +100,9 @@ class RepositoryVerdictTests(Proposed):
         text = ' '.join(' '.join(rows).split())
         self.assertIn('RECORDED INTENT AGAINST THE REPOSITORY NOW', rows)
         self.assertIn("NO CONFIGURATION CHANGE The recorded intent's desired body equals the repository's body now at the "
-                      "intent pointer, under the execution plan's equality.", text)
+                      "intent pointer, under the execution plan's equality (assignments, technologies and role scope tags match in "
+                      "any order, each repeat counting; every other field, including the order of settings, must match "
+                      "exactly).", text)  # run 12 item 5
         self.assertIn('The observation is not part of this comparison.', text)
 
     def test_a_repository_verdict_never_speaks_of_the_observed_body_or_sits_under_the_old_heading(self):

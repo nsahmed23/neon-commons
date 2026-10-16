@@ -1049,10 +1049,14 @@ def baseline_words(baseline):
     return text
 
 
-PLAN_SAME = 'The desired body equals the observed body under the execution plan\'s equality.'
+# What the execution plan's equality is, as workbench_diff.field_changes compares (BAGS are compared as bags, so a repeat
+# counts and order does not; every other field is exact, and the settings list is exact in order too).
+PLAN_EQUALITY = ('(assignments, technologies and role scope tags match in any order, each repeat counting; every other '
+                 'field, including the order of settings, must match exactly)')
+PLAN_SAME = 'The desired body equals the observed body under the execution plan\'s equality %s.' % PLAN_EQUALITY
 # What repository status compares (workbench_repository.intent_freshness): the recorded intent against the repository now.
 REPOSITORY_SAME = ('The recorded intent\'s desired body equals the repository\'s body now at the intent pointer, under the '
-                   'execution plan\'s equality. The observation is not part of this comparison.')
+                   'execution plan\'s equality %s. The observation is not part of this comparison.' % PLAN_EQUALITY)
 
 
 def change_lines(changes, width, before_label='BEFORE (observed)', after_label='AFTER (desired)', remainder=None,

@@ -133,3 +133,34 @@ class ChangedFileBridgeTests(unittest.TestCase):
         text = self.text({'status': 'no_change', 'changes': []}, sources={'changed': ['stacks/dev.yaml']})
         self.assertIn("The listed file differs from the recorded one, but it does not alter this policy's body at the intent "
                       "pointer.", text)
+
+
+class EqualityDefinedTests(unittest.TestCase):
+    """Item 5: "the execution plan's equality" is defined where it is first used, as workbench_diff.field_changes
+    compares: assignments, technologies and role scope tags as bags (order ignored, repeats counted), every other field
+    exactly, including the order of settings."""
+    CLAUSE = ('(assignments, technologies and role scope tags match in any order, each repeat counting; every other '
+              'field, including the order of settings, must match exactly)')
+
+    def test_the_plan_review_verdict_defines_it(self):
+        from intune_iac.workbench_screens import change_lines
+        text = ' '.join(' '.join(change_lines({'status': 'no_change', 'changes': []}, 118)).split())
+        self.assertIn("under the execution plan's equality " + self.CLAUSE + '.', text)
+
+    def test_the_repository_verdict_defines_it_before_it_says_the_observation_is_out(self):
+        from intune_iac.workbench_screens import change_lines, REPOSITORY_SAME
+        text = ' '.join(' '.join(change_lines({'status': 'no_change', 'changes': []}, 118, same=REPOSITORY_SAME)).split())
+        self.assertIn("under the execution plan's equality " + self.CLAUSE + '. The observation is not part of this '
+                      'comparison.', text)
+
+    def test_the_clause_matches_what_the_comparison_does(self):
+        from intune_iac.workbench_diff import BAGS, field_changes
+        self.assertEqual(sorted(BAGS), ['assignments', 'role_scope_tag_ids', 'technologies'])
+        body = {'name': 'n', 'description': 'd', 'platforms': 'windows10', 'technologies': ['a', 'b'], 'role_scope_tag_ids': ['0'],
+                'settings': {'settings': [{'id': '0', 'settingInstance': {'settingDefinitionId': 'x'}},
+                                          {'id': '1', 'settingInstance': {'settingDefinitionId': 'y'}}]},
+                'assignments': ['p', 'q']}
+        bag_order = dict(body, technologies=['b', 'a'], assignments=['q', 'p'])
+        self.assertEqual(field_changes(body, bag_order)['status'], 'no_change')
+        reordered = dict(body, settings={'settings': list(reversed(body['settings']['settings']))})
+        self.assertEqual(field_changes(body, reordered)['status'], 'changed')
