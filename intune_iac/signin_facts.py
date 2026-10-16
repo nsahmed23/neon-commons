@@ -804,6 +804,18 @@ def output_display(path):
     return path
 
 
+def output_text(path):
+    """The output path as the collect screen writes it: through the shared path writer (entry.text_paths), so a path with a
+    space or another character the shell would split on is quoted once and can be copied. A path the display rule refuses
+    (output_display, or readiness.display_refused: a credential shape, a control character, a character terminal escaping would
+    change, or past the limit) is the one fixed placeholder, as it always was; nothing of it is echoed."""
+    from .entry import text_paths
+    from .readiness import display_refused
+    if output_display(path) == OUTPUT_NOT_SHOWN or display_refused(path):
+        return OUTPUT_NOT_SHOWN
+    return text_paths(None, None)[1](path)
+
+
 def _partial_reason(result):
     """The one code the verdict line gives for a partial result: the credential problem, else a denied read, else the first reason."""
     inner = result.get('result') or {}
@@ -891,7 +903,7 @@ def collect_lines(result, width, code, shown=None):
     if output is not None:
         after = shown.get('output_after') or result.get('output_kind_after')
         where = _AFTER_RUN.get(after, 'not looked at') if started else 'no collecting command started, so nothing was written'
-        lines += _wrap('Output folder: %s (%s)' % (output_display(output), where), width)
+        lines += _wrap('Output folder: %s (%s)' % (output_text(output), where), width)
     if not started:
         lines.append('Collecting command: not started')
     elif result.get('child_exit') is None:
