@@ -75,6 +75,23 @@ def with_legend(command, note=''):
     parts = ['%s is %s' % (name, PLACEHOLDER_MEANINGS[name]) for _, name in found] + ([note] if note else [])
     return '%s (%s)' % (command, '; '.join(parts)) if parts else command
 
+
+# What the capture command does with the token, read from capture.py: it sends it to the host of capture.GRAPH_ROOT in GET requests
+# and writes what it read into the one new folder it is given. The legend a step records says only that it reads the named variable
+# (that wording is part of the JSON forms and stays); a screen adds this sentence after the step.
+CAPTURE_CONTACT = ('capture sends the token to %s in GET requests only (it reads, and changes nothing in the tenant) and writes '
+                   'what it reads into NEW_DIR.')
+
+
+def capture_contact(text):
+    """The sentence that says where capture sends the token, for a printed step that holds the capture command; '' for any other."""
+    if '%s capture ' % PROGRAM not in text:
+        return ''
+    from urllib.parse import urlsplit
+    from .capture import GRAPH_ROOT
+    return CAPTURE_CONTACT % urlsplit(GRAPH_ROOT).netloc
+
+
 NOT_ESTABLISHED = (
     'Working-directory access is not probed by the product.',
     'Git transport, GitHub host, organization, repository, branch, SSO, API and Actions access are not checked; '

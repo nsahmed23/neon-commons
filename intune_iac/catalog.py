@@ -281,6 +281,7 @@ def _state_lines(goal, width):
     if blocked['state'] == 'blocked':
         text = '%s. %s Next action: %s' % (_blocked_words(goal), readiness_model.screen_note(blocked['missing'] or ''),
                                           blocked['next_action'])
+        text = (text + ' ' + readiness_model.capture_contact(blocked['next_action'])).strip()
     else:
         text = _blocked_words(goal)
     lines += row('blocked', text)
@@ -348,4 +349,7 @@ def catalog_lines(value, width):
             # words of the goal's state rows (one source), so the pane never shows an action without its reason.
             lines += _flow('Verdict: ' + verdict_words(goal), width, '    ', '      ')
             lines += _flow(goal['next_action'], width, '    ', '    ', commands=True)
+            contact = readiness_model.capture_contact(goal['next_action'])
+            if contact:
+                lines += _flow(contact, width, '    ', '    ')
     return lines

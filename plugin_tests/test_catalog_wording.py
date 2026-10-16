@@ -4,6 +4,7 @@ Every change here is in the text form. The `--json` form is frozen (test_catalog
 better words on the screen. The working directories are the ones the start tests build, with the product's own routes.
 """
 import copy
+import os
 import re
 import unittest
 
@@ -346,6 +347,88 @@ class StateWordsTests(Base):
         for width in (60, 80, 120):
             for line in self.lines('full', width=width):
                 self.assertLessEqual(len(line), width, line)
+
+
+class CaptureContactTests(Base):
+    """Item 7: the next action that prints the capture command says whether capture makes a network request with the token, and
+    that it only reads, from what capture.py does (the first test runs it against a recording transport, no network)."""
+
+    TOKEN = 'FAKE-TOKEN-' + 'x9Z' * 8
+    TENANT = '11111111-1111-4111-8111-111111111111'
+    POLICY = '22222222-2222-4222-8222-222222222222'
+    SENTENCE = ('capture sends the token to graph.microsoft.com in GET requests only (it reads, and changes nothing in the '
+                'tenant) and writes what it reads into NEW_DIR.')
+
+    @unittest.skipUnless(os.name == 'posix', 'capture persists through directory descriptors (POSIX)')
+    def test_what_the_screen_says_is_what_capture_does(self):
+        import json
+
+        import tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from urllib.parse import urlsplit
+        from intune_iac import capture, readiness
+        from intune_iac.identity_binding import ServiceResponse
+        seen = []
+
+        class Recording:
+            def __call__(self, request, *, timeout, max_bytes):
+                seen.append(request)
+                listing = request.path.endswith('/configurationPolicies')
+                body = {'value': [{'id': CaptureContactTests.POLICY}]} if listing else {'value': []}
+                return ServiceResponse(200, (), json.dumps(body).encode())
+
+        with tempfile.TemporaryDirectory() as temp:
+            output = Path(temp) / 'new-folder'
+            with patch('intune_iac.identity_binding._NativeTransport', Recording), \
+                    patch.dict(os.environ, {'CONTACT_TEST_TOKEN': self.TOKEN}):
+                result = capture.capture(self.TENANT, self.POLICY, str(output), token_env='CONTACT_TEST_TOKEN')
+            written = sorted(path.name for path in output.iterdir())
+        self.assertEqual(result['status'], 'captured')
+        self.assertGreaterEqual(len(seen), 3)
+        host = urlsplit(capture.GRAPH_ROOT).netloc
+        for request in seen:
+            self.assertEqual(request.method, 'GET')
+            self.assertEqual(request.host, host)
+            self.assertIs(request.headers.get('Authorization') == 'Bearer ' + self.TOKEN, True)
+            self.assertTrue(request.path.startswith(urlsplit(capture.GRAPH_ROOT).path))
+            self.assertIsNone(request.body)
+        # it writes only into the one new folder it was given
+        self.assertEqual(written, ['capture-receipt.json', 'context.json', 'export.json', 'raw'])
+        sentence = readiness.capture_contact('Run: intune-iac capture --tenant T --policy P --output NEW_DIR')
+        self.assertEqual(sentence, self.SENTENCE)
+        self.assertIn(host, sentence)
+
+    def test_the_catalog_says_it_after_the_capture_command_in_the_blocked_row_and_the_next_action(self):
+        for fixture in ('context', 'full'):
+            lines = self.lines(fixture, 'discover')
+            self.assertEqual(flat(lines).count(self.SENTENCE), 2, fixture)
+            rows = goal_rows(lines, 'discover')
+            self.assertTrue(rows['blocked'].endswith(self.SENTENCE), rows['blocked'])
+            entry = next_action_entries(lines)['discover']
+            self.assertTrue(flat(entry).endswith(self.SENTENCE), flat(entry))
+            # the legend of the command comes first, the sentence follows it
+            self.assertLess(flat(entry).index('(POLICY is'), flat(entry).index(self.SENTENCE))
+
+    def test_a_goal_that_prints_no_capture_command_says_nothing_about_it(self):
+        for goal in ('inspect', 'adopt', 'change'):
+            self.assertNotIn(self.SENTENCE, flat(self.lines('context', goal)), goal)
+
+    def test_the_start_screen_says_it_too_wherever_it_prints_the_capture_command(self):
+        from plugin_tests.test_start_goal import goal_block, run_cli
+        _, block = goal_block(run_cli(str(self.dirs['context']), '--goal', 'discover', width=120)[1])
+        self.assertIn(self.SENTENCE, flat(block))
+        self.assertNotIn(self.SENTENCE, flat(goal_block(run_cli(str(self.dirs['context']), '--goal', 'inspect', width=120)[1])[1]))
+
+    def test_the_sentence_names_no_command_so_a_command_row_is_never_cut(self):
+        self.assertNotIn('intune-iac ', self.SENTENCE)
+
+    def test_the_recorded_next_action_and_its_legend_stay_as_the_json_form_carries_them(self):
+        from intune_iac import readiness
+        model = readiness.readiness(tc.survey(tc.tr.context_item()), tc.tr.host_report(), tc.doctor())
+        action = next(row for row in model['operations']['discover']['rows'] if row['id'] == 'integration_service')['next_action']
+        self.assertIn('reads the named variable; one of the explicit-token routes, target collect is another)', action)
+        self.assertNotIn('graph.microsoft.com', action)
 
 
 if __name__ == '__main__':

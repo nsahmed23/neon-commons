@@ -611,7 +611,7 @@ def goal_summary(view):
 
 def _goal_lines(view, width):
     """The goal's readiness: its status, the selected directory, host and tenant, the needed rows and what is not checked."""
-    from .readiness import screen_note
+    from .readiness import capture_contact, screen_note
     from .workbench_screens import word_wrap
     host = view['host']
     lines = [goal_summary(view)]
@@ -648,6 +648,9 @@ def _goal_lines(view, width):
                 lines += _flow(screen_note(note), width, '      - ', '        ', commands=True)
         lines.append('    Next action (%s):' % row['owner_role'])
         lines += _flow(row['next_action'], width, '      ', '      ', commands=True)
+        contact = capture_contact(row['next_action'])
+        if contact:
+            lines += _flow(contact, width, '      ', '      ')
     others = [row['label'] for row in view['rows'] if not row['needed']]
     if others:
         lines += _flow('Not needed for this goal: %s.' % ', '.join(others), width, '', '    ')
