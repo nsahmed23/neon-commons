@@ -84,7 +84,12 @@ class DefaultFormTests(unittest.TestCase):
             code, text, err = run_text(name)
             self.assertEqual(code, golden['exit'], name)
             if golden['output'] is None:
-                self.assertEqual(text, '', name)  # an early refusal stays a JSON error on stderr
+                if golden['stderr']['error']['code'] == 'capture_output_conflict':
+                    # PKG-SETUP-5E: a refused output folder is readable text; the exit code is unchanged and so is --json
+                    self.assertEqual(err, '', name)
+                    self.assertEqual(rows(text)[0], 'COLLECT: BLOCKED (capture_output_conflict)', name)
+                    continue
+                self.assertEqual(text, '', name)  # any other early refusal stays a JSON error on stderr
                 self.assertEqual(json.loads(err), golden['stderr'], name)
                 continue
             self.assertEqual(err, '', name)

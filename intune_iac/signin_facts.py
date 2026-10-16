@@ -758,7 +758,8 @@ _FAILED_WHY = {'collector_failed': 'The collecting command failed and no more sp
                'collector_output_too_large': 'The collecting command printed more than this command reads, and was stopped.',
                'cleanup_unconfirmed': 'The collecting command left a process running that could not be confirmed gone, so nothing '
                                       'it produced is trusted.'}
-_COLLECT_EXIT_MEANING = '(0 means collected; 2 means partial or blocked; 3 means failed).'
+_COLLECT_EXIT_MEANING = ('(0 means collected; 2 means partial or blocked; 3 means failed; 4 means the output folder was refused '
+                         'before any collecting command started).')
 
 
 OUTPUT_DISPLAY_LIMIT = 200
@@ -800,6 +801,8 @@ def _collect_verdict(result):
         return 'FAILED', result.get('error_code')
     if status == 'blocked':
         return 'BLOCKED', (result.get('signin') or {}).get('status')
+    if status == 'output_conflict':
+        return 'BLOCKED', result.get('error_code')
     return str(status).upper(), None
 
 
@@ -809,6 +812,8 @@ def _collect_why(result, shown):
         message = (result.get('signin') or {}).get('message') or ''
         cause = _BINDING_TEXT.get(shown.get('binding'))
         return message.replace(BINDING_CAUSES, cause, 1) if cause and BINDING_CAUSES in message else message
+    if result.get('status') == 'output_conflict':
+        return result.get('message') or ''
     if result.get('status') != 'failed':
         return ''
     if result.get('error_code') == 'collector_output_withheld':
@@ -823,6 +828,8 @@ def _collect_steps(result, shown):
     again = 'To collect again, run: %s.' % rerun
     if status == 'blocked':
         return [(result.get('signin') or {}).get('next_step') or '']
+    if status == 'output_conflict':
+        return ['Choose an output folder that does not exist yet, inside a folder that exists and that you can write to.', again]
     if status == 'partial':
         inner, steps = result.get('result') or {}, []
         problem = inner.get('credential_problem')

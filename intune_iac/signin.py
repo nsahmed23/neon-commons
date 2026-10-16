@@ -660,7 +660,14 @@ def collect_view(tenant, policy, output, account=None, deadline=DEFAULT_DEADLINE
     It is returned beside the result and never inside it, so it can reach no JSON, readiness or catalog.
     """
     notes = {}
-    result = collect(tenant, policy, output, account, deadline, collect_deadline, notes)
+    try:
+        result = collect(tenant, policy, output, account, deadline, collect_deadline, notes)
+    except AppError as error:
+        if error.code != 'capture_output_conflict':
+            raise
+        # The product refused the output folder before a token was minted or a child started. The text screen shows it as a
+        # blocked collect; the status 'output_conflict' keeps the exit code the JSON form returns for the same refusal (4).
+        result = {'status': 'output_conflict', 'error_code': error.code, 'collector_started': False, 'message': error.message}
     presentation = {'rerun': rerun_command(tenant, policy, account is not None), 'output': output, 'tenant': tenant,
                     'binding': notes.get('binding'),
                     'output_after': _observe(output) if result.get('collector_started') else None}
