@@ -160,6 +160,15 @@ class _Reads:
                 event['error'] = 'transport_failed'
             event['captured_at'] = self.stamp()
             if event['error'] is None:
+                denial = None
+                if status in (401, 403):
+                    # REDACTION POINT: an authentication denial is classified before anything is written. Its body can
+                    # reflect a credential or claims, so only the status, a fixed code, the byte count and the body
+                    # digest are kept; the body appears in neither raw/ nor the exported page.
+                    from .target import classify_denial
+                    denial = classify_denial(raw)
+                    raw = canonical({'authentication_denial': {'http_status': status, 'code': denial or 'access_denied',
+                                     'body_bytes': len(raw), 'body_sha256': hashlib.sha256(raw).hexdigest()}})
                 available = min(MAX_PAGE_BYTES + 1, MAX_TOTAL_BYTES - self.total_bytes)
                 stored = raw[:available]
                 complete = len(raw) <= available and len(raw) <= MAX_PAGE_BYTES
@@ -172,11 +181,10 @@ class _Reads:
                           'source_byte_sha256':hashlib.sha256(stored).hexdigest(),
                           'raw_capture_complete':complete,'attempt_number':event['number'],'export_page':True}
                 self.pages.append(record)
-                if status in (401, 403) and complete:
+                if denial is not None:
                     # STOP POINT: the service says the token expired or belongs to another tenant. limit() now
                     # returns that reason, so no further request is made in any collection.
-                    from .target import classify_denial
-                    self.auth_stop = classify_denial(stored)
+                    self.auth_stop = denial
                 event.update(http_status=status,raw_path=record['raw_path'])
                 response = (record, stored)
                 transient = status in RETRY_STATUSES and complete

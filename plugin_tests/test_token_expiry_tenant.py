@@ -155,6 +155,35 @@ class CaptureTests(Base):
         self.assertEqual((len(calls), problem['code']), (1, 'token_wrong_tenant'))
         self.assertIn(f'tenant {TENANT}', problem['next_step'])
 
+    def test_an_authentication_denial_body_is_never_persisted_or_exported(self):
+        canary = 'Bearer ' + secrets.token_urlsafe(30) + 'A1'
+        for status, code, message in ((401, 'InvalidAuthenticationToken', 'Access token has expired or is not yet valid.'),
+                                      (403, 'Forbidden', 'Insufficient privileges to complete the operation.'),
+                                      (401, 'InvalidAuthenticationTokenTenant', 'The access token is from the wrong issuer.')):
+            body = {'error': {'code': code, 'message': message, 'innerError': {'authorization': canary,
+                                                                              'reflected': canary}},
+                    'x-reflected-header': canary}
+            with self.subTest(status=status, code=code):
+                self.setUp()
+                token = 'opaque-' + secrets.token_hex(12)
+                _, out, err, calls, output = self.run_capture(token, [(status, body)])
+                self.assertNotIn(canary, out + err)
+                for path in output.rglob('*'):
+                    if path.is_file():
+                        self.assertNotIn(canary.encode(), path.read_bytes(), str(path.relative_to(output)))
+                result = json.loads(out)
+                self.assertEqual(result['coverage'][0]['coverage'], 'access_denied')
+                if code == 'Forbidden':
+                    self.assertEqual(result['coverage'][0]['reason'], 'access_denied')
+                else:
+                    self.assertIn('credential_problem', result)
+                # what is kept: the status, a fixed code, the byte count and the digest of the body
+                first = json.loads((output / 'raw' / 'page-000000.json').read_text())['authentication_denial']
+                self.assertEqual(first['http_status'], status)
+                self.assertEqual(first['body_bytes'], len(json.dumps(body).encode()))
+                self.assertRegex(first['body_sha256'], r'\A[0-9a-f]{64}\Z')
+                self.assertIn(first['code'], ('token_expired', 'token_wrong_tenant', 'access_denied'))
+
     def test_an_ordinary_denial_keeps_its_existing_meaning(self):
         body = {'error': {'code': 'Forbidden', 'message': 'Insufficient privileges to complete the operation.'}}
         code, out, err, calls, output = self.run_capture('opaque-' + secrets.token_hex(12), [(403, body)])
