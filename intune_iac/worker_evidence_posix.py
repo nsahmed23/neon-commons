@@ -240,26 +240,30 @@ def ingest_raw(store_root,envelope_raw,request_raw,policy,verifier):
     protected._exclusive(attempt/'envelope.json',envelope_raw);protected._exclusive(attempt/'request.json',request_raw);protected._sync(attempt)
     try:
         frozen_envelope=load(attempt/'envelope.json');req=load(attempt/'request.json')
-        verified=contract.verify_envelope(frozen_envelope,req,policy,verifier,now=contract.fresh_now(floor=root/'clock.json',persist=True))
-        # Only process-owned parsed persisted bytes and verified content feed the ledger.
-        result=verified.result();binding=contract.received_binding(verified,digest(req))
-        result.update(received_byte_sha256=hashlib.sha256(envelope_raw).hexdigest(),request_byte_sha256=hashlib.sha256(request_raw).hexdigest())
-        database=root/'evidence.sqlite3'
-        try:protected._exclusive(database,b'')
-        except FileExistsError:pass
-        _private(database);_no_sidecars(database)
-        with sqlite3.connect(database,timeout=0,isolation_level=None) as db:
-            db.execute('PRAGMA synchronous=FULL');db.execute('PRAGMA journal_mode=DELETE');db.execute('PRAGMA trusted_schema=OFF')
-            db.execute('BEGIN IMMEDIATE')
-            db.execute('CREATE TABLE IF NOT EXISTS received(request_sha256 TEXT PRIMARY KEY,bundle_sha256 TEXT NOT NULL,envelope_byte_sha256 TEXT NOT NULL,request_byte_sha256 TEXT NOT NULL,attempt TEXT NOT NULL)')
-            db.execute('CREATE TABLE IF NOT EXISTS heads(scope TEXT PRIMARY KEY,sequence INTEGER NOT NULL,event_sha256 TEXT NOT NULL)')
-            prior=db.execute('SELECT bundle_sha256,attempt FROM received WHERE request_sha256=?',(digest(req),)).fetchone()
-            scope=binding['scope'];sequence=binding['sequence'];events=binding['event_sha256']
-            head=db.execute('SELECT sequence,event_sha256 FROM heads WHERE scope=?',(scope,)).fetchone()
-            contract.admit_received(binding,prior[0] if prior else None,dict(zip(('sequence','event_sha256'),head)) if head else None)
-            if prior is None:db.execute('INSERT INTO received VALUES (?,?,?,?,?)',(digest(req),result['bundle_sha256'],result['received_byte_sha256'],result['request_byte_sha256'],attempt.name))
-            db.execute('INSERT INTO heads VALUES (?,?,?) ON CONFLICT(scope) DO UPDATE SET sequence=excluded.sequence,event_sha256=excluded.event_sha256',(scope,sequence,events))
-            db.execute('COMMIT')
+        # Authenticate first (structure, trust, binding, signature) on a read-only time reading: a rejected input leaves no clock effect.
+        contract.verify_envelope(frozen_envelope,req,policy,verifier,now=contract.fresh_now(floor=root/'clock.json'),historical=True)
+        # Then judge time under the floor lock and keep it through the acceptance commit.
+        with _locked_now(root) as now:
+            verified=contract.verify_envelope(frozen_envelope,req,policy,verifier,now=now)
+            # Only process-owned parsed persisted bytes and verified content feed the ledger.
+            result=verified.result();binding=contract.received_binding(verified,digest(req))
+            result.update(received_byte_sha256=hashlib.sha256(envelope_raw).hexdigest(),request_byte_sha256=hashlib.sha256(request_raw).hexdigest())
+            database=root/'evidence.sqlite3'
+            try:protected._exclusive(database,b'')
+            except FileExistsError:pass
+            _private(database);_no_sidecars(database)
+            with sqlite3.connect(database,timeout=0,isolation_level=None) as db:
+                db.execute('PRAGMA synchronous=FULL');db.execute('PRAGMA journal_mode=DELETE');db.execute('PRAGMA trusted_schema=OFF')
+                db.execute('BEGIN IMMEDIATE')
+                db.execute('CREATE TABLE IF NOT EXISTS received(request_sha256 TEXT PRIMARY KEY,bundle_sha256 TEXT NOT NULL,envelope_byte_sha256 TEXT NOT NULL,request_byte_sha256 TEXT NOT NULL,attempt TEXT NOT NULL)')
+                db.execute('CREATE TABLE IF NOT EXISTS heads(scope TEXT PRIMARY KEY,sequence INTEGER NOT NULL,event_sha256 TEXT NOT NULL)')
+                prior=db.execute('SELECT bundle_sha256,attempt FROM received WHERE request_sha256=?',(digest(req),)).fetchone()
+                scope=binding['scope'];sequence=binding['sequence'];events=binding['event_sha256']
+                head=db.execute('SELECT sequence,event_sha256 FROM heads WHERE scope=?',(scope,)).fetchone()
+                contract.admit_received(binding,prior[0] if prior else None,dict(zip(('sequence','event_sha256'),head)) if head else None)
+                if prior is None:db.execute('INSERT INTO received VALUES (?,?,?,?,?)',(digest(req),result['bundle_sha256'],result['received_byte_sha256'],result['request_byte_sha256'],attempt.name))
+                db.execute('INSERT INTO heads VALUES (?,?,?) ON CONFLICT(scope) DO UPDATE SET sequence=excluded.sequence,event_sha256=excluded.event_sha256',(scope,sequence,events))
+                db.execute('COMMIT')
         protected._sync(root)
         write_new(attempt/'result.json',result)
         return dict(result,stored_attempt=attempt.name,idempotent=prior is not None)
@@ -279,11 +283,40 @@ def reopen(store_root,request_sha256,policy,verifier,*,historical=False):
     attempt=_private(root/row[1],directory=True);envelope_raw=read(attempt/'envelope.json');request_raw=read(attempt/'request.json')
     envelope=parse_json(envelope_raw);req=parse_json(request_raw)
     if digest(envelope)!=row[0] or digest(req)!=request_sha256 or hashlib.sha256(envelope_raw).hexdigest()!=row[2] or hashlib.sha256(request_raw).hexdigest()!=row[3]:contract.fail('worker_evidence_stored_bytes_changed')
-    now=int(time.time()) if historical else contract.fresh_now(floor=root/'clock.json')
-    verified=contract.verify_envelope(envelope,req,policy,verifier,now=now,historical=historical)
+    if historical:
+        verified=contract.verify_envelope(envelope,req,policy,verifier,now=int(time.time()),historical=True)
+        return _stored(root,row,request_sha256,verified)
+    # Authenticate on a read-only reading, then record what an authenticated read saw (a closed window stays closed across a
+    # restart) and decide under the floor lock.
+    contract.verify_envelope(envelope,req,policy,verifier,now=contract.fresh_now(floor=root/'clock.json'),historical=True)
+    with _locked_now(root) as now:
+        verified=contract.verify_envelope(envelope,req,policy,verifier,now=now)
+        return _stored(root,row,request_sha256,verified)
+
+
+def _stored(root,row,request_sha256,verified):
     binding=contract.received_binding(verified,request_sha256)
     with readonly_database(root/'evidence.sqlite3') as (db,_):
         current=db.execute('SELECT bundle_sha256,attempt,envelope_byte_sha256,request_byte_sha256 FROM received WHERE request_sha256=?',(request_sha256,)).fetchone()
         if current!=row:contract.fail('worker_evidence_stored_bytes_changed')
         head=db.execute('SELECT sequence,event_sha256 FROM heads WHERE scope=?',(binding['scope'],)).fetchone()
     return contract.stored_result(verified,dict(zip(('sequence','event_sha256'),head)) if head else None)
+
+
+@contextmanager
+def _locked_now(root):
+    """The store's floor lock, outermost (directory flock, then the floor lock, then SQLite: the order validity.py uses).
+
+    Resamples the wall under the lock, persists the observation and yields the effective time, so no other writer can move
+    the floor between this sample and the caller's acceptance. Call only after the input authenticated."""
+    import fcntl
+    from . import clock
+    directory=os.open(root,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+    try:
+        opened,current=os.fstat(directory),os.stat(root)
+        if (opened.st_dev,opened.st_ino)!=(current.st_dev,current.st_ino):contract.fail('worker_evidence_private_file')
+        fcntl.flock(directory,fcntl.LOCK_EX)
+        floor=clock.Floor(root/'clock.json')
+        with floor.locked():
+            yield int(floor.observe_locked(time.time())['effective'])
+    finally:os.close(directory)
