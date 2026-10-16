@@ -297,19 +297,27 @@ class ManifestNodeTests(unittest.TestCase):
     def test_a_pin_the_manifest_does_not_hold_is_not_configured(self):
         read = baseline()
         del read['setup_pins']['pinned']['engine_version']
+        del read['setup_pins']['pinned']['engine']
         node = nodes_of(project(read))['tofu.engine']
-        self.assertEqual((node['state'], node['reason']), ('not_configured', 'engine_pin_not_recorded'))
+        self.assertEqual((node['state'], node['reason'], node['identity']),
+                         ('not_configured', 'engine_pin_not_recorded', {'engine': None, 'version': None}))
         read['setup_pins']['pinned'].pop('provider_source')
         read['setup_pins']['pinned'].pop('provider_version')
         node = nodes_of(project(read))['provider']
         self.assertEqual((node['state'], node['reason']), ('not_configured', 'provider_pin_not_recorded'))
 
-    def test_an_engine_pin_needs_both_its_name_and_its_version(self):
+    def test_half_an_engine_pin_is_unknown_not_configured(self):
+        for kept, gone, identity in (('engine_version', 'engine', {'engine': None, 'version': '9.9.9'}),
+                                     ('engine', 'engine_version', {'engine': 'tofu', 'version': None})):
+            read = baseline()
+            del read['setup_pins']['pinned'][gone]
+            node = nodes_of(project(read))['tofu.engine']
+            self.assertEqual((node['state'], node['reason'], node['identity']), ('unknown', 'engine_pin_incomplete', identity), kept)
+        # The example from the review: only a version recorded.
         read = baseline()
-        del read['setup_pins']['pinned']['engine']
+        read['setup_pins'] = {'pinned': {'engine_version': '1.9.0'}, 'integration_label': 'Example Service'}
         node = nodes_of(project(read))['tofu.engine']
-        self.assertEqual((node['state'], node['reason'], node['identity']),
-                         ('not_configured', 'engine_pin_not_recorded', {'engine': None, 'version': '9.9.9'}))
+        self.assertEqual((node['state'], node['reason']), ('unknown', 'engine_pin_incomplete'))
 
     def test_half_a_provider_pin_is_unknown_not_configured(self):
         read = baseline()

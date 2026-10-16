@@ -167,6 +167,9 @@ def _engine(pinned, unread):
     identity = {'engine': engine, 'version': version}
     if engine and version:
         return _node('tofu.engine', 'configured', identity, basis, opens=OPENS['tofu.engine'])
+    if engine or version:
+        # Half a pin is a record that cannot be read whole: the other half may exist elsewhere, so it is not "not configured".
+        return _node('tofu.engine', 'unknown', identity, basis, 'engine_pin_incomplete', opens=OPENS['tofu.engine'])
     return _node('tofu.engine', 'not_configured', identity, basis, 'engine_pin_not_recorded', opens=OPENS['tofu.engine'])
 
 
