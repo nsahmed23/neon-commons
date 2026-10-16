@@ -5,6 +5,8 @@ Items are added in the order of the brief; each class names its item. Temporary 
 import unittest
 
 from plugin_tests import test_workbench_states as states_tests
+from plugin_tests.test_workbench_map_truth import MapTruth
+from plugin_tests.test_workbench_run10 import action
 from plugin_tests.test_workbench_screens import delivery_value
 
 
@@ -198,3 +200,117 @@ class LegendMeaningTests(unittest.TestCase):
         from intune_iac.workbench_screens import STRIP_DEFINITIONS
         for key, row in STRIP_DEFINITIONS.items():
             self.assertLessEqual(len(row), 80, row)
+
+
+class ClosedPlanNextNamesTheOpenProposalTests(unittest.TestCase):
+    """Item 7a (frame 70): a closed plan's Next names the newest operation, which is a different one and still open,
+    instead of pointing at fields above."""
+    surface = states_tests.RefusalCauseTests.workspace
+    NEWEST = 'a23983bd3a224bd1b08d8156a67fa773'
+    CLOSED = 'c6d62cc78f584390bb41448b52f9e936'
+
+    def rows(self, window, newest_status='prepared', newest=None):
+        newest = newest or self.NEWEST
+        facts = {'states': {'operation': {'operation_id': newest, 'journal_status': newest_status,
+                                          'status': newest_status, 'approval_window': window}}}
+        workspace = self.surface(facts)
+        workspace.tab = 4
+        workspace.value = {'operation_id': self.CLOSED, 'object_id': states_tests.OBJECT, 'status': 'prepared',
+                           'approval_window': {'state': 'closed'}, 'expires_at': 1}
+        return ' '.join(' '.join(workspace._summary_lines(118)).split())
+
+    def test_the_next_names_the_open_newest_operation(self):
+        text = self.rows('open')
+        self.assertIn('Next: Prepare a proposal from the recorded intent (a: actions), or review the newest operation, '
+                      'a23983bd, whose approval window is open; Expiry and Approval window above say why this plan cannot run',
+                      text)
+
+    def test_no_open_operation_keeps_the_old_next(self):
+        text = self.rows('closed')
+        self.assertIn('Next: Prepare a proposal from the recorded intent (a: actions); Expiry and Approval window above say why',
+                      text)
+        self.assertNotIn('or review the newest operation', text)
+
+    def test_the_plan_that_is_the_newest_is_not_named_as_another(self):
+        text = self.rows('open', newest=self.CLOSED)
+        self.assertNotIn('or review the newest operation', text)
+
+
+class StagedKeysSaidOnceTests(MapTruth):
+    """Item 7b (frames 21, 37): while a command is staged the key line says Enter submits and Esc cancels; the notice
+    says what to type and what the command does, not the same keys again."""
+    ENTRIES = (action('collect', 'Collect again', command='collect'),
+               action('reconcile', 'Reconcile operation 64581d41', command='reconcile /w/op'))
+
+    def staged(self, layer, focus):
+        ws = self.workspace((120, 40))
+        ws.facts.update(actions=list(self.ENTRIES))
+        ws._open_actions()
+        ws.action_focus = focus
+        ws.layer = layer
+        ws._stage(ws._actions()[focus])
+        return ws
+
+    def test_the_notice_and_the_key_line_say_submit_and_cancel_once_between_them(self):
+        from intune_iac.workbench_tui import typing_line
+        for layer in ('actions', 'summary'):
+            for focus in (0, 1):
+                ws = self.staged(layer, focus)
+                both = ws.notice + ' | ' + typing_line(120, 'command')
+                self.assertEqual(both.count('Esc'), 1, (layer, focus, both))
+                self.assertEqual(both.count('submits'), 1, (layer, focus, both))
+                self.assertTrue(ws.notice.strip(), (layer, focus))
+
+    def test_what_to_type_is_still_said(self):
+        ws = self.workspace((120, 40))
+        mechanics = ws._mechanics({'kind': 'repository-entry', 'needs': ['REPOSITORY: a path']}, bound=False)
+        self.assertEqual(mechanics[0], 'Type REPOSITORY at the cursor.')
+        bound = ws._mechanics({'kind': 'repository-refresh'}, bound=True)
+        self.assertIn('the digest after it pins the difference you reviewed', bound[0])
+        self.assertTrue(all('Esc' not in form and 'submit' not in form for form in mechanics + bound))
+
+
+class CommandNamesInSentencesTests(unittest.TestCase):
+    """Item 7c (frames 42, 44): a sentence that sends the engineer to collect says it in words and names the key that
+    lists the action (`Collect again (a: actions)`); the command text itself is shown once, on the action entry."""
+
+    def source(self, module):
+        from pathlib import Path
+        return (Path(__file__).resolve().parents[1] / 'intune_iac' / (module + '.py')).read_text(encoding='utf-8')
+
+    def test_no_diagnostic_or_refusal_sentence_embeds_a_colon_command(self):
+        import re
+        for module in ('workbench_diagnostics', 'workbench_screens'):
+            self.assertEqual(re.findall(r'\(:[a-z][a-z-]*\)', self.source(module)), [], module)
+
+    def test_the_collection_signals_say_collect_again_with_the_actions_key(self):
+        from intune_iac.workbench_diagnostics import _collection
+        running = {'last_attempt': {'status': 'collecting', 'run_id': 3, 'started_at': '2026-10-16T01:00:00Z'}}
+        step = _collection(running)[0][0]['next_step']
+        self.assertEqual(step, 'If no collector is running now, the run was interrupted: collect again (a: actions).')
+        failed = {'last_attempt': {'status': 'failed', 'run_id': 4, 'started_at': '2026-10-16T01:00:00Z',
+                                   'completed_at': '2026-10-16T01:00:01Z', 'error_code': 'x'}}
+        self.assertEqual(_collection(failed)[0][0]['next_step'],
+                         'Collect again (a: actions) when the source is reachable; no complete observation of this policy '
+                         'exists yet.')
+
+
+class ExecutionStageWordsTests(unittest.TestCase):
+    """Item 7e (frame 39, stage 4): an execution the engine reported done but the store never recorded as verified says
+    what happened in plain words, not 'never registered'."""
+
+    def row(self, **execution):
+        from intune_iac.workbench_screens import delivery_lines
+        value = delivery_value(execution=dict({'status': 'unknown', 'error_code': None, 'service_status': None}, **execution))
+        return ' '.join(' '.join(delivery_lines(value, 160)).split())
+
+    def test_the_stage_says_the_engine_reported_success_and_the_store_recorded_no_verified_result(self):
+        text = self.row()
+        self.assertIn('4 Execution outcome unknown: the engine reported succeeded verified, but the store never recorded '
+                      'a verified result', text)
+        self.assertNotIn('never registered', text)
+
+    def test_a_stage_with_no_engine_result_is_unchanged(self):
+        text = self.row(engine_status=None, error_code='model_response_lost')
+        self.assertIn("outcome unknown: the modeled service's response was lost (model_response_lost) | no engine result "
+                      "recorded", text)

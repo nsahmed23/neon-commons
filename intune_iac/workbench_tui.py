@@ -1531,14 +1531,17 @@ class Workspace:
         else:
             lines = self._surface_summary(width)
             if self._on_change_path(self.value):
-                from .workbench_screens import _band_primary, lifecycle_lines
+                from .workbench_screens import _band_primary, lifecycle_lines, newest_open_operation
                 known = self.facts if self.selected and self.facts.get('object_id') == self.selected else {}
                 primary, _ = _band_primary(known, known.get('signals') or [])
                 # The band above names the refresh for a changed repository; the line does not name it again.
                 refresh = bool(primary) and primary.get('code') in ('repository_stale', 'repository_consumer_mismatch')
                 lines = lines + [''] + lifecycle_lines(self.tab, width, self.value, eligibility=self.facts.get('eligibility')
                                                        if self.facts.get('object_id') == self.selected else None,
-                                                       band_names_refresh=refresh, band_has_next=bool(primary))
+                                                       band_names_refresh=refresh, band_has_next=bool(primary),
+                                                       newest_open=newest_open_operation(
+                                                           known, self.value.get('operation_id') if isinstance(self.value, dict) else None,
+                                                           known.get('identity_prefixes')))
         return lines
 
     def _band_has_next(self):
@@ -2124,21 +2127,19 @@ class Workspace:
         return STAGED_BOUNDARY.get(kind) or ('STAGED %s.' % (action.get('label') or kind),)
 
     def _mechanics(self, action, *, bound):
-        """What to type and how to submit or cancel, longest form first; the last fits 40 columns."""
-        submit = self._submit_word()
+        """What to type, longest form first; the last fits 40 columns. How to submit or cancel is not said here: the key
+        line (TYPING_KEY_LINES) says it while the command is staged, so the keys are said once (run 12, frames 21, 37)."""
         needs = [str(need).split(':')[0] for need in action.get('needs') or []]
         if bound:
             return ('Type REVISION (the full 40-character commit ID) at the cursor; the digest after it pins the difference '
-                    'you reviewed. %s attempts to record it; Esc cancels.' % submit,
-                    'Type REVISION at the cursor; the digest after it pins the reviewed difference. %s submits; Esc '
-                    'cancels.' % submit,
-                    'Type REVISION. %s attempts to record this reviewed source; Esc cancels.' % submit,
-                    'REVISION, then %s; Esc cancels.' % submit)
+                    'you reviewed.',
+                    'Type REVISION at the cursor; the digest after it pins the reviewed difference.',
+                    'Type REVISION; the digest pins the reviewed difference.',
+                    'Type REVISION first.')
         if needs:
             names = ' and '.join(needs)
-            return ('Type %s at the cursor. %s submits the command; Esc cancels.' % (names, submit),
-                    'Type %s; %s submits; Esc cancels.' % (names, submit), '%s, then %s; Esc cancels.' % (names, submit))
-        return ('%s submits the command below; Esc cancels.' % submit, '%s submits; Esc cancels.' % submit)
+            return ('Type %s at the cursor.' % names, 'Type %s at the cursor.' % names, 'Type %s.' % names)
+        return ('Review the command below.', 'Review the command below.')
 
     def _staged_notice(self):
         staged = self.staged or {}

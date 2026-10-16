@@ -78,7 +78,7 @@ class DiagnosticsTests(unittest.TestCase):
         self.assertIn('repository-refresh', signals['repository_stale']['next_step'])
         self.assertIn('truncated', signals['device_capture_incomplete']['observed'])
         self.assertIn('last-good', signals['collection_failed']['observed'])
-        self.assertIn(':collect', signals['collection_failed']['next_step'])
+        self.assertIn('Collect again (a: actions)', signals['collection_failed']['next_step'])
         self.assertEqual(value['checked']['freshness'], 'explained_by_collection')
         for signal in value['signals']:
             self.assertTrue(signal['observed']); self.assertTrue(signal['next_step'])
@@ -215,7 +215,7 @@ class FreshnessReasonTests(unittest.TestCase):
         self.assertRegex(sentence, r"stamped later than this host's clock read when it was checked \(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d UTC\)\.$")
         # The store orders its own collections from one service by run (P1), so collecting again cures this one;
         # only an imported capture keeps its capture-time order (test_workbench_actions.StampedAheadTests).
-        self.assertIn('Collect again (:collect) from the modeled service it came from',
+        self.assertIn('Collect again (a: actions) from the modeled service it came from',
                       signals['observation_stale']['next_step'])
 
     def test_an_observation_older_than_the_window_says_so(self):
@@ -252,7 +252,7 @@ class CollectionAndFreshnessTests(unittest.TestCase):
         # The observed sentence names the last-good observation; the step does not repeat it.
         self.assertIn('run 3', signal['observed']); self.assertIn('last-good', signal['observed'])
         self.assertIn('kept', signal['observed'])
-        self.assertEqual(signal['next_step'], 'Collect again (:collect) when the source is reachable.')
+        self.assertEqual(signal['next_step'], 'Collect again (a: actions) when the source is reachable.')
 
     def test_a_failed_first_collection_does_not_promise_a_last_good_observation(self):
         signals, failed = self.collection({'run_id': 1, 'status': 'failed'}, None, False, 'unknown')
@@ -294,7 +294,7 @@ class ClockHoldFreshnessTests(unittest.TestCase):
         for code, step in (('clock_moved_backward', self.MOVED), ('clock_floor_invalid', self.UNREADABLE)):
             signal = self.signal(code)
             self.assertEqual(signal['next_step'], step)
-            self.assertNotIn('Collect again (:collect)', signal['next_step'])
+            self.assertNotIn('Collect again (a: actions)', signal['next_step'])
             self.assertIn('its age cannot be established', signal['observed'])
             self.assertEqual(signal['evidence']['freshness_reasons'], [code])
 
@@ -309,7 +309,7 @@ class ClockHoldFreshnessTests(unittest.TestCase):
 
     def test_a_signal_without_a_hold_keeps_its_step(self):
         self.assertEqual(self.signal('older_than_window', freshness_window_seconds=3600)['next_step'],
-                         'Collect again (:collect) before preparing or judging a change.')
+                         'Collect again (a: actions) before preparing or judging a change.')
 
 
 class ClockHoldUnknownAgeTests(unittest.TestCase):

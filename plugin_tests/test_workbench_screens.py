@@ -766,7 +766,8 @@ class RefusalLinesTests(unittest.TestCase):
                             ('maintenance_observation_incomplete', 'incomplete, or the last collection did not finish')):
             joined = '\n'.join(refusal_lines({'status': 'error', 'error': {'code': code, 'message': message}}, 200))
             self.assertIn(words, joined)
-            self.assertIn('Next: Collect again (:collect)', joined)
+            self.assertIn('Next: Collect again', joined)
+            self.assertIn('a: actions)', joined)
 
     def test_a_meaning_the_engine_message_already_states_is_not_repeated(self):
         from intune_iac.workbench_screens import refusal_lines
@@ -1055,8 +1056,8 @@ class WhoClaimsWhatTests(unittest.TestCase):
         value = delivery_value(execution={'status': 'unknown', 'error_code': None, 'service_status': None},
                                readback={'status': 'not_recorded'})
         joined = '\n'.join(delivery_lines(value, 160))
-        self.assertIn('[?] 4 Execution       outcome unknown: the engine reported succeeded verified, never registered '
-                      'by the store', joined)
+        self.assertIn('[?] 4 Execution       outcome unknown: the engine reported succeeded verified, but the store never recorded '
+                      'a verified result', joined)
         self.assertIn('[?] 5 Readback        not recorded: execution ended before its own independent readback', joined)
         value = delivery_value(execution={'status': 'unknown', 'engine_status': None, 'error_code': 'model_response_lost',
                                           'service_status': None})

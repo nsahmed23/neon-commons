@@ -25,10 +25,10 @@ UNKNOWN = signal('operations', 'operation_outcome_unknown',
                  'reconcile /work/op reads the service independently; execution is never replayed.',
                  operation_id=OPERATION, operation_root='/work/op')
 DENIED = signal('collection', 'collection_failed', 'The last collection of this policy (run 3) ended denied.',
-                'Collect again (:collect) when the source is reachable.', status='denied', error_code='workbench_collection_denied')
+                'Collect again (a: actions) when the source is reachable.', status='denied', error_code='workbench_collection_denied')
 CHANGED = signal('repository', 'repository_stale', 'The repository changed since its recorded intent.',
                  'Review the difference on the Repository surface, then repository-refresh REVISION records the current source.')
-STALE = signal('freshness', 'observation_stale', 'The newest observation is stale.', 'Collect again (:collect).')
+STALE = signal('freshness', 'observation_stale', 'The newest observation is stale.', 'Collect again (a: actions).')
 ALL = [UNKNOWN, DENIED, CHANGED, STALE,
        signal('operations', 'operation_diverged', operation_id=OPERATION, operation_root='/work/op'),
        signal('operations', 'operation_record_disagrees', operation_id=OPERATION, operation_root='/work/op'),
@@ -372,7 +372,8 @@ class FrameTests(unittest.TestCase):
                                (MINIMUM, 'New intent only; no commit/approve/apply')):
             workspace, rows = self.staged_frame(size)
             index = next(i for i, row in enumerate(rows) if row.rstrip() == boundary)
-            self.assertIn('Esc cancels', rows[index + 1], (size, rows[index + 1]))
+            self.assertIn('REVISION', rows[index + 1], (size, rows[index + 1]))  # what to type; the key line has Esc (run 12 item 7)
+            self.assertEqual(sum('Esc cancels' in row for row in rows), 1, (size, rows))
             self.assertTrue(rows[index + 2].startswith(':repository-refresh'), (size, rows[index + 2]))
             self.assertEqual(len(rows), size[1], size)
             for row in rows:

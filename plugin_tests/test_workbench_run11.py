@@ -286,13 +286,14 @@ class StagedNoticeTests(MapTruth):
         ws.action_focus = focus
         return ws
 
-    def test_under_the_open_list_the_notice_says_only_how_to_submit(self):
+    def test_under_the_open_list_the_notice_says_no_key_the_key_line_says(self):
         for focus, word in ((0, 'collect'), (1, 'reconcile')):
             ws = self.listed(focus)
             ws._stage(ws._actions()[focus])
             self.assertNotIn('STAGED', ws.notice)
-            self.assertIn('Enter submits', ws.notice)
-            self.assertIn('Esc cancels', ws.notice)
+            self.assertNotIn('Enter submits', ws.notice)  # run 12 item 7: the key line says Enter submits and Esc cancels
+            self.assertNotIn('Esc cancels', ws.notice)
+            self.assertTrue(ws.notice.strip())
 
     def test_outside_the_list_the_notice_still_says_what_the_staged_command_does(self):
         ws = self.listed(1)

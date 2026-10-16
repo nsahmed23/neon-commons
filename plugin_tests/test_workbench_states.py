@@ -856,7 +856,7 @@ class ClockHeldRefusalTests(unittest.TestCase):
         meaning, step = REFUSALS['maintenance_observation_stale']
         self.assertEqual(meaning, 'The newest observation of this policy is not fresh, or the service changed after it was '
                                   'collected; a change is never prepared against it.')
-        self.assertEqual(step, "Collect again (:collect), then Prepare a proposal from the recorded intent (a: actions); i shows the observation's "
+        self.assertEqual(step, "Collect again, then Prepare a proposal from the recorded intent (both in a: actions); i shows the observation's "
                                'freshness. If i says its age cannot be established (a clock hold), collecting again does '
                                'not clear it: correct the host clock and restart the workbench.')
         text = ' '.join(' '.join(refusal_lines(self.REFUSED, 160)).split())
@@ -1131,7 +1131,7 @@ class PlainRecoveryWordsTests(unittest.TestCase):
 
     def test_the_step_says_a_new_collection_becomes_the_current_observation(self):
         step = self.step(ordering_service_root='/home/nsahm/work/journey 28 run 7/handoff/service')
-        self.assertEqual(step, "Collect again (:collect) from the modeled service it came from "
+        self.assertEqual(step, "Collect again (a: actions) from the modeled service it came from "
                                "('/home/nsahm/work/journey 28 run 7/handoff/service'): a new collection becomes the "
                                'current observation. Or correct the host clock.')
         self.assertNotIn('orders its own collections', step)

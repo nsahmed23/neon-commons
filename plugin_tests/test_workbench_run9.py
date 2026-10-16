@@ -303,7 +303,7 @@ class StampAheadOnceTests(unittest.TestCase):
         self.assertEqual(text.count('17:45:10'), 1, text)
         self.assertIn('Observation age unknown', text_of(band))
         self.assertIn('is not known to be fresh', text_of(attention))
-        self.assertIn('Collect again (:collect) from the modeled service it came from', text_of(attention))
+        self.assertIn('Collect again (a: actions) from the modeled service it came from', text_of(attention))
         self.assertIn("age not known (stamped after this host's clock: this host's clock read 2026-10-15 17:45:10 UTC)",
                       text_of(state))
 

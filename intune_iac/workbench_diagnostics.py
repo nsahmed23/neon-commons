@@ -42,14 +42,14 @@ def _collection(observed):
         return [_signal('collection', 'collection_not_finished',
                         'Collection run %s for this policy started at %s and has not recorded an end.' % (
                             attempt.get('run_id'), readable_time(attempt.get('started_at')) or 'a time not recorded'),
-                        'If no collector is running now, the run was interrupted: collect again (:collect).', evidence)], False
+                        'If no collector is running now, the run was interrupted: collect again (a: actions).', evidence)], False
     kept = (' The last-good observation of this policy (run %s) is kept, now marked %s.' % (
         success.get('run_id'), observed.get('freshness')) if success and observed.get('retained_last_good') else '')
     # The observed sentence already says the last-good observation is kept and how it is labelled.
-    step = ('Collect again (:collect) when the source is reachable.' if kept else
-            'Collect again (:collect) when the source is reachable; until then views use the last-good observation of this policy '
+    step = ('Collect again (a: actions) when the source is reachable.' if kept else
+            'Collect again (a: actions) when the source is reachable; until then views use the last-good observation of this policy '
             '(run %s), labelled %s.' % (success.get('run_id'), observed.get('freshness')) if success else
-            'Collect again (:collect) when the source is reachable; no complete observation of this policy exists yet.')
+            'Collect again (a: actions) when the source is reachable; no complete observation of this policy exists yet.')
     return [_signal('collection', 'collection_failed',
                     'The last collection of this policy (run %s, %s) ended %s: %s.%s' % (
                         attempt.get('run_id'), readable_time(attempt.get('completed_at') or attempt.get('started_at'))
@@ -149,7 +149,7 @@ def _freshness(observed, failed):
                                                          ': ' + because if because else '')
                 if observed.get('observed_at') else
                 'No complete observation of this policy exists yet (freshness %s).' % observed.get('freshness'))
-    step = 'Collect again (:collect) before preparing or judging a change.'
+    step = 'Collect again (a: actions) before preparing or judging a change.'
     replaces = observed.get('next_collection_replaces')
     if hold:
         # A clock hold outranks every other reason: no collection, and no wait on a stamp, clears it.
@@ -158,10 +158,10 @@ def _freshness(observed, failed):
         # The store orders its own collections from one service by run, not by stamp (workbench_store).
         import shlex
         # A path with spaces is quoted so it copies whole.
-        step = ('Collect again (:collect) from the modeled service it came from (%s): a new collection becomes the '
+        step = ('Collect again (a: actions) from the modeled service it came from (%s): a new collection becomes the '
                 'current observation. Or correct the host clock.' % shlex.quote(str(observed.get('ordering_service_root'))))
     elif 'stamped_after_now' in reasons and replaces == 'any_collection':
-        step = ('Collect again (:collect): this capture was stamped later than the store\'s clock when it was '
+        step = ('Collect again (a: actions): this capture was stamped later than the store\'s clock when it was '
                 'imported, so the next collection becomes current. Or correct the host clock.')
     elif 'stamped_after_now' in reasons:
         # An imported capture is ordered by its capture time, so a new collection would not replace it.

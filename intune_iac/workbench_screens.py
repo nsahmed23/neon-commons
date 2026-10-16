@@ -733,8 +733,22 @@ LIFECYCLE = ((8, '9 Repository'), (4, '5 Plan'), (5, '6 Execution'), (None, 'Del
 RECONCILE_NEXT = 'Reconcile it (a: actions); it never replays the change. v shows every delivery stage'
 
 
-def lifecycle_next(tab, value, now, eligibility=None):
-    """The next step for the change shown, from its own recorded state; never a step that state refuses."""
+def newest_open_operation(facts, reviewing, prefixes=None):
+    """The short id of the newest operation for the policy when its approval window is open and it is not the plan under
+    review, else None (the read model's state row says the same: `approval window open`)."""
+    states = facts.get('states') if isinstance(facts, dict) and isinstance(facts.get('states'), dict) else {}
+    newest = states.get('operation') if isinstance(states.get('operation'), dict) else {}
+    identity = newest.get('operation_id')
+    if newest.get('approval_window') == 'open' and isinstance(identity, str) and identity != reviewing:
+        return short_id(identity, prefixes)
+    return None
+
+
+def lifecycle_next(tab, value, now, eligibility=None, newest_open=None):
+    """The next step for the change shown, from its own recorded state; never a step that state refuses.
+
+    newest_open: the newest operation for the policy when it is another one and its approval window is open (a closed
+    plan's step then names it; run 12, frame 70)."""
     value = value if isinstance(value, dict) else {}
     if tab == 8:
         freshness = value.get('freshness') if isinstance(value.get('freshness'), dict) else {}
@@ -772,6 +786,10 @@ def lifecycle_next(tab, value, now, eligibility=None):
         if judged.get('state') in ('closed', 'closed_recorded') or (
                 not judged and isinstance(expires, (int, float)) and not isinstance(expires, bool) and expires <= now):
             # The Approval window row states the fact; this line refers to it rather than say it again.
+            if newest_open:
+                return ('Prepare a proposal from the recorded intent (a: actions), or review the newest operation, %s, '
+                        'whose approval window is open; Expiry and Approval window above say why this plan cannot run'
+                        % newest_open)
             return 'Prepare a proposal from the recorded intent (a: actions); Expiry and Approval window above say why'
         # The command stands on its own row after the sentence, so a copied row carries no words (run 9, frame 18).
         # The real directory when the review names it (a review always does); the template only where it does not.
@@ -796,7 +814,8 @@ def _execute_forms(operation):
             + COMMAND_BREAK + '  intune-iac workbench execute --operation %s --approve-digest DIGEST' % operation)
 
 
-def lifecycle_lines(tab, width, value=None, now=None, eligibility=None, band_names_refresh=False, band_has_next=False):
+def lifecycle_lines(tab, width, value=None, now=None, eligibility=None, band_names_refresh=False, band_has_next=False,
+                    newest_open=None):
     """Where this surface sits in a change's path and the next step for the state shown, in one line.
 
     band_names_refresh: the hazard band above already names Refresh as the next step for a changed repository, so this
@@ -811,7 +830,7 @@ def lifecycle_lines(tab, width, value=None, now=None, eligibility=None, band_nam
     freshness = (value or {}).get('freshness') if isinstance((value or {}).get('freshness'), dict) else {}
     if tab == 8 and band_names_refresh and freshness.get('status') != 'current':
         return word_wrap('Lifecycle: %s. A proposal follows from the new intent.' % path, width)
-    step = lifecycle_next(tab, value, time.time() if now is None else now, eligibility)
+    step = lifecycle_next(tab, value, time.time() if now is None else now, eligibility, newest_open)
     # A step that prints a command ends with it: the sentence comes first and no full stop follows the command.
     head, _, command = step.partition(COMMAND_BREAK)
     if band_has_next and tab == 5:
@@ -2529,7 +2548,7 @@ def _execution_text(stage, status):
         parts.append('recorded ' + _when(stage['recorded_at']))
     if status == 'unknown':
         # Who claims what: the engine's own report is in the journal; the store never registered a verified result.
-        claim = ('the engine reported %s, never registered by the store' % _as_words(stage['engine_status'])
+        claim = ('the engine reported %s, but the store never recorded a verified result' % _as_words(stage['engine_status'])
                  if stage.get('engine_status') else 'no engine result recorded')
         said = ([_code_words(stage['error_code'])] if stage.get('error_code') else []) + [claim] + parts[1:]
         return 'outcome unknown: ' + ' | '.join(said)
@@ -2943,15 +2962,15 @@ REFUSALS = {
     'maintenance_observation_stale': (
         'The newest observation of this policy is not fresh, or the service changed after it was collected; a change '
         'is never prepared against it.',
-        'Collect again (:collect), then Prepare a proposal from the recorded intent (a: actions); i shows the observation\'s freshness. If i says its '
+        'Collect again, then Prepare a proposal from the recorded intent (both in a: actions); i shows the observation\'s freshness. If i says its '
         'age cannot be established (a clock hold), collecting again does not clear it: correct the host clock and '
         'restart the workbench.'),
     'maintenance_observation_incomplete': (
         'The newest observation of this policy is incomplete, or the last collection did not finish.',
-        'Collect again (:collect); i shows what was not read.'),
+        'Collect again (a: actions); i shows what was not read.'),
     'maintenance_plan_stale': (
         'The service changed while the plan was being prepared, or after it was prepared.',
-        'Collect again (:collect), then Prepare a proposal from the recorded intent (a: actions).'),
+        'Collect again, then Prepare a proposal from the recorded intent (both in a: actions).'),
     'unreadable_file': (
         'A file this command needs could not be read; the engine does not name it.',
         'Check that the files the command names exist and this account can read them, then submit it again.'),
@@ -3446,7 +3465,7 @@ def change_words(change, prefixes=None):
 def service_words(origin):
     """Which modeled service the session uses and why, for the Estate surface."""
     if not isinstance(origin, dict):
-        return 'Modeled service: none yet. Adopt a completed journey (:adopt), or start with --service-root.'
+        return 'Modeled service: none yet. Adopt a completed journey (the adopt command), or start with --service-root.'
     if origin.get('problem'):
         return ('Modeled service: unavailable. The latest adoption record %s names %s, which cannot be opened for this '
                 'tenant; start with --service-root.' % (str(origin.get('artifact_id'))[:12], _path_words(origin.get('root'))))

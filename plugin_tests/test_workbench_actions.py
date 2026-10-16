@@ -97,7 +97,7 @@ class ActionReadModelTests(unittest.TestCase):
         step = signals[0]['next_step']
         self.assertIn('2026-10-14 22:40:01 UTC', step)
         self.assertIn('collecting again now would not replace it', step)
-        self.assertNotIn('Collect again (:collect) before', step)
+        self.assertNotIn('Collect again (a: actions) before', step)
 
     def test_one_read_judges_freshness_once(self):
         # Journey 26: the clock moved between two reads of one Inspector screen, so its states said fresh while its
@@ -519,7 +519,7 @@ class ActionStagingTests(unittest.TestCase):
         # The boundary first (TASK-11 2.6 item 1), then what to type and how to submit or cancel.
         self.assertTrue(workspace.notice.startswith('STAGED refresh: no Git commit, approval or apply.'), workspace.notice)
         self.assertIn('the digest after it pins the reviewed difference', workspace.notice)
-        self.assertIn('Esc cancels', workspace.notice)
+        self.assertNotIn('Esc cancels', workspace.notice)  # run 12 item 7: the key line says it, once
         # Two rows while staged: the complete boundary, then the mechanics, each in a form that fits 120 columns.
         self.assertLessEqual(len(workspace.staged['boundary'][0]), 120)
         self.assertTrue(any(len(form) <= 120 for form in workspace.staged['mechanics']))
@@ -564,8 +564,9 @@ class ActionStagingTests(unittest.TestCase):
         self.stage_first(workspace)
         self.assertEqual(workspace.mode, 'command')
         self.assertEqual(workspace.buffer, 'reconcile /work/op')
-        # Under the open list the focused entry says what the command does (run 11 item 7); the notice says how to submit.
-        self.assertEqual(workspace.notice, 'Enter submits; Esc cancels.')
+        # Under the open list the focused entry says what the command does (run 11 item 7); the key line says how to
+        # submit and cancel (run 12 item 7), so the notice says neither.
+        self.assertEqual(workspace.notice, 'Review the command below.')
 
     def test_a_blocked_action_cannot_be_staged(self):
         workspace = self.workspace()
@@ -816,7 +817,7 @@ class StampedAheadTests(unittest.TestCase):
                 'freshness_checked_at': '2026-10-14T22:36:01Z', 'snapshot_id': 'b' * 64}
         same = _freshness(dict(base, next_collection_replaces='same_service', ordering_service_root='/work/service'),
                           False)[0][0]
-        self.assertIn('Collect again (:collect) from the modeled service it came from (/work/service)', same['next_step'])
+        self.assertIn('Collect again (a: actions) from the modeled service it came from (/work/service)', same['next_step'])
         self.assertEqual(same['evidence']['next_collection_replaces'], 'same_service')
         capture = _freshness(dict(base, next_collection_replaces='any_collection'), False)[0][0]
         self.assertIn('stamped later than the store', capture['next_step'])
