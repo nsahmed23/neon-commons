@@ -3412,6 +3412,12 @@ def repository_lines(status, width, prefixes=None, next_step=True):
         if isinstance(freshness.get('field_changes'), dict):
             # The comparison the code makes: the recorded intent's desired body against the repository's value now.
             lines.append('RECORDED INTENT AGAINST THE REPOSITORY NOW')
+            listed = sum(len(sources.get(kind) or []) for kind in ('changed', 'added', 'removed'))
+            if listed and freshness['field_changes'].get('status') == 'no_change':
+                # The comparison below is of the body at the pointer (intent_freshness), not of the files listed above.
+                lines += word_wrap("The listed %s from the recorded %s, but %s this policy's body at the intent pointer."
+                                   % (('file differs', 'one', 'it does not alter') if listed == 1 else
+                                      ('files differ', 'ones', 'they do not alter')), width)
             lines += change_lines(freshness['field_changes'], width, 'BEFORE (recorded intent)', 'AFTER (repository now)',
                                   same=REPOSITORY_SAME)
         elif freshness.get('pointer_present') is False:

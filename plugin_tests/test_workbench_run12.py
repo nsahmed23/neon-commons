@@ -99,3 +99,37 @@ class WhereToTypeTests(unittest.TestCase):
         value = {'status': 'ready_local_model_handoff', 'binding': {'session': '/w/session.json', 'object_ids': ['o' * 8]}}
         text = '\n'.join(row.strip() for row in adoption_lines(value, 118))
         self.assertIn("In the workspace:\nadopt '/w/session.json' NEW_HANDOFF_DIR", text)
+
+
+class ChangedFileBridgeTests(unittest.TestCase):
+    """Item 4 (frames 75, 77): REPOSITORY CHANGED sits beside NO CONFIGURATION CHANGE; one clause says the listed files
+    do not alter this policy's body at the intent pointer (the verdict compares that body, workbench_repository.intent_freshness)."""
+    BRIDGE = ("The listed files differ from the recorded ones, but they do not alter this policy's body at the intent "
+              "pointer.")
+
+    def rows(self, field_changes, sources=None, pointer_present=True):
+        from intune_iac.workbench_screens import repository_lines
+        status = {'schema_version': 'workbench-repository-status/1', 'scope': {'stack': 's', 'component': 'c'},
+                  'freshness': {'status': 'stale', 'pointer_present': pointer_present, 'field_changes': field_changes,
+                                'sources': sources or {'changed': ['stacks/dev.yaml'], 'added': ['stacks/new.yaml']}}}
+        return repository_lines(status, 118)
+
+    def text(self, *args, **kw):
+        return ' '.join(' '.join(self.rows(*args, **kw)).split())
+
+    def test_a_no_change_verdict_beside_listed_files_carries_the_bridge_once(self):
+        text = self.text({'status': 'no_change', 'changes': []})
+        self.assertEqual(text.count(self.BRIDGE), 1, text)
+        self.assertLess(text.index('RECORDED INTENT AGAINST THE REPOSITORY NOW'), text.index(self.BRIDGE))
+        self.assertLess(text.index(self.BRIDGE), text.index('NO CONFIGURATION CHANGE'))
+
+    def test_a_changed_body_or_no_listed_file_says_no_such_thing(self):
+        changed = {'status': 'changed', 'changes': [{'field': 'description', 'kind': 'changed', 'before': 'a', 'after': 'b'}]}
+        self.assertNotIn(self.BRIDGE, self.text(changed))
+        self.assertNotIn(self.BRIDGE, self.text({'status': 'no_change', 'changes': []},
+                                                sources={'changed': [], 'added': [], 'removed': []}))
+
+    def test_one_listed_file_reads_in_the_singular(self):
+        text = self.text({'status': 'no_change', 'changes': []}, sources={'changed': ['stacks/dev.yaml']})
+        self.assertIn("The listed file differs from the recorded one, but it does not alter this policy's body at the intent "
+                      "pointer.", text)
