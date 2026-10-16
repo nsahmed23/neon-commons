@@ -3,7 +3,7 @@
 The product never imports a controller's code and never opens its store. A source adapter reads a file the
 controller wrote (the first one reads the evidence loop's `orchestration-export/1`) and hands this module's checks
 every line. The checks are an allowlist: a field the contract does not name is dropped, a named field of the wrong
-type makes the whole line a contract fault, and every free-text field is escaped for the terminal. A correlation the
+type makes the whole line a contract fault, and no free-text field is carried: a reason is reduced to the fact that one was recorded, and every other field is a closed list or a grammar. A correlation the
 source did not record stays None; nothing here infers one.
 
 Prompts, results, summaries, producer identities beyond the role, session ids and agent configuration are not in the
@@ -39,8 +39,14 @@ DISPATCH_KINDS = frozenset(('advisor', 'repair'))
 _TASK = re.compile(r'T-[0-9a-f]{1,32}')
 _INCARNATION = re.compile(r'[0-9a-f]{1,32}')
 ATTESTED = 'controller attested'
+# Verification fields. outcome: loop/verify.py:266. requirement: the loop's REQ-nn ids. gate: a lower-case gate name from
+# the loop's contract (aggregate-regression, temporal). commit and tree: git object names in hex.
+VERIFICATION_OUTCOMES = frozenset(('pass', 'fail', 'blocked', 'incomplete'))
+_REQUIREMENT = re.compile(r'REQ-[0-9A-Za-z._-]{1,32}')
+_GATE = re.compile(r'[a-z0-9][a-z0-9_-]{0,47}')
+_GIT_HEX = re.compile(r'[0-9a-f]{7,64}')
 
-TEXT, FLAG, IDENT, REASON = 'text', 'flag', 'ident', 'reason'
+FLAG, IDENT, REASON = 'flag', 'ident', 'reason'
 # The only `data` fields shown, by event type, with the type each must have. A REASON is free text from the loop
 # (it can hold agent configuration, a user name or a path): it is never carried, only the fact that one was recorded
 # (and whether it was the controller's attestation, the one value the view reads).
@@ -52,9 +58,10 @@ DATA_FIELDS = {
     'dispatch.unknown': {'reason': REASON},
     'dispatch.unavailable': {'reason': REASON},
     'dispatch.cancelled': {'cleanup_confirmed': FLAG, 'reason': REASON},
-    'dispatch.completed': {'tree': TEXT},
-    'repair.reported': {'tree': TEXT},
-    'verification.completed': {'outcome': TEXT, 'requirement': TEXT, 'gate': TEXT, 'commit': TEXT, 'tree': TEXT},
+    'dispatch.completed': {'tree': _GIT_HEX},
+    'repair.reported': {'tree': _GIT_HEX},
+    'verification.completed': {'outcome': VERIFICATION_OUTCOMES, 'requirement': _REQUIREMENT, 'gate': _GATE,
+                               'commit': _GIT_HEX, 'tree': _GIT_HEX},
     'verification.corrected': {'corrects': IDENT, 'replaced_by': IDENT},
 }
 
@@ -99,22 +106,6 @@ def escape_text(value, limit=MAX_TEXT):
         size += len(piece)
     return ''.join(pieces) + ('...' if len(text) > limit * 4 + 4 else '')
 
-
-# -- free text ------------------------------------------------------------------------------------------------------
-# An absolute path inside a free-text field: a drive or UNC path (whose directory names may hold spaces, as a Windows
-# home does) or a /-rooted or \-rooted run. A reason such as the loop's "refusing C:\Users\x\npm\codex.CMD: ..." names
-# agent configuration and a home path; the contract promises neither is shown, and an evidence path is shown only
-# through evidence_display, so a path found in text is replaced whole, whether or not it lies inside a root.
-_PATH_IN_TEXT = re.compile(
-    r'(?<![\w.:/\\-])(?:'
-    r'(?:[A-Za-z]:[\\/]|\\\\|//)(?:[^\\/:*?"<>|\r\n]+[\\/])*\S*'
-    r'|[\\/]\S*)')
-PATH_PLACEHOLDER = '<path>'
-
-
-def scrub_paths(value):
-    """The text with every absolute path replaced by '<path>'. Idempotent; a non-string is returned unchanged."""
-    return _PATH_IN_TEXT.sub(PATH_PLACEHOLDER, value) if isinstance(value, str) else value
 
 
 # -- evidence paths ------------------------------------------------------------------------------------------------
@@ -230,14 +221,11 @@ def _data(kind, raw):
             if value is not None and not isinstance(value, str):
                 raise _bad('data.' + name)
             out[name + '_recorded'], out[name + '_attested'] = value is not None, value == ATTESTED
-        elif isinstance(how, frozenset):  # a closed list
-            if value is not None and not (isinstance(value, str) and value in how):
+        else:  # a closed list (frozenset) or a grammar (compiled pattern); any other value is a contract fault
+            if value is not None and not (isinstance(value, str) and (
+                    value in how if isinstance(how, frozenset) else how.fullmatch(value))):
                 raise _bad('data.' + name)
             out[name] = value
-        else:
-            if value is not None and not isinstance(value, str):
-                raise _bad('data.' + name)
-            out[name] = None if value is None else escape_text(scrub_paths(value))
     return out
 
 

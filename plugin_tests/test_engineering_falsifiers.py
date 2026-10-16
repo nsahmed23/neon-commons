@@ -392,6 +392,37 @@ class RedactionTests(Base):
         self.assertEqual([f['code'] for f in model['faults']], ['invalid_field'])
         self.assertNotIn('nsahm', text + json.dumps(model))
 
+    def test_no_data_field_is_generic_text_and_no_path_scrubber_remains(self):
+        from intune_iac import orchestration_contract as contract
+        self.assertFalse(hasattr(contract, 'TEXT'))
+        self.assertFalse(hasattr(contract, 'scrub_paths'))
+        for kind, fields in contract.DATA_FIELDS.items():
+            for name, how in fields.items():
+                self.assertIn(how if isinstance(how, str) else type(how).__name__,
+                              (contract.FLAG, contract.IDENT, contract.REASON, 'frozenset', 'Pattern'), (kind, name))
+
+    def test_a_verification_field_that_carries_a_path_or_a_name_is_a_contract_fault(self):
+        good = {'outcome': 'pass', 'requirement': 'REQ-12', 'gate': 'temporal', 'commit': 'f' * 40, 'tree': 'a' * 40}
+        model, _ = self.view([event(1, 'verification.completed', None, role='verifier', **good)])
+        self.assertEqual(model['faults'], [])
+        hostile = {'outcome': ['nsahm', 'label:C:\\Users\\Some One', 'ok\x1b[2J'],
+                   'requirement': ['nsahm', 'REQ-12 label:C:\\Users\\Alice', '\\\\?\\C:\\Users\\Bob'],
+                   'gate': ['C:\\Users\\Some One\\gate', '../../etc/passwd', 'Gate With Space'],
+                   'commit': ['nsahm', 'C:\\Users\\x', 'F' * 40],
+                   'tree': ['nsahm', '\\\\?\\C:\\Users\\Some One', 'a' * 65]}
+        for field, values in hostile.items():
+            for value in values:
+                model, text = self.view([event(1, 'verification.completed', None, role='verifier', **dict(good, **{field: value}))])
+                self.assertEqual([f['code'] for f in model['faults']], ['invalid_field'], (field, value))
+                self.assertEqual(model['verifications'], {'records': 0, 'unattached': 0}, (field, value))
+                for forbidden in ('nsahm', 'Some One', 'Alice', 'Bob', 'Users', 'passwd'):
+                    self.assertNotIn(forbidden, text + json.dumps(model), (field, value))
+        for terminal in ('dispatch.completed', 'repair.reported'):
+            model, text = self.view([event(1, 'dispatch.queued', 'T-1', kind='advisor'),
+                                     event(2, terminal, 'T-1', tree='label:C:\\Users\\Some One')])
+            self.assertEqual([f['code'] for f in model['faults']], ['invalid_field'], terminal)
+            self.assertNotIn('Some One', text + json.dumps(model))
+
     def test_a_dispatch_kind_outside_the_loops_closed_list_is_a_contract_fault(self):
         for kind in ('dispatch.queued', 'dispatch.refused'):
             model, text = self.view([event(1, kind, 'T-1', kind='nsahm')])
