@@ -13,11 +13,14 @@ on, a token that sits in the environment.
 """
 from __future__ import annotations
 
+import json
 import os
+import re
 import shutil
 import subprocess
 
 from . import signin_facts
+from .io import AppError
 
 OUTPUT_LIMIT = 256 * 1024
 DEFAULT_DEADLINE = 15.0
@@ -94,3 +97,84 @@ def detect_github(deadline=DEFAULT_DEADLINE):
     except CliError as error:
         return _unknown('github', error.code)
     return signin_facts.parse_github(out, code, err)
+
+
+# Judgement and token ---------------------------------------------------------------------------------------------
+
+LISTING_COMMANDS = {'azure': 'az account list --output json', 'github': 'gh auth status --json hosts'}
+GRAPH_RESOURCE ='https://graph.microsoft.com'
+TOKEN_LIMIT = 4096  # the descriptor route reads at most this many bytes
+_TOKEN_SHAPE = re.compile(r'[A-Za-z0-9._~+/=-]{20,%d}' % TOKEN_LIMIT)
+_EXPIRED_MARKERS = ('aadsts70043', 'aadsts700082', 'aadsts50173', 'expired', 'interactive authentication is needed')
+_NOT_SIGNED_IN_MARKERS = ("az login", 'no subscription', 'not logged in')
+
+
+class SigninBlocked(Exception):
+    """The sign-in cannot be used: the verdict (signin_facts.evaluate or refused) holds both facts and the exact next step."""
+
+    def __init__(self, verdict):
+        self.verdict = verdict
+        super().__init__(verdict['message'])
+
+
+def status_report(tenant=None, account=None, providers='azure', deadline=DEFAULT_DEADLINE):
+    """The facts, the verdict and the commands run for `signin status`; the product runs no sign-in step."""
+    facts = detect(providers, deadline)
+    verdicts = {name: signin_facts.evaluate(value, tenant, account if name == 'azure' else None) for name, value in facts.items()}
+    azure = verdicts.get('azure')
+    if azure is not None and azure['usable']:
+        status = 'ready'
+    elif azure is not None and tenant is None and azure['status'] == 'signed_in':
+        status = 'reported'
+    elif azure is None and verdicts and all(v['status'] == 'signed_in' for v in verdicts.values()):
+        status = 'reported'
+    else:
+        status = 'blocked'
+    return {'status': status, 'tenant': tenant, 'account': account, **verdicts,
+            'access': {'graph': 'unknown', 'intune': 'unknown', 'state_storage': 'unknown'},
+            'note': 'A signed-in account does not establish Graph, Intune or state-storage access; those stay unknown until a '
+                    'read actually succeeds.',
+            'commands_run': {name: LISTING_COMMANDS[name] for name in verdicts}}
+
+
+def obtain_token(tenant, account=None, deadline=DEFAULT_DEADLINE):
+    """A short-lived Graph read token for the context's tenant through the Azure CLI, after the listing says it is usable.
+
+    The listing runs first; an expired, wrong-tenant or ambiguous sign-in raises SigninBlocked and no token command starts.
+    The token is returned to the caller and goes nowhere else here: not printed, logged, put in an argument or the
+    environment, or written to a file. The CLI's own error text is never copied into an error or a verdict.
+    """
+    if signin_facts.shown(tenant, signin_facts.GUID) is None:
+        raise AppError('signin_tenant_invalid', 'The tenant must be a GUID.')
+    verdict = signin_facts.evaluate(detect_azure(deadline), tenant, account)
+    if not verdict['usable']:
+        raise SigninBlocked(verdict)
+    try:
+        code, out, err = _run(['az', 'account', 'get-access-token', '--resource', GRAPH_RESOURCE, '--tenant', tenant,
+                               '--output', 'json'], deadline)
+    except CliError as error:
+        raise AppError('signin_token_deadline' if error.code == 'deadline' else 'signin_token_unavailable',
+                       'The Azure CLI did not return a token in time.' if error.code == 'deadline'
+                       else 'The Azure CLI could not return a token.') from None
+    if code != 0:
+        lowered = err.lower()
+        if any(marker in lowered for marker in _EXPIRED_MARKERS):
+            raise SigninBlocked(signin_facts.refused('expired', tenant))
+        if any(marker in lowered for marker in _NOT_SIGNED_IN_MARKERS):
+            raise SigninBlocked(signin_facts.refused('not_signed_in', tenant))
+        raise AppError('signin_token_unavailable', 'The Azure CLI could not return a token.')
+    return _token_from(out, tenant)
+
+
+def _token_from(text, tenant):
+    try:
+        value = json.loads(text)
+    except ValueError:
+        value = None
+    token = value.get('accessToken') if isinstance(value, dict) else None
+    if not isinstance(token, str) or not _TOKEN_SHAPE.fullmatch(token):
+        raise AppError('signin_token_malformed', 'The Azure CLI answer did not hold a usable token.')
+    answered = value.get('tenant')
+    if answered is not None and (not isinstance(answered, str) or answered.lower() != tenant.lower()):
+        raise SigninBlocked(signin_facts.refused('wrong_tenant', tenant, answered if isinstance(answered, str) else None))
+    return token

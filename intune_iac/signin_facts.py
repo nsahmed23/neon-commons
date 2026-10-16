@@ -164,6 +164,10 @@ def evaluate(facts, tenant=None, account=None):
         return _evaluate_github(facts)
     wanted = tenant or 'TENANT_ID'
     login = 'az login --tenant %s' % wanted
+    if account is not None and shown(account) is None:
+        # Never echoed: only a plain account name is ever repeated in a message.
+        return _verdict('azure', 'unknown', 'The account to use is not a plain account name.',
+                        'Name the account as the Azure CLI lists it, or leave --account out.', tenant)
     state = facts.get('state') if isinstance(facts, dict) else None
     accounts = _clean_accounts(facts, 'azure')
     active = [a for a in accounts if a['session'] == SESSION_ACTIVE]
@@ -208,6 +212,24 @@ def evaluate(facts, tenant=None, account=None):
     return _verdict('azure', 'signed_in', 'Signed in to %s.' % _who(default),
                     'No sign-in step is needed.' if tenant else 'Name the context tenant to compare it with this sign-in.',
                     tenant, usable=bool(tenant), signed_in=[default])
+
+
+def refused(status, tenant, answered=None):
+    """A block found at token time rather than in the listing: expired, not_signed_in or wrong_tenant (answered = the tenant)."""
+    tenant = shown(tenant, GUID)
+    wanted = tenant.lower() if tenant else 'TENANT_ID'
+    login = 'az login --tenant %s' % wanted
+    if status == 'wrong_tenant':
+        other = shown(answered, GUID) or 'another tenant'
+        return _verdict('azure', 'wrong_tenant', 'The token request answered for tenant %s; the context names tenant %s. Nothing '
+                        'proceeds.' % (other.lower(), wanted), 'Sign in to the tenant the context names: %s; then run this '
+                        'command again.' % login, tenant)
+    if status == 'expired':
+        return _verdict('azure', 'expired', 'The Azure CLI could not refresh the sign-in: it reports it has expired. Nothing '
+                        'that needs a token runs.', 'Sign in again to the tenant the context names: %s; then run this command '
+                        'again.' % login, tenant)
+    return _verdict('azure', 'not_signed_in', 'The Azure CLI reports no usable sign-in.',
+                    'Sign in to the tenant the context names: %s; then run this command again.' % login, tenant)
 
 
 def _evaluate_github(facts):

@@ -61,6 +61,21 @@ def _descriptor(value):
     return int(value)
 
 
+def _tenant(value):
+    # Parsed here, not echoed: a refusal never repeats what was typed (a token pasted by mistake stays out of the message).
+    from .signin_facts import GUID
+    if not isinstance(value,str) or not GUID.fullmatch(value):
+        raise argparse.ArgumentTypeError('expects a tenant GUID')
+    return value.lower()
+
+
+def _account(value):
+    from .signin_facts import shown
+    if not isinstance(value,str) or shown(value) is None:
+        raise argparse.ArgumentTypeError('expects an account name (letters, digits and . _ @ + -)')
+    return value
+
+
 def _fd_token(descriptor,owner=None):
     if os.name != 'posix':
         raise AppError('identity_fd_platform_unsupported','Explicit credential file descriptors require a Unix host.')
@@ -221,6 +236,12 @@ def parser():
     authenticate.add_argument('--input',required=True)
     authenticate.add_argument('--provider-secret-fd',required=True,type=_descriptor)
     authenticate.add_argument('--backend-secret-fd',required=True,type=_descriptor)
+    signin=commands.add_parser('signin',help='Reuse an existing az or gh sign-in: show it, check it against the context tenant (reads no token)').add_subparsers(dest='signin_command',required=True)
+    status=signin.add_parser('status',help='Run the CLI listing (az account list --output json, and gh auth status --json hosts with --provider) and judge it against the context tenant')
+    status.add_argument('--tenant',type=_tenant,help='The context tenant (a GUID); without it the sign-in is shown but never called usable')
+    status.add_argument('--account',type=_account,help='The account to use when several are signed in; it must be the one the Azure CLI uses by default')
+    status.add_argument('--provider',choices=('azure','github','all'),default='azure')
+    status.add_argument('--deadline',type=float,default=15.0,help='Seconds allowed for each CLI call (greater than zero, at most 60)')
     provider=commands.add_parser('provider',help='Use an operator-admitted generated executor with external signed approval; network denied').add_subparsers(dest='provider_command',required=True)
     for operation in ('prepare','review','execute','reconcile','status','wizard'):
         command=provider.add_parser(operation)
@@ -331,6 +352,7 @@ def execute(args):
         return capture(args.tenant,args.policy,args.output,token_env=args.token_env,token=token,max_pages=args.max_pages,
                        max_attempts_per_page=args.max_attempts_per_page,max_elapsed_seconds=args.max_elapsed_seconds,
                        max_retry_delay_seconds=args.max_retry_delay_seconds,progress=progress)
+    if args.command=='signin':return _signin_command(args)
     if args.command=='target':return _target_command(args)
     if args.command=='provider':
         if sys.platform != 'linux' or platform.machine() != 'x86_64':
@@ -342,6 +364,17 @@ def execute(args):
         return review_plan(load_json(args.input))
     if args.command=='simulation':return _simulation_command(args)
     raise AppError('unknown_command','Unknown command.')
+
+
+def _deadline(value):
+    if not isinstance(value,float) or not 0<value<=60:
+        raise AppError('signin_deadline_invalid','The deadline must be greater than zero and at most 60 seconds.')
+    return value
+
+
+def _signin_command(args):
+    from . import signin
+    return signin.status_report(args.tenant,args.account,args.provider,_deadline(args.deadline))
 
 
 def _target_command(args):
