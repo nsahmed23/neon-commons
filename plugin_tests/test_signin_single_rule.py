@@ -22,28 +22,27 @@ class SingleRuleTests(Base):
 
     def test_a_token_prefix_followed_by_a_long_run_says_only_the_token_prefix(self):
         for name in ('ghp_' + 'a1' * 12, 'ghp_' + 'A' * 24):
-            verdict = signin_facts.evaluate(self.facts(name), TENANT_B)
-            sentence = signin_facts.presentation(verdict)['sentence']
+            verdict, shown = signin_facts.evaluate_with_presentation(self.facts(name), TENANT_B)
+            sentence = shown['sentence']
             self.assertEqual(verdict['status'], 'wrong_tenant')
             self.assertIn('whose name is not shown here (it starts with a token prefix)', sentence, name)
             self.assertNotIn('unbroken', sentence, name)
 
     def test_odd_characters_with_a_capitals_block_say_only_the_odd_characters(self):
-        shown = signin_facts.presentation(signin_facts.evaluate(self.facts('ABCDEF123456!'), TENANT_A))
+        _, shown = signin_facts.evaluate_with_presentation(self.facts('ABCDEF123456!'), TENANT_A)
         self.assertEqual(shown['rule'], 'shape')
         self.assertIn('whose name is not shown here (it has characters this display does not allow)', shown['sentence'])
         self.assertNotIn('capitals', shown['sentence'])
 
     def test_a_credential_signature_blocked_sentence_names_one_rule(self):
-        verdict = signin_facts.evaluate(self.facts('ghp_' + 'a1' * 12), TENANT_A)
-        shown = signin_facts.presentation(verdict)
+        verdict, shown = signin_facts.evaluate_with_presentation(self.facts('ghp_' + 'a1' * 12), TENANT_A)
         self.assertEqual((verdict['status'], shown['code'], shown['rule']), ('unknown', 'credential_shaped_name', 'token_prefix'))
         self.assertIn('(it starts with a token prefix)', shown['sentence'])
         self.assertNotIn('unbroken', shown['sentence'])
 
     def test_a_presentation_never_joins_two_rules_with_and(self):
         for name in ('ghp_' + 'a1' * 12, 'ABCDEF123456!', 'ALEX.PASSWORD' + 'X' * 30, 'a' * 30 + '@contoso.com'):
-            shown = signin_facts.presentation(signin_facts.evaluate(self.facts(name), TENANT_A))
+            _, shown = signin_facts.evaluate_with_presentation(self.facts(name), TENANT_A)
             self.assertEqual(len(shown['rule'].split()), 1, name)
             self.assertLessEqual(shown['sentence'].count('(it '), 1, name)
 

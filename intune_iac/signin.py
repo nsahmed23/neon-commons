@@ -254,8 +254,29 @@ def status_report(tenant=None, account=None, providers='azure', deadline=DEFAULT
     reported when everything requested is signed in but no tenant comparison could make it ready; otherwise blocked. A ready
     report says once, in ready_for, what it is ready for.
     """
+    report = _status(tenant, account, providers, deadline, signin_facts.evaluate)
+    return report
+
+
+def status_view(tenant=None, account=None, providers='azure', deadline=DEFAULT_DEADLINE):
+    """The text-only route of `signin status`: (the same report status_report returns, a presentation per provider).
+
+    The presentations (signin_facts.evaluate_with_presentation) are returned beside the report and never inside it.
+    """
+    shown = {}
+
+    def judge(value, tenant_, account_):
+        verdict, presentation = signin_facts.evaluate_with_presentation(value, tenant_, account_)
+        shown[value.get('provider')] = presentation
+        return verdict
+
+    report = _status(tenant, account, providers, deadline, judge)
+    return report, shown
+
+
+def _status(tenant, account, providers, deadline, judge):
     facts = detect(providers, deadline)
-    verdicts = {name: signin_facts.evaluate(value, tenant, account if name == 'azure' else None) for name, value in facts.items()}
+    verdicts = {name: judge(value, tenant, account if name == 'azure' else None) for name, value in facts.items()}
     azure = verdicts.get('azure')
     everything = bool(verdicts) and all(v['status'] == 'signed_in' for v in verdicts.values())
     if everything and azure is not None and azure['usable']:

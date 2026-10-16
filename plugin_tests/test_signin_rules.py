@@ -1,7 +1,7 @@
 """PKG-SETUP-5C findings 3 and 4 (round 3): the finer code and the rule that applied live in a presentation, not in the verdict.
 
 status and message keep their former values and the verdict carries no other key (test_signin_golden holds the proof for the
-JSON commands). signin_facts.presentation(verdict) gives the text view its code, its one rule and its sentence, from the verdict
+JSON commands). signin_facts.evaluate_with_presentation gives the text view its code, its one rule and its sentence, with the verdict
 and what was noted while it was judged, without judging again. Readers that branch on status use the former codes.
 """
 import json
@@ -23,12 +23,11 @@ CANONICAL = {'provider', 'status', 'usable', 'tenant_wanted', 'signed_in', 'mess
 class CredentialShapedNameTests(Base):
     def verdict(self, user, **more):
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user=user, **more)))
-        return signin_facts.evaluate(signin.detect_azure(deadline=5), TENANT_A)
+        return signin_facts.evaluate_with_presentation(signin.detect_azure(deadline=5), TENANT_A)
 
     def test_a_token_prefix_keeps_status_unknown_and_the_presentation_has_its_code_and_rule(self):
         for name in ('ghp_abc1234', 'github_pat_abc1234', 'eyJhbGciOiJIUzI1NiJ9.x@contoso.com'):
-            verdict = self.verdict(name)
-            shown = signin_facts.presentation(verdict)
+            verdict, shown = self.verdict(name)
             self.assertEqual((verdict['status'], verdict['usable']), ('unknown', False), name)
             self.assertEqual(set(verdict), CANONICAL, name)
             self.assertEqual((shown['code'], shown['rule']), ('credential_shaped_name', 'token_prefix'), name)
@@ -39,8 +38,7 @@ class CredentialShapedNameTests(Base):
 
     def test_an_unbroken_run_is_named_as_the_rule_in_the_sentence_only(self):
         for name in ('a' * 30 + '@contoso.com', 'Z9' * 15):
-            verdict = self.verdict(name)
-            shown = signin_facts.presentation(verdict)
+            verdict, shown = self.verdict(name)
             self.assertEqual((verdict['status'], shown['code'], shown['rule']), ('unknown', 'credential_shaped_name', 'unbroken_run'),
                              name)
             self.assertIn('is shaped like a credential ' + RUN_TEXT, shown['sentence'], name)
@@ -49,8 +47,7 @@ class CredentialShapedNameTests(Base):
 
     def test_a_credential_shaped_github_login_has_the_same_presentation(self):
         self.fakes.answer('gh', 'auth', 'status', out=github_hosts(('github.com', 'ghp_abc1234', 'success', True)))
-        verdict = signin_facts.evaluate(signin.detect_github(deadline=5))
-        shown = signin_facts.presentation(verdict)
+        verdict, shown = signin_facts.evaluate_with_presentation(signin.detect_github(deadline=5))
         self.assertEqual((verdict['status'], shown['code'], shown['rule']), ('unknown', 'credential_shaped_name', 'token_prefix'))
         self.assertIn(PREFIX_TEXT, shown['sentence'])
         self.assertNotIn('ghp_', json.dumps(verdict) + json.dumps(shown))
@@ -67,7 +64,7 @@ class CredentialShapedNameTests(Base):
         facts = signin.detect_azure(deadline=5)
         for account in facts['accounts']:
             account.pop('hidden_reasons', None)
-        shown = signin_facts.presentation(signin_facts.evaluate(facts, TENANT_A))
+        _, shown = signin_facts.evaluate_with_presentation(facts, TENANT_A)
         self.assertEqual((shown['code'], shown['rule']), ('credential_shaped_name', None))
         self.assertIn('(its form matches a credential signature)', shown['sentence'])
 
@@ -76,8 +73,7 @@ class TwoDefaultsTests(Base):
     def test_two_entries_marked_default_keep_status_several_accounts_and_present_two_defaults(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(
             azure_account(), azure_account(user='sam@example.test', default=True)))
-        verdict = signin_facts.evaluate(signin.detect_azure(deadline=5), TENANT_A)
-        shown = signin_facts.presentation(verdict)
+        verdict, shown = signin_facts.evaluate_with_presentation(signin.detect_azure(deadline=5), TENANT_A)
         self.assertEqual((verdict['status'], verdict['usable'], shown['code']), ('several_accounts', False, 'two_defaults'))
         self.assertEqual(set(verdict), CANONICAL)
         self.assertEqual(shown['sentence'], verdict['message'])
@@ -85,15 +81,15 @@ class TwoDefaultsTests(Base):
 
     def test_two_default_rows_of_one_account_are_two_defaults_too(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(sub='s1'), azure_account(sub='s2')))
-        verdict = signin_facts.evaluate(signin.detect_azure(deadline=5), TENANT_A)
-        self.assertEqual((verdict['status'], signin_facts.presentation(verdict)['code']), ('several_accounts', 'two_defaults'))
+        verdict, shown = signin_facts.evaluate_with_presentation(signin.detect_azure(deadline=5), TENANT_A)
+        self.assertEqual((verdict['status'], shown['code']), ('several_accounts', 'two_defaults'))
 
     def test_several_accounts_with_one_default_has_no_code(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(
             azure_account(), azure_account(user='sam@example.test', default=False)))
-        verdict = signin_facts.evaluate(signin.detect_azure(deadline=5), TENANT_A)
+        verdict, shown = signin_facts.evaluate_with_presentation(signin.detect_azure(deadline=5), TENANT_A)
         self.assertEqual(verdict['status'], 'several_accounts')
-        self.assertIsNone(signin_facts.presentation(verdict)['code'])
+        self.assertIsNone(shown['code'])
 
     def test_a_collect_with_two_defaults_is_refused_with_the_former_status(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(
@@ -125,28 +121,28 @@ class ReadersTests(Base):
     def test_the_text_screen_renders_from_the_presentation(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(
             azure_account(), azure_account(user='sam@example.test', default=True)))
-        report = signin.status_report(TENANT_A, None, 'azure', 5)
+        report, shown = signin.status_view(TENANT_A, None, 'azure', 5)
         self.assertEqual(report['azure']['status'], 'several_accounts')
-        self.assertEqual(signin_facts.status_lines(report, 100, 2)[0], 'AZURE: BLOCKED (two_defaults)')
+        self.assertEqual(signin_facts.status_lines(report, 100, 2, shown)[0], 'AZURE: BLOCKED (two_defaults)')
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user='ghp_abc1234')))
-        rows = signin_facts.status_lines(signin.status_report(TENANT_A, None, 'azure', 5), 100, 2)
+        report, shown = signin.status_view(TENANT_A, None, 'azure', 5)
+        rows = signin_facts.status_lines(report, 100, 2, shown)
         self.assertEqual(rows[0], 'AZURE: BLOCKED (credential_shaped_name)')
         self.assertIn('(it starts with a token prefix)', ' '.join(rows))
         self.assertNotIn('unbroken', ' '.join(rows))
         self.assertNotIn('ghp_', ' '.join(rows))
 
-    def test_a_verdict_copied_to_a_plain_dict_has_no_presentation_and_the_text_falls_back_to_the_canonical_message(self):
+    def test_without_a_presentation_the_text_falls_back_to_the_canonical_message(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user='ghp_abc1234')))
         report = signin.status_report(TENANT_A, None, 'azure', 5)
-        plain = {'status': report['status'], 'azure': dict(report['azure'])}
-        rows = signin_facts.status_lines(plain, 100, 2)
+        rows = signin_facts.status_lines(report, 100, 2)
         self.assertEqual(rows[0], 'AZURE: BLOCKED (unknown)')
         self.assertIn('a token prefix or an unbroken run', ' '.join(' '.join(rows).split()))
 
 
 class NoSharedStateTests(Base):
     def test_there_is_no_module_level_presentation_state(self):
-        for name in ('_READABLE', '_RULES', '_rule', '_with_detail', 'ADDITIVE_KEYS'):
+        for name in ('_READABLE', '_RULES', '_rule', '_with_detail', 'ADDITIVE_KEYS', 'Verdict', 'presentation'):
             self.assertFalse(hasattr(signin_facts, name), name)
 
     def test_two_evaluations_interleaved_in_threads_each_return_exactly_their_own_verdict(self):
@@ -154,16 +150,16 @@ class NoSharedStateTests(Base):
         shaped = signin.detect_azure(deadline=5)
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user='alexander.morgan@contoso.onmicrosoft.com')))
         hidden = signin.detect_azure(deadline=5)
-        want = {'shaped': signin_facts.evaluate(shaped, TENANT_A), 'hidden': signin_facts.evaluate(hidden, TENANT_A)}
-        want_shown = {k: signin_facts.presentation(v) for k, v in want.items()}
+        pairs = {'shaped': signin_facts.evaluate_with_presentation(shaped, TENANT_A), 'hidden': signin_facts.evaluate_with_presentation(hidden, TENANT_A)}
+        want = {k: v[0] for k, v in pairs.items()}
+        want_shown = {k: v[1] for k, v in pairs.items()}
         self.assertEqual((want['shaped']['status'], want['hidden']['status']), ('unknown', 'signed_in'))
         results, barrier = {'shaped': [], 'hidden': []}, threading.Barrier(2)
 
         def work(kind, facts):
             barrier.wait()
             for _ in range(300):
-                verdict = signin_facts.evaluate(facts, TENANT_A)
-                results[kind].append((dict(verdict), signin_facts.presentation(verdict)))
+                results[kind].append(signin_facts.evaluate_with_presentation(facts, TENANT_A))
 
         import sys
         old = sys.getswitchinterval()
@@ -179,7 +175,7 @@ class NoSharedStateTests(Base):
         for kind in ('shaped', 'hidden'):
             self.assertEqual(len(results[kind]), 300)
             for verdict, shown in results[kind]:
-                self.assertEqual(verdict, dict(want[kind]), kind)
+                self.assertEqual(verdict, want[kind], kind)
                 self.assertEqual(shown, want_shown[kind], kind)
 
     def test_the_digest_comparison_count_is_the_former_one(self):

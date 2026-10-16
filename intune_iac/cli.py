@@ -404,7 +404,7 @@ def _deadline(value):
     return value
 
 
-def _signin_command(args):
+def _signin_command(args,presentation=False):
     if os.name != 'posix':
         raise AppError('identity_fd_platform_unsupported','Sign-in reuse needs a Unix host (inherited descriptors and bounded child output).')
     from . import signin
@@ -412,6 +412,7 @@ def _signin_command(args):
         if not isinstance(args.collect_deadline,float) or not 0<args.collect_deadline<=600:
             raise AppError('signin_deadline_invalid','The collect deadline must be greater than zero and at most 600 seconds.')
         return signin.collect(args.tenant,args.policy,args.output,args.account,_deadline(args.deadline),args.collect_deadline)
+    if presentation:return signin.status_view(args.tenant,args.account,args.provider,_deadline(args.deadline))
     return signin.status_report(args.tenant,args.account,args.provider,_deadline(args.deadline))
 
 
@@ -487,18 +488,20 @@ def main(argv=None):
             from .sim_cli import text_lines
             print('\n'.join(text_lines(args)));sys.stdout.flush()
             return 0
+        if args.command=='signin' and args.signin_command=='status' and not args.json:
+            # A person reads the sign-in status; --json keeps the data form for scripts. The exit code is the same either way.
+            # This is the only caller of the text route: the presentation comes back beside the report, never inside it.
+            from .signin_facts import status_lines
+            result,shown=_signin_command(args,presentation=True)
+            code=exit_code(result)
+            print('\n'.join(status_lines(result,shutil.get_terminal_size((100,40)).columns,code,shown)));sys.stdout.flush()
+            return code
         result=execute(args)
         if args.command=='catalog' and not args.json:
             # A person reads the catalog; --json keeps the data form. Read-only, so the exit is 0.
             from .catalog import catalog_lines
             print('\n'.join(catalog_lines(result,shutil.get_terminal_size((100,40)).columns)));sys.stdout.flush()
             return 0
-        if args.command=='signin' and args.signin_command=='status' and not args.json:
-            # A person reads the sign-in status; --json keeps the data form for scripts. The exit code is the same either way.
-            from .signin_facts import status_lines
-            code=exit_code(result)
-            print('\n'.join(status_lines(result,shutil.get_terminal_size((100,40)).columns,code)));sys.stdout.flush()
-            return code
         if args.command=='engineering' and not args.json:
             # A person reads the engineering view; --json keeps the data form. Read-only, so the exit is 0.
             from .engineering_view import lines_for

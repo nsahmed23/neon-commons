@@ -17,7 +17,7 @@ any error after same-host ambiguity is resolved). Verdict statuses add expired (
 several_accounts, account_mismatch and account_binding_unavailable. The reason is a short code, set when the state is unknown
 or invalid. These status values, the messages and the keys are a compatibility contract of `signin status --json` and
 `signin collect`: the finer distinctions (two_defaults, credential_shaped_name, the matched rule, a readable sentence) are in
-presentation(), for the text view only, and never in the verdict.
+evaluate_with_presentation(), for the text view only, and never in the verdict.
 """
 from __future__ import annotations
 
@@ -113,17 +113,13 @@ REASON_TEXT = {
 UNKNOWN_REASON_TEXT = 'it cannot be shown safely'
 
 
-# The verdict is canonical: its keys and values are exactly what `signin status --json` and `signin collect` printed before the
-# readable text form, and it never gains a key. While it is judged, the facts the text view needs (which hidden names were
-# printed, whether two defaults or a credential signature decided it) are noted on the Verdict object, in a dictionary local to
-# that one evaluation. They are not keys, so no serialization carries them; presentation() reads them for the text view only.
+# The verdict is a plain canonical dict: its keys and values are exactly what `signin status --json` and `signin collect` printed
+# before the readable text form, and nothing is attached to it. While it is judged, the facts the text view needs (which hidden
+# names were printed, whether two defaults or a credential signature decided it) are noted in a dictionary local to that one
+# evaluation. Only evaluate_with_presentation() turns them into a presentation, returned beside the verdict for the text view;
+# evaluate() drops them.
 HIDDEN_NAME = 'an account whose name is not shown here (it is longer than this display allows, or shaped like a credential)'
 FORMER_SIGNATURE = 'a token prefix or an unbroken run of 24 or more letters and digits'
-
-
-class Verdict(dict):
-    """The canonical verdict dictionary, plus private notes for the text view (an attribute, never a key)."""
-    notes = None
 
 
 def hidden_name_text(entry, notes=None):
@@ -394,9 +390,8 @@ def _identity(entry):
 def _verdict(provider, status, message, next_step, tenant, usable=False, signed_in=()):
     # Only display fields leave: the private digest, signature flag and reference stay inside this module.
     shown_keys = ('tenant', 'account', 'cloud', 'default', 'listing_state', 'host', 'active')
-    return Verdict({'provider': provider, 'status': status, 'usable': usable, 'tenant_wanted': tenant,
-                    'signed_in': [{k: e[k] for k in shown_keys if k in e} for e in signed_in], 'message': message,
-                    'next_step': next_step})
+    return {'provider': provider, 'status': status, 'usable': usable, 'tenant_wanted': tenant,
+            'signed_in': [{k: e[k] for k in shown_keys if k in e} for e in signed_in], 'message': message, 'next_step': next_step}
 
 
 def _who(entry, notes=None):
@@ -412,13 +407,19 @@ def evaluate(facts, tenant=None, account=None):
     use, and (when the engineer named one) is that account. The next step is the exact thing the engineer does, with every
     placeholder marked; the product runs none of it.
 
-    The verdict is canonical (see Verdict); presentation() gives the text view the finer code, the one matched rule and a readable
-    sentence from it, without judging again.
+    Returns the plain canonical verdict dict and nothing else; the text view uses evaluate_with_presentation.
+    """
+    return _evaluate(facts, tenant, account, {})
+
+
+def evaluate_with_presentation(facts, tenant=None, account=None):
+    """The text-only route: (the same canonical verdict evaluate() returns, its presentation), from one judgment.
+
+    The presentation is {'code', 'rule', 'sentence'} (see _present). It is a separate object, so it never travels with the verdict.
     """
     notes = {}
     verdict = _evaluate(facts, tenant, account, notes)
-    verdict.notes = notes
-    return verdict
+    return verdict, _present(verdict, notes)
 
 
 def _evaluate(facts, tenant, account, notes):
@@ -655,16 +656,15 @@ def _hidden_phrase(reasons):
     return 'an account whose name is not shown here (%s)' % (' and '.join(REASON_TEXT[r] for r in reasons) or UNKNOWN_REASON_TEXT)
 
 
-def presentation(verdict):
+def _present(verdict, notes):
     """What the text view says beyond the canonical verdict: {'code', 'rule', 'sentence'}.
 
     code is the finer status (two_defaults, credential_shaped_name) or None; rule is the one matched hiding rule, or None when
     there is none or the sentence names several accounts' rules; sentence is the message with each hidden name's reason in place of
-    the generic wording. Built from the verdict and the notes made while it was judged, never by judging again. A verdict with no
-    notes (a plain dictionary) presents as itself.
+    the generic wording. Built from the verdict and the notes made while it was judged, never by judging again. With no notes it
+    presents the canonical message as it is.
     """
     message = verdict.get('message') or ''
-    notes = getattr(verdict, 'notes', None) or {}
     code, rules = None, []
     if notes.get('two_defaults'):
         code = 'two_defaults'
@@ -681,15 +681,15 @@ def presentation(verdict):
     return {'code': code, 'rule': rules[0] if rules and len(set(rules)) == 1 else None, 'sentence': message}
 
 
-def _verdict_line(label, verdict):
+def _verdict_line(label, verdict, shown):
     status = verdict.get('status')
     if verdict.get('usable') or (verdict.get('provider') == 'github' and status == 'signed_in'):
         return '%s: READY' % label
     if status == 'signed_in':
         return '%s: REPORTED (no tenant was given to compare)' % label
     reason = _REASON.search(verdict.get('message') or '')
-    # The finer code (two_defaults, credential_shaped_name) rides in an additive key; the status stays the former one.
-    code = presentation(verdict)['code'] or ('%s: %s' % (status, reason.group(1)) if status == 'unknown' and reason else status)
+    # The finer code (two_defaults, credential_shaped_name) comes from the presentation; the status stays the former one.
+    code = shown['code'] or ('%s: %s' % (status, reason.group(1)) if status == 'unknown' and reason else status)
     return '%s: BLOCKED (%s)' % (label, _printable(code))
 
 
@@ -700,10 +700,11 @@ def _account_row(verdict, entry):
     return '%s%s' % (name, ' (default)' if entry.get('default') else '')
 
 
-def status_lines(report, width, code):
+def status_lines(report, width, code, shown=None):
     """The text screen for `signin status`: for each provider a verdict line first (READY, REPORTED or BLOCKED with the reason
     code), the tenant wanted and found, the account with the default marked, the cause, and the next step on its own rows;
-    then one line that access is unknown, and what the exit code means. Pure: it reads only the report's display fields."""
+    then one line that access is unknown, and what the exit code means. Pure: it reads the report's display fields and, per
+    provider, the presentation from evaluate_with_presentation (shown); without one it says the canonical message."""
     lines = []
     for name, label in _PROVIDER_LABELS:
         verdict = report.get(name)
@@ -711,7 +712,8 @@ def status_lines(report, width, code):
             continue
         if lines:
             lines.append('')
-        lines.append(_verdict_line(label, verdict))
+        present = (shown or {}).get(name) or {'code': None, 'rule': None, 'sentence': verdict.get('message') or ''}
+        lines.append(_verdict_line(label, verdict, present))
         entries = verdict.get('signed_in') or []
         if name == 'azure':
             found = []
@@ -723,7 +725,7 @@ def status_lines(report, width, code):
         for row in [_account_row(verdict, entry) for entry in entries] or ['none usable (the cause below names any listed one)']:
             lines += _wrap('Account: %s' % row, width)
         lines.append('Why:')
-        lines += _wrap(presentation(verdict)['sentence'], width, '    ', '    ')
+        lines += _wrap(present['sentence'], width, '    ', '    ')
         if verdict.get('next_step'):
             lines.append('Next step:')
             lines += _wrap(verdict['next_step'], width, '    ', '    ')
