@@ -480,6 +480,64 @@ class FixtureTests(unittest.TestCase):
         self.assertEqual(self.load('unsupported_schema')['payload']['schema_version'], 'system-map-unavailable/1')
 
 
+class FalsifierTests(unittest.TestCase):
+    def test_long_names_and_controls_never_reach_a_terminal_and_never_widen_a_row(self):
+        snapshot = hostile()
+        for size in ALL_SIZES:
+            for colour, unicode in MODES:
+                rows = screen().render(snapshot, size[0], size[1], colour=colour, unicode=unicode)
+                shown = plain(rows)
+                where = (size, colour, unicode)
+                self.assertEqual(controls_in(shown), [], where)
+                self.assertTrue(all(width_of(row) <= size[0] for row in shown), where)
+                if not colour:
+                    self.assertFalse(any('\x1b' in row for row in rows), where)
+                if size == SMALL:
+                    self.assertIn('The system map needs a larger window (at least 60x20). Plain text:', ' '.join(shown), where)
+                    continue
+                self.assertLessEqual(len(shown), size[1], where)
+                for node in snapshot['nodes']:
+                    self.assertIn(screen().STATE_WORDS[node['state']], node_row(asciified(shown), snapshot, node['id']), where)
+                self.assertTrue(any(screen().HAZARD in row for row in shown), where)
+                self.assertEqual(len([row for row in shown if row.startswith('[SYSTEM MAP]')]), 1, where)
+
+    def test_the_header_keeps_the_evidence_class_whole_however_long_the_name(self):
+        snapshot = hostile()
+        evidence = screen().safe_text(snapshot['evidence_class'])
+        for size in SIZES:
+            rows = screen().render(snapshot, size[0], size[1], colour=False, unicode=False)
+            cut = next((index for index, row in enumerate(rows) if '|- ' in row), len(rows))
+            header = ''.join(row.strip() for row in rows[:cut])
+            self.assertIn(evidence[:20], header, size)
+
+    def test_a_control_in_a_name_is_shown_escaped_where_the_name_is_shown(self):
+        rows = screen().text(hostile(), 120)
+        joined = ''.join(row.strip() for row in rows)     # a long unbroken name wraps mid-word; its pieces rejoin
+        for escaped in ('\\u001b', '\\r', '\\n', '\\u0007', '\\u0085', '\\u2028', '\\u2029', '\\u009b'):
+            self.assertIn(escaped, joined)
+        self.assertEqual(controls_in(rows), [])
+
+    def test_the_plain_text_form_holds_every_control_free_at_every_width(self):
+        snapshot = hostile()
+        for width in (40, 60, 80, 120):
+            rows = screen().text(snapshot, width)
+            self.assertEqual(controls_in(rows), [], width)
+            self.assertTrue(all(width_of(row) <= width for row in rows), width)
+            joined = ' '.join(row.strip() for row in rows)
+            for node in snapshot['nodes']:
+                self.assertIn(screen().STATE_WORDS[node['state']], joined)
+            self.assertIn(screen().HAZARD, ' '.join(row.strip() for row in rows))
+
+    def test_wide_characters_are_measured_in_cells(self):
+        read = proj.baseline()
+        read['name'] = '日本語' * 30
+        read['states']['intent']['scope']['stack'] = '日本語' * 30
+        snapshot = snap(read)
+        for size in ALL_SIZES:
+            rows = screen().render(snapshot, size[0], size[1], colour=False, unicode=True)
+            self.assertTrue(all(width_of(row) <= size[0] for row in rows), size)
+        self.assertTrue(all(width_of(row) <= 60 for row in screen().text(snapshot, 60)))
+
 
 if __name__ == '__main__':
     unittest.main()
