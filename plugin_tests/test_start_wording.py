@@ -105,5 +105,48 @@ class StartWordingTests(unittest.TestCase):
         self.assertNotIn('NEXT', entry.start_lines(dict(value, next_actions=[]), 80))
 
 
+class FoundRowPunctuationTests(unittest.TestCase):
+    """Round 2, item 3: only a sentence-valued detected fact (the sign-in message) gives up its closing full stop to the semicolon
+    that joins the facts; any other detected value keeps the punctuation it carries, as a name that ends in a dot does."""
+
+    SENTENCE = 'Signed in to tenant 11111111-1111-4111-8111-111111111111 as alex@example.test (AzureCloud); session freshness is checked when a token is requested.'
+
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.directory = Path(temp.name)
+        shutil.copyfile(ROOT / 'examples/context.json', self.directory / 'context.json')
+
+    def found(self, detected):
+        """The Found row of the integration, joined to one string, for the detected facts given."""
+        value = entry.survey(self.directory)
+        view = entry.goal_readiness(value, 'discover')
+        row = next(row for row in view['rows'] if row['id'] == 'integration_service')
+        row['detected'] = detected
+        text = ' '.join(' '.join(entry.start_lines(value, 300, view)).split())
+        start = text.index('Found: ', text.index('Integration and service:'))
+        return text[start:text.index(' Could not check:', start)]
+
+    def test_a_detected_value_that_ends_in_a_dot_keeps_it(self):
+        found = self.found({'dns_name': 'graph.example.', 'connection': 'offline'})
+        self.assertEqual(found, 'Found: dns name: graph.example.; connection: offline')
+        found = self.found({'names': ['graph.example.', 'login.example.'], 'connection': 'offline'})
+        self.assertEqual(found, 'Found: names: graph.example.; login.example.; connection: offline')
+
+    def test_the_sign_in_sentence_still_gives_up_its_full_stop_before_the_semicolon(self):
+        for key in ('azure_sign_in', 'github_sign_in'):
+            found = self.found({key: self.SENTENCE, 'graph_access': 'unknown'})
+            self.assertTrue(found.endswith('is requested; graph access: unknown'), found)
+            self.assertNotIn('.;', found)
+
+    def test_only_the_sentence_fields_are_repaired_when_both_kinds_stand_in_one_row(self):
+        found = self.found({'azure_sign_in': self.SENTENCE, 'dns_name': 'graph.example.', 'graph_access': 'unknown'})
+        self.assertTrue(found.endswith('is requested; dns name: graph.example.; graph access: unknown'), found)
+
+    def test_a_dot_inside_or_before_a_value_is_never_touched(self):
+        self.assertEqual(self.found({'path': '.', 'dns_name': 'a.b', 'connection': 'offline'}),
+                         'Found: path: .; dns name: a.b; connection: offline')
+
+
 if __name__ == '__main__':
     unittest.main()

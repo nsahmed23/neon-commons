@@ -605,12 +605,19 @@ def _plain(value):
 
 
 _CLOSING_FULL_STOP = re.compile(r'(?<=[A-Za-z0-9)])\.$')
+# The detected facts whose value is a sentence: the sign-in messages (FOUND_LABELS names exactly those). Every other fact is a
+# value, a name or a list of them, and keeps the punctuation it carries.
+SENTENCE_FACTS = frozenset(FOUND_LABELS)
 
 
 def _fact(key, item):
     """One detected fact as 'label: value'. A fact that is a sentence (the sign-in message) ends in a full stop; the semicolon that
-    joins the facts takes its place, so no '.;' stands in the row."""
-    return '%s: %s' % (FOUND_LABELS.get(str(key), str(key).replace('_', ' ')), _CLOSING_FULL_STOP.sub('', _plain(item)))
+    joins the facts takes its place, so no '.;' stands in the row. No other value is touched: a name such as graph.example. ends
+    in a dot of its own."""
+    text = _plain(item)
+    if str(key) in SENTENCE_FACTS:
+        text = _CLOSING_FULL_STOP.sub('', text)
+    return '%s: %s' % (FOUND_LABELS.get(str(key), str(key).replace('_', ' ')), text)
 
 
 def goal_summary(view):
