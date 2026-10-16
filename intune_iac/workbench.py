@@ -1084,6 +1084,18 @@ def _interrupted_during(current):
     return {'command': name}
 
 
+def _operation_words(operation_root):
+    """The operation as the after-exit sentence names it: its short id (the one every screen uses) beside the quoted
+    directory; the directory alone when the plan cannot be read."""
+    import shlex
+    quoted = shlex.quote(str(operation_root))
+    try:
+        identity = json.loads((Path(str(operation_root)) / 'plan.json').read_text(encoding='utf-8')).get('operation_id')
+    except (OSError, ValueError, AttributeError):
+        identity = None
+    return '%s (directory %s)' % (identity[:8], quoted) if isinstance(identity, str) and len(identity) >= 8 else quoted
+
+
 def interrupted_lines(result):
     """The interrupted session's result as sentences for a person: what was running, what the interrupt left, and the
     exact next step. Scripts read the same facts as JSON."""
@@ -1096,14 +1108,14 @@ def interrupted_lines(result):
     if during and during.get('command') == 'execute':
         operation = during.get('operation_root')
         # Quoted as the command below it is, so a path with spaces reads as one path in both.
-        return ['Interrupted while executing operation %s.' % shlex.quote(str(operation)),
+        return ['Interrupted while executing operation %s.' % _operation_words(operation),
                 'Its outcome is unknown: the change may or may not have reached the service. Nothing retries it.',
                 'Next: reconcile it before anything else. Reconcile reads the service and never replays the change. '
                 'Run:',
                 '  intune-iac workbench reconcile --operation %s' % shlex.quote(str(operation)),
                 'or reopen the workspace and choose Reconcile with a.', others]
     if during and during.get('command') == 'reconcile':
-        return ['Interrupted while reconciling operation %s.' % shlex.quote(str(during.get('operation_root'))),
+        return ['Interrupted while reconciling operation %s.' % _operation_words(during.get('operation_root')),
                 'Reconcile only reads the service, so running it again is safe. Run:',
                 '  intune-iac workbench reconcile --operation %s' % shlex.quote(str(during.get('operation_root'))),
                 others]
@@ -1126,27 +1138,10 @@ def interrupted_text(result, width):
     import textwrap
     lines = []
     for line in interrupted_lines(result):
-        lines += _wrap_command(line, width) if line.startswith('  ') else textwrap.wrap(
+        # A command is one physical line: no inserted newline and no POSIX backslash continuation; the terminal wraps it.
+        lines += [line] if line.startswith('  ') else textwrap.wrap(
             line, max(20, width), break_long_words=False, break_on_hyphens=False) or ['']
     return lines
-
-
-def _wrap_command(line, width):
-    """A command line that fits stays whole. A wider one breaks between its arguments, never inside a quoted path, and
-    each row but the last ends with a backslash, so pasting the rows runs the one command."""
-    import re
-    if len(line) <= width:
-        return [line]
-    # Arguments, a single-quoted one (a path with spaces) kept as one piece.
-    pieces = re.findall(r"(?:'[^']*'|[^\s'])+", line)
-    rows, row = [], '  ' + pieces[0]
-    for piece in pieces[1:]:
-        if len(row) + 1 + len(piece) + 2 <= width:
-            row += ' ' + piece
-        else:
-            rows.append(row + ' \\')
-            row = '    ' + piece
-    return rows + [row]
 
 
 INTERRUPTED_RECOVERY = ('Other processes, such as a scheduled collector, were not stopped. diagnostics names anything this '

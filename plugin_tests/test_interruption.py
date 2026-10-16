@@ -175,7 +175,8 @@ class InterruptedSessionWordsTests(unittest.TestCase):
         self.assertEqual(result['status'], 'interrupted')
         self.assertEqual(result['interrupted_during'], {'command': 'execute', 'operation_root': str(self.root / 'operation')})
         text = '\n'.join(interrupted_lines(result))
-        self.assertIn('Interrupted while executing operation %s' % (self.root / 'operation'), text)
+        self.assertIn('Interrupted while executing operation ', text)
+        self.assertIn('(directory %s)' % (self.root / 'operation'), text)  # M-33: the short id sits beside the directory
         self.assertIn('outcome is unknown', text)
         self.assertIn('intune-iac workbench reconcile --operation %s' % (self.root / 'operation'), text)
         self.assertIn('never replays the change', text)
@@ -281,12 +282,10 @@ class InterruptTextOnATerminalTests(unittest.TestCase):
         operation = '/w/journey 28 run 3/operation-22222222-b29ebd66ff89'
         result = {'interrupted_during': {'command': 'execute', 'operation_root': operation}, 'store_root': '/w/store'}
         lines = interrupted_text(result, 60)
-        # Run 7 item 14: a command wider than the terminal wraps between its arguments, the quoted path whole, each row
-        # but the last ending with a backslash (it was left to wrap anywhere, even inside the quoted path).
-        commands = ["  intune-iac workbench reconcile --operation \\", "    '%s'" % operation]
+        # M-33 round, frame 41: a command is one physical line, never wrapped with a backslash continuation.
+        commands = ["  intune-iac workbench reconcile --operation '%s'" % operation]
         self.assertEqual([line for line in lines if line in commands], commands)
-        self.assertEqual(lines[lines.index(commands[0]) + 1], commands[1])
-        source_words = set(' '.join(lines).replace(' \\', '').split())
+        source_words = set(' '.join(lines).split())
         for line in lines:
             if line in commands:
                 continue
@@ -430,23 +429,13 @@ class InterruptCommandWrapTests(unittest.TestCase):
         result = {'interrupted_during': {'command': 'collect', 'service_root': self.SERVICE}, 'store_root': self.STORE}
         return interrupted_text(result, width)
 
-    def test_a_long_command_wraps_between_arguments_and_keeps_each_quoted_path_whole(self):
-        for width in (100, 120):
+    def test_a_long_command_stays_one_line_for_the_terminal_to_wrap(self):
+        # M-33 round, frame 41: PKG-PRES-RUN7 wrapped it with a POSIX backslash; now it is one physical line.
+        want = "  intune-iac workbench collect --root '%s' --service-root '%s'" % (self.STORE, self.SERVICE)
+        for width in (40, 100, 120):
             lines = self.lines(width)
-            start = next(index for index, line in enumerate(lines) if line.startswith('  intune-iac workbench collect'))
-            rows = []
-            for line in lines[start:]:
-                rows.append(line)
-                if not line.endswith(' \\'):
-                    break
-            self.assertGreater(len(rows), 1, rows)
-            for row in rows:
-                self.assertLessEqual(len(row), width, row)
-            self.assertIn("'%s'" % self.SERVICE, ' '.join(row.strip() for row in rows).replace(' \\ ', ' '))
-            self.assertTrue(any("'%s'" % self.SERVICE in row for row in rows), rows)
-            self.assertTrue(any("'%s'" % self.STORE in row for row in rows), rows)
-            joined = ' '.join(row.strip().removesuffix(' \\').removesuffix('\\') for row in rows)
-            self.assertEqual(joined, "intune-iac workbench collect --root '%s' --service-root '%s'" % (self.STORE, self.SERVICE))
+            self.assertIn(want, lines)
+            self.assertFalse([line for line in lines if line.endswith('\\')], lines)
 
     def test_a_command_that_fits_stays_on_one_row(self):
         lines = self.lines(200)
