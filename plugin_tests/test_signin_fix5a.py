@@ -266,6 +266,9 @@ class DocumentationAndComparisonTests(Base):  # items 3 and 4 of round 2
         self.assertIn('subscription_expired', doc)
         self.assertIn('any error after same-host ambiguity is resolved', doc)
         self.assertNotIn('for every login it checked and none succeeded', doc)
+        evaluate_doc = signin_facts.evaluate.__doc__
+        self.assertIn('subscription_expired', evaluate_doc)
+        self.assertIn('expired', evaluate_doc.replace('subscription_expired', ''))  # token-time expiry stays listed
 
 
 if __name__ == '__main__':

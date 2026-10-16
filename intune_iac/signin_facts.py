@@ -332,8 +332,8 @@ def _who(entry):
 def evaluate(facts, tenant=None, account=None):
     """Judge facts against the tenant the context names (and the account the engineer named, if any).
 
-    Pure. status is signed_in, not_signed_in, expired, invalid (GitHub only), wrong_tenant, several_accounts, account_mismatch
-    or unknown; usable is true only for an azure sign-in that is in the context's tenant, is the one account the CLI would
+    Pure. status is signed_in, not_signed_in, subscription_expired (the listing says Expired: the subscription's state), expired
+    (found at token time), invalid (GitHub only), wrong_tenant, several_accounts, account_mismatch or unknown; usable is true only for an azure sign-in that is in the context's tenant, is the one account the CLI would
     use, and (when the engineer named one) is that account. The next step is the exact thing the engineer does, with every
     placeholder marked; the product runs none of it.
     """
