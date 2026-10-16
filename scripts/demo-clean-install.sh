@@ -14,6 +14,9 @@
 # then made with --without-pip and every pip command runs from the wheel itself (python PATH/pip ...), still from
 # WHEEL_FOLDER only. The wheel's sha256 is printed so it can be compared with the digest published for that pip.
 #
+# The quickstart's sign-in step runs with no search path, so its answer (a blocked report, exit status 2) is the
+# same on every host whether or not an Azure CLI is installed; no other step looks for one.
+#
 # Exit status: 0 every step passed; 1 a step failed; 2 refused to run here; 3 the archive failed verification;
 # 64 wrong usage.
 

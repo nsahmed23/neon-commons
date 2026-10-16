@@ -533,6 +533,16 @@ class GuideBehaviourTests(unittest.TestCase):
                     self.assertIn(phrase, screen, 'the product no longer prints: ' + phrase)
                     self.assertIn(phrase, guide, 'the guide does not quote: ' + phrase)
 
+    def test_the_larger_estate_adds_a_second_tenant_as_the_guide_says(self):
+        import shutil
+        phrase = 'Two tenants are named by the surveyed inputs; choose one.'
+        shutil.copytree(self.work / 'demo', self.work / 'demo2', symlinks=True)
+        made = self.run_cli('synthetic', 'generate', '--output', 'demo2/estate', '--policies', '3')
+        self.assertEqual(made.returncode, 0, made.stdout + made.stderr)
+        self.assertIn('"synthetic": true', made.stdout)
+        self.assertIn(phrase, squashed(self.run_cli('catalog', 'demo2').stdout))
+        self.assertIn(phrase, squashed(guide_text()), 'the guide does not quote: ' + phrase)
+
     def test_the_commands_the_guide_shows_for_these_claims_are_the_ones_tested(self):
         shown = {' '.join(tokens) for tokens in guide_commands(guide_text())}
         for name, arguments, status, quoted in self.CLAIMS:

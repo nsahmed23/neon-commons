@@ -321,6 +321,10 @@ mkdir -m 700 demo
     one from the sample export: give `workbench lab-create` the file `demo/estate/capture-estate.json` as its input,
     and one of the policy identifiers in it as the object.
 
+    This estate has its own made-up tenant and lands inside `demo`, beside the first one. If you run `start demo` or
+    `catalog demo` after this step, they list its exports and context as well, and the `discover` goal then says `Two
+    tenants are named by the surveyed inputs; choose one.` That is expected: the two estates name different tenants.
+
 12. Leave. Close the workspace with `q`, leave the virtual environment's folder as it is, and delete the `demo`
     folder when you are done with it; it holds only the sample outputs:
 
