@@ -41,8 +41,21 @@ OLD_NAME = 'Privacy pilot 7'
 
 
 def forbidden_in(data):
-    """The forbidden characters in raw output bytes, as code points (a lone C1 byte pair decodes to one)."""
-    return sorted({'U+%04X' % ord(ch) for ch in FORBIDDEN.findall(data.decode('utf-8', 'surrogateescape'))})
+    """The forbidden characters in raw output bytes, as code points. The bytes are decoded strictly as UTF-8: a byte that is not
+    valid UTF-8 (a lone 0x9b, which a terminal reads as a C1 CSI) is reported as INVALID_UTF8, never decoded into something the
+    pattern cannot match."""
+    try:
+        text, found = data.decode('utf-8'), []
+    except UnicodeDecodeError:
+        text, found = data.decode('utf-8', 'replace'), ['INVALID_UTF8']
+    return sorted(found + ['U+%04X' % ord(ch) for ch in set(FORBIDDEN.findall(text))])
+
+
+def check_streams(case, label, result):
+    """Stdout and stderr of one command hold no forbidden character and no invalid UTF-8; stdout is not empty."""
+    case.assertEqual(forbidden_in(result.stdout), [], label)
+    case.assertEqual(forbidden_in(result.stderr), [], label)
+    case.assertTrue(result.stdout.strip(), label + ' printed nothing')
 
 
 def replace_everywhere(value, old, new):
@@ -160,6 +173,24 @@ def text_commands(parser):
 TEXT_COMMANDS = {'start', 'catalog', 'engineering', 'simulate', 'signin status', 'signin collect', 'workbench workflow'}
 
 
+class ByteCheckTests(unittest.TestCase):
+    def test_a_lone_c1_byte_is_not_valid_utf8_and_is_reported(self):
+        self.assertNotEqual(forbidden_in(b'\x9b[31m'), [])
+        self.assertIn('INVALID_UTF8', forbidden_in(b'ok\n\x9b[31m'))
+
+    def test_a_c1_control_encoded_as_utf8_is_reported_by_its_code_point(self):
+        self.assertEqual(forbidden_in(b'\xc2\x9b[31m'), ['U+009B'])
+
+    def test_clean_bytes_and_ordinary_non_ascii_pass(self):
+        self.assertEqual(forbidden_in('row one\nrow two é 中文\n'.encode('utf-8')), [])
+
+    def test_a_planted_lone_c1_byte_on_stderr_fails_the_stream_check(self):
+        planted = subprocess.CompletedProcess([], 0, stdout=b'ok\n', stderr=b'\x9b[31m')
+        with self.assertRaises(AssertionError):
+            check_streams(self, 'planted', planted)
+        check_streams(self, 'control', subprocess.CompletedProcess([], 0, stdout=b'ok\n', stderr=b''))
+
+
 class InventoryTests(unittest.TestCase):
     def test_the_text_mode_commands_are_the_ones_the_parser_exposes(self):
         # Read from the parser, not typed: a command added with a --json switch or a text --format fails here until the sweep
@@ -181,9 +212,7 @@ class TextGuardSweepTests(unittest.TestCase):
         for label, argv in self.hostile.sweep().items():
             with self.subTest(command=label):
                 result = self.hostile.run(*argv)
-                self.assertEqual(forbidden_in(result.stdout), [], label)
-                self.assertEqual(forbidden_in(result.stderr), [], label)
-                self.assertTrue(result.stdout.strip(), label + ' printed nothing')
+                check_streams(self, label, result)
 
     def test_the_exit_code_equals_the_exit_code_on_a_clean_fixture(self):
         clean, hostile = self.clean.sweep(), self.hostile.sweep()
