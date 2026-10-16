@@ -325,7 +325,7 @@ class LiveCompanion:
         with self._lock:
             # One critical section: the state, the claim and the consumed mark cannot be separated by another thread.
             state, error, reason = self._state, self._close_error, self.ended or 'stopped'
-            claimed = self._claim_locked(consumes_state=state == 'close_failed')
+            claimed = self._claim_locked()
             consumed = self._consumed
         if claimed:
             raise self._delivery(claimed)
@@ -470,17 +470,18 @@ class LiveCompanion:
             self._changed.notify_all()
             return True
 
-    def _claim_locked(self, consumes_state=False):
+    def _claim_locked(self):
         """Take every failure nobody has been given yet (the caller holds the lock); a failure that arrives later waits for
-        the next caller. If this delivery is of the failure behind the current close_failed state, that state is consumed."""
+        the next caller. Delivering them while the current state is close_failed consumes that state, in this same critical
+        section: it is the current state that counts, not what an older attempt published."""
         claimed, self._undelivered = self._undelivered, []
-        if claimed and consumes_state:
+        if claimed and self._state == 'close_failed':
             self._consumed = True
         return claimed
 
-    def _claim(self, consumes_state=False):
+    def _claim(self):
         with self._lock:
-            return self._claim_locked(consumes_state)
+            return self._claim_locked()
 
     def _delivery(self, claimed, own=None):
         """One error for a caller: chained from the earliest failure, naming by class every later one and the caller's own
@@ -518,10 +519,10 @@ class LiveCompanion:
         try:
             problem = self._shut_down_and_close()
         except BaseException as error:
-            published = self._publish(mine, 'close_failed', error, background=background)
+            self._publish(mine, 'close_failed', error, background=background)
             if role == 'retry' and isinstance(error, Exception):
-                # The report below delivers the earlier failures with this one named, so the state it leaves is consumed.
-                claimed = [] if background else self._claim(consumes_state=published)
+                # The report below delivers the earlier failures with this one named.
+                claimed = [] if background else self._claim()
                 if claimed:
                     raise self._delivery(claimed, own=error)
                 raise self._close_failure(error) from error
@@ -541,7 +542,7 @@ class LiveCompanion:
             settled = self._changed.wait_for(self._settled, STOP_WAIT_SECONDS)
             state, error = self._state, self._close_error
         if settled:
-            claimed = [] if background else self._claim(consumes_state=state == 'close_failed')
+            claimed = [] if background else self._claim()
             if claimed:
                 raise self._delivery(claimed)
             if state == 'close_failed':

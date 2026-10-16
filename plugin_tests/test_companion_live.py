@@ -1316,6 +1316,44 @@ class StopTests(Fixture):
         self.assertIsInstance(caught.exception.__cause__, KeyboardInterrupt, 'the interrupt, not the close failure')
         self.assertIn('PermissionError', ' '.join(getattr(caught.exception.__cause__, '__notes__', [])))
 
+    def test_a_superseded_retry_that_delivers_the_current_failure_consumes_the_current_state(self):
+        from intune_iac import companion_live
+        from intune_iac.io import AppError
+        live = self.start()
+        inside, gate = threading.Event(), threading.Event()
+        calls = []
+
+        def drain():
+            calls.append(1)
+            if len(calls) == 1:
+                raise OSError('the first attempt fails')
+            if len(calls) == 2:
+                inside.set()
+                gate.wait(10)
+                raise KeyError('the older retry fails late')
+        patch = mock.patch.object(live, '_drain_writers', drain)
+        patch.start()
+        self.addCleanup(patch.stop)
+        self.addCleanup(gate.set)
+        with self.assertRaises(OSError):
+            live.stop()                       # a foreground failure: the state is close_failed, nothing queued
+        retry, outcome = self.run_in_thread(live.stop)
+        self.assertTrue(inside.wait(5), 'the older retry is inside its slow close step')
+        self.assertEqual(live._state, 'stopping')
+        # A second retry cannot start while one runs; a follower that times out takes the state over instead.
+        with mock.patch.object(companion_live, 'STOP_WAIT_SECONDS', 0.2):
+            live._stop_in_background()        # background follower: times out, publishes close_failed, queues it
+        self.assertEqual(live._state, 'close_failed')
+        gate.set()
+        retry.join(5)
+        self.assertEqual([kind for kind, _ in outcome], ['raised'])
+        self.assertIsInstance(outcome[0][1], AppError)
+        self.assertIn('KeyError', ' '.join(getattr(outcome[0][1], '__notes__', [])))
+        with self.assertRaises(AppError) as again:
+            live.wait_step()
+        self.assertEqual(again.exception.code, 'companion_live_close_unsettled')
+        self.assertIsNone(again.exception.__cause__)
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500
