@@ -2,10 +2,12 @@
 
 Each class names its item of the brief. Temporary directories only.
 """
+import re
 import unittest
 
 from intune_iac.workbench_tui import cell_width
 from plugin_tests.test_workbench_map import Fixture
+from plugin_tests.test_workbench_map_truth import MARK, MapTruth
 
 SELECTED = '11111111-1111-4111-8111-111111111111'
 OTHER = '22222222-2222-4222-8222-222222222222'
@@ -156,3 +158,40 @@ class MapFallbackAt40x12Tests(Fixture):
     def test_a_wide_window_keeps_the_longer_sentence(self):
         from intune_iac.workbench_screens import map_unavailable_lines
         self.assertEqual(map_unavailable_lines(80)[1], 'The tree below lists every relationship.')
+
+
+class RepositoryNodeLabelTests(MapTruth):
+    """Item 5 (run10-3): the repository node row cuts the local path alone. It no longer splices the head of the path
+    onto the tail of the scope (the component name), which read as a path that is not recorded."""
+    FOLDER = '/home/nsahm/work/journey 28 run 8/repository'
+
+    def value_with(self, folder=None):
+        return dict(self.value, selected_repository={
+            'evidence_class': 'recorded_repository_intent',
+            'scope': {'repository': folder or self.FOLDER, 'stack': 'orgs/reference/dev', 'component': 'intune-reference'}})
+
+    def label(self, folder=None):
+        _, rows = self.rows(self.graph(self.value_with(folder)))
+        row = next(row for row in rows if 'repository' in row and MARK.search(row))
+        return re.search(r'\[.\] (.*?)\s+\u2014', row.split('\u2192')[1]).group(1)
+
+    def test_the_label_is_the_cut_path_and_names_no_component(self):
+        label = self.label()
+        self.assertNotIn('reference', label)
+        self.assertTrue(label.startswith('/home/nsahm/w'), label)
+        self.assertTrue(label.endswith('/repository'), label)
+        self.assertIn('\u2026', label)
+
+    def test_a_path_that_fits_is_shown_whole(self):
+        self.assertEqual(self.label('/work/repo'), '/work/repo')
+
+    def test_the_full_identity_stays_in_the_focus_rows(self):
+        lines, rows = self.rows(self.graph(self.value_with()))
+        self.assertIn(self.FOLDER + '  orgs/reference/dev / intune-reference', '\n'.join(
+            line for line in self.focus_text(self.value_with())))
+
+    def focus_text(self, value):
+        from intune_iac.workbench_screens import map_lines
+        graph = self.graph(value)
+        repository = next(node for node in graph['nodes'] if node['kind'] == 'repository')
+        return map_lines(graph, 200, focus=repository['ref'])

@@ -2099,6 +2099,19 @@ def _map_label(node, shorts, prefixes):
     return identifier
 
 
+def _repository_path_label(identifier, width, ellipsis):
+    """The repository node's row label: its local path alone, cut around an ellipsis (the folder's own name kept).
+
+    The node's identity is `PATH  STACK / COMPONENT`; cutting that whole text kept the head of the path and the tail of
+    the component, which read as one path that is not recorded (run10-3). The full identity stays in the focus rows."""
+    path = identifier.rpartition(' / ')[0].rpartition('  ')[0] or identifier
+    if len(path) <= width:
+        return path
+    room = width - len(ellipsis)
+    tail = min(room - 8, len(path) - len(path.rstrip('/').rpartition('/')[0]))
+    return path[:room - tail] + ellipsis + path[len(path) - tail:]
+
+
 def _map_legend(width, rules='ascii'):
     forms = map_legends(rules)
     return next((form for form in forms if all(cell_width(row) <= width for row in form)), forms[-1])
@@ -2204,7 +2217,9 @@ def map_lines(graph, width, rules='ascii', focus=None, selected=None, prefixes=N
                       + pad(fit(label, MAP_RELATION_WIDTH, ellipsis), MAP_RELATION_WIDTH) + glyph['arrow'])
             if node['kind'] in MAP_DISTINCT_KINDS:
                 words = MAP_KIND_WORDS.get(node['kind'], node['kind'])
-                shown = ('%s ' % words if words != label else '') + cuts[node['ref']]
+                shown = ('%s ' % words if words != label else '') + (
+                    _repository_path_label(node['id'], MAP_DISTINCT_WIDTH, ellipsis) if node['kind'] == 'repository'
+                    else cuts[node['ref']])
             else:
                 shown = _map_label(node, shorts, prefixes)
             lines.append(_map_row(_map_cell(prefix, node, shown, MAP_STATE_COLUMN - cell_width(prefix) - 5, ellipsis, rules),
