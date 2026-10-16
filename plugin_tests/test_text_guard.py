@@ -10,6 +10,8 @@ import io
 import json
 import os
 import re
+import shlex
+import stat
 import subprocess
 import sys
 import tempfile
@@ -22,7 +24,7 @@ from intune_iac import cli
 from intune_iac.synthetic import generate_estate
 from plugin_tests import sim_support as sim
 from plugin_tests.orchestration_fixtures import event, lifecycle, write_export
-from plugin_tests.signin_fakes import FakeClis, TENANT_A, azure_account, azure_list, github_hosts
+from plugin_tests.signin_fakes import TENANT_A, azure_account, azure_list, github_hosts
 
 ROOT = Path(__file__).resolve().parents[1]
 CLI = ROOT / 'scripts/intune-iac.py'
@@ -103,13 +105,78 @@ def replace_everywhere(value, old, new):
     return value
 
 
+FAKE_TOOL = '''"""A stand-in for az or gh: prints the canned answer for the subcommand it was called with. Not a real client."""
+import os
+import sys
+
+here = os.path.dirname(os.path.abspath(__file__))
+tool, args = sys.argv[1], sys.argv[2:] + ['', '']
+with open(os.path.join(here, 'calls.log'), 'a', encoding='utf-8', newline='\\n') as log:
+    log.write(' '.join(sys.argv[2:]) + '\\n')
+base = os.path.join(here, '%s.%s_%s' % (tool, args[0], args[1]))
+if not os.path.exists(base + '.out'):
+    sys.exit(127)
+for suffix, stream in (('.out', sys.stdout.buffer), ('.err', sys.stderr.buffer)):
+    if os.path.exists(base + suffix):
+        with open(base + suffix, 'rb') as handle:
+            stream.write(handle.read())
+        stream.flush()
+code = 0
+if os.path.exists(base + '.code'):
+    with open(base + '.code', encoding='utf-8') as handle:
+        code = int(handle.read().strip() or 0)
+sys.exit(code)
+'''
+
+
+def launcher_text(tool, directory, executable, windows):
+    """The launcher for one fake tool: a .cmd file on Windows (CRLF, the batch convention), an executable shell wrapper elsewhere."""
+    if windows:
+        return '@"%s" "%s" %s %%*\r\n' % (executable, str(directory).replace('/', '\\') + '\\fake_tool.py', tool)
+    return '#!/bin/sh\nexec %s %s %s "$@"\n' % (shlex.quote(str(executable)), shlex.quote(str(Path(directory) / 'fake_tool.py')), tool)
+
+
+class PortableClis:
+    """Fake az and gh that run on every platform: one Python script run by sys.executable, a launcher beside it per tool, and
+    canned answers in files named <tool>.<first>_<second>.(out|err|code). Calls are logged to calls.log."""
+
+    def __init__(self, base=None, windows=None):
+        self.windows = os.name == 'nt' if windows is None else windows
+        self.temp = tempfile.TemporaryDirectory(dir=base)
+        self.directory = Path(self.temp.name).resolve()
+        (self.directory / 'fake_tool.py').write_text(FAKE_TOOL, encoding='utf-8', newline='\n')
+        for tool in ('az', 'gh'):
+            text = launcher_text(tool, self.directory, sys.executable, self.windows)
+            if self.windows:
+                (self.directory / (tool + '.cmd')).write_bytes(text.encode('utf-8'))
+            else:
+                path = self.directory / tool
+                path.write_text(text, encoding='utf-8', newline='\n')
+                path.chmod(path.stat().st_mode | stat.S_IXUSR)
+
+    def cleanup(self):
+        self.temp.cleanup()
+
+    def path_entry(self):
+        return str(self.directory)
+
+    def answer(self, tool, first, second, out='', err='', code=0):
+        base = self.directory / ('%s.%s_%s' % (tool, first, second))
+        for suffix, value in (('out', out), ('err', err), ('code', str(code))):
+            Path(str(base) + '.' + suffix).write_bytes(value.encode('utf-8'))
+
+    def calls(self):
+        log = self.directory / 'calls.log'
+        return log.read_text(encoding='utf-8').splitlines() if log.exists() else []
+
+
 class Fixture:
     """One working set: a start or catalog directory, an engineering export, simulator documents, fake sign-in clients
     and a workbench store, every recorded string built from `text`."""
 
     def __init__(self, text, base):
         self.text, self.base = text, Path(base)
-        self.fakes = FakeClis(base=str(self.base))
+        self.fakes = PortableClis(base=str(self.base))
         self.env = dict(os.environ, PYTHONDONTWRITEBYTECODE='1', COLUMNS='100',
                         PATH=self.fakes.path_entry() + os.pathsep + os.environ.get('PATH', ''))
         self._directory()
@@ -170,7 +237,7 @@ class Fixture:
 
     def sweep(self):
         """{label: argv} of every text-mode command, over this fixture."""
-        return {
+        commands = {
             'start': ['start', self.work],
             'start --goal': ['start', self.work, '--goal', 'inspect'],
             'catalog': ['catalog', self.work],
@@ -179,6 +246,9 @@ class Fixture:
             'signin status': ['signin', 'status', '--tenant', TENANT_A, '--provider', 'all'],
             'workbench workflow': ['workbench', 'workflow', '--root', self.store, '--policy', self.policy_id],
         }
+        if os.name != 'posix':
+            del commands['signin status']  # the product refuses sign-in reuse off a Unix host (identity_fd_platform_unsupported)
+        return commands
 
     def json_forms(self):
         return {key: argv + ['--json'] for key, argv in self.sweep().items()
@@ -288,6 +358,33 @@ class PortabilityTests(unittest.TestCase):
                 self.assertNotIn(b'\r', done.stderr)
 
 
+class FakeToolTests(unittest.TestCase):
+    def test_the_windows_launcher_is_a_cmd_file_that_runs_the_script_with_the_python_in_use(self):
+        # Generated and inspected only: this host is not Windows, so the .cmd branch is not executed here.
+        text = launcher_text('az', 'C:/work/fakes', 'C:/Python/python.exe', True)
+        self.assertEqual(text, '@"C:/Python/python.exe" "C:\\work\\fakes\\fake_tool.py" az %*\r\n')
+
+    def test_the_other_launcher_is_an_executable_shell_wrapper_around_the_same_script(self):
+        text = launcher_text('gh', '/w/fakes dir', '/usr/bin/python3', False)
+        self.assertEqual(text, "#!/bin/sh\nexec /usr/bin/python3 '/w/fakes dir/fake_tool.py' gh \"$@\"\n")
+
+    def test_both_launchers_are_written_for_the_chosen_platform(self):
+        with tempfile.TemporaryDirectory() as base:
+            windows = PortableClis(base, windows=True)
+            self.assertTrue((windows.directory / 'az.cmd').read_bytes().endswith(b'%*\r\n'))
+            self.assertFalse((windows.directory / 'az').exists())
+
+    @unittest.skipUnless(os.name == 'posix', 'runs the wrapper')
+    def test_the_wrapper_prints_the_canned_answer_logs_the_call_and_returns_its_code(self):
+        with tempfile.TemporaryDirectory() as base:
+            fakes = PortableClis(base)
+            fakes.answer('az', 'account', 'list', out='[1]', err='warn', code=3)
+            done = subprocess.run([str(fakes.directory / 'az'), 'account', 'list', '--output', 'json'], capture_output=True)
+            self.assertEqual((done.stdout, done.stderr, done.returncode), (b'[1]', b'warn', 3))
+            self.assertEqual(fakes.calls(), ['account list --output json'])
+            self.assertEqual(subprocess.run([str(fakes.directory / 'gh'), 'auth', 'status']).returncode, 127)
+
+
 class ByteCheckTests(unittest.TestCase):
     def test_a_lone_c1_byte_is_not_valid_utf8_and_is_reported(self):
         self.assertNotEqual(forbidden_in(b'\x9b[31m'), [])
@@ -328,6 +425,19 @@ class TextGuardSweepTests(unittest.TestCase):
             with self.subTest(command=label):
                 result = self.hostile.run(*argv)
                 check_streams(self, label, result)
+
+    def test_the_fake_sign_in_tools_are_python_scripts_with_a_launcher_for_the_platform(self):
+        directory = Path(self.hostile.fakes.path_entry())
+        self.assertTrue((directory / 'fake_tool.py').exists())
+        for tool in ('az', 'gh'):
+            self.assertTrue((directory / (tool + ('.cmd' if os.name == 'nt' else ''))).exists(), tool)
+
+    @unittest.skipUnless(os.name == 'posix', 'sign-in reuse is a Unix feature of the product (inherited descriptors)')
+    def test_signin_status_runs_in_full_through_the_fakes(self):
+        done = self.clean.run('signin', 'status', '--tenant', TENANT_A)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual(done.stdout.decode('utf-8').splitlines()[0], 'AZURE: READY')
+        self.assertIn('account list --output json', self.clean.fakes.calls())
 
     def test_the_exit_code_equals_the_exit_code_on_a_clean_fixture(self):
         clean, hostile = self.clean.sweep(), self.hostile.sweep()
