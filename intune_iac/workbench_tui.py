@@ -288,6 +288,7 @@ WORKFLOW_HELP_LINES = ('? help | : command | Up/Down stage | Enter open | Esc cl
                        '? help | Up/Down | Enter open | Esc close | q exit', 'Up/Down | Enter | Esc close | q exit',
                        'Esc close | q exit')
 WORKFLOW_READ_ONLY = 'The workflow map is read-only; Esc closes it.'
+WORKFLOW_ACTIONS = 'The workflow map is read-only; Esc closes it, then a lists the actions.'
 WORKFLOW_SHOWN = 'Workflow map shown (read-only). Esc closes it.'
 WORKFLOW_NEEDS_WINDOW = 'Workflow map needs a larger window. Esc closes it.'
 # What Enter sends for a stage's surface key (workflow_projection.OPENS): a read view, never a command that changes anything.
@@ -1575,11 +1576,16 @@ class Workspace:
         stage = next((item for item in flow.get('stages') or [] if isinstance(item, dict) and item.get('id') == self._workflow_focus()), {})
         command = WORKFLOW_SURFACE_COMMANDS.get(stage.get('opens'))
         root = (flow.get('operation') or {}).get('operation_root')
-        if command is None or (command in WORKFLOW_OPERATION_COMMANDS and not (isinstance(root, str) and root)):
+        has_root = isinstance(root, str) and bool(root)
+        if command == 'review' and not has_root:
+            # 5 Plan with no operation recorded is the list of this policy's operations, as the 5 key shows it.
+            self.tab = 4
+            return self._send('operations', keep_return=True)
+        if command is None or (command in WORKFLOW_OPERATION_COMMANDS and not has_root):
             self.notice = 'Nothing to open from this stage%s. Esc closes the map.' % (
                 '' if flow.get('operation') else ': no operation is recorded')
             return None
-        return self._send(command + (' ' + shlex.quote(root) if command in WORKFLOW_OPERATION_COMMANDS else ''))
+        return self._send(command + (' ' + shlex.quote(root) if command in WORKFLOW_OPERATION_COMMANDS else ''), keep_return=True)
 
     def _restore_workflow_return(self, value):
         """The view the workflow layer was opened from came back (Esc or b): its scroll returns, once. Its selection was
@@ -2373,9 +2379,16 @@ class Workspace:
         self.draw()
         return None
 
-    def _send(self, command, *, returning=False):
+    def _send(self, command, *, returning=False, keep_return=False):
         try: name = shlex.split(command)[0]
         except (ValueError, IndexError): name = ''
+        if name != 'workflow' and not returning and not keep_return:
+            # Any route away from the workflow layer but its own (Esc, b, Enter on a stage) forgets the view it was opened
+            # from: a later visit to that view is a new visit, so the scroll it had is not put back.
+            self._workflow_return = None
+        if name == 'workflow' and not returning:
+            # A new open starts at the position the records give; b from a surface the layer opened keeps its focus.
+            self.workflow_focus = None
         self.layer = 'summary'
         current = getattr(self, 'current_view', None)
         # A view is kept for b; so is the view shown before a command that is not a view, whose own result
@@ -2708,7 +2721,8 @@ class Workspace:
                     self.notice = CATALOG_READ_ONLY
                 elif getattr(self, 'layer', 'summary') == 'workflow' and char in ('a', 'e', 'r', 'f'):
                     # The same for the workflow map: no action list (it stages commands), no layer that would replace it.
-                    self.notice = WORKFLOW_READ_ONLY
+                    # The steps it shows name a: the notice says where that key works.
+                    self.notice = WORKFLOW_ACTIONS if char == 'a' else WORKFLOW_READ_ONLY
                 elif char in (':', '/'):
                     self.mode = 'search' if char == '/' else 'command'; self.buffer = ''; self.cursor = 0
                 elif char == 'f':

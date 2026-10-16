@@ -430,9 +430,9 @@ class UnknownOutcomeTests(unittest.TestCase):
         self.assertEqual((stages['reconcile']['state'], stages['reconcile']['reason']), ('done', 'desired_state_observed'))
         self.assertEqual((stages['record']['state'], stages['record']['reason']), ('not_applicable', 'no_verified_readback'))
         self.assertEqual(stages['maintain']['state'], 'not_recorded')
-        # The one step left is Delivery's own: collect to observe the policy, which is the observation after the change.
+        # The one step left is Delivery's own, said about the record that cannot be made: collect to observe the policy.
         self.assertEqual({name: stage['continuation'] for name, stage in stages.items() if stage['continuation']},
-                         {'observed_after': NO_RECORD_STEP})
+                         {'record': NO_RECORD_STEP})
 
     def test_a_diverged_reconciliation_is_blocked(self):
         delivery = executed_delivery('reconciled', reconciliation={'classification': 'diverged'})
@@ -1328,7 +1328,8 @@ class CommandTests(LayerFixture):
             result = self.cli('--root', self.store.root, '--policy', OBJECT, '--service-root', self.service.root,
                               encoding=encoding)
             self.assertEqual(result.returncode, 0, (encoding, result.stderr))
-            lanes = [str(row) for row in workflow_map_lines(flow, 80, rules, detail=False) if isinstance(row, MapLine)]
+            lanes = [str(row) for row in workflow_map_lines(flow, 80, rules, detail=False, keyboard=False)
+                     if isinstance(row, MapLine)]
             self.assertEqual(len(lanes), 11)
             lines = result.stdout.splitlines()
             for lane in lanes:
@@ -1579,6 +1580,317 @@ class InvariantTests(unittest.TestCase):
                 self.assertNotIn(stages[flow['position']]['state'], ('not_recorded', 'not_applicable'), key)
             json.dumps(flow, allow_nan=False)
         self.assertEqual(count, 7 * 3 * 5 * 4 * 5 * 5)
+
+
+
+# ---- fixes from an independent review of the first nine commits ------------------------------------------------------
+
+class ReviewPureTests(unittest.TestCase):
+    def test_a_consumer_mismatch_gives_the_step_diagnostics_recorded_not_a_refresh_that_would_be_refused(self):
+        step = ('Proposals and execution refuse this intent until the component consumes exactly this policy; fix the '
+                'component, then choose Refresh the repository intent (a: actions).')
+        read = baseline()
+        read['states']['intent']['status'] = 'consumer_changed'
+        read['attention'] = {'status': 'attention', 'checked': {}, 'signals': [
+            {'area': 'repository', 'code': 'repository_consumer_mismatch', 'observed': 'x', 'evidence': {}, 'next_step': step}]}
+        stage = by_id(project(read))['intent']
+        self.assertEqual((stage['state'], stage['reason']), ('blocked', 'repository_consumer_mismatch'))
+        self.assertEqual(stage['continuation'], step)
+        self.assertNotIn('Refresh the repository intent first', stage['continuation'])
+        # With no step recorded there is none; the refresh sentence is for a repository that only changed.
+        read['attention']['signals'][0].pop('next_step')
+        self.assertIsNone(by_id(project(read))['intent']['continuation'])
+
+    def test_a_proposal_check_that_could_not_be_made_is_unknown_and_never_said_to_have_been_made(self):
+        read = baseline()
+        read['service_checked'] = True
+        read['eligibility'] = {'code': 'service_unavailable', 'reason': None, 'message': 'The service cannot be read.'}
+        stage = by_id(project(read))['observe']
+        self.assertEqual((stage['state'], stage['reason']), ('unknown', 'service_unavailable'))
+        self.assertEqual(stage['basis'], 'observation_eligibility.code')
+        self.assertEqual(stage['facts']['proposal_check'], 'could not be made')
+        # A check that was made and failed with a recorded reason is blocked, as before; one that passed is done.
+        read['eligibility'] = {'code': 'maintenance_observation_stale', 'reason': 'service_changed'}
+        read['states']['observation']['eligibility'] = dict(read['eligibility'])
+        stage = by_id(project(read))['observe']
+        self.assertEqual((stage['state'], stage['reason'], stage['facts']['proposal_check']),
+                         ('blocked', 'service_changed', 'made against the service'))
+        read['eligibility'], read['states']['observation']['eligibility'] = None, None
+        self.assertEqual(by_id(project(read))['observe']['state'], 'done')
+
+    def test_a_pending_readback_that_a_later_reconcile_resolved_is_unknown_and_repeats_no_stale_step(self):
+        delivery = executed_delivery('reconciled')
+        delivery['stages'][4] = stage_row('readback', 'pending', classification='matches_precondition', visibility_pending=True)
+        delivery['next_action'] = ('The service has not yet shown the change; reconcile again later with:\n'
+                                   '  reconcile /w/operation')
+        read = with_operation(baseline(), delivery=delivery, journal='reconciled',
+                              review=prepared_review('open', status='reconciled'))
+        stages = by_id(project(read))
+        self.assertEqual((stages['readback']['state'], stages['readback']['reason']), ('unknown', 'maintenance_service_incomplete'))
+        self.assertEqual(stages['reconcile']['state'], 'done')
+        self.assertEqual([name for name, stage in stages.items() if stage['continuation']], [])
+        # While the reconcile itself is still pending the stage waits, with Delivery's own step.
+        delivery['stages'][5] = stage_row('reconciliation', 'pending', classification='matches_precondition',
+                                          previous_status='outcome_unknown', count=1)
+        read = with_operation(baseline(), delivery=delivery, journal='outcome_unknown',
+                              review=prepared_review('open', status='outcome_unknown'))
+        stages = by_id(project(read))
+        self.assertEqual((stages['readback']['state'], stages['reconcile']['state']), ('waiting', 'waiting'))
+
+    def test_deliverys_step_for_a_record_that_cannot_be_made_belongs_to_the_record_stage(self):
+        delivery = executed_delivery('reconciled')
+        read = with_operation(baseline(), delivery=delivery, journal='reconciled',
+                              review=prepared_review('open', status='reconciled'))
+        stages = by_id(project(read))
+        self.assertEqual((stages['record']['state'], stages['record']['reason']), ('not_applicable', 'no_verified_readback'))
+        self.assertEqual(stages['record']['continuation'], NO_RECORD_STEP)
+        self.assertIsNone(stages['observed_after']['continuation'])
+        # The observation after the change keeps no step Delivery never gave for it.
+        delivery['stages'][7] = stage_row('observed_after', 'differs', service_revision=2)
+        read = with_operation(baseline(), delivery=delivery, journal='reconciled',
+                              review=prepared_review('open', status='reconciled'))
+        stages = by_id(project(read))
+        self.assertEqual((stages['observed_after']['state'], stages['observed_after']['continuation']), ('blocked', None))
+        self.assertEqual(stages['record']['continuation'], NO_RECORD_STEP)
+
+
+class ReviewStoreTests(LayerFixture):
+    def flow(self):
+        from intune_iac import workbench
+        return project(workbench._workflow_read(self.store, OBJECT, service_root=self.service.root))
+
+    def test_a_delay_in_the_services_visibility_then_a_reconcile_leaves_the_execution_unknown_and_no_stale_step(self):
+        from intune_iac import maintenance
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'], visibility_delay_reads=1)
+        stages = by_id(self.flow())
+        self.assertEqual((stages['readback']['state'], stages['readback']['reason']), ('waiting', 'visibility_pending'))
+        self.assertEqual(stages['reconcile']['state'], 'current')
+        maintenance.reconcile(self.operation)               # the service shows the change now
+        flow = self.flow()
+        stages = by_id(flow)
+        self.assertEqual((stages['readback']['state'], stages['readback']['reason']),
+                         ('unknown', 'maintenance_visibility_pending'))
+        self.assertEqual((stages['reconcile']['state'], stages['reconcile']['reason']), ('done', 'desired_state_observed'))
+        self.assertEqual([name for name, stage in stages.items() if stage['continuation']], [])
+        self.assertEqual(flow['position'], 'reconcile')
+
+    def test_after_a_lost_response_and_a_reconcile_the_step_is_deliverys_collect_on_the_record_stage(self):
+        from intune_iac import maintenance
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'], fault='lost-response')
+        maintenance.reconcile(self.operation)
+        stages = by_id(self.flow())
+        self.assertEqual({name: stage['continuation'] for name, stage in stages.items() if stage['continuation']},
+                         {'record': NO_RECORD_STEP})
+
+    def test_enter_on_propose_or_review_without_an_operation_opens_the_plan_list_the_surface_the_row_names(self):
+        self.import_intent()
+        for stage in ('propose', 'review'):
+            ws = self.layer_workspace(focus=stage)
+            self.assertIn('Enter opens 5 Plan', '\n'.join(str(row) for row in ws._workflow_lines(112)))
+            self.assertEqual(self.press(ws, 'enter'), 'operations', stage)
+            self.assertEqual((ws.tab, ws.selected), (4, OBJECT), stage)
+
+    def test_a_new_open_starts_at_the_position_and_a_return_from_a_surface_keeps_the_focus(self):
+        self.prepare()
+        key = lambda char: ('text', char)
+        select, opened = typed('select ' + OBJECT), typed('workflow')
+        sequence = select + opened + ['up', 'up', 'enter', key('b')] + ['escape'] + opened + [key('q')]
+        ws, _ = self.run_keys(sequence)
+        at = len(select) + len(opened)
+        self.assertEqual(ws.states[at + 2]['focus'], 'propose')                          # moved two up from the position
+        self.assertEqual((ws.states[at + 4]['layer'], ws.states[at + 4]['focus']), ('workflow', 'propose'))   # b: same focus
+        # Esc, then the command again: a new open, so the focus is the position the records give.
+        again = at + 5 + len(opened)
+        self.assertEqual((ws.states[again]['layer'], ws.states[again]['focus']), ('workflow', None))
+
+    def test_leaving_the_layer_by_another_route_forgets_the_view_it_was_opened_from(self):
+        self.prepare()
+        key = lambda char: ('text', char)
+        # The Inspector (command inspect), scrolled; the layer over it; Plan by its number key; then the Inspector again.
+        before = [key('1'), 'enter', key('2'), 'pagedown']
+        sequence = before + typed('workflow') + [key('5'), key('2'), key('q')]
+        ws, _ = self.run_keys(sequence, (80, 24))
+        self.assertGreater(ws.states[len(before)]['scroll'], 0)                  # the Inspector was scrolled
+        self.assertEqual(ws.states[-1]['tab'], 1)
+        self.assertEqual(ws.states[-1]['scroll'], 0)             # it is a new visit, not the return the layer promised
+
+    def test_a_in_the_layer_says_the_actions_wait_for_esc_and_e_r_and_f_say_read_only(self):
+        self.prepare()
+        ws = self.layer_workspace()
+        self.assertIsNone(self.press(ws, ('text', 'a')))
+        self.assertIn('Esc closes it, then a lists the actions', ws.notice)
+        for char in ('e', 'r', 'f'):
+            self.assertIsNone(self.press(ws, ('text', char)))
+            self.assertEqual(ws.notice, 'The workflow map is read-only; Esc closes it.', char)
+
+
+class ReviewTextTests(unittest.TestCase):
+    def test_the_text_form_has_no_keyboard_marks_and_names_its_marks_in_words(self):
+        from intune_iac.workbench_screens import MapLine, workflow_map_lines, workflow_text_lines
+        for rules in ('ascii', 'unicode'):
+            flow = flows()['unknown']
+            lines = workflow_text_lines(flow, 80, rules)
+            text = '\n'.join(str(line) for line in lines)
+            self.assertNotIn('? help', text)                          # there is no ? in a pipe
+            self.assertNotIn('> focus', text)
+            lanes = [str(row) for row in workflow_map_lines(flow, 80, rules, detail=False, keyboard=False)
+                     if isinstance(row, MapLine)]
+            self.assertEqual(len(lanes), 11)
+            self.assertTrue(all(lane in lines for lane in lanes), lanes)         # the text form prints those very lanes
+            self.assertFalse(any(row.startswith('>') for row in lanes), lanes)     # the position is @, nothing is focused
+            self.assertEqual([row[:2].strip() for row in lanes if row[:2].strip()], ['@'])
+            flat = ' '.join(text.split())
+            for item in ('[x] done', '[+] current', '[:] waiting', '[!] blocked', '[#] refused', '[?] unknown',
+                         '[_] not recorded', '[-] not applicable', '@ position'):
+                self.assertEqual(sum(item in line for line in text.splitlines()), 1, (rules, item))
+            self.assertIn('@ position', flat)
+            self.assertTrue(all(len(line) <= 80 for line in text.splitlines()))
+
+
+class ReviewInvariantTests(unittest.TestCase):
+    """Delivery's own order decides which stage a step belongs to; compare with its real _next_step over every combination."""
+    APPROVAL = ('done', 'waiting', 'expired', 'clock_unreadable', 'clock_uncertain', 'not_open', 'rejected')
+    EXECUTION = ('not_started', 'done', 'unknown')
+    READBACK = ('not_started', 'not_recorded', 'pending', 'failed', 'done')
+    RECONCILIATION = ('not_needed', 'required', 'pending', 'done')
+    RECORD = (('not_yet', None, False), ('available', None, False), ('done', None, False), ('done', None, True),
+              ('not_available', 'no_verified_readback', False), ('not_available', 'context_changed', False),
+              ('not_applicable', 'no_repository_intent_cited', False))
+    OBSERVED = ('not_yet', 'matches_desired', 'differs', 'unknown', 'not_applicable')
+
+    @staticmethod
+    def journal_for(approval, execution, reconciliation):
+        if approval == 'rejected':
+            return 'rejected'
+        if execution == 'unknown':
+            return 'reconciled' if reconciliation == 'done' else 'outcome_unknown'
+        return 'succeeded_verified' if execution == 'done' else 'prepared'
+
+    def combinations(self):
+        import itertools
+        for approval, execution, readback, reconciliation, record, observed in itertools.product(
+                self.APPROVAL, self.EXECUTION, self.READBACK, self.RECONCILIATION, self.RECORD, self.OBSERVED):
+            for proposal_changed in ((False, True) if approval == 'waiting' else (False,)):
+                status, reason, context = record
+                delivery = prepared_delivery()
+                delivery['journal_status'] = self.journal_for(approval, execution, reconciliation)
+                delivery['stages'][0]['context_changed'] = proposal_changed
+                delivery['stages'][2] = stage_row('approval', approval, opens_at=1, closes_at=2)
+                delivery['stages'][3] = stage_row('execution', execution, error_code='some_code' if execution == 'unknown' else None)
+                delivery['stages'][4] = stage_row('readback', readback, classification='desired_state_observed')
+                delivery['stages'][5] = stage_row('reconciliation', reconciliation, classification='desired_state_observed')
+                delivery['stages'][6] = stage_row('deployment_record', status, reason=reason, intent_id='e9274102',
+                                                  **({'context_changed': True} if context else {}))
+                delivery['stages'][7] = stage_row('observed_after', observed, observation_freshness='fresh')
+                yield (approval, execution, readback, reconciliation, record, observed, proposal_changed), delivery
+
+    @staticmethod
+    def branch(sentence):
+        """Which stage a Delivery sentence is about, from its words."""
+        if sentence.startswith('Nothing pending'):
+            return 'none'
+        if sentence == 'Collect to observe the policy after the change.' or sentence.startswith('The latest observation'):
+            return 'observed_after'
+        if ('deployment record' in sentence or sentence.startswith('Record the deployment')
+                or sentence.startswith('The deployment of')):
+            return 'record'
+        return 'earlier'
+
+    def test_the_stage_that_carries_deliverys_step_is_the_one_deliverys_own_order_gives_it_to(self):
+        from intune_iac.workbench_delivery import _next_step
+        count = carried = 0
+        for key, delivery in self.combinations():
+            named = {stage['stage']: stage for stage in delivery['stages']}
+            sentence = _next_step(named, '/w/operation', '/w/store')
+            delivery['next_action'] = sentence
+            journal = delivery['journal_status']
+            flow = project(with_operation(baseline(), delivery=delivery, journal=journal,
+                                          review=prepared_review('open', status=journal)))
+            owners = [stage['id'] for stage in flow['stages'] if stage['continuation'] == sentence]
+            count += 1
+            carried += bool(owners)
+            expected = self.branch(sentence)
+            if expected == 'none':
+                self.assertEqual(owners, [], (key, sentence))
+            elif expected in ('record', 'observed_after'):
+                self.assertEqual(owners, [expected], (key, sentence))
+            else:
+                self.assertTrue(all(owner not in ('record', 'observed_after') for owner in owners), (key, owners, sentence))
+        self.assertGreater(count, 14000)
+        self.assertGreater(carried, 1000)
+
+    def test_the_position_is_the_last_stage_with_a_recorded_state_and_the_branch_follows_its_outcome(self):
+        for key, delivery in self.combinations():
+            approval, execution, readback, reconciliation, record, observed, proposal_changed = key
+            journal = delivery['journal_status']
+            flow = project(with_operation(baseline(), delivery=delivery, journal=journal,
+                                          review=prepared_review('open', status=journal)))
+            stages = by_id(flow)
+            reached = [stage['id'] for stage in flow['stages'] if stage['state'] not in ('not_recorded', 'not_applicable')]
+            self.assertEqual(flow['position'], reached[-1], key)
+            # The reconcile branch is not applicable exactly when no reconciliation was needed, and present otherwise.
+            self.assertEqual(stages['reconcile']['state'] == 'not_applicable', reconciliation == 'not_needed', key)
+            if reconciliation in ('required', 'pending', 'done'):
+                self.assertIn(stages['reconcile']['state'], ('current', 'waiting', 'done', 'blocked'), key)
+            # The context a plan or its record was bound to changed: neither the approval nor the record reads as done.
+            if proposal_changed:
+                self.assertEqual(stages['approve_execute']['state'], 'blocked', key)
+            if record[2]:
+                self.assertEqual(stages['record']['state'], 'blocked', key)
+                self.assertEqual(stages['record']['reason'], 'context_changed', key)
+
+
+class ReviewReadOnlyTests(LayerFixture):
+    """The write-nothing guarantee holds for every operation state, not only a prepared one."""
+
+    def tree(self):
+        import hashlib
+        from pathlib import Path
+        names = ('observations.sqlite3', 'observations.sqlite3-wal', 'observations.sqlite3-shm')
+        files = [Path(self.store.root) / name for name in names]
+        files += [path for path in sorted(self.operation.rglob('*')) if path.is_file()]
+        return {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in files if path.exists()}
+
+    def reach(self, state):
+        from intune_iac import maintenance
+        from intune_iac.workbench_views import record_local_deployment
+        review = self.prepare()
+        if state in ('lost', 'reconciled'):
+            maintenance.execute(self.operation, approve_digest=review['approval_digest'], fault='lost-response')
+        if state == 'reconciled':
+            maintenance.reconcile(self.operation)
+        if state in ('verified', 'recorded', 'observed'):
+            maintenance.execute(self.operation, approve_digest=review['approval_digest'])
+        if state in ('recorded', 'observed'):
+            record_local_deployment(self.store, self.operation, self.intent['artifact_id'])
+        if state == 'observed':
+            self.store.collect(self.service)
+
+    def test_no_key_and_neither_command_form_changes_anything_whatever_the_operation_state(self):
+        import subprocess
+        import sys
+        from pathlib import Path
+        key = lambda char: ('text', char)
+        script = Path(__file__).resolve().parents[1] / 'scripts/intune-iac.py'
+        for state in ('lost', 'reconciled', 'verified', 'recorded', 'observed'):
+            self.setUp()                            # a fresh store, service, repository and operation for each state
+            self.reach(state)
+            before = self.tree()
+            self.assertTrue(before, state)
+            snapshots = []
+            sequence = (typed('select ' + OBJECT) + typed('workflow') + ['down'] * 6 + ['enter', key('b')] + ['up', 'up', 'enter', key('b')]
+                        + [key('a'), key('e'), key('r'), key('f'), 'home', 'escape', key('q')])
+            self.run_keys(sequence, watch=lambda index, ws: snapshots.append(self.tree()))
+            self.assertGreater(len(snapshots), 20, state)
+            self.assertTrue(all(snapshot == before for snapshot in snapshots), state)
+            for extra in ((), ('--json',)):
+                result = subprocess.run([sys.executable, str(script), 'workbench', 'workflow', '--root', str(self.store.root),
+                                         '--policy', OBJECT, '--service-root', str(self.service.root), *extra],
+                                        text=True, capture_output=True, cwd='/tmp')
+                self.assertEqual(result.returncode, 0, (state, result.stderr))
+                self.assertEqual(self.tree(), before, (state, extra))
 
 
 if __name__ == "__main__":

@@ -74,22 +74,29 @@ def _row(state, basis, reason=None, facts=None):
 
 # ---- the stages that read the policy's own records -------------------------------------------------------------------
 
-def _observe(states, service_checked=None):
+def _observe(states, service_checked=None, check=None):
+    """check: the proposal's own observation check as the read model reports it (None when it passed or none was made);
+    one that raised is a code with no reason, and means the check could not be made."""
     from .workbench_diagnostics import clock_hold
     observation = states.get('observation')
     if not isinstance(observation, dict):
         return _row('not_recorded', 'states.observation')
     reasons = [item for item in observation.get('freshness_reasons') or [] if isinstance(item, str)]
     facts = _facts(observation, ('run_id', 'observed_at', 'coverage', 'freshness'))
+    unmade = _text(check.get('code')) if isinstance(check, dict) and not _text(check.get('reason')) else None
     if isinstance(service_checked, bool):
         # Without a modeled service only the age is judged: a source that moved on is not known, so it is not claimed.
-        facts['proposal_check'] = 'made against the service' if service_checked else 'not made: no service root'
+        facts['proposal_check'] = (('could not be made' if unmade else 'made against the service') if service_checked
+                                   else 'not made: no service root')
     freshness = observation.get('freshness')
     if freshness == 'fresh':
         # Fresh by age is not current: the source can have moved on since (the proposal's own check says so).
         eligibility = _text(_dict(observation.get('eligibility')).get('reason'))
         if eligibility:
             return _row('blocked', 'states.observation.eligibility.reason', eligibility, facts)
+        if unmade:
+            # Whether the source moved on could not be checked, so a fresh age is not read as a current observation.
+            return _row('unknown', 'observation_eligibility.code', unmade, facts)
         return _row('done', 'states.observation.freshness', None, facts)
     # An age that cannot be established (a clock hold, a stamp ahead of this host's clock) is unknown, never stale.
     unestablished = clock_hold(reasons) or ('stamped_after_now' if 'stamped_after_now' in reasons else None)
@@ -200,9 +207,10 @@ def _readback(by, journal_status, tag, error):
     facts = _facts(readback, ('classification', 'second_plan', 'mismatch_count'))
     if status == 'not_started':
         return _row('not_recorded', '%s delivery stage readback' % tag)
-    if status == 'pending':
+    if status == 'pending' and _dict(by.get('reconciliation')).get('status') != 'done':
         # The readback is recorded and the service has not yet shown the change: the stage waits, whatever the journal
-        # says of the outcome meanwhile.
+        # says of the outcome meanwhile. A reconcile that finished since superseded the receipt: the execution's own
+        # readback was never verified, which is the unknown below.
         return _row('waiting', '%s delivery stage readback' % tag, 'visibility_pending', facts)
     if execution.get('status') == 'unknown' or status in ('not_recorded', 'failed'):
         # Dispatch is recorded and a verified readback of its own is not: the outcome stays unknown, whatever a later
@@ -306,9 +314,12 @@ def _delivery_owner(by):
     if reconciliation.get('status') == 'required':
         return 'reconcile'
     if 'pending' in (readback.get('status'), reconciliation.get('status')):
+        if reconciliation.get('status') == 'done':
+            # The pending receipt is stale: a reconcile finished after it. Delivery still words its step as "reconcile
+            # again later", so the step is not repeated, and no other sentence of Delivery's is available here.
+            return None
         return 'reconcile' if reconciliation.get('status') == 'pending' else 'readback'
-    if (record.get('status') == 'available' or (record.get('status') == 'not_available' and record.get('reason') == 'context_changed')
-            or (record.get('status') == 'done' and record.get('context_changed'))):
+    if record.get('status') in ('available', 'not_available') or (record.get('status') == 'done' and record.get('context_changed')):
         return 'record'
     if observed.get('status') in ('not_yet', 'differs', 'unknown'):
         return 'observed_after'
@@ -333,8 +344,10 @@ def _continuations(rows, read, by, delivery):
         steps['observe'] = _signal_step(signals, OBSERVATION_SIGNALS)
     status = _dict(states.get('intent')).get('status')
     if rows['intent']['state'] in ('blocked', 'unknown'):
+        # A repository that changed is refreshed (the Repository surface's step). A component that no longer consumes the
+        # policy cannot be refreshed into a proposal: diagnostics recorded the step that says to fix the component first.
         steps['intent'] = (lifecycle_next(8, {'freshness': {'status': 'stale'}}, now, eligibility)
-                           if status in ('changed', 'consumer_changed') else _signal_step(signals, REPOSITORY_SIGNALS))
+                           if status == 'changed' else _signal_step(signals, REPOSITORY_SIGNALS))
     if rows['propose']['state'] == 'not_recorded' and rows['intent']['state'] == 'done':
         # The Repository surface's own step for a current intent: prepare a proposal, or say a proposal is blocked now.
         steps['propose'] = lifecycle_next(8, {'freshness': {'status': 'current'}}, now, eligibility)
@@ -351,7 +364,9 @@ def _continuations(rows, read, by, delivery):
                 steps[stage] = RECONCILE_NEXT
     owner = _delivery_owner(by)
     next_action = _text(_dict(delivery).get('next_action'))
-    if owner and next_action and owner not in steps and rows[owner]['state'] not in ('done', 'not_applicable'):
+    # A stage that does not apply has no step, except a record that cannot be made: Delivery words its step about it.
+    unmade = owner == 'record' and _dict(by.get('deployment_record')).get('status') == 'not_available'
+    if owner and next_action and owner not in steps and (unmade or rows[owner]['state'] not in ('done', 'not_applicable')):
         steps[owner] = next_action
     if rows['maintain']['state'] == 'blocked' and signals:
         # The step of the very signal whose code is the stage's reason, never another signal's.
@@ -377,8 +392,8 @@ def project(read):
     states, attention = _dict(read.get('states')), _dict(read.get('attention'))
     operation = states.get('operation') if isinstance(states.get('operation'), dict) else None
     delivery = read.get('delivery') if isinstance(read.get('delivery'), dict) else None
-    rows = {'observe': _observe(states, read.get('service_checked')), 'adopt': _adopt(read.get('adoptions')),
-            'intent': _intent(states)}
+    rows = {'observe': _observe(states, read.get('service_checked'), read.get('eligibility')),
+            'adopt': _adopt(read.get('adoptions')), 'intent': _intent(states)}
     if operation is None:
         absent = _row('not_recorded', 'states.operation')
         rows.update({stage: dict(absent) for stage in ('propose', 'review', 'approve_execute', 'readback', 'reconcile',

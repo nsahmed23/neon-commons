@@ -2415,13 +2415,20 @@ def workflow_detail_rows(flow, stage, width):
     return rows
 
 
-def workflow_map_lines(flow, width, rules='ascii', focus=None, prefixes=None, detail=True):
+def workflow_text_legend(width):
+    """The marks in words, packed into as few rows as fit, for the plain-text form: no key, no focus."""
+    items = ['[%s] %s' % (mark, state.replace('_', ' ')) for state, mark in WORKFLOW_MARKS.items()] + ['@ position']
+    return _pack(items, width)
+
+
+def workflow_map_lines(flow, width, rules='ascii', focus=None, prefixes=None, detail=True, keyboard=True):
     """The workflow map of one policy, then its legend and the focused stage's rows, for a pane `width` cells wide.
 
     One lane per stage, in the projection's order. The rows of the lanes are MapLines (geometry: the pane never wraps
     them); the header is ordinary text; the legend, the focused stage's identity and the head of its step are
     PinnedRows, which the pane keeps in view when the map is taller than it. focus: a stage id (default: the position,
-    else the first stage). detail=False leaves the focused stage's rows out (the plain-text form lists every stage)."""
+    else the first stage). detail=False leaves the focused stage's rows out (the plain-text form lists every stage).
+    keyboard=False is the plain-text form: nothing is focused, and the legend names the marks in words, not a key."""
     glyph = MAP_GLYPHS.get(rules, MAP_GLYPHS['ascii'])
     stages = [stage for stage in flow.get('stages') or [] if isinstance(stage, dict)]
     ids = [stage.get('id') for stage in stages]
@@ -2436,11 +2443,14 @@ def workflow_map_lines(flow, width, rules='ascii', focus=None, prefixes=None, de
         spine = (glyph['guide'] if branch else '') + glyph['last' if last or branch else 'branch']
         mark, word = _workflow_state(stage.get('state'))
         room = WORKFLOW_LABEL_WIDTH - (WORKFLOW_BRANCH_INDENT if branch else 0)
-        gutter = ('>' if stage.get('id') == focus else ' ') + ('@' if stage.get('id') == position else ' ') + ' '
+        gutter = ('>' if keyboard and stage.get('id') == focus else ' ') + ('@' if stage.get('id') == position else ' ') + ' '
         lines.append(_map_row('%s%s[%s] %s %s' % (gutter, spine, mark, pad(workflow_stage_label(stage), room),
-                                                  pad(word, WORKFLOW_WORD_WIDTH)), stage.get('id') == focus))
-    forms = workflow_legends()
-    lines.append(PinnedRow(next((form for form in forms if cell_width(form) <= width), forms[-1])))
+                                                  pad(word, WORKFLOW_WORD_WIDTH)), keyboard and stage.get('id') == focus))
+    if keyboard:
+        forms = workflow_legends()
+        lines.append(PinnedRow(next((form for form in forms if cell_width(form) <= width), forms[-1])))
+    else:
+        lines += workflow_text_legend(width)
     chosen = next((stage for stage in stages if stage.get('id') == focus), None)
     if detail and chosen is not None:
         lines += workflow_detail_rows(flow, chosen, width)
@@ -2457,7 +2467,7 @@ def workflow_text_lines(flow, width, rules='ascii', prefixes=None):
     keyboard reaches one stage's detail at a time; this lists all of them, so no stage's step is left out of a pipe."""
     stages = [stage for stage in flow.get('stages') or [] if isinstance(stage, dict)]
     if width >= WORKFLOW_LANE_WIDTH:
-        lines = [str(row) for row in workflow_map_lines(flow, width, rules, prefixes=prefixes, detail=False)]
+        lines = [str(row) for row in workflow_map_lines(flow, width, rules, prefixes=prefixes, detail=False, keyboard=False)]
     else:
         name = flow.get('name') if isinstance(flow.get('name'), str) and flow['name'] else None
         lines = word_wrap('[WORKFLOW] %s (%s) | %s' % (name or '(no name)', short_id(flow.get('object_id'), prefixes),
