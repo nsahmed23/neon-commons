@@ -209,7 +209,10 @@ class LiveCompanion:
         self._close_error = None   # why the last attempt failed; meaningful in close_failed only
         self._close_note = None    # a close problem that was recovered from (diagnostic only, never the end reason)
         self._serving_stopped = False
-        self._pending = None       # a failure met where nobody was waiting, kept until one caller has been given it
+        # Failures met where nobody was waiting, kept until a caller has been given them. This is separate from the state
+        # (which only the newest attempt may publish): a superseded attempt still records its failure here.
+        self._undelivered = []
+        self._consumed = False     # the failure behind the current close_failed state has been given to a waiter
         self._generation = 0       # one per stop attempt; only the newest attempt may publish a state
         self._writers = 0          # handlers admitted to write a protected response, until they have finished
         self._thread = None
@@ -252,8 +255,8 @@ class LiveCompanion:
                 self.ended = reason
 
     def _stop_in_background(self):
-        """Stop from a thread nobody waits on. A failure is not raised into it: it stays pending (see _publish) until the
-        next caller of wait(), wait_step() or stop() has been given it, once, even if that caller's retry then closes."""
+        """Stop from a thread nobody waits on. A failure is not raised into it: it is kept (see _publish) until the next
+        caller of wait(), wait_step() or stop() claims it, even if that caller's own retry then closes or fails."""
         try:
             self._run_stop(background=True)
         except BaseException:
@@ -321,13 +324,10 @@ class LiveCompanion:
                 raise
         with self._lock:
             state, error, reason = self._state, self._close_error, self.ended or 'stopped'
-            if state == 'close_failed':
-                self._pending = None       # this is the delivery of the failure the background met
-            elif state == 'closed':
-                error, self._pending = self._pending, None
+        claimed = self._claim(consumes_state=state == 'close_failed')
+        if claimed:
+            raise self._delivery(claimed)
         if state == 'close_failed':
-            raise self._close_failure(error)
-        if state == 'closed' and error is not None:
             raise self._close_failure(error)
         return reason if state == 'closed' else None
 
@@ -426,18 +426,37 @@ class LiveCompanion:
         return problem
 
     def _publish(self, generation, state, error=None, note=None, background=False):
-        """Record the outcome of a stop attempt, unless a newer attempt has taken over: a late finish never overwrites.
-        A failure of a background attempt also stays pending, because no caller is there to receive it."""
+        """Record the outcome of a stop attempt, unless a newer attempt has taken over: a late finish never overwrites the
+        state. Its failure is still recorded when it was a background attempt, because no caller is there to receive it."""
         with self._changed:
+            if background and error is not None:
+                self._undelivered.append(error)
             if self._generation != generation:
                 return False
             self._state, self._close_error = state, error
             if state == 'closed':
                 self._close_note = note
             else:
-                self._pending = error if background else None
+                self._consumed = False
             self._changed.notify_all()
             return True
+
+    def _claim(self, consumes_state=False):
+        """Atomically take every failure nobody has been given yet; a failure that arrives later waits for the next caller."""
+        with self._lock:
+            claimed, self._undelivered = self._undelivered, []
+            if claimed and consumes_state:
+                self._consumed = True
+            return claimed
+
+    def _delivery(self, claimed, own=None):
+        """One error for a caller: chained from the earliest failure, naming by class every later one and the caller's own
+        (no address, no token)."""
+        report = AppError('companion_live_close_failed', 'The listener could not be closed: %s' % type(claimed[0]).__name__)
+        report.__cause__ = claimed[0]
+        for later in claimed[1:] + ([own] if own is not None else []):
+            report.add_note('Also failed: %s' % type(later).__name__)
+        return report
 
     def stop(self):
         return self._run_stop(background=False)
@@ -468,6 +487,9 @@ class LiveCompanion:
         except BaseException as error:
             self._publish(mine, 'close_failed', error, background=background)
             if role == 'retry' and isinstance(error, Exception):
+                claimed = [] if background else self._claim()
+                if claimed:
+                    raise self._delivery(claimed, own=error)
                 raise self._close_failure(error) from error
             raise
         if self._publish(mine, 'closed', note=problem):
@@ -475,14 +497,9 @@ class LiveCompanion:
             if self._watchdog is not None and self._watchdog is not threading.current_thread():
                 self._watchdog.join(STOP_WAIT_SECONDS)
         if not background:
-            self._deliver_pending()
-
-    def _deliver_pending(self):
-        """Give this caller the failure a background stop met earlier, if nobody has had it yet; only once."""
-        with self._lock:
-            error, self._pending = self._pending, None
-        if error is not None:
-            raise self._close_failure(error)
+            claimed = self._claim()
+            if claimed:
+                raise self._delivery(claimed)
 
     def _follow(self, background):
         with self._changed:
@@ -490,12 +507,12 @@ class LiveCompanion:
             settled = self._changed.wait_for(self._settled, STOP_WAIT_SECONDS)
             state, error = self._state, self._close_error
         if settled:
+            claimed = [] if background else self._claim(consumes_state=state == 'close_failed')
+            if claimed:
+                raise self._delivery(claimed)
             if state == 'close_failed':
-                if not background:
-                    with self._lock:
-                        self._pending = None
                 raise self._close_failure(error)
-            return None if background else self._deliver_pending()
+            return None
         # The stopper outlived the bound. Close the socket here, check that it is closed, and say what is true. This
         # attempt takes over the state, so a stopper that finishes later cannot overwrite it; the next stop() retries.
         forced = self._raw_close(wake=True)
@@ -507,10 +524,11 @@ class LiveCompanion:
         failure = AppError('companion_live_stop_timeout', message)
         failure.__cause__ = forced
         with self._changed:
+            if background:
+                self._undelivered.append(failure)
             if self._state == 'stopping' and self._generation == generation:
                 self._generation += 1
-                self._state, self._close_error = 'close_failed', failure
-                self._pending = failure if background else None
+                self._state, self._close_error, self._consumed = 'close_failed', failure, False
                 self._changed.notify_all()
         raise failure
 

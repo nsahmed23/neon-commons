@@ -1046,6 +1046,84 @@ class StopTests(Fixture):
         live.stop()
         self.assertEqual(live.wait_step(), 'idle', 'the first recorded reason stays the end reason')
 
+    def scripted_drain(self, live, *outcomes):
+        """Replace the writer drain by a script: each call raises the next outcome if it is an exception, else returns."""
+        remaining = list(outcomes)
+
+        def drain():
+            outcome = remaining.pop(0) if remaining else None
+            if outcome is not None:
+                raise outcome
+        patch = mock.patch.object(live, '_drain_writers', drain)
+        patch.start()
+        self.addCleanup(patch.stop)
+
+    def settle(self, live, state='close_failed'):
+        for _ in range(100):
+            if live._state == state:
+                return
+            threading.Event().wait(0.05)
+        self.fail('the listener did not reach %s' % state)
+
+    def test_a_foreground_retry_that_fails_does_not_lose_the_background_failure_before_it(self):
+        from intune_iac.io import AppError
+        live = self.start()
+        first, second = OSError('first, in the background'), KeyError('second, in the retry')
+        self.scripted_drain(live, first, second)
+        live.end('idle', wait=False)
+        self.settle(live)
+        with self.assertRaises(AppError) as caught:
+            live.stop()
+        self.assertEqual(caught.exception.code, 'companion_live_close_failed')
+        self.assertIs(caught.exception.__cause__, first, 'the earliest failure is the cause')
+        self.assertIn('KeyError', ' '.join(getattr(caught.exception, '__notes__', [])), 'the retry\'s own failure is named')
+        live.stop()
+        self.assertEqual(live.wait_step(), 'idle')
+
+    def test_two_background_failures_before_any_caller_are_delivered_together(self):
+        from intune_iac.io import AppError
+        live = self.start()
+        first, second = OSError('first'), KeyError('second')
+        self.scripted_drain(live, first, second)
+        live.end('idle', wait=False)
+        self.settle(live)
+        live._stop_in_background()
+        with self.assertRaises(AppError) as caught:
+            live.stop()
+        self.assertIs(caught.exception.__cause__, first)
+        self.assertIn('KeyError', ' '.join(getattr(caught.exception, '__notes__', [])))
+        live.stop()
+        self.assertEqual(live.wait_step(), 'idle')
+
+    def test_a_stale_background_attempt_that_fails_after_being_superseded_is_still_delivered(self):
+        from intune_iac import companion_live
+        from intune_iac.io import AppError
+        live = self.start()
+        stale = KeyError('stale attempt')
+        drained = threading.Event()
+
+        def failing_drain_once(remaining=[stale]):
+            if remaining:
+                drained.set()
+                raise remaining.pop()
+        patch = mock.patch.object(live, '_drain_writers', failing_drain_once)
+        patch.start()
+        self.addCleanup(patch.stop)
+        entered, release = self.hold_first_stopper(live)
+        live.end('idle', wait=False)
+        self.assertTrue(entered.wait(5), 'the background attempt is inside shutdown()')
+        with mock.patch.object(companion_live, 'STOP_WAIT_SECONDS', 0.2):
+            with self.assertRaises(AppError) as timeout:
+                live.stop()       # a foreground follower: times out and takes the state over
+        self.assertEqual(timeout.exception.code, 'companion_live_stop_timeout')
+        release.set()
+        self.assertTrue(drained.wait(5), 'the superseded attempt went on and failed')
+        threading.Event().wait(0.2)
+        with self.assertRaises(AppError) as caught:
+            live.stop()
+        self.assertIs(caught.exception.__cause__, stale)
+        self.assertTrue(live.is_closed)
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500
