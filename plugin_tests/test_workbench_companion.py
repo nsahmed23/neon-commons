@@ -307,6 +307,31 @@ class FailingStopTests(Fixture):
         with self.assertRaises(OSError):
             socket.create_connection(('127.0.0.1', self.listeners[0].port), timeout=2)
 
+    def fail_in_the_background(self):
+        """The listener's own stop failed in a background thread (its drain of writers timed out) and was not seen."""
+        from intune_iac.io import AppError
+        live = self.listeners[0]
+        patch = unittest.mock.patch.object(live, '_drain_writers',
+                                           side_effect=[AppError('companion_live_writer_timeout', 'held'), None])
+        patch.start()
+        self.addCleanup(patch.stop)
+        live.end('idle', wait=False)
+        for _ in range(100):
+            if live._state == 'close_failed':
+                break
+            threading.Event().wait(0.05)
+        self.assertEqual(live._state, 'close_failed')
+
+    def test_a_listener_confirmed_closed_leaves_held_while_the_saved_failure_is_still_shown(self):
+        results = self.run_terminal('select ' + self.object_id, 'companion serve', self.fail_in_the_background,
+                                    'companion stop', 'companion serve', 'quit')
+        shown = [item['error']['code'] if item.get('status') == 'error' else
+                 ('serving' if 'address' in item else item.get('stopped'))
+                 for item in results if isinstance(item, dict) and (item.get('status') == 'error' or 'address' in item
+                                                                    or item.get('stopped'))]
+        self.assertEqual(shown, ['serving', 'companion_live_close_failed', 'serving'])
+        self.assertTrue(self.listeners[0].is_closed)
+
     def test_an_error_escaping_the_session_is_not_replaced_by_a_failing_stop(self):
         from intune_iac.workbench import _run_terminal
 

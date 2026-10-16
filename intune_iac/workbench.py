@@ -1266,7 +1266,9 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                 listener.stop()
             except Exception as error:
                 failure = failure or error
-                continue
+                # The failure is shown, but a listener that is confirmed closed is no longer one the session holds.
+                if not getattr(listener, 'is_closed', False):
+                    continue
             held.remove(listener)
         if failure is None:
             return

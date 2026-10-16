@@ -998,6 +998,54 @@ class StopTests(Fixture):
         live.stop()
         self.assertEqual(live.wait_step(), 'stopped')
 
+    def fail_in_the_background(self, how):
+        """A stop that nobody is waiting on fails: a writer is held past the drain bound while the watchdog ('watchdog') or a
+        request thread's hand-over ('handover') does the stopping. Returns the listener once its close has failed and the
+        writer has finished, so that the next caller's retry can succeed."""
+        from intune_iac import companion_live
+        patch = mock.patch.object(companion_live, 'STOP_WAIT_SECONDS', 0.2)
+        patch.start()
+        self.addCleanup(patch.stop)
+        live = self.start(idle_seconds=600)
+        _, release, client, _ = self.hold_a_writer()
+        if how == 'watchdog':
+            self.clock.now += 601
+        else:
+            live.end('idle', wait=False)
+        for _ in range(100):
+            if live._state == 'close_failed':
+                break
+            threading.Event().wait(0.05)
+        self.assertEqual(live._state, 'close_failed', 'precondition: the background stop failed')
+        release.set()
+        client.join(5)
+        return live
+
+    def test_a_background_failure_is_delivered_once_to_the_next_stop_even_when_its_retry_closes_the_listener(self):
+        from intune_iac.io import AppError
+        for how in ('watchdog', 'handover'):
+            with self.subTest(how=how):
+                live = self.fail_in_the_background(how)
+                with self.assertRaises(AppError) as first:
+                    live.stop()
+                self.assertEqual(first.exception.code, 'companion_live_close_failed')
+                self.assertEqual(first.exception.__cause__.code, 'companion_live_writer_timeout')
+                self.assertTrue(live.is_closed, 'the retry still closed the listener')
+                self.assertFalse(self.port_accepts(live))
+                live.stop()
+                self.assertEqual(live.wait_step(), 'idle')
+
+    def test_a_background_failure_is_delivered_once_to_the_next_wait(self):
+        # Guard: this already held on the state alone; the point is that the one delivery is not repeated by what follows.
+        from intune_iac.io import AppError
+        live = self.fail_in_the_background('watchdog')
+        with self.assertRaises(AppError) as first:
+            live.wait(poll=0.01)
+        self.assertEqual(first.exception.code, 'companion_live_close_failed')
+        self.assertEqual(first.exception.__cause__.code, 'companion_live_writer_timeout')
+        live.stop()
+        self.assertEqual(live.wait_step(), 'idle', 'the first recorded reason stays the end reason')
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500

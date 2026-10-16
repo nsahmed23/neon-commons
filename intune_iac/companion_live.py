@@ -209,6 +209,7 @@ class LiveCompanion:
         self._close_error = None   # why the last attempt failed; meaningful in close_failed only
         self._close_note = None    # a close problem that was recovered from (diagnostic only, never the end reason)
         self._serving_stopped = False
+        self._pending = None       # a failure met where nobody was waiting, kept until one caller has been given it
         self._generation = 0       # one per stop attempt; only the newest attempt may publish a state
         self._writers = 0          # handlers admitted to write a protected response, until they have finished
         self._thread = None
@@ -241,27 +242,31 @@ class LiveCompanion:
         """The idle limit, enforced by the listener itself so that no caller has to remember to."""
         while not self._stop.wait(WATCH_SECONDS):
             if self.expired():
-                self._end_quietly('idle')
+                self._record_reason('idle')
+                self._stop_in_background()
                 return
 
-    def _end_quietly(self, reason, wait=True):
-        """end() for a thread nobody waits on: a failure is recorded in the state, where every waiter and later stop()
-        raises it, so it is not also raised into a thread that has no caller."""
+    def _record_reason(self, reason):
+        with self._lock:
+            if self.ended is None:
+                self.ended = reason
+
+    def _stop_in_background(self):
+        """Stop from a thread nobody waits on. A failure is not raised into it: it stays pending (see _publish) until the
+        next caller of wait(), wait_step() or stop() has been given it, once, even if that caller's retry then closes."""
         try:
-            self.end(reason, wait)
-        except Exception:
+            self._run_stop(background=True)
+        except BaseException:
             pass
 
     def end(self, reason, wait=True):
         """End the listener and record why (the first reason stays). wait=False hands the stopping to another thread,
         for a caller that is itself one of the listener's request threads."""
-        with self._lock:
-            if self.ended is None:
-                self.ended = reason
+        self._record_reason(reason)
         if wait:
             self.stop()
         else:
-            threading.Thread(target=self._end_quietly, args=(reason,), daemon=True).start()
+            threading.Thread(target=self._stop_in_background, daemon=True).start()
 
     def begin_write(self):
         """Admit a handler to write protected content: refused once stopping has begun; otherwise it is counted, in the same
@@ -316,7 +321,13 @@ class LiveCompanion:
                 raise
         with self._lock:
             state, error, reason = self._state, self._close_error, self.ended or 'stopped'
+            if state == 'close_failed':
+                self._pending = None       # this is the delivery of the failure the background met
+            elif state == 'closed':
+                error, self._pending = self._pending, None
         if state == 'close_failed':
+            raise self._close_failure(error)
+        if state == 'closed' and error is not None:
             raise self._close_failure(error)
         return reason if state == 'closed' else None
 
@@ -414,18 +425,24 @@ class LiveCompanion:
         self._drain_writers()
         return problem
 
-    def _publish(self, generation, state, error=None, note=None):
-        """Record the outcome of a stop attempt, unless a newer attempt has taken over: a late finish never overwrites."""
+    def _publish(self, generation, state, error=None, note=None, background=False):
+        """Record the outcome of a stop attempt, unless a newer attempt has taken over: a late finish never overwrites.
+        A failure of a background attempt also stays pending, because no caller is there to receive it."""
         with self._changed:
             if self._generation != generation:
                 return False
             self._state, self._close_error = state, error
             if state == 'closed':
                 self._close_note = note
+            else:
+                self._pending = error if background else None
             self._changed.notify_all()
             return True
 
     def stop(self):
+        return self._run_stop(background=False)
+
+    def _run_stop(self, background):
         """Stop the listener; returns once the port is closed. A call that is not the first waits for the first to finish
         closing it; if that takes longer than STOP_WAIT_SECONDS it closes the raw listening socket itself, verifies it, and
         raises, so it never returns with the port bound unannounced and never reports an end that has not happened. After
@@ -444,12 +461,12 @@ class LiveCompanion:
                 self._generation += 1
                 mine = self._generation
         if role == 'follower':
-            return self._follow()
+            return self._follow(background)
         self._stop.set()
         try:
             problem = self._shut_down_and_close()
         except BaseException as error:
-            self._publish(mine, 'close_failed', error)
+            self._publish(mine, 'close_failed', error, background=background)
             if role == 'retry' and isinstance(error, Exception):
                 raise self._close_failure(error) from error
             raise
@@ -457,16 +474,28 @@ class LiveCompanion:
             # Publish before this join: the watchdog may itself be waiting above as a second caller.
             if self._watchdog is not None and self._watchdog is not threading.current_thread():
                 self._watchdog.join(STOP_WAIT_SECONDS)
+        if not background:
+            self._deliver_pending()
 
-    def _follow(self):
+    def _deliver_pending(self):
+        """Give this caller the failure a background stop met earlier, if nobody has had it yet; only once."""
+        with self._lock:
+            error, self._pending = self._pending, None
+        if error is not None:
+            raise self._close_failure(error)
+
+    def _follow(self, background):
         with self._changed:
             generation = self._generation
             settled = self._changed.wait_for(self._settled, STOP_WAIT_SECONDS)
             state, error = self._state, self._close_error
         if settled:
             if state == 'close_failed':
+                if not background:
+                    with self._lock:
+                        self._pending = None
                 raise self._close_failure(error)
-            return
+            return None if background else self._deliver_pending()
         # The stopper outlived the bound. Close the socket here, check that it is closed, and say what is true. This
         # attempt takes over the state, so a stopper that finishes later cannot overwrite it; the next stop() retries.
         forced = self._raw_close(wake=True)
@@ -481,6 +510,7 @@ class LiveCompanion:
             if self._state == 'stopping' and self._generation == generation:
                 self._generation += 1
                 self._state, self._close_error = 'close_failed', failure
+                self._pending = failure if background else None
                 self._changed.notify_all()
         raise failure
 
