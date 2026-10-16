@@ -86,7 +86,11 @@ mark written on every read. No observed judgment is ever reversed.
 private attempt directory, including invalid JSON/signatures. It distinguishes
 byte SHA-256 from canonical content SHA-256. It derives ledger/head keys only
 from frozen verified content, never a caller's subsequently mutable dictionary.
-Same-content repeated requests are idempotent; conflicting content for an admitted
+Same-content repeated requests keep logical idempotence: in the admitting boot the `received` and
+`received_session` rows are unchanged, but an attempt directory, the clock floor, the heads row and the result are still
+written. Each receipt keeps the boot session that admitted it; a re-ingest or a current reopen in another boot, or of a
+receipt with no recorded session, is refused with `worker_evidence_clock_continuity_lost` before any other rule (a new collect
+and ingest is the recovery). Conflicting content for an admitted
 request, decreasing event sequences and same-sequence event forks are refused.
 A local receipt does not establish globally linearizable ordering across clients.
 Every reopen checks retained byte hashes, signature, scope and current trust/time;

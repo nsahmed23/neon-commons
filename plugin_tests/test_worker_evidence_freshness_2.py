@@ -172,5 +172,25 @@ class PosixBootContinuityTests(unittest.TestCase):
         self.assertEqual(refused.exception.code, 'worker_evidence_clock_continuity_lost')
 
 
+DOCS = Path(__file__).resolve().parents[1] / 'docs'
+
+
+class DocumentedLimitsTests(unittest.TestCase):
+    """The documents state the limits the code has, in the words the review asked for."""
+
+    def test_the_posix_document_calls_a_same_boot_re_ingest_logical_idempotence(self):
+        text = (DOCS / 'WORKER-EVIDENCE-R4.md').read_text()
+        self.assertIn('logical idempotence', text)
+        for kept in ('`received`', '`received_session`'):
+            self.assertIn(kept, text)
+        self.assertIn('worker_evidence_clock_continuity_lost', text)
+
+    def test_the_windows_document_lists_the_timestamp_range_check_among_the_time_dependent_checks(self):
+        text = (DOCS / 'WINDOWS-WORKER-EVIDENCE-R4.md').read_text()
+        self.assertIn('timestamp range check', text)
+        self.assertIn('worker_evidence_clock_moved_backward', text)
+        self.assertNotIn('exactly', text.split('time-dependent checks')[1][:300])
+
+
 if __name__ == '__main__':
     unittest.main()
