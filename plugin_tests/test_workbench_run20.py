@@ -163,5 +163,101 @@ class ClosedWindowAttentionTests(LayerFixture):
         self.assertNotIn('operation_approval_closed', [signal['code'] for signal in read['attention']['signals']])
 
 
+class ReasonNameAndCurrentOperationTests(LayerFixture):
+    """Journey 34 run 2 review A Low-2. One name for the blocked proposal check: the records hold the engine's refusal
+    code (`maintenance_observation_stale`, raised for several different reasons) and the check's own reason
+    (`service_changed`, which says which); the map and the Inspector name the reason, and now Repository does too, the
+    code only where no reason is recorded. And the Repository next step and the Inspector's first action look at the
+    newest operation instead of reading as if none exists."""
+
+    def squash(self, rows):
+        return ' '.join(' '.join(self.plain(rows)).replace('│', ' ').split())
+
+    def screen_after(self, keys, size=(120, 40)):
+        _, frames = self.run_keys(typed('select ' + OBJECT) + keys + [key('q')], size, 'unicode')
+        return self.squash(frames[-1])
+
+    def repository(self):
+        return self.screen_after([key('9')])
+
+    def inspector_actions(self):
+        text = self.screen_after([])
+        return text[text.index('ACTIONS'):text.index('WHAT THE EVIDENCE SAYS')] if 'WHAT THE EVIDENCE SAYS' in text else text[text.index('ACTIONS'):]
+
+    # ---- the reason name ----------------------------------------------------------------------------------------
+
+    def test_the_lifecycle_step_names_the_reason_and_the_code_only_where_no_reason_is_recorded(self):
+        from intune_iac.workbench_screens import lifecycle_next
+        current = {'freshness': {'status': 'current'}}
+        step = lifecycle_next(8, current, 0.0, {'code': 'maintenance_observation_stale', 'reason': 'service_changed'})
+        self.assertIn('a proposal is blocked now (service_changed)', step)
+        self.assertNotIn('maintenance_observation_stale', step)
+        step = lifecycle_next(8, current, 0.0, {'code': 'service_required', 'reason': None})
+        self.assertIn('a proposal is blocked now (service_required)', step)
+
+    def lost_response(self):
+        from intune_iac import maintenance
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'], fault='lost-response')
+
+    def test_at_state_5_repository_and_the_map_name_the_same_reason(self):
+        from intune_iac import workbench
+        self.lost_response()
+        text = self.repository()
+        self.assertIn('a proposal is blocked now (service_changed)', text)
+        self.assertNotIn('maintenance_observation_stale', text)
+        flow = workbench._workflow(self.store, OBJECT, service_root=self.service.root)
+        observe = next(stage for stage in flow['stages'] if stage['id'] == 'observe')
+        self.assertEqual(observe['reason'], 'service_changed')
+
+    # ---- the newest operation -----------------------------------------------------------------------------------
+
+    def test_the_lifecycle_step_reads_the_newest_operation(self):
+        from intune_iac.workbench_screens import lifecycle_next
+        current = {'freshness': {'status': 'current'}}
+        plain = lifecycle_next(8, current, 0.0, None)
+        self.assertIn('Prepare a proposal from the recorded intent (a: actions); 5 Plan reviews it', plain)
+        prepared = dict(current, newest_operation={'short_id': '1c88de40', 'journal_status': 'prepared', 'approval_window': 'open'})
+        step = lifecycle_next(8, prepared, 0.0, None)
+        self.assertIn('operation 1c88de40 is already prepared', step)
+        self.assertIn('5 Plan reviews it', step)
+        self.assertEqual(lifecycle_next(8, current, 0.0, None, '1c88de40'), step)       # the strip's own fact says the same
+        closed = dict(current, newest_operation={'short_id': '1c88de40', 'journal_status': 'prepared', 'approval_window': 'closed'})
+        self.assertEqual(lifecycle_next(8, closed, 0.0, None), plain)
+        delivered = dict(current, newest_operation={'short_id': '0f1a0891', 'journal_status': 'succeeded_verified', 'approval_window': None})
+        step = lifecycle_next(8, delivered, 0.0, None)
+        self.assertIn('operation 0f1a0891 was carried out and verified', step)
+        self.assertIn('only for a new change', step)
+
+    def test_at_state_4_a_prepared_proposal_is_named_by_repository_and_the_inspectors_first_action(self):
+        self.prepare()
+        text = self.repository()
+        step = text[text.index('Next:'):]
+        self.assertIn('is already prepared', step)
+        self.assertNotIn('Next: Prepare a proposal from the recorded intent (a: actions); 5 Plan reviews it', text)
+        actions = self.inspector_actions()
+        self.assertRegex(actions, r'1\.\s+Prepare a proposal from the recorded intent \(available\); operation \w{8} is already prepared; this would be another')
+
+    def test_at_state_8_a_delivered_change_is_named_by_repository_and_the_inspectors_first_action(self):
+        from intune_iac import maintenance
+        from intune_iac.workbench_views import record_local_deployment
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'])
+        record_local_deployment(self.store, self.operation, self.intent['artifact_id'])
+        self.store.collect(self.service)
+        text = self.repository()
+        step = text[text.index('Next:'):]
+        self.assertIn('was carried out and verified', step)
+        self.assertNotIn('Next: Prepare a proposal from the recorded intent (a: actions); 5 Plan reviews it', text)
+        actions = self.inspector_actions()
+        self.assertRegex(actions, r'1\.\s+Prepare a proposal from the recorded intent \(available\); operation \w{8} was already carried out; this is for a new change')
+
+    def test_with_no_operation_the_wording_is_unchanged(self):
+        self.import_intent()
+        text = self.repository()
+        self.assertIn('Next: Prepare a proposal from the recorded intent (a: actions); 5 Plan reviews it', text)
+        self.assertRegex(self.inspector_actions(), r'1\.\s+Prepare a proposal from the recorded intent \(available\)')
+
+
 if __name__ == '__main__':
     unittest.main()

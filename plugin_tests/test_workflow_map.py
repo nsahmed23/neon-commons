@@ -174,7 +174,7 @@ class FreshWorkspaceTests(unittest.TestCase):
         stages = by_id(project(read))
         self.assertEqual(stages['propose']['continuation'],
                          lifecycle_next(8, {'freshness': {'status': 'current'}}, 0.0, read['eligibility']))
-        self.assertIn('a proposal is blocked now (maintenance_observation_stale)', stages['propose']['continuation'])
+        self.assertIn('a proposal is blocked now (not_fresh)', stages['propose']['continuation'])
 
     def test_an_adoption_record_is_the_adopt_stage_and_moves_the_position_when_nothing_later_is_recorded(self):
         read = baseline()

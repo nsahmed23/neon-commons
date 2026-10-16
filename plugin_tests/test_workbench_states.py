@@ -332,7 +332,8 @@ class LifecycleTests(unittest.TestCase):
         workspace.tab, workspace.value = 8, {'schema_version': 'workbench-repository-status/1', 'object_id': OBJECT,
                                              'freshness': {'status': 'current'}}
         text = ' '.join(' '.join(workspace._summary_lines(118)).split())
-        self.assertIn('a proposal is blocked now (maintenance_observation_stale); 2 Inspector says why', text)
+        # PKG-PRES-RUN20 item 4: the check's reason is the name, the engine's refusal code is not.
+        self.assertIn('a proposal is blocked now (not_fresh); 2 Inspector says why', text)
         self.assertNotIn('a prepares a proposal from the recorded intent', text)
 
     def test_the_plan_review_labels_the_before_column_as_of_preparation(self):

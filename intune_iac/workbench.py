@@ -718,6 +718,34 @@ def _referenced_operations(found, states):
     return sorted(named)
 
 
+def _proposal_note(store, attention, prefixes):
+    """What the newest operation means for the proposal action, in a clause the Inspector prints beside it: with one
+    already prepared (its approval window open) or already carried out, the action no longer reads as if no proposal
+    exists (journey 34 run 2, review A Low-2). The action keeps its one name. None with no such operation."""
+    operation = attention.get('newest_operation') if isinstance(attention.get('newest_operation'), dict) else {}
+    journal, identity = operation.get('journal_status'), operation.get('operation_id')
+    if not identity:
+        return None
+    if journal == 'prepared' and operation.get('approval_window') == 'open':
+        return 'operation %s is already prepared; this would be another' % _short(store, prefixes, identity)
+    if journal == 'succeeded_verified':
+        return 'operation %s was already carried out; this is for a new change' % _short(store, prefixes, identity)
+    return None
+
+def _with_newest_operation(store, object_id, status):
+    """The repository-status result with the newest operation for the policy added as a fact (short id, journal status,
+    approval window), so the Repository step reads the current operation; the result is otherwise the engine's own."""
+    if not isinstance(status, dict):
+        return status
+    operation = _attention(store, object_id).get('newest_operation')
+    if not isinstance(operation, dict) or not operation.get('operation_id'):
+        return status
+    return {**status, 'newest_operation': {
+        'operation_id': operation['operation_id'], 'short_id': _short(store, None, operation['operation_id']),
+        'status': operation.get('status'), 'journal_status': operation.get('journal_status'),
+        'approval_window': operation.get('approval_window')}}
+
+
 def _actions(store, object_id, attention, intent, service_root, *, eligibility=_UNREAD, evidence_class=None,
              prefixes=None):
     """The guided actions for one policy, built from structured evidence, never parsed from prose.
@@ -733,11 +761,12 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
     found = {signal.get('code'): signal for signal in signals}
     actions = []
 
-    def offer(kind, label, command, *, cursor=None, needs=(), blocked=None, extra=None, show_first=None):
+    def offer(kind, label, command, *, cursor=None, needs=(), blocked=None, extra=None, show_first=None, note=None):
         actions.append({'kind': kind, 'label': label, 'command': command, 'cursor': cursor, 'needs': list(needs),
                         'summary': ACTION_SUMMARY[kind], 'effects': ACTION_EFFECTS[kind], 'available': blocked is None,
                         'blocked': blocked,
-                        'show_first': show_first, 'binding': dict(binding, **(extra or {}))})
+                        'show_first': show_first, 'binding': dict(binding, **(extra or {})),
+                        **({'note': note} if note else {})})
 
     if not _attention_established(attention):
         offer('diagnostics', 'Show what diagnostics could not read', 'diagnostics')
@@ -800,7 +829,8 @@ def _actions(store, object_id, attention, intent, service_root, *, eligibility=_
         blocked = blocked or {'code': 'workbench_fresh_output_required', 'message': 'no fresh operation directory could be chosen'}
     if intent is not None:
         offer('propose-from-intent', 'Prepare a proposal from the recorded intent',
-              'propose-from-intent ' + shlex.quote(target or ''), blocked=blocked)
+              'propose-from-intent ' + shlex.quote(target or ''), blocked=blocked,
+              note=_proposal_note(store, attention, prefixes))
     else:
         offer('repository-entry', 'Find where this policy is maintained', 'repository-entry ', cursor=len('repository-entry '),
               needs=['REPOSITORY: the repository directory to survey'])
@@ -1542,7 +1572,8 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                     from . import workbench_repository as repository
                     if selected is None:
                         raise AppError('selection_required', 'Select an exact immutable object ID first.')
-                    if name == 'repository-status' and not values: result = repository.status(store, selected)
+                    if name == 'repository-status' and not values:
+                        result = _with_newest_operation(store, selected, repository.status(store, selected))
                     elif name == 'repository-refresh' and len(values) in (1, 2):
                         result = repository.refresh_intent(store, selected, values[0],
                                                            expected_resolution=values[1] if len(values) == 2 else None)

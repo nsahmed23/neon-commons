@@ -835,6 +835,30 @@ def newest_open_operation(facts, reviewing, prefixes=None):
     return None
 
 
+PREPARE_NEXT = 'Prepare a proposal from the recorded intent (a: actions); 5 Plan reviews it'
+
+
+def _prepare_next(newest, newest_open=None):
+    """The Repository step for a current intent, read against the newest operation for the policy: a proposal that is
+    already prepared (its approval window open) or already carried out is named, so the step never reads as if no
+    proposal exists. ``newest`` is the read model's fact (short_id, journal_status, approval_window); without it the
+    strip's own `newest_open` short id says the same for an open window."""
+    newest = newest if isinstance(newest, dict) else {}
+    short = newest.get('short_id') or newest.get('operation_id') or newest_open
+    journal = newest.get('journal_status')
+    if (journal == 'prepared' and newest.get('approval_window') == 'open' and short) or (not newest and newest_open):
+        return ('operation %s is already prepared with its approval window open; 5 Plan reviews it. Prepare another '
+                'proposal from the recorded intent only to replace it (a: actions)' % short)
+    if journal == 'outcome_unknown' and short:
+        return ('operation %s ended with an unknown outcome; Reconcile it (a: actions) before preparing another proposal; '
+                'it never replays the change' % short)
+    if journal in ('succeeded_verified', 'reconciled') and short:
+        done = 'carried out and verified' if journal == 'succeeded_verified' else 'reconciled'
+        return ('operation %s was %s; v shows its delivery stages. Prepare a proposal from the recorded intent (a: actions) '
+                'only for a new change' % (short, done))
+    return PREPARE_NEXT
+
+
 def lifecycle_next(tab, value, now, eligibility=None, newest_open=None):
     """The next step for the change shown, from its own recorded state; never a step that state refuses.
 
@@ -844,9 +868,13 @@ def lifecycle_next(tab, value, now, eligibility=None, newest_open=None):
     if tab == 8:
         freshness = value.get('freshness') if isinstance(value.get('freshness'), dict) else {}
         if freshness.get('status') == 'current' and isinstance(eligibility, dict) and eligibility.get('code'):
-            return 'a proposal is blocked now (%s); 2 Inspector says why and what to do' % eligibility['code']
+            # The check's own reason names which cause blocked it (`service_changed`); its code is the engine's refusal,
+            # shared by several reasons, so it is named only where no reason is recorded. The map and the Inspector name
+            # the reason (PKG-PRES-RUN20 item 4).
+            return ('a proposal is blocked now (%s); 2 Inspector says why and what to do'
+                    % (eligibility.get('reason') or eligibility['code']))
         if freshness.get('status') == 'current':
-            return 'Prepare a proposal from the recorded intent (a: actions); 5 Plan reviews it'
+            return _prepare_next(value.get('newest_operation'), newest_open)
         return 'Refresh the repository intent first (a: actions); a proposal follows from the new intent'
     if tab == 5:
         if value.get('status') == 'outcome_unknown':
@@ -1578,7 +1606,8 @@ def _attention_lines(value, width):
                 reasons = [blocked] + [other for other in blocked.get('also') or [] if isinstance(other, dict)]
                 state = ' (available)' if action.get('available') else ' (blocked: %s)' % '; '.join(
                     _compact_block_words(item) for item in reasons)
-                lines += _labelled('  %d.' % number, str(action.get('label')) + state, width, 6)
+                note = '; ' + str(action['note']) if action.get('note') else ''
+                lines += _labelled('  %d.' % number, str(action.get('label')) + state + note, width, 6)
         return lines
     actions = [action for action in value.get('next_actions') or [] if isinstance(action, dict)]
     if actions:
@@ -1709,6 +1738,8 @@ def actions_lines(actions, focus, width, name=None, object_id=None, submit='Ente
         focused = index == focus
         state = 'available' if action.get('available') else 'blocked'
         lines += _labelled('%s %d.' % ('>' if focused else ' ', index + 1), '%s  (%s)' % (action.get('label'), state), width, 5)
+        if action.get('note'):
+            lines += _labelled('', str(action['note']), width, 5)
         # One description per entry: the essential effect, or for the focused entry the full text that includes it, so
         # the effect is stated once (run 11, frames 21, 37, 62, 80); then the exact command or the reason it is blocked.
         described = (action.get('effects') if focused else None) or action.get('summary') or action.get('effects')
