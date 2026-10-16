@@ -1153,7 +1153,10 @@ def interrupted_text(result, width):
         # A command is one physical line: no inserted newline and no POSIX backslash continuation; the terminal wraps it.
         # The sentence that quotes the operation directory is one row too: an inserted newline would break the quoted
         # path for anyone copying it (run 16, N4).
-        whole = line.startswith('  ') or (line.startswith('Interrupted while') and "(directory '" in line)
+        # Only where it holds no control whitespace: the wrapper normalizes \t \n \v \f \r, so a directory name that
+        # carries one cannot start a forged row.
+        whole = line.startswith('  ') or (line.startswith('Interrupted while') and "(directory '" in line
+                                          and not any(char in line for char in '\t\n\v\f\r'))
         lines += [line] if whole else textwrap.wrap(
             line, max(20, width), break_long_words=False, break_on_hyphens=False) or ['']
     return lines

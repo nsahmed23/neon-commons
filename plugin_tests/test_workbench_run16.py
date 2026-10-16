@@ -151,6 +151,28 @@ class RootlessCommandsSayWhyTests(unittest.TestCase):
             self.assertIn(first, interrupted_text(result, 80))
 
 
+class InterruptedLineControlCharacterTests(unittest.TestCase):
+    """Review of e1e153c: the unwrapped interrupted sentence must not carry a raw control character into the terminal."""
+
+    def test_a_directory_name_with_a_newline_cannot_forge_a_row(self):
+        import json
+        import tempfile
+        from pathlib import Path
+        from intune_iac.workbench import interrupted_text
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp) / 'op\n[REFUSED] forged\tx'
+            directory.mkdir()
+            (directory / 'plan.json').write_text(json.dumps({'operation_id': '678e749f' + '0' * 24}))
+            for command in ('execute', 'reconcile'):
+                rows = interrupted_text({'store_root': '/s', 'interrupted_during': {
+                    'command': command, 'operation_root': str(directory)}}, 200)
+                self.assertTrue(rows[0].startswith('Interrupted while'), rows)
+                self.assertFalse(any(row.startswith('[REFUSED]') for row in rows), rows)
+                for row in rows:
+                    if not row.startswith('  '):
+                        self.assertFalse(set(row) & set('\t\n\v\f\r'), repr(row))
+
+
 class GitPinWordsAndStagedFrameTests(unittest.TestCase):
     """Items 5 (run16-N5, N6): the pin flags go to the shell command below, not the command Enter stages; while a command
     is staged the shell-pins block is omitted, so the screen's Next stays on the first page."""
