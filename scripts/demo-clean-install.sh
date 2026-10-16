@@ -123,19 +123,23 @@ N=0
 # record NAME STATUS DETAIL
 record() { RESULTS+=("$(printf '%-18s %-5s %s' "$1" "$2" "$3")"); [ "$2" = PASS ] || FAILED=1; }
 
-# step NAME COMMAND [EXPECTED_TEXT...]: run COMMAND (shell text) and pass it when it exits 0 and its output holds each text.
+# step NAME COMMAND [EXPECTED_TEXT...]: run COMMAND (shell text) and pass it when it exits as expected and its output
+# holds each text. The expected exit status is 0 unless EXPECT_EXIT names another; when STEP_PATH is set it is the
+# search path for that one command, so a step can run on a host with no Azure CLI whatever the host has.
 step() {
-    local name=$1 command=$2 log rc text
+    local name=$1 command=$2 log rc text want=${EXPECT_EXIT:-0} saved_path=$PATH
     shift 2
     N=$((N + 1))
     log="$WORK/logs/$(printf '%02d' "$N")-$name.txt"
+    if [ -n "${STEP_PATH+x}" ]; then PATH=$STEP_PATH; fi
     eval "$command" >"$log" 2>&1
     rc=$?
-    if [ "$rc" -ne 0 ]; then record "$name" FAIL "exit $rc, see $log"; return 1; fi
+    PATH=$saved_path
+    if [ "$rc" -ne "$want" ]; then record "$name" FAIL "exit $rc, expected $want, see $log"; return 1; fi
     for text in "$@"; do
         if ! grep -q -F -- "$text" "$log"; then record "$name" FAIL "output lacks: $text (see $log)"; return 1; fi
     done
-    record "$name" PASS "exit 0"
+    record "$name" PASS "exit $rc"
 }
 
 summary() {
@@ -177,14 +181,22 @@ intune-iac() { .venv/bin/python -B scripts/intune-iac.py "$@"; }
 step demo-folder "mkdir -m 700 demo"
 step version "intune-iac --version"
 step doctor "intune-iac doctor" '"status": "ready"' '"status": "identified"'
-step start "intune-iac start examples" 'Export' 'Context'
+step start "intune-iac start examples" 'INTUNE WORKBENCH: START' 'Export' 'Context' 'No live discovery connection is configured'
+step start-goal "intune-iac start examples --goal inspect" 'GOAL READINESS: inspect (status: ready)'
+# The sample tenant is made up and this step must not depend on the host's Azure CLI, so the step runs with no search path:
+# the answer is the same on every host, a blocked report with exit status 2.
+EXPECT_EXIT=2 STEP_PATH=/nonexistent-search-path step signin-status "intune-iac signin status --tenant 11111111-1111-4111-8111-111111111111" 'AZURE: BLOCKED (unknown: cli_not_found)' 'Exit code 2: blocked (0 means ready).'
 step wizard "printf '%s\n' continue continue continue 22222222-2222-4222-8222-222222222222 continue continue continue continue generate continue continue plan approve execute reconcile continue finish | intune-iac wizard --journey --journey-mode simulation --session demo/journey.json --input examples/supported/input/export.json --context examples/context.json --output demo/journey-output" '"status": "complete_simulation"' '"execution_authorized": false'
-step synthetic-estate "intune-iac synthetic generate --output demo/estate --policies 3" '"synthetic": true'
-step lab-create "intune-iac workbench lab-create --service-root demo/service --input demo/estate/capture-estate.json --object 45838776-e1bd-566b-a8c5-ad684107e7da" '"status": "created"'
-step store-init "intune-iac workbench init --root demo/store --tenant ca8a8057-a15f-5caa-8979-0090cd1bc11b" '"evidence_class": "synthetic"'
+step lab-create "intune-iac workbench lab-create --service-root demo/service --input examples/supported/input/export.json --object 22222222-2222-4222-8222-222222222222" '"status": "created"'
+step store-init "intune-iac workbench init --root demo/store --tenant 11111111-1111-4111-8111-111111111111" '"evidence_class": "synthetic"'
 step collect "intune-iac workbench collect --root demo/store --service-root demo/service" '"coverage": "complete"'
-step workspace "printf 'select 45838776-e1bd-566b-a8c5-ad684107e7da\nrelationships\nquit\n' | intune-iac workbench workspace --root demo/store --service-root demo/service" '"relation": "setting"' '"status": "closed"'
+step start-demo "intune-iac start demo" 'Store' 'Service' 'Journey' 'Generated' 'Open the workspace'
+step catalog "intune-iac catalog demo" 'INTEGRATION CATALOG' 'No other integration is available in this build.' 'GOAL change'
+step workspace "printf 'select 22222222-2222-4222-8222-222222222222\nrelationships\nquit\n' | intune-iac workbench workspace --root demo/store --service-root demo/service" '"relation": "setting"' '"status": "closed"'
+step workflow "intune-iac workbench workflow --root demo/store --policy 22222222-2222-4222-8222-222222222222 --service-root demo/service" '[WORKFLOW]' 'Position: observe' 'This view is read-only'
+step engineering "intune-iac engineering" 'Engineering records are not configured'
 step families "intune-iac workbench families" '"available": true'
+step synthetic-estate "intune-iac synthetic generate --output demo/estate --policies 3" '"synthetic": true'
 
 # What the build says it is, so the run names the exact files it exercised.
 build_line() {

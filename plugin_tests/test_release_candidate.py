@@ -357,22 +357,207 @@ class CandidateGuideTests(unittest.TestCase):
     def test_the_guide_has_no_em_dash(self):
         self.assertNotIn('—', guide_text())
 
-    def test_the_identifiers_the_guide_prints_are_the_ones_the_seeded_estate_produces(self):
+    def test_the_identifiers_the_guide_prints_are_the_ones_the_bundled_sample_holds(self):
         import re
-        from intune_iac import synthetic
         text = guide_text()
-        with tempfile.TemporaryDirectory() as directory:
-            synthetic.write_estate(str(Path(directory) / 'estate'), seed=42, policy_count=3, case='baseline')
-            estate = json.loads((Path(directory) / 'estate/capture-estate.json').read_text())
-        owners = [item['owner_id'] for item in estate['collections'] if item['kind'] == 'settings']
-        self.assertEqual(estate['tenant_id'], 'ca8a8057-a15f-5caa-8979-0090cd1bc11b')
-        self.assertIn(estate['tenant_id'], text)
-        self.assertIn('45838776-e1bd-566b-a8c5-ad684107e7da', owners)
-        self.assertIn('45838776-e1bd-566b-a8c5-ad684107e7da', text)
-        self.assertIn('22222222-2222-4222-8222-222222222222', text)
         sample = json.loads((ROOT / 'examples/supported/input/export.json').read_text())
-        self.assertIn('22222222-2222-4222-8222-222222222222', json.dumps(sample))
-        self.assertTrue(re.search(r'--seed 42|seed 42|default seed', text))
+        context = json.loads((ROOT / 'examples/context.json').read_text())
+        for identifier in (SAMPLE_TENANT, SAMPLE_POLICY):
+            self.assertIn(identifier, text)
+            self.assertIn(identifier, json.dumps(sample), identifier)
+        self.assertIn(SAMPLE_TENANT, json.dumps(context))
+        self.assertTrue(re.search(r'--seed 42|seed 42|default seed', text), 'the larger seeded estate is still explained')
+
+
+SAMPLE_TENANT = '11111111-1111-4111-8111-111111111111'
+SAMPLE_POLICY = '22222222-2222-4222-8222-222222222222'
+# The sample data the runtime archive holds: what `start` and `catalog` find in an unpacked copy.
+ARCHIVE_EXAMPLES = ('examples/context.json', 'examples/supported/input/export.json')
+SECTIONS = ('What you need', 'Check the download', 'Install', 'The sample data', 'Quickstart with the bundled sample data',
+            'Check a clean install end to end', 'Support limits', 'Troubleshooting', 'Reporting an issue')
+
+
+def squashed(text):
+    return ' '.join(text.split())
+
+
+def guide_section(title):
+    """The text of one second-level section of the guide, from its heading to the next."""
+    import re
+    match = re.search(r'^## ' + re.escape(title) + r'\n(.*?)(?=^## |\Z)', guide_text(), re.S | re.M)
+    if not match:
+        raise AssertionError('the guide has no section named ' + title)
+    return match.group(1)
+
+
+def code_blocks(text):
+    blocks, current = [], None
+    for line in text.splitlines():
+        if line.lstrip().startswith('```'):
+            if current is None:
+                current = []
+            else:
+                blocks.append(current)
+                current = None
+        elif current is not None:
+            current.append(line.strip())
+    return blocks
+
+
+class GuideStructureTests(unittest.TestCase):
+    """The guide covers what this build does, section by section, and says only what the product can back."""
+
+    def test_the_guide_has_every_section_in_order(self):
+        import re
+        headings = re.findall(r'^## (.+)$', guide_text(), re.M)
+        self.assertEqual([h for h in headings if h in SECTIONS], list(SECTIONS), headings)
+
+    def test_the_commands_for_each_part_of_the_build_are_shown(self):
+        shown = {' '.join(tokens[:2]) if tokens[0] in {'workbench', 'synthetic', 'signin'} else tokens[0]
+                 for tokens in guide_commands(guide_text())}
+        for command in ('start', 'signin status', 'catalog', 'workbench workflow', 'workbench workspace', 'engineering',
+                        'workbench families', 'wizard', 'doctor', 'synthetic generate', 'workbench lab-create',
+                        'workbench init', 'workbench collect'):
+            self.assertIn(command, shown)
+        self.assertIn('`:workflow`', guide_text(), 'the workspace command that opens the workflow map is named')
+        self.assertIn('`:catalog`', guide_text())
+
+    def test_every_command_of_the_quickstart_is_run_by_the_demonstration_script(self):
+        script = squashed(DEMO.read_text())
+        interactive = {'intune-iac workbench workspace --root demo/store --service-root demo/service'}
+        commands = [line for block in code_blocks(guide_section('Quickstart with the bundled sample data')) for line in block
+                    if 'intune-iac' in line]
+        self.assertGreaterEqual(len(commands), 12)
+        for command in commands:
+            if command not in interactive:
+                self.assertIn(squashed(command), script, 'the script does not run: ' + command)
+
+    def test_the_sample_data_section_names_what_the_estate_is_made_of(self):
+        section = guide_section('The sample data')
+        for phrase in ('examples/supported/input/export.json', 'examples/context.json', SAMPLE_TENANT, SAMPLE_POLICY,
+                       'synthetic', 'modeled service', 'seed 42'):
+            self.assertIn(phrase, section)
+
+    def test_the_support_limits_state_each_boundary_plainly(self):
+        section = squashed(guide_section('Support limits')).lower()
+        for phrase in ('synthetic and modeled evidence only', 'no live tenant, ci or cloud write',
+                       'native windows and powershell are not qualified', 'g13', 'denied', 'docs/external-gates-r4.md',
+                       'cloud_apply', 'live_qualified'):
+            self.assertIn(phrase, section)
+
+    def test_troubleshooting_names_the_ensurepip_failure_and_both_remedies(self):
+        section = squashed(guide_section('Troubleshooting'))
+        for phrase in ('python3 -m venv', 'ensurepip is not available', 'python3.12-venv', '--pip-wheel', '--without-pip',
+                       'scripts/demo-clean-install.sh'):
+            self.assertIn(phrase, section)
+        self.assertIn('ensurepip', squashed(guide_section('Install')), 'the install section points at the way out')
+
+    def test_every_refusal_the_guide_names_is_a_code_the_product_can_raise(self):
+        import re
+        sources = ''.join(path.read_text(encoding='utf-8') for path in sorted((ROOT / 'intune_iac').glob('*.py')))
+        named = {span for span in re.findall(r'`([^`\n]+)`', guide_text()) if re.fullmatch(r'[a-z][a-z0-9]*(?:_[a-z0-9]+)+', span)}
+        for code in ('invalid_request', 'output_conflict', 'workbench_object_missing', 'model_service_missing',
+                     'capture_token_missing', 'cli_not_found', 'service_runtime_symlink'):
+            self.assertIn(code, named, 'the troubleshooting section should explain ' + code)
+        for code in sorted(named):
+            self.assertIn(code, sources, 'the guide names ' + code + ' and no module of the product holds it')
+
+    def test_the_issue_channel_is_marked_as_awaiting_the_owner_and_invents_no_address(self):
+        import re
+        section = guide_section('Reporting an issue')
+        marker = "awaiting the owner's choice"
+        self.assertEqual(sum(marker in s for s in re.split(r'(?<=[.!?])\s+', squashed(section))), 1, 'one sentence says it')
+        self.assertTrue(squashed(section).startswith('**') and marker in squashed(section).split('**')[1],
+                        'the sentence opens the section, in bold')
+        self.assertNotRegex(section, r'@|https?://|www\.|mailto:')
+
+
+class GuideBehaviourTests(unittest.TestCase):
+    """Each claim the guide makes about what a command prints is checked against the product, run from a folder that
+    holds only the sample data the runtime archive holds."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.temp = tempfile.TemporaryDirectory()
+        cls.work = Path(cls.temp.name)
+        for name in ARCHIVE_EXAMPLES:
+            (cls.work / name).parent.mkdir(parents=True, exist_ok=True)
+            (cls.work / name).write_bytes((ROOT / name).read_bytes())
+        (cls.work / 'home').mkdir(mode=0o700)
+        (cls.work / 'demo').mkdir(mode=0o700)
+        (cls.work / 'no-cli').mkdir()
+        for arguments in (('workbench', 'lab-create', '--service-root', 'demo/service', '--input',
+                           'examples/supported/input/export.json', '--object', SAMPLE_POLICY),
+                          ('workbench', 'init', '--root', 'demo/store', '--tenant', SAMPLE_TENANT),
+                          ('workbench', 'collect', '--root', 'demo/store', '--service-root', 'demo/service')):
+            result = cls.run_cli(*arguments)
+            if result.returncode != 0:
+                raise AssertionError('building the sample estate failed: %s %s' % (arguments, result.stdout + result.stderr))
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.temp.cleanup()
+
+    @classmethod
+    def run_cli(cls, *arguments, search_path=None):
+        environment = {'PATH': os.environ['PATH'] if search_path is None else search_path, 'LANG': 'C.UTF-8',
+                       'HOME': str(cls.work / 'home'), 'COLUMNS': '100'}
+        return subprocess.run([sys.executable, '-B', str(ROOT / 'scripts/intune-iac.py'), *arguments], cwd=cls.work,
+                              capture_output=True, text=True, env=environment, timeout=120)
+
+    # (what the guide shows, the command, the exit status the guide states, what the guide quotes of the output)
+    CLAIMS = (
+        ('start', ('start', 'examples'), 0,
+         ('INTUNE WORKBENCH: START', 'FOUND', 'NEXT', 'MISSING', 'discovered', 'usable here', 'source-asserted',
+          'synthetic only', 'No live discovery connection is configured: offline inspection and preparation remain available.')),
+        ('start goal', ('start', 'examples', '--goal', 'inspect'), 0, ('GOAL READINESS: inspect (status: ready)',)),
+        ('signin', ('signin', 'status', '--tenant', SAMPLE_TENANT), 2,
+         ('AZURE: BLOCKED (unknown: cli_not_found)', 'Exit code 2: blocked (0 means ready).')),
+        ('start demo', ('start', 'demo'), 0, ('Store', 'Service', 'Open the workspace')),
+        ('catalog', ('catalog', 'demo'), 0,
+         ('INTEGRATION CATALOG', 'No other integration is available in this build.', 'GOAL inspect', 'GOAL discover',
+          'GOAL adopt', 'GOAL change', 'operation-ready', 'unsupported', 'against the modeled service only; no cloud route exists')),
+        ('workflow', ('workbench', 'workflow', '--root', 'demo/store', '--policy', SAMPLE_POLICY, '--service-root', 'demo/service'), 0,
+         ('[WORKFLOW]', 'Position: observe', 'not recorded', 'This view is read-only')),
+        ('engineering', ('engineering',), 0, ('Engineering records are not configured',)),
+    )
+
+    def test_each_command_answers_as_the_guide_says(self):
+        guide = squashed(guide_text())
+        for name, arguments, status, quoted in self.CLAIMS:
+            with self.subTest(name):
+                result = self.run_cli(*arguments, search_path=str(self.work / 'no-cli') if name == 'signin' else None)
+                self.assertEqual(result.returncode, status, result.stdout + result.stderr)
+                screen = squashed(result.stdout)
+                for phrase in quoted:
+                    self.assertIn(phrase, screen, 'the product no longer prints: ' + phrase)
+                    self.assertIn(phrase, guide, 'the guide does not quote: ' + phrase)
+
+    def test_the_commands_the_guide_shows_for_these_claims_are_the_ones_tested(self):
+        shown = {' '.join(tokens) for tokens in guide_commands(guide_text())}
+        for name, arguments, status, quoted in self.CLAIMS:
+            self.assertIn(' '.join(arguments), shown, name)
+
+    def test_the_refusals_the_guide_explains_are_what_the_product_answers(self):
+        cases = (
+            (('workbench', 'workflow', '--root', 'demo/store', '--policy', '99999999-9999-4999-8999-999999999999'), 3,
+             'workbench_object_missing'),
+            (('workbench', 'collect', '--root', 'demo/store', '--service-root', 'demo/nowhere'), 3, 'model_service_missing'),
+            (('workbench', 'init', '--root', 'demo/store', '--tenant', SAMPLE_TENANT), 3, 'invalid_request'),
+            (('capture', '--tenant', SAMPLE_TENANT, '--policy', SAMPLE_POLICY, '--output', 'demo/capture-out'), 3,
+             'capture_token_missing'),
+        )
+        guide = guide_text()
+        for arguments, status, code in cases:
+            with self.subTest(code):
+                result = self.run_cli(*arguments)
+                self.assertEqual(result.returncode, status, result.stdout + result.stderr)
+                self.assertIn(code, result.stderr)
+                self.assertIn(code, guide)
+        usage = self.run_cli('signin', 'status', '--tenant', 'not-a-guid')
+        self.assertEqual(usage.returncode, 2)
+        self.assertIn('invalid value (the value is not shown)', squashed(guide_text()))
+        self.assertIn('invalid value (the value is not shown)', usage.stderr)
 
 
 DEMO = ROOT / 'scripts/demo-clean-install.sh'
@@ -503,15 +688,27 @@ class CleanInstallScriptTests(unittest.TestCase):
 
 # A stand-in for the product inside a stand-in runtime archive: it prints, for any command, the text each step of the
 # script looks for, so the install plumbing runs end to end without installing anything.
-STUB_PRODUCT = '''import json, sys
+STUB_PRODUCT = '''import json, shutil, sys
 args = sys.argv[1:]
 if args == ['--version']:
     print('0.9.0')
 elif args[:1] == ['doctor']:
     print(json.dumps({'status': 'ready', 'build': {'status': 'identified', 'product_version': '0.9.0',
                                                     'commit': None, 'content_sha256': '0' * 64}}))
+elif args[:2] == ['signin', 'status']:
+    # A host with an Azure CLI on the search path answers differently, so a step that is not given an empty search path fails.
+    if shutil.which('az'):
+        print('AZURE: READY (the stand-in found an az on the search path)')
+    else:
+        print('AZURE: BLOCKED (unknown: cli_not_found)')
+        print('Exit code 2: blocked (0 means ready).')
+        sys.exit(2)
 else:
-    print('Export Context "status": "complete_simulation" "execution_authorized": false "synthetic": true '
+    print('INTUNE WORKBENCH: START Export Context No live discovery connection is configured '
+          'GOAL READINESS: inspect (status: ready) Store Service Journey Generated Open the workspace '
+          'INTEGRATION CATALOG No other integration is available in this build. GOAL change '
+          '[WORKFLOW] Position: observe This view is read-only Engineering records are not configured '
+          '"status": "complete_simulation" "execution_authorized": false "synthetic": true '
           '"status": "created" "evidence_class": "synthetic" "coverage": "complete" "relation": "setting" '
           '"status": "closed" "available": true')
 '''
@@ -579,11 +776,17 @@ class PipWheelInstallTests(unittest.TestCase):
         self.interpreter.chmod(0o755)
         self.log = self.base / 'calls.log'
         self.pip_log = self.base / 'pip-calls.log'
+        self.az_log = self.base / 'az-calls.log'
+        # An Azure CLI on the host's search path: the sign-in step must not see it.
+        self.host_bin = self.base / 'host-bin'
+        self.host_bin.mkdir()
+        (self.host_bin / 'az').write_text('#!/bin/sh\necho "az $*" >> "$FAKE_AZ_LOG"\nexit 0\n')
+        (self.host_bin / 'az').chmod(0o755)
 
     def run_script(self, *args, ensurepip='missing'):
-        environment = {'PATH': os.environ['PATH'], 'LANG': 'C.UTF-8', 'PYTHON': str(self.interpreter),
+        environment = {'PATH': f'{self.host_bin}:{os.environ["PATH"]}', 'LANG': 'C.UTF-8', 'PYTHON': str(self.interpreter),
                        'REAL_PYTHON': sys.executable, 'FAKE_ENSUREPIP': ensurepip, 'FAKE_LOG': str(self.log),
-                       'FAKE_PIP_LOG': str(self.pip_log)}
+                       'FAKE_PIP_LOG': str(self.pip_log), 'FAKE_AZ_LOG': str(self.az_log)}
         return subprocess.run(['bash', str(DEMO), *map(str, args)], cwd=self.outside, capture_output=True, text=True,
                               env=environment, timeout=180)
 
@@ -605,6 +808,26 @@ class PipWheelInstallTests(unittest.TestCase):
         self.assertEqual(self.pip_calls(), [f'wheel-pip {wheel} {self.install_arguments()}',
                                             f'wheel-pip {wheel} --isolated check'])
         self.assertIn('RESULT: every step passed.', result.stdout)
+
+    def test_the_sign_in_step_runs_with_no_search_path_so_a_hosts_az_is_never_called(self):
+        result = self.run_script('--pip-wheel', self.pip_wheel, self.archive, self.wheels, self.base / 'work')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        row = next(line for line in result.stdout.splitlines() if line.startswith('signin-status'))
+        self.assertIn('PASS', row)
+        self.assertIn('exit 2', row)
+        self.assertFalse(self.az_log.exists() and self.az_log.read_text(), 'the host az was called')
+        logs = sorted((self.base / 'work/logs').glob('*-signin-status.txt'))
+        self.assertEqual(len(logs), 1)
+        self.assertIn('cli_not_found', logs[0].read_text())
+
+    def test_every_quickstart_step_ran_and_passed_in_the_guides_order(self):
+        result = self.run_script('--pip-wheel', self.pip_wheel, self.archive, self.wheels, self.base / 'work')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        rows = [line.split()[0] for line in result.stdout.split('Summary\n', 1)[1].splitlines() if line.split() and line.split()[1:2] == ['PASS']]
+        steps = ['demo-folder', 'version', 'doctor', 'start', 'start-goal', 'signin-status', 'wizard', 'lab-create', 'store-init',
+                 'collect', 'start-demo', 'catalog', 'workspace', 'workflow', 'engineering', 'families', 'synthetic-estate',
+                 'build-identity']
+        self.assertEqual([name for name in rows if name in steps], steps)
 
     def test_the_wheels_sha256_is_printed_next_to_the_archives(self):
         result = self.run_script('--pip-wheel', self.pip_wheel, self.archive, self.wheels, self.base / 'work')
