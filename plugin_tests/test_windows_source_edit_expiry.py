@@ -29,6 +29,7 @@ class SourceEditWindowTests(unittest.TestCase):
     apply = base.NativeSourceEditTests.apply
     operation = base.NativeSourceEditTests.operation
     recover = base.NativeSourceEditTests.recover
+    inspect = base.NativeSourceEditTests.inspect
 
     def monotonic_jumps_when(self, condition):
         """The monotonic clock runs an hour ahead from the moment condition() is true; the wall clock does not move."""
@@ -43,13 +44,25 @@ class SourceEditWindowTests(unittest.TestCase):
         self.assertEqual(self.api.renames, 0)
         self.assertEqual((self.real / 'stacks/defaults.yaml').read_bytes(), self.before)
 
-    def test_a_deadline_reached_between_the_renames_stops_the_partial_edit_until_fresh_recovery(self):
-        with self.monotonic_jumps_when(lambda: self.api.renames >= 1), self.assertRaises(AppError) as caught:
-            self.apply()
-        self.assertEqual(caught.exception.code, 'windows_source_edit_ack_expired')
-        self.assertEqual(self.api.renames, 1)
-        self.assertFalse((self.real / 'stacks/defaults.yaml').exists())
-        self.recover('rollback')
+    def test_a_deadline_reached_between_the_renames_does_not_leave_the_source_moved_away(self):
+        # The window bounds when the edit may start (before the first rename); it is not judged between the two renames,
+        # where a refusal would leave the source file moved away and the repository blocked on an unresolved edit.
+        with self.monotonic_jumps_when(lambda: self.api.renames >= 1):
+            result = self.apply()
+        self.assertEqual(result['state'], 'source_applied')
+        self.assertEqual(self.api.renames, 2)
+        self.assertEqual((self.real / 'stacks/defaults.yaml').read_bytes(), self.after)
+        self.assertTrue(self.inspect()['closed'])
+
+    def test_a_recovery_judges_its_window_once_before_the_first_rename_not_between_renames(self):
+        self.api.fail_after = 2
+        with self.assertRaises(AppError):
+            self.apply()  # the second rename's acknowledgment is lost: the candidate is applied and no closure is recorded
+        self.assertEqual(self.api.renames, 2)
+        with self.monotonic_jumps_when(lambda: self.api.renames >= 3):
+            result = subject._recover(self.store, self.root, self.operation(), 'rollback', time.time() + 600, True, self.api)
+        self.assertEqual(result['state'], 'source_restored')  # both rollback renames ran although the deadline passed between them
+        self.assertEqual(self.api.renames, 4)
         self.assertEqual((self.real / 'stacks/defaults.yaml').read_bytes(), self.before)
 
     def test_a_recovery_stops_before_its_rename_when_the_deadline_is_reached(self):

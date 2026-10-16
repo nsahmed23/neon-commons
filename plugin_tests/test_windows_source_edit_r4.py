@@ -131,11 +131,15 @@ class NativeSourceEditTests(unittest.TestCase):
         self.assertIs(caught.exception,primary);self.assertEqual(self.api.handles,{})
         self.assertTrue(caught.exception.source_edit_outcome['outcome_uncertain'])
 
-    def test_expiry_between_renames_stops_partial_source_until_fresh_recovery(self):
+    def test_expiry_between_renames_does_not_leave_the_source_moved_away(self):
+        # The acknowledgment window bounds when the edit may start; it is judged once, before the first rename.
         before=time.time()
-        with patch.object(subject.time,'time',side_effect=lambda:self.expires+1 if self.api.renames else before),self.assertRaises(AppError) as caught:self.apply()
-        self.assertEqual(caught.exception.code,'windows_source_edit_ack_expired');self.assertEqual(self.api.renames,1)
-        self.assertFalse((self.real/'stacks/defaults.yaml').exists());self.recover('rollback')
+        with patch.object(subject.time,'time',side_effect=lambda:self.expires+1 if self.api.renames else before):result=self.apply()
+        self.assertEqual(result['state'],'source_applied');self.assertEqual(self.api.renames,2)
+        self.assertEqual((self.real/'stacks/defaults.yaml').read_bytes(),self.after)
+    def test_expiry_before_the_first_rename_refuses_with_the_source_untouched(self):
+        with patch.object(subject.time,'time',side_effect=lambda:self.expires+1),self.assertRaises(AppError) as caught:self.apply()
+        self.assertEqual(caught.exception.code,'windows_source_edit_ack_expired');self.assertEqual(self.api.renames,0)
         self.assertEqual((self.real/'stacks/defaults.yaml').read_bytes(),self.before)
     def test_failed_closure_requires_explicit_reconciliation_without_new_mutation(self):
         self.api.fail_creation='.closed.json'

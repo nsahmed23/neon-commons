@@ -270,10 +270,11 @@ def _apply(store,path,expected,expires_at,acknowledged,api):
                             'metadata':metadata,'before_sha256':intent['before_sha256'],'after_sha256':intent['after_sha256']}
                         _publish_journal(root,identifier,'ready',ready,api)
                         phase='ready_recorded'
+                        # The window bounds when the edit may start: it is judged once, here, before the first rename. A
+                        # refusal between the two renames would leave the source file moved away and the repository blocked.
                         if window.closed():_fail('windows_source_edit_ack_expired')
                         pin.revalidate();phase='original_rename_dispatched';api.rename_new(old,root_handle,backup)
                         phase='original_backed_up';api.flush_file(old);api.flush_namespace(root_handle)
-                        if window.closed():_fail('windows_source_edit_ack_expired')
                         phase='candidate_rename_dispatched';api.rename_new(candidate,root_handle,original)
                         phase='candidate_published';api.flush_file(candidate);api.flush_namespace(root_handle)
                         if (ws._bound_file(api,old,pin)!=before or api.read(old)!=payload['source.before.yaml'] or
@@ -381,8 +382,12 @@ def _dispatch_recovery(intent,ready,proposal,direction,window,api,mark):
                 directory=directories[key];raw=directory.read(path.name)
                 if _sha(raw)!=sha:_fail('windows_source_edit_dependency_changed')
                 dependencies.append({'path':relative,'sha256':sha})
+        judged=[]
         def rename(label,name,phase):
-            if window.closed():_fail('windows_source_edit_ack_expired')
+            # Judged once, before the first rename; a later rename of the same recovery is not refused for the window.
+            if not judged:
+                if window.closed():_fail('windows_source_edit_ack_expired')
+                judged.append(True)
             root_pin.revalidate();pin.revalidate();handle=handles[label];fact=facts[label]
             if ws._bound_file(api,handle,pin)!=fact['identity'] or _sha(api.read(handle))!=fact['sha256'] or api.edit_metadata(handle,pin._sid)!=fact['metadata']:_fail('windows_source_edit_source_changed')
             mark(phase);api.rename_new(handle,parent_handle,name);api.flush_file(handle);api.flush_namespace(parent_handle)
