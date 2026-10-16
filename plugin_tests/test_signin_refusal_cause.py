@@ -1,8 +1,11 @@
 """PKG-SETUP-5E item 2: the refusal of an output folder names the condition the check actually found."""
+import errno
 import os
 from pathlib import Path
+import stat
 import tempfile
 import unittest
+from unittest import mock
 
 from intune_iac import capture, signin
 from intune_iac.io import AppError
@@ -42,7 +45,54 @@ def long_name(scratch):
 
 
 
+def _symlink_cause():
+    """What the open of a symlinked ancestor returns on this host: ELOOP names a link, ENOTDIR is neutral."""
+    with tempfile.TemporaryDirectory() as scratch:
+        path = symlinked_ancestor(scratch)
+        flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+        try:
+            os.close(os.open(str(Path(path).parent), flags))
+        except OSError as error:
+            return 'ancestor_symlink' if error.errno == errno.ELOOP else 'ancestor_not_real_directory'
+    raise AssertionError('the open of a symlinked ancestor succeeded')
+
+
+SYMLINK_CAUSE = _symlink_cause()
+
+
+def fake_stat(kind):
+    """An os.stat that reports every name as the given file type: a later lookup that disagrees with the failing call."""
+    def stat_(name, *args, **kw):
+        return os.stat_result((kind | 0o600, 1, 1, 1, 0, 0, 0, 0, 0, 0))
+    return stat_
+
+
 class NamedCauseTests(unittest.TestCase):
+    def test_the_cause_does_not_follow_a_later_lookup_of_the_same_name(self):
+        def plain_file(scratch):
+            (Path(scratch) / 'plain').write_text('x')
+            return str(Path(scratch) / 'plain' / 'new')
+        for path_of in (plain_file, symlinked_ancestor):
+            for kind in (stat.S_IFLNK, stat.S_IFREG, stat.S_IFDIR):
+                causes = []
+                for patched in (False, True):
+                    with tempfile.TemporaryDirectory() as scratch:
+                        path = path_of(scratch)
+                        with mock.patch.object(os, 'stat', fake_stat(kind)) if patched else mock.patch.object(os, 'getpid'):
+                            with self.assertRaises(AppError) as caught:
+                                capture._new_directory(path)
+                        causes.append(getattr(caught.exception, 'cause', None))
+                self.assertEqual(causes[0], causes[1], (path_of.__name__, kind, causes))
+
+    def test_a_plain_file_is_never_called_a_symbolic_link_by_the_cause(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            (Path(scratch) / 'plain').write_text('x')
+            with mock.patch.object(os, 'stat', fake_stat(stat.S_IFLNK)):
+                with self.assertRaises(AppError) as caught:
+                    signin.check_new_output(str(Path(scratch) / 'plain' / 'new'))
+            self.assertNotEqual(getattr(caught.exception, 'cause', None), 'ancestor_symlink')
+
+
     def why(self, path_of):
         text = refusal(path_of)[1]
         lines = rows(text)
@@ -64,7 +114,8 @@ class NamedCauseTests(unittest.TestCase):
 
     def test_a_symlinked_ancestor_says_a_link_is_on_the_way(self):
         why = self.why(symlinked_ancestor)
-        self.assertIn('symbolic link', why)
+        # which sentence depends on the errno the open returned (ELOOP names a link; ENOTDIR does not); never on a later lookup
+        self.assertTrue('symbolic link' in why or 'could not be opened as a real folder' in why, why)
         self.assertNotIn('already exists', why)
         self.assertNotIn('too long', why)
 
@@ -84,7 +135,7 @@ class NamedCauseTests(unittest.TestCase):
             (Path(scratch) / 'plain').write_text('x')
             return str(Path(scratch) / 'plain' / 'new')
         why = self.why(path_of)
-        self.assertIn('is not a folder', why)
+        self.assertIn('could not be opened as a real folder', why)
         self.assertNotIn('symbolic link', why)
 
     @unittest.skipIf(os.name != 'posix' or os.geteuid() == 0, 'needs a non-root POSIX user')
@@ -109,12 +160,12 @@ class NamedCauseTests(unittest.TestCase):
 
     def test_the_preflight_records_the_cause_it_found(self):
         self.check_cause(existing_folder, 'exists')
-        self.check_cause(symlinked_ancestor, 'ancestor_symlink')
+        self.check_cause(symlinked_ancestor, SYMLINK_CAUSE)
         self.check_cause(long_name, 'name_too_long')
         self.check_cause(lambda scratch: str(Path(scratch) / 'missing' / 'new'), 'ancestor_missing')
 
     def test_the_capture_command_records_the_cause_it_found(self):
-        for path_of, cause in ((existing_folder, 'exists'), (symlinked_ancestor, 'ancestor_symlink'),
+        for path_of, cause in ((existing_folder, 'exists'), (symlinked_ancestor, SYMLINK_CAUSE),
                                (long_name, 'name_too_long')):
             with tempfile.TemporaryDirectory() as scratch:
                 with self.assertRaises(AppError) as caught:

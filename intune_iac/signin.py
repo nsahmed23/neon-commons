@@ -569,17 +569,14 @@ def check_new_output(destination):
         parent_fd = os.open('/', flags)
     except OSError as error:
         raise output_conflict(message, classify_output_failure(error), error.errno) from None
-    failing = None  # the name the failing call was given; it is looked at only to tell a link from a plain file
     try:
         for piece in path.parts[1:-1]:
-            failing = piece
             next_fd = os.open(piece, flags, dir_fd=parent_fd)
             os.close(parent_fd)
             parent_fd = next_fd
         if not os.access('.', os.W_OK | os.X_OK, dir_fd=parent_fd, effective_ids=True):
             # a stable non-writable parent: the capture command's mkdir would fail after the token was minted
             raise output_conflict(message, 'parent_not_writable')
-        failing = path.name
         try:
             os.stat(path.name, dir_fd=parent_fd, follow_symlinks=False)
         except FileNotFoundError:
@@ -588,7 +585,7 @@ def check_new_output(destination):
     except AppError:
         raise
     except OSError as error:
-        raise output_conflict(message, classify_output_failure(error, parent_fd, failing), error.errno) from None
+        raise output_conflict(message, classify_output_failure(error), error.errno) from None
     finally:
         os.close(parent_fd)
 

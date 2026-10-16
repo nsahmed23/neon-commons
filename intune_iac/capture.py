@@ -9,7 +9,6 @@ import math
 import os
 from pathlib import Path
 import re
-import stat
 import time
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
@@ -240,11 +239,12 @@ def output_conflict(message, cause, number=None):
     return error
 
 
-def classify_output_failure(error, parent_fd=None, name=None):
-    """Which condition a failed call on the output path found, read from that call's errno; never guessed from the path.
+def classify_output_failure(error):
+    """Which condition a failed call on the output path found, read from that call's errno alone; never from a later lookup.
 
-    An ancestor that could not be opened as a directory without following links is either a symbolic link or not a directory;
-    that is told apart by one lstat of the same name in the same open parent. Anything not listed is 'unchecked'.
+    ELOOP from an open with O_NOFOLLOW is the one errno that establishes a symbolic link. ENOTDIR (what Linux returns for a
+    link or a plain file under O_DIRECTORY|O_NOFOLLOW) does not tell them apart, so it is told neutrally. Anything not listed is
+    'unchecked'.
     """
     number = getattr(error, 'errno', None)
     if number == errno.ENAMETOOLONG:
@@ -255,12 +255,10 @@ def classify_output_failure(error, parent_fd=None, name=None):
         return 'permission_denied'
     if number == errno.ENOENT:
         return 'ancestor_missing'
-    if number in (errno.ELOOP, errno.ENOTDIR) and parent_fd is not None and name is not None:
-        try:
-            mode = os.stat(name, dir_fd=parent_fd, follow_symlinks=False).st_mode
-        except OSError:
-            return 'unchecked'
-        return 'ancestor_symlink' if stat.S_ISLNK(mode) else 'ancestor_not_directory'
+    if number == errno.ELOOP:
+        return 'ancestor_symlink'
+    if number == errno.ENOTDIR:
+        return 'ancestor_not_real_directory'
     return 'unchecked'
 
 
@@ -273,13 +271,10 @@ def _new_directory(destination):
     flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
     parent_fd = os.open('/', flags)
     output_fd = None
-    failing = None
     try:
         for piece in path.parts[1:-1]:
-            failing = piece
             next_fd = os.open(piece, flags, dir_fd=parent_fd)
             os.close(parent_fd); parent_fd = next_fd
-        failing = path.name
         os.mkdir(path.name, mode=0o700, dir_fd=parent_fd)
         output_fd = os.open(path.name, flags, dir_fd=parent_fd)
         os.fchmod(output_fd, 0o700)
@@ -288,7 +283,7 @@ def _new_directory(destination):
     except OSError as error:
         if output_fd is not None: os.close(output_fd)
         raise output_conflict('Capture requires a new directory with no symlinked ancestors; existing files are preserved.',
-                              classify_output_failure(error, parent_fd, failing), error.errno) from None
+                              classify_output_failure(error), error.errno) from None
     finally:
         os.close(parent_fd)
 

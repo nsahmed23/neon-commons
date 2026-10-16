@@ -768,7 +768,7 @@ _REFUSAL_CAUSE = {
     'exists': 'The output folder already exists, and this command never writes into a path that exists.',
     'ancestor_symlink': 'A folder on the way to the output folder is a symbolic link, and this command does not follow symbolic '
                         'links.',
-    'ancestor_not_directory': 'A part of the output path that must be a folder is not a folder.',
+    'ancestor_not_real_directory': 'A folder on the way to the output folder could not be opened as a real folder.',
     'ancestor_missing': 'A folder on the way to the output folder does not exist; this command creates only the last folder.',
     'name_too_long': 'A name in the output path is too long for the file system to hold.',
     'parent_not_writable': 'The folder that would hold the output folder does not allow this user to write to it.',
