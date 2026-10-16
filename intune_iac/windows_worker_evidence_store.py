@@ -7,6 +7,7 @@ Metadata is only an index: reopening always verifies bytes, signatures and trust
 from pathlib import PureWindowsPath
 import hashlib
 import re
+import sqlite3
 import time
 from uuid import uuid4
 from . import windows_worker_evidence as native, windows_capture as capture, windows_storage as storage
@@ -50,16 +51,18 @@ def _mark(db):
     return value['high_water']
 
 
-def _effective(store,mark):
+def _effective(store,mark,*,anchor=True):
     """max(wall, durable mark, the process monotonic carry of the wall): the process floor is the secondary floor."""
     wall=time.time()
+    if not anchor:return max(int(wall),mark)
     return max(int(wall),mark,int(clock._process_floor('worker-evidence-store:'+str(store.root),wall)))
 
 
 def _peek(store):
-    """Read-only reading for the authenticating pass: max(wall, mark). Records nothing."""
+    """Reading for the authenticating pass: max(wall, durable mark), no process anchor touched. An input that fails
+    authentication has no clock effect; the anchor moves only in the authenticated phase (_judge)."""
     with store._connection() as db:
-        _validate_schema(db);return _effective(store,_mark(db))
+        _validate_schema(db);return _effective(store,_mark(db),anchor=False)
 
 
 def _judge(store,db,decide,apply):
@@ -70,17 +73,26 @@ def _judge(store,db,decide,apply):
     worker_evidence_clock_unrecorded. Returns the pending refusal or None."""
     recorded=True
     try:
+        db.execute('BEGIN IMMEDIATE')
         now=_effective(store,_mark(db))
         db.execute('INSERT INTO metadata VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value',(CLOCK,canonical({'high_water':now}).decode()))
     except BaseException as error:
         if isinstance(error,(KeyboardInterrupt,SystemExit)):raise
-        recorded=False;now=_effective(store,0)
+        recorded=False
+        try:now=_effective(store,_mark(db))  # a read is allowed beside another writer
+        except BaseException as reading:
+            if isinstance(reading,(KeyboardInterrupt,SystemExit)):raise
+            now=_effective(store,0)
     pending=verified=None
     try:verified=decide(now)
     except AppError as error:pending=error
     if recorded and pending is None:
         try:apply(verified)
         except AppError as error:pending=error
+        except sqlite3.Error:
+            recorded=False  # the receipt write failed: roll back whatever it wrote, nothing is admitted
+            try:db.execute('ROLLBACK')
+            except sqlite3.Error:pass
     if recorded:
         try:db.execute('COMMIT')
         except BaseException as error:
@@ -129,7 +141,7 @@ def _ingest(store,envelope_path,request_path,trust_path,pin_path,scratch,api):
                 holder['result']=result;holder['record']=record
             # Both indexes and the mark commit together under the existing native storage barriers.
             with store._connection(True) as db,db:
-                _validate_schema(db);db.execute('BEGIN IMMEDIATE')
+                _validate_schema(db)
                 pending=_judge(store,db,decide,apply)
             if pending is not None:raise pending
         result,record,repeated=holder['result'],holder['record'],holder['repeated']
@@ -176,7 +188,7 @@ def _reopen(store,request_sha256,trust_path,pin_path,scratch,api,*,historical=Fa
             auth=contract.verify_envelope(envelope,request,policy,verify,now=_peek(store),historical=True).result()
             if auth['tenant_id']!=store.tenant_id:contract.fail('workbench_evidence_identity')
             with store._connection(True) as db,db:
-                _validate_schema(db);db.execute('BEGIN IMMEDIATE')
+                _validate_schema(db)
                 pending=_judge(store,db,lambda now:contract.verify_envelope(envelope,request,policy,verify,now=now),lambda verified:finish(db,verified))
             if pending is not None:raise pending
         result=holder['result']

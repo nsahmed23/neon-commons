@@ -252,18 +252,22 @@ def ingest_raw(store_root,envelope_raw,request_raw,policy,verifier):
             try:protected._exclusive(database,b'')
             except FileExistsError:pass
             _private(database);_no_sidecars(database)
-            with sqlite3.connect(database,timeout=0,isolation_level=None) as db:
-                db.execute('PRAGMA synchronous=FULL');db.execute('PRAGMA journal_mode=DELETE');db.execute('PRAGMA trusted_schema=OFF')
-                db.execute('BEGIN IMMEDIATE')
-                db.execute('CREATE TABLE IF NOT EXISTS received(request_sha256 TEXT PRIMARY KEY,bundle_sha256 TEXT NOT NULL,envelope_byte_sha256 TEXT NOT NULL,request_byte_sha256 TEXT NOT NULL,attempt TEXT NOT NULL)')
-                db.execute('CREATE TABLE IF NOT EXISTS heads(scope TEXT PRIMARY KEY,sequence INTEGER NOT NULL,event_sha256 TEXT NOT NULL)')
-                prior=db.execute('SELECT bundle_sha256,attempt FROM received WHERE request_sha256=?',(digest(req),)).fetchone()
-                scope=binding['scope'];sequence=binding['sequence'];events=binding['event_sha256']
-                head=db.execute('SELECT sequence,event_sha256 FROM heads WHERE scope=?',(scope,)).fetchone()
-                contract.admit_received(binding,prior[0] if prior else None,dict(zip(('sequence','event_sha256'),head)) if head else None)
-                if prior is None:db.execute('INSERT INTO received VALUES (?,?,?,?,?)',(digest(req),result['bundle_sha256'],result['received_byte_sha256'],result['request_byte_sha256'],attempt.name))
-                db.execute('INSERT INTO heads VALUES (?,?,?) ON CONFLICT(scope) DO UPDATE SET sequence=excluded.sequence,event_sha256=excluded.event_sha256',(scope,sequence,events))
-                db.execute('COMMIT')
+            try:
+                with sqlite3.connect(database,timeout=0,isolation_level=None) as db:
+                    db.execute('PRAGMA synchronous=FULL');db.execute('PRAGMA journal_mode=DELETE');db.execute('PRAGMA trusted_schema=OFF')
+                    db.execute('BEGIN IMMEDIATE')
+                    db.execute('CREATE TABLE IF NOT EXISTS received(request_sha256 TEXT PRIMARY KEY,bundle_sha256 TEXT NOT NULL,envelope_byte_sha256 TEXT NOT NULL,request_byte_sha256 TEXT NOT NULL,attempt TEXT NOT NULL)')
+                    db.execute('CREATE TABLE IF NOT EXISTS heads(scope TEXT PRIMARY KEY,sequence INTEGER NOT NULL,event_sha256 TEXT NOT NULL)')
+                    prior=db.execute('SELECT bundle_sha256,attempt FROM received WHERE request_sha256=?',(digest(req),)).fetchone()
+                    scope=binding['scope'];sequence=binding['sequence'];events=binding['event_sha256']
+                    head=db.execute('SELECT sequence,event_sha256 FROM heads WHERE scope=?',(scope,)).fetchone()
+                    contract.admit_received(binding,prior[0] if prior else None,dict(zip(('sequence','event_sha256'),head)) if head else None)
+                    if prior is None:db.execute('INSERT INTO received VALUES (?,?,?,?,?)',(digest(req),result['bundle_sha256'],result['received_byte_sha256'],result['request_byte_sha256'],attempt.name))
+                    db.execute('INSERT INTO heads VALUES (?,?,?) ON CONFLICT(scope) DO UPDATE SET sequence=excluded.sequence,event_sha256=excluded.event_sha256',(scope,sequence,events))
+                    db.execute('COMMIT')
+            except sqlite3.Error:
+                # Opening, BEGIN IMMEDIATE, the receipt writes or the acceptance commit failed: not recorded, not admitted.
+                contract.unrecorded()
         protected._sync(root)
         write_new(attempt/'result.json',result)
         return dict(result,stored_attempt=attempt.name,idempotent=prior is not None)

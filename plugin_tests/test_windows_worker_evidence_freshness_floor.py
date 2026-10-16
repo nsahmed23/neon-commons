@@ -13,7 +13,7 @@ from unittest.mock import patch
 from intune_iac import clock, windows_storage as storage, windows_workbench as win
 from intune_iac import windows_worker_evidence as native, windows_worker_evidence_store as receiver
 from intune_iac.io import AppError, canonical, digest
-from plugin_tests.test_windows_storage_r4 import ROOT
+from plugin_tests.test_windows_storage_r4 import CANONICAL, ROOT
 from plugin_tests.test_windows_workbench_r4 import FilesystemAPI
 from plugin_tests.test_worker_evidence_freshness_floor import (OK, REJECT, T, TENANT, Shape, expiring, make_policy, make_request,
                                                                restart, stand_ins, wall)
@@ -116,6 +116,36 @@ class WindowsStoreReaderTests(Shape, unittest.TestCase):
             self.ingest()
         self.assertEqual(raised.exception.code, 'worker_evidence_clock_unrecorded')
         self.assertEqual(self.rows(), [])
+
+    def test_an_invalid_input_poisons_neither_the_process_floor_nor_the_durable_mark(self):
+        self.publish(expiring(self.req))
+        self.verifier = REJECT
+        with wall(T + 500), self.assertRaises(AppError):
+            self.read()
+        self.verifier = OK
+        with wall(T + 5):  # the true wall again and a valid verifier
+            self.assertTrue(self.read()['baseline_admissible'])
+        self.assertLess(self.mark(), T + 500)
+
+    def hold_write_lock(self):
+        holder = sqlite3.connect(self.api.real(CANONICAL + '\\received\\observations.sqlite3'), timeout=0, isolation_level=None)
+        holder.execute('BEGIN IMMEDIATE')
+        self.addCleanup(holder.close)
+
+    def test_a_busy_write_lock_keeps_the_temporal_code_with_the_note(self):
+        self.publish(expiring(self.req))
+        self.hold_write_lock()
+        with wall(T + 20), self.assertRaises(AppError) as raised:
+            self.read()
+        self.assertEqual(raised.exception.code, 'worker_evidence_expired')
+        self.assertIs(raised.exception.closure_recorded, False)
+
+    def test_a_busy_write_lock_is_unrecorded_for_an_admissible_read(self):
+        self.publish(expiring(self.req))
+        self.hold_write_lock()
+        with wall(T + 5), self.assertRaises(AppError) as raised:
+            self.read()
+        self.assertEqual(raised.exception.code, 'worker_evidence_clock_unrecorded')
 
 
 class QualificationScriptTests(unittest.TestCase):

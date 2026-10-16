@@ -386,11 +386,14 @@ def stored_result(verified,head):
 
 
 def fresh_now(*,floor):
-    """A read-only reading for the first, authenticating pass of a non-historical read: max(wall, the store floor).
+    """The time for the first, authenticating pass of a non-historical read: max(wall, recorded mark, boot-session carry).
 
-    Records nothing, so an input that fails authentication leaves no clock effect. Admission is decided afterwards, on a
-    resample taken under the floor lock by the reader that holds it (see the readers' locked_now)."""
-    return int(clock.Floor(floor).peek(time.time())['effective'])
+    Pure: it reads the recorded floor and touches no process anchor and no file, so an input that fails authentication has no
+    clock effect at all. (Floor.peek is not used: it advances the process floor.) The process anchor and the durable mark
+    are updated only in the authenticated, locked phase, on a resample taken by the reader that holds the lock."""
+    wall=time.time();store=clock.Floor(floor);recorded=store.record();carried=store.carried(recorded)
+    mark=0 if recorded is None else recorded['high_water']
+    return int(max(wall,mark,mark if carried is None else carried))
 
 
 def unrecorded():

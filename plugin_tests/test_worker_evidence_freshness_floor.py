@@ -237,6 +237,49 @@ class PosixStoreReaderTests(Shape, unittest.TestCase):
         self.assertEqual(raised.exception.code, 'worker_evidence_clock_unrecorded')
         self.assertFalse((self.root / 'evidence.sqlite3').exists())  # nothing was admitted
 
+    def test_an_invalid_input_poisons_neither_the_process_floor_nor_the_durable_one(self):
+        self.publish(expiring(self.req))
+        other = make_request(self.policy, '8' * 32)
+        with wall(T + 500), self.assertRaises(AppError):
+            host.ingest(self.root, aging(other), other, self.policy, REJECT)
+        with wall(T + 500), self.assertRaises(AppError):
+            self.read(verifier=REJECT)
+        with wall(T + 5):  # the true wall again, a valid verifier, a current read and a current ingest
+            self.assertTrue(self.read()['baseline_admissible'])
+            self.assertFalse(host.ingest(self.root, aging(other), other, self.policy, OK)['idempotent'])
+        self.assertLess(self.mark(), T + 500)
+
+    def failing_commit(self):
+        real = host.sqlite3.connect
+
+        class Proxy:
+            def __init__(self, inner):
+                self.inner = inner
+
+            def __enter__(self):
+                self.inner.__enter__()
+                return self
+
+            def __exit__(self, *exc):
+                return self.inner.__exit__(*exc)
+
+            def execute(self, sql, *args):
+                if sql == 'COMMIT':
+                    raise host.sqlite3.OperationalError('disk I/O error')
+                return self.inner.execute(sql, *args)
+
+        return patch.object(host.sqlite3, 'connect', side_effect=lambda *a, **k: Proxy(real(*a, **k)))
+
+    def test_an_acceptance_commit_failure_is_unrecorded_for_an_admissible_read(self):
+        with self.failing_commit(), wall(T + 1), self.assertRaises(AppError) as raised:
+            host.ingest(self.root, expiring(self.req), self.req, self.policy, OK)
+        self.assertEqual(raised.exception.code, 'worker_evidence_clock_unrecorded')
+
+    def test_an_acceptance_commit_failure_keeps_the_temporal_code_for_an_expired_read(self):
+        with self.failing_commit(), wall(T + 20), self.assertRaises(AppError) as raised:
+            host.ingest(self.root, expiring(self.req), self.req, self.policy, OK)
+        self.assertEqual(raised.exception.code, 'worker_evidence_expired')
+
 
 if __name__ == '__main__':
     unittest.main()
