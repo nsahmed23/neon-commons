@@ -41,6 +41,10 @@ CONFIGURATION_ROWS = ('mode_goal', 'tools_host', 'repository', 'iac_target', 'ba
 SIGNIN_CHECK = ('Sign-in is not checked. Run: intune-iac catalog %s--check-signin azure (it runs az account list '
                 '--output json and nothing else, and reads no token).')
 NOT_PERMISSION = 'A sign-in is not permission for any operation; access to Graph, Intune and state storage is not established.'
+# The manifest's evidence class of an operation that runs only as a bounded local process against the modeled service, and the
+# live blocker it records for the missing cloud route.
+MODELED_ONLY = 'synthetic_local_process_only'
+NO_CLOUD_ROUTE = 'cloud_executor_unavailable'
 
 
 def _available(manifest, goal):
@@ -228,6 +232,18 @@ def _blocked_words(goal):
     return 'no prerequisite is reported as not ready'
 
 
+def _modeled_only_words(goal):
+    """For a goal whose operations are all recorded as a synthetic local process only: that they run against the modeled
+    service, and (when the manifest records the cloud executor as unavailable) that no cloud route exists. Said in the
+    available row itself, because `execute` listed beside `available: yes` reads as a route to the cloud."""
+    if goal['available']['evidence_classes'] != [MODELED_ONLY]:
+        return ''
+    words = ', against the modeled service only'
+    if NO_CLOUD_ROUTE in goal['unsupported']['live_blockers']:
+        words += '; no cloud route exists'
+    return words
+
+
 def verdict_words(goal):
     """One goal's verdict in the words of its state rows (operation-ready and blocked), for the last screen."""
     return 'operation-ready: %s; blocked: %s' % (_ready_words(goal), _blocked_words(goal))
@@ -246,8 +262,8 @@ def _state_lines(goal, width):
     available, configured = goal['available'], goal['configured']
     auth, ready, blocked, unsupported = goal['authenticated'], goal['operation_ready'], goal['blocked'], goal['unsupported']
     if available['state'] == 'available':
-        text = 'yes (operations: %s; evidence: %s)' % (', '.join(available['operations']),
-                                                       ', '.join(c.replace('_', ' ') for c in available['evidence_classes']))
+        text = 'yes%s (operations: %s; evidence: %s)' % (_modeled_only_words(goal), ', '.join(available['operations']),
+                                                         ', '.join(c.replace('_', ' ') for c in available['evidence_classes']))
     else:
         text = 'no (the manifest lists no %s operation)' % ', '.join(available['missing_operations'])
     lines = row('available', text)

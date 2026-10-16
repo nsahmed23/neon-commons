@@ -157,5 +157,35 @@ class LiveRowTests(Base):
             self.assertEqual(text.count('recorded blockers for a live run:'), 4, width)
 
 
+class AvailableRowTests(Base):
+    """Item 3: `available: yes` with `execute` listed says what the operations run against and that no cloud route exists."""
+
+    def test_a_goal_whose_operations_only_run_on_the_modeled_service_says_so_in_the_available_row(self):
+        for fixture in ('offline', 'full'):
+            rows = goal_rows(self.lines(fixture), 'change')
+            text = rows['available']
+            self.assertTrue(text.startswith('yes, against the modeled service only; no cloud route exists ('), text)
+            self.assertIn('operations: plan, approval, execute, reconcile', text)
+            self.assertIn('evidence: synthetic local process only', text)
+
+    def test_the_other_goals_keep_their_available_row(self):
+        rows = {goal: goal_rows(self.lines('offline'), goal)['available'] for goal in ('inspect', 'discover', 'adopt')}
+        self.assertEqual(rows['inspect'], 'yes (operations: inventory, selection, validation; evidence: local evidence only)')
+        self.assertEqual(rows['discover'], 'yes (operations: discovery; evidence: local evidence only)')
+        self.assertEqual(rows['adopt'], 'yes (operations: ownership, mapping, adoption; evidence: local evidence only)')
+
+    def test_the_cloud_clause_follows_the_recorded_live_blockers(self):
+        from intune_iac import integration_manifest
+        manifest = copy.deepcopy(integration_manifest.load())
+        manifest['live_blockers'] = [item for item in manifest['live_blockers'] if item != 'cloud_executor_unavailable']
+        text = goal_rows(self.lines('offline', manifest=manifest), 'change')['available']
+        self.assertTrue(text.startswith('yes, against the modeled service only ('), text)
+        self.assertNotIn('no cloud route', text)
+
+    def test_a_chosen_goal_says_it_too(self):
+        self.assertIn('against the modeled service only; no cloud route exists',
+                      goal_rows(self.lines('full', 'change'), 'change')['available'])
+
+
 if __name__ == '__main__':
     unittest.main()
