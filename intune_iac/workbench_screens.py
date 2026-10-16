@@ -909,10 +909,17 @@ def _quote_units(words, width):
     return units
 
 
+# An identifier a row names: a GUID, with the suffix that says what is recorded of it (`GUID:description_changed`).
+_IDENTIFIER = re.compile(r'\(?[0-9A-Fa-f]{8}(?:-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}(?::[\w.-]+)?[).,;:]*')
+
+
 def word_wrap(value, width):
     """Wrap escaped text at spaces where possible; split a token only when it cannot fit.
 
-    Leading indentation is kept on every wrapped line.
+    Leading indentation is kept on every wrapped line. An identifier (a GUID, with or without its suffix) is one token:
+    a row never ends in the middle of it to start it after other text. Only when it is wider than the whole line does it
+    break, and then on a row of its own, at a group boundary (after a hyphen) or beside the colon that begins its suffix,
+    never inside a group (journey 33 run 1, review B finding 2).
     """
     text = safe_text(value)
     body = text.lstrip(' ')
@@ -936,10 +943,12 @@ def word_wrap(value, width):
         if cell_width(candidate) <= width:
             line = candidate
             continue
-        if (line and cell_width(word) > width and width - cell_width(line) - 1 >= 4
+        identifier = _IDENTIFIER.fullmatch(word) is not None
+        if (line and cell_width(word) > width and width - cell_width(line) - 1 >= 4 and not identifier
                 and not any(mark in word for mark in ('/', '.', '["'))):
             # The word must be split anyway: start it after the current text rather than leave that text alone. A word
-            # with delimiters starts its own row instead, so it can break at one of them (below).
+            # with delimiters starts its own row instead, so it can break at one of them (below), and so does an
+            # identifier, which is never started after text only to be cut.
             word, line = line + ' ' + word, ''
         if line:
             lines.append(line)
@@ -952,6 +961,9 @@ def word_wrap(value, width):
                     break
                 cut += char; used += size
             keep = max(cut.rfind('/') + 1, cut.rfind('.') + 1, cut.rfind('["') + 2 if '["' in cut else 0)
+            if identifier:
+                # After a group's hyphen, or beside the colon of the suffix (before it when the cut ends exactly there).
+                keep = max(keep, cut.rfind('-') + 1, cut.rfind(':') + 1, len(cut) if word[len(cut):len(cut) + 1] == ':' else 0)
             if len(cut) < len(word) and keep * 2 >= len(cut) > 0:
                 # Cut after a delimiter (a path's "/", an address's `.` or `["`) rather than inside an identifier or a
                 # word, when that leaves at least half a row; a quoted path breaks here, never at a space inside it.

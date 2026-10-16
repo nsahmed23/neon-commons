@@ -232,6 +232,21 @@ class CatalogLayerCase(unittest.TestCase):
         """The rows inside the frame's side rules, with the rules and the padding off."""
         return [row[1:-1].strip() for row in rows if row[:1] in '|│' and row[-1:] in '|│']
 
+    def pages(self, ws, limit=80):
+        """The frame of each page of the layer, paged with the real PageDown key until a page repeats the one before."""
+        shown = []
+        for _ in range(limit):
+            rows = catalog_layer.rows_of(ws)
+            if shown and rows == shown[-1]:
+                break
+            shown.append(rows)
+            ws.key_reader = catalog_layer.Keys('pagedown', 'eof')
+            try:
+                ws.input('')
+            except EOFError:
+                pass
+        return shown
+
 
 class CatalogPlainTextRouteTests(CatalogLayerCase):
     """Item 2 (journey 33 run 1, review B finding 1): below 60x20 the layer says the catalog needs a larger window and
@@ -270,6 +285,73 @@ class CatalogPlainTextRouteTests(CatalogLayerCase):
         self.assertTrue(any(row.startswith('Plain text: intune-iac catalog') for row in body), body)
         for row in body:
             self.assertTrue(all(32 <= ord(char) < 127 for char in row), repr(row))
+
+
+class IdentifierWrapTests(CatalogLayerCase):
+    """Item 3 (journey 33 run 1, review B finding 2): the shared word wrap treats a GUID, with or without the suffix that
+    says what is recorded of it, as one token. It breaks before it, and breaks inside it only when it is wider than the
+    line, and then at a group boundary or beside the colon, never inside a group."""
+
+    def wrap(self, text, width):
+        from intune_iac.workbench_screens import word_wrap
+        return word_wrap(text, width)
+
+    def test_a_guid_with_a_suffix_wider_than_the_line_starts_a_row_and_breaks_beside_its_colon(self):
+        # 60x20: the catalog's rows hold 52 cells under a four-cell indent, and GUID:suffix is 56.
+        text = 'Operation operation-1: prepared | %s:description_changed | discovered | usable here' % GUID
+        self.assertEqual(self.wrap(text, 52), ['Operation operation-1: prepared |', GUID + ':',
+                                               'description_changed | discovered | usable here'])
+        # A line the GUID fills exactly: the colon cannot join it, so the suffix starts the next row.
+        self.assertEqual(self.wrap('see ' + GUID + ':added', 36), ['see', GUID, ':added'])
+
+    def test_a_guid_wider_than_the_line_breaks_at_a_group_boundary_never_inside_a_group(self):
+        # 40x12: the Inspector's Identity text has 26 cells beside its label.
+        self.assertEqual(self.wrap(GUID + ' | windows10 | scope tags []', 26),
+                         ['22222222-2222-4222-8222-', '222222222222 | windows10 |', 'scope tags []'])
+        self.assertEqual(self.wrap('Identity ' + GUID, 20), ['Identity', '22222222-2222-4222-', '8222-222222222222'])
+        self.assertEqual(self.wrap('    ' + GUID + ' end', 30), ['    22222222-2222-4222-8222-', '    222222222222 end'])
+
+    def test_a_guid_that_fits_a_row_is_never_split(self):
+        self.assertEqual(self.wrap('Operation operation-1: prepared | %s | discovered' % GUID, 52),
+                         ['Operation operation-1: prepared |', GUID + ' | discovered'])
+        self.assertEqual(self.wrap('Operation operation-1: prepared | %s:description_changed | discovered' % GUID, 60),
+                         ['Operation operation-1: prepared |', GUID + ':description_changed |', 'discovered'])
+        self.assertEqual(self.wrap('Identity ' + GUID, 36), ['Identity', GUID])
+        self.assertEqual(self.wrap('%s %s' % (GUID, GUID.replace('2', '3')), 40), [GUID, GUID.replace('2', '3')])
+
+    def test_no_other_text_wraps_differently(self):
+        digest = 'a' * 64
+        cases = [
+            ('Plan SHA-256: %s recorded' % digest, 40, ['Plan SHA-256: ' + 'a' * 26, 'a' * 38, 'recorded']),
+            ('Plan SHA-256: %s recorded' % digest, 60, ['Plan SHA-256: ' + 'a' * 46, 'a' * 18 + ' recorded']),
+            ('Resume: /home/nsahm/work/estate-directory/session.json and more text', 30,
+             ['Resume:', '/home/nsahm/work/', 'estate-directory/session.json', 'and more text']),
+            ('operation-ready and not-yet-qualified identity-binding words that wrap here', 24,
+             ['operation-ready and', 'not-yet-qualified', 'identity-binding words', 'that wrap here']),
+            ('the code workbench_deployment_intent_not_cited is long enough to need a cut', 28,
+             ['the code workbench_deploymen', 't_intent_not_cited is long', 'enough to need a cut']),
+            # Not an identifier: a GUID that lost its last group keeps the wrapping every token has.
+            ('tenant 11111111-1111-4111-8111 abcdef', 20, ['tenant 11111111-1111', '-4111-8111 abcdef']),
+            ('Policy %s is selected and fresh' % GUID, 40, ['Policy', GUID + ' is', 'selected and fresh'])]
+        for text, width, expected in cases:
+            self.assertEqual(self.wrap(text, width), expected, (text, width))
+
+    def test_the_inspector_identity_row_at_40x12_keeps_the_guids_groups_whole(self):
+        from intune_iac.workbench_screens import inspector_lines
+        value = {'object_id': GUID, 'name': NAME, 'body': {'platforms': 'windows10', 'technologies': ['mdm'],
+                                                            'role_scope_tag_ids': ['0']}}
+        rows = inspector_lines(value, 36)
+        at = next(index for index, row in enumerate(rows) if row.startswith('Identity'))
+        self.assertEqual(rows[at:at + 2], ['Identity  22222222-2222-4222-8222-',
+                                           '          222222222222 | windows10 |'])
+
+    def test_the_catalog_layer_at_60x20_shows_the_operations_guid_whole(self):
+        rows = [row for page in self.pages(self.layer((60, 20))) for row in self.body(page)]
+        self.assertIn(GUID + ':', rows)
+        self.assertIn('description_changed | discovered | usable here |', ' '.join(rows))
+        for row in rows:
+            self.assertNotRegex(row, r'^-[0-9a-f]{4}-', 'a row that continues a GUID cut inside its groups')
+            self.assertNotRegex(row, r'[0-9a-f]{8}-[0-9a-f]{4}-4222$', 'a row that ends inside a GUID')
 
 
 if __name__ == '__main__':
