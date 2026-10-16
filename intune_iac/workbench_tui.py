@@ -1088,6 +1088,8 @@ class Workspace:
                                       if code == 'workbench_deployment_intent_not_cited' else None,
                                       context_file=self._context_file_for(command)
                                       if code == 'maintenance_source_changed' and isinstance(command, str) else None,
+                                      desired_file=self._desired_file_for(command)
+                                      if code == 'maintenance_source_changed' and isinstance(command, str) else None,
                                       given=self._intent_given(command)
                                       if code == 'workbench_deployment_intent_not_cited' and isinstance(command, str) else None))
             rows.append('')
@@ -2273,18 +2275,27 @@ class Workspace:
             return None
         return parts[2] if len(parts) >= 3 and parts[0] == 'deployment-record' else None
 
-    def _context_file_for(self, command):
-        """The context file the plan of the operation a command names bound (the plan's own record), else None. Read
-        only; a command that names no operation, or an operation that cannot be read, leaves the refusal general."""
+    def _bound_file_for(self, command, key):
+        """The path of the file ('context' or 'desired_source') the plan of the operation a command names bound (the
+        plan's own record), else None. Read only; a command that names no operation, or an operation that cannot be
+        read, leaves the refusal general."""
         try:
             parts = shlex.split(command)
         except (ValueError, AttributeError):
             return None
         if len(parts) < 2 or parts[0] not in ('execute', 'reconcile', 'deployment-record', 'restore-propose'):
             return None
-        context = (self._plan_record(parts[1]) or {}).get('context')
-        path = context.get('path') if isinstance(context, dict) else None
+        binding = (self._plan_record(parts[1]) or {}).get(key)
+        path = binding.get('path') if isinstance(binding, dict) else None
         return path if isinstance(path, str) and path else None
+
+    def _context_file_for(self, command):
+        """The context file the plan of the operation a command names bound, else None."""
+        return self._bound_file_for(command, 'context')
+
+    def _desired_file_for(self, command):
+        """The desired file the plan of the operation a command names bound, else None."""
+        return self._bound_file_for(command, 'desired_source')
 
     def _plan_inputs(self, operation_root):
         """The input files the plan records it bound (the desired source, then the context), else []."""

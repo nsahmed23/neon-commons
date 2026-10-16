@@ -219,7 +219,7 @@ class ObservationRefusalInputFilesTests(unittest.TestCase):
         output = self.root / 'restore changed'
         error = self.refused(lambda: maintenance.propose_restore(operation, output))
         self.assertEqual(error.code, 'maintenance_source_changed')
-        self.assertEqual(error.effects, {'files_written': [], 'operation_created': False})
+        self.assertEqual(error.effects, {'changed': 'context', 'files_written': [], 'operation_created': False})
         text = self.effect_text('restore-propose %s %s' % (shlex.quote(str(operation)), shlex.quote(str(output))), error)
         self.assertIn('Effect: No proposal and no input files were created.', text)
 

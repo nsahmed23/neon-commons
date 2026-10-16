@@ -3182,7 +3182,8 @@ def execution_effect_lines(result, width):
     return []
 
 
-def refusal_lines(value, width, known=None, clock_fact=None, operation=None, verb=None, recorded=None, context_file=None, given=None):
+def refusal_lines(value, width, known=None, clock_fact=None, operation=None, verb=None, recorded=None, context_file=None, given=None,
+                  desired_file=None):
     """A refusal in one shape: the refusal in words with its code in parentheses, then Cause, Effect (when the engine
     established what changed) and Next (when the code is known).
 
@@ -3192,8 +3193,9 @@ def refusal_lines(value, width, known=None, clock_fact=None, operation=None, ver
     verb: the command's own word; a restore reads the code in its own terms.
     recorded: the deployment record the named operation already has, for a refused deployment-record command; the
     refusal then says so and names it, and never asks for a record that exists (run 9, frame 67).
-    context_file: the path of the context file the plan bound. The cause does not name it: the engine raises this code
-    for the desired file and for the context file alike and does not say which changed (review 19).
+    context_file, desired_file: the paths of the context file and the desired file the plan bound. The engine raises this
+    code for either file and says which in error.effects['changed'] ('desired_source' or 'context'); the cause names
+    that file by its path. Without that fact (an older record) the cause names both kinds and no path (review 19).
     given: the intent the command named, for a refused deployment-record, shown beside the cited one (run 12, frame 67).
     """
     error = value.get('error') if isinstance(value.get('error'), dict) else {}
@@ -3203,8 +3205,15 @@ def refusal_lines(value, width, known=None, clock_fact=None, operation=None, ver
     lines = word_wrap('[REFUSED] %s (%s)' % (restore[0], code) if restore else refusal_header(code), width)
     named = 'operation %s' % operation if operation else 'that operation'
     override = None
-    if code == 'maintenance_source_changed' and not restore and operation:
-        # Names the operation (run 12, frame 66) and both kinds of file it bound, never one path (review 19).
+    changed = (error.get('effects') or {}).get('changed') if isinstance(error.get('effects'), dict) else None
+    if code == 'maintenance_source_changed' and not restore and changed in ('desired_source', 'context'):
+        # The engine says which bound file changed (run 16, N2; review 19), so the cause names that file by its path.
+        kind, path = ('desired file', desired_file) if changed == 'desired_source' else ('context file', context_file)
+        file = '%s %s' % (kind, command_arg(path)) if isinstance(path, str) and path else kind
+        override = ('A file this proposal bound changed after %s was prepared (the %s), so its review no longer describes '
+                    'what would run.' % (named if operation else 'it', file), REFUSALS[code][1])
+    elif code == 'maintenance_source_changed' and not restore and operation:
+        # The engine did not say which file (an older record): names the operation and both kinds of file it bound.
         override = ('A file it bound (its desired file or its context file) changed after operation %s was prepared, so its '
                     'review no longer describes what would run.' % operation, REFUSALS[code][1])
     if operation and message.startswith('This operation '):

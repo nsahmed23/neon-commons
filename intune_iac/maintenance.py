@@ -30,6 +30,14 @@ def _fail(code):
     raise AppError(code, 'Maintenance evidence is incomplete, changed, stale, or outside the local model profile.')
 
 
+def _fail_changed(which):
+    """The source-changed refusal, saying which bound file changed ('desired_source' or 'context') in its effects, so the
+    workspace names that file; the code and the decision are the same for both."""
+    raise AppError('maintenance_source_changed',
+                   'Maintenance evidence is incomplete, changed, stale, or outside the local model profile.',
+                   effects={'changed': which})
+
+
 def _safe(path):
     path = Path(path).absolute()
     if any(p.is_symlink() for p in (path, *path.parents)):
@@ -345,7 +353,7 @@ def _propose(store_root, service_root, object_id, desired_path, output, *, conte
             _fail('maintenance_context_invalid')
         context = {'path': str(context_path), 'sha256': hashlib.sha256(context_bytes).hexdigest()}
         if context_sha256 is not None and context['sha256'] != context_sha256:
-            _fail('maintenance_source_changed')
+            _fail_changed('context')
     engine_version, pin_profile = _engine_profile(context_value if context_path is not None else None)
     service = ModeledService(service_root)
     with _lock(service_root):
@@ -396,7 +404,7 @@ def _bound_context(plan):
         return None
     data = read_bytes(_safe(binding['path']))
     if hashlib.sha256(data).hexdigest() != binding['sha256']:
-        _fail('maintenance_source_changed')
+        _fail_changed('context')
     return parse_json(data)
 
 
@@ -538,7 +546,7 @@ def _execute(operation_root, *, approve_digest, fault, visibility_delay_reads, p
             _fail('maintenance_replay_forbidden')
         binding = plan['desired_source']
         if file_sha(_safe(binding['path'])) != binding['sha256']:
-            _fail('maintenance_source_changed')
+            _fail_changed('desired_source')
         service = ModeledService(plan['service_root'])
         state = service.snapshot()
         if (state['source_sha256'] != plan['service_source_sha256'] or state['revision'] != plan['before_revision']

@@ -84,6 +84,28 @@ class MaintenanceTests(unittest.TestCase):
         self.assertEqual(raised.exception.code, 'maintenance_source_changed')
         self.assertEqual(self.patches(), [])
 
+    # PKG-PRES-RUN16 item 2 (run16-N2, review 19): the refusal says which bound file changed, in error.effects.
+    def test_a_changed_desired_file_is_reported_as_desired_source(self):
+        proposal = self.propose()
+        self.desired_path.write_text(self.desired_path.read_text() + ' ')
+        with self.assertRaises(AppError) as raised: self.execute(proposal)
+        self.assertEqual(raised.exception.code, 'maintenance_source_changed')
+        self.assertEqual(raised.exception.effects.get('changed'), 'desired_source')
+
+    def test_a_changed_context_file_is_reported_as_context(self):
+        context = self.root / 'context.json'; write_json(context, {'tenant_id': self.tenant})
+        proposal = self.propose(context_path=context)
+        write_json(context, {'tenant_id': self.ids[0]})
+        with self.assertRaises(AppError) as raised: self.execute(proposal)
+        self.assertEqual(raised.exception.code, 'maintenance_source_changed')
+        self.assertEqual(raised.exception.effects.get('changed'), 'context')
+
+    def test_a_context_that_differs_from_the_expected_hash_is_reported_as_context(self):
+        context = self.root / 'context.json'; write_json(context, {'tenant_id': self.tenant})
+        with self.assertRaises(AppError) as raised:
+            self.propose(context_path=context, context_sha256='0' * 64)
+        self.assertEqual(raised.exception.effects.get('changed'), 'context')
+
     def test_saved_desired_or_plan_substitution_rejected(self):
         proposal = self.propose()
         changed = dict(self.desired, name='Unreviewed')
