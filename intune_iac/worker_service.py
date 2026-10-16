@@ -790,12 +790,11 @@ class ServiceJob:
         try: return self.manifest.get('implementation_files') == implementation_binding()
         except AppError: return None
     def cancel(self, *, administrative=False):
-        """A job prepared under an earlier controller is refused here; an explicit administrative cancel stays available,
-        only restricts, makes no host call and records in its event that it was administrative and whether the controller
-        is current."""
+        """Cancel only restricts and makes no host call, so no inventory gate applies: a job dispatched under an earlier
+        controller can always be cancelled. An explicit administrative cancel records in its event that it was administrative
+        and whether the controller is current."""
         self._check(expiry=False)
         current = self._implementation_current()
-        if not current and not administrative: _fail('service_implementation_changed')
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE')
             db.execute("UPDATE jobs SET cancelled=1,status=CASE WHEN dispatches=0 THEN 'cancelled_before_dispatch' ELSE status END WHERE id=?", (self.identifier,))
@@ -1009,9 +1008,11 @@ class ServiceJob:
         return self.status()
 
     def recover(self):
-        """Recovery calls the host and writes state, so the current-implementation gate runs before any transaction."""
+        """Recovery with the current controller calls the host and writes state. A job prepared under another controller (or
+        whose inventory cannot be read) makes no host call: if its recorded controller is dead, recovery only marks it
+        outcome_unknown and clears the controller identity, so it can still be settled after an install."""
         self._check(expiry=False)
-        if not self._implementation_current(): _fail('service_implementation_changed')
+        current = bool(self._implementation_current())
         # Commit cancellation before considering cleanup, so no new broker
         # request remains authorized while a second process observes recovery.
         with self.policy.connection() as db:
@@ -1023,7 +1024,8 @@ class ServiceJob:
         if row[2] == 'running' and row[0] is not None and _controller_identity(row[0]) == row[1]:
             _fail('service_cleanup_owner_active')
         host_root = self.root / 'host-run'
-        recovered = host.recover(host_root) if (host_root / 'journal.json').exists() else {'container_never_recorded': True}
+        if not current: recovered = {'host_call_made': False, 'implementation_current': False, 'cleanup_not_attempted': True}
+        else: recovered = host.recover(host_root) if (host_root / 'journal.json').exists() else {'container_never_recorded': True}
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE')
             db.execute("UPDATE jobs SET cancelled=1,controller_pid=NULL,controller_start=NULL,status=CASE WHEN dispatches=0 THEN 'cancelled_before_dispatch' WHEN status='running' THEN 'outcome_unknown' ELSE status END WHERE id=?", (self.identifier,))
