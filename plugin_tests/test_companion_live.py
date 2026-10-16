@@ -1614,6 +1614,30 @@ class StopTests(Fixture):
         with self.assertRaises(OSError):
             socket.create_connection(('127.0.0.1', live.port), timeout=2)
 
+    def test_a_follower_does_not_return_while_a_retry_has_moved_the_state_back_to_stopping(self):
+        live = self.start()
+        with live._lock:
+            live._state, live._close_error, live._consumed = 'close_failed', OSError('earlier'), True
+        self.addCleanup(lambda: setattr(live, '_state', 'running'))      # the fixture's stop must really stop it
+        real_settle, squeezed = live._settle, []
+
+        def settle(generation, kind, *arguments, **keywords):
+            if kind == 'observe' and not squeezed:
+                squeezed.append(True)
+                with live._lock:                         # a retry begins between the follower's wait and its look
+                    live._state = 'stopping'
+                    live._generation += 1
+            return real_settle(generation, kind, *arguments, **keywords)
+        patch = mock.patch.object(live, '_settle', settle)
+        patch.start()
+        self.addCleanup(patch.stop)
+        follower, outcome = self.run_in_thread(lambda: live._follow(False))
+        follower.join(0.4)
+        self.assertTrue(follower.is_alive(), 'the follower returned while the retry was still closing the port')
+        live._settle(live._generation, 'closed')
+        follower.join(5)
+        self.assertEqual(outcome, [('returned', None)])
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500

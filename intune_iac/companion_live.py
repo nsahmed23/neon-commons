@@ -680,14 +680,19 @@ class LiveCompanion:
             raise interrupted
 
     def _follow(self, background):
-        with self._changed:
-            generation = self._generation
-            settled = self._changed.wait_for(self._settled, STOP_WAIT_SECONDS)
-        if settled:
-            failure, _ = self._settle(None, 'observe', background=background)
+        while True:
+            with self._changed:
+                generation = self._generation
+                settled = self._changed.wait_for(self._settled, STOP_WAIT_SECONDS)
+            if not settled:
+                break
+            failure, reason = self._settle(None, 'observe', background=background)
             if failure is not None:
                 raise failure
-            return None
+            if reason is not None:
+                return None
+            # Neither a failure nor an end: a retry moved the state back to stopping between the wait and this look. The
+            # port is not closed yet, so follow again (each pass is bounded).
         # The stopper outlived the bound. Close the socket here, check that it is closed, and say what is true. This
         # attempt takes over the state, so a stopper that finishes later cannot overwrite it; the next stop() retries.
         attempt = _Attempt()
