@@ -33,6 +33,19 @@ class Clock:
         return self.now
 
 
+class UnclosableSocket:
+    """Stands in for a listening socket whose close fails: everything is the real socket's, but close() raises and the
+    descriptor stays open (fileno() is never -1)."""
+    def __init__(self, real):
+        self._real = real
+
+    def close(self):
+        raise OSError('raw close failed')
+
+    def __getattr__(self, name):
+        return getattr(self._real, name)
+
+
 class Fixture(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -741,7 +754,8 @@ class StopTests(Fixture):
             with self.assertRaises(AppError) as caught:
                 live.stop()
         self.assertEqual(caught.exception.code, 'companion_live_stop_timeout')
-        self.assertTrue(self.port_accepts(live))
+        # Round 1 asserted the port still accepted here; the caller must not return with the port bound, so it is force-closed.
+        self.assertFalse(self.port_accepts(live), 'the timed-out caller returned with the port still bound')
         release.set()
         first.join(5)
 
@@ -760,22 +774,27 @@ class StopTests(Fixture):
         with self.assertRaises(OSError):
             socket.create_connection(('127.0.0.1', live.port), timeout=2)
 
+    def break_close(self, live, raw=True, error=OSError):
+        """Make server.server_close() raise `error` and, with raw=True, make closing the raw listening socket fail too.
+        Returns repair(), which undoes both (it also runs as a cleanup, so the fixture's own stop() can then close the port)."""
+        real_socket = live.server.socket
+        patch = mock.patch.object(live.server, 'server_close', side_effect=error('close failed'))
+        patch.start()
+        if raw:
+            live.server.socket = UnclosableSocket(real_socket)
+
+        def repair():
+            patch.stop()
+            live.server.socket = real_socket
+        self.addCleanup(repair)
+        return repair
+
     def test_a_close_that_fails_is_reported_loudly_never_as_an_end_and_never_as_a_hang(self):
+        # Round 1 patched server_close alone. With the raw-socket fallback that no longer prevents closure, so it now
+        # breaks both closes; what it asserts is otherwise unchanged.
         from intune_iac.io import AppError
         live = self.start()
-        real_close = live.server.server_close
-
-        def failing_close():
-            raise OSError('close failed')
-        patch = mock.patch.object(live.server, 'server_close', failing_close)
-        patch.start()
-
-        def restore():
-            # Close the socket for real and clear the recorded failure, so the fixture's own stop() has nothing to raise.
-            patch.stop()
-            real_close()
-            live._close_error = None
-        self.addCleanup(restore)
+        self.break_close(live)
         first, first_outcome = self.run_in_thread(live.stop)
         first.join(5)
         self.assertEqual([kind for kind, _ in first_outcome], ['raised'])
@@ -793,6 +812,60 @@ class StopTests(Fixture):
         with self.assertRaises(AppError) as second:
             live.stop()
         self.assertEqual(second.exception.code, 'companion_live_close_failed', 'not the timeout')
+
+    def test_a_failed_server_close_whose_raw_socket_close_works_still_ends_normally_and_keeps_a_note(self):
+        live = self.start()
+        self.break_close(live, raw=False)
+        live.stop()
+        with self.assertRaises(OSError):
+            socket.create_connection(('127.0.0.1', live.port), timeout=2)
+        self.assertEqual(live.wait(poll=0.01), 'stopped', 'the note is a diagnostic, never the end reason')
+        self.assertIsInstance(live.close_note, OSError)
+        live.stop()
+
+    def test_when_both_closes_fail_the_failure_is_chained_and_a_later_stop_recovers(self):
+        from intune_iac.io import AppError
+        live = self.start()
+        repair = self.break_close(live)
+        first, first_outcome = self.run_in_thread(live.stop)
+        first.join(5)
+        self.assertEqual([kind for kind, _ in first_outcome], ['raised'])
+        with self.assertRaises(AppError) as waiting:
+            live.wait_step()
+        self.assertEqual(waiting.exception.code, 'companion_live_close_failed')
+        self.assertIsInstance(waiting.exception.__cause__, OSError, 'chained from the recorded error')
+        with self.assertRaises(AppError) as retried:
+            live.stop()
+        self.assertEqual(retried.exception.code, 'companion_live_close_failed', 'the retry fails and says so')
+        self.assertIsInstance(retried.exception.__cause__, OSError)
+        self.assertTrue(self.port_accepts(live), 'precondition: the port is still bound while the close fails')
+        repair()
+        live.stop()
+        with self.assertRaises(OSError):
+            socket.create_connection(('127.0.0.1', live.port), timeout=2)
+        self.assertEqual(live.wait_step(), 'stopped')
+        self.assertIsNone(live.close_note)
+
+    def test_the_waiter_that_is_itself_the_first_stopper_gets_close_failed_not_the_raw_error(self):
+        from intune_iac import companion_live
+        from intune_iac.io import AppError
+        with mock.patch.object(companion_live, 'WATCH_SECONDS', 3600):
+            live = self.start(idle_seconds=600)
+        self.break_close(live)
+        self.clock.now += 601
+        with self.assertRaises(AppError) as caught:
+            live.wait(poll=0.01)
+        self.assertEqual(caught.exception.code, 'companion_live_close_failed')
+        self.assertIsInstance(caught.exception.__cause__, OSError)
+
+    def test_an_interrupt_during_the_close_is_not_translated(self):
+        from intune_iac import companion_live
+        with mock.patch.object(companion_live, 'WATCH_SECONDS', 3600):
+            live = self.start(idle_seconds=600)
+        self.break_close(live, error=KeyboardInterrupt)
+        self.clock.now += 601
+        with self.assertRaises(KeyboardInterrupt):
+            live.wait(poll=0.01)
 
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
