@@ -262,6 +262,14 @@ class InterruptedPathsAreDisplaySafeTests(unittest.TestCase):
         self.assertTrue(newline.split('(directory ', 1)[1].startswith("$'"), newline)
         self.assertFalse(literal.split('(directory ', 1)[1].startswith("$'"), literal)
 
+    def test_the_sentence_is_whole_when_the_plan_gives_no_id(self):
+        from intune_iac.workbench import interrupted_text
+        path = '/tmp/a long operation directory'
+        for command, word in (('execute', 'executing'), ('reconcile', 'reconciling')):
+            rows = interrupted_text({'store_root': '/s', 'interrupted_during': {
+                'command': command, 'operation_root': path}}, 20)
+            self.assertEqual(rows[0], "Interrupted while %s operation '%s'." % (word, path), rows)
+
     def test_a_backslash_and_a_newline_both_escape_unambiguously(self):
         first = self.rows('execute', 200, self.operation('a\\b\nc'))[0]
         self.assertTrue(first.endswith("a\\\\b\\x0ac')."), first)

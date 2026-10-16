@@ -287,7 +287,7 @@ class InterruptTextOnATerminalTests(unittest.TestCase):
         self.assertEqual([line for line in lines if line in commands], commands)
         source_words = set(' '.join(lines).split())
         for line in lines:
-            if line in commands:
+            if line in commands or line.startswith("Interrupted while executing operation '"):  # the quoted path stays whole
                 continue
             self.assertLessEqual(len(line), 60, line)
         # No word was cut: every word of the wrapped sentences is a word of the unwrapped ones.

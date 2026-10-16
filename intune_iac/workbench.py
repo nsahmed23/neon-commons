@@ -1185,7 +1185,7 @@ def interrupted_text(result, width):
         # The sentence that quotes the operation directory is one row too: an inserted newline would break the quoted
         # path for anyone copying it (run 16, N4). The path is printable ASCII in either form (_shell_arg), so it holds
         # no control character that could start a forged row.
-        whole = line.startswith('  ') or (line.startswith('Interrupted while') and '(directory ' in line)
+        whole = line.startswith(('  ', 'Interrupted while executing', 'Interrupted while reconciling'))
         lines += [line] if whole else textwrap.wrap(
             line, max(20, width), break_long_words=False, break_on_hyphens=False) or ['']
     return lines
