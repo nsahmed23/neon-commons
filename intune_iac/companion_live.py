@@ -351,16 +351,22 @@ class LiveCompanion:
         sock = getattr(self.server, 'socket', None)
         if sock is None:
             return None
+        interrupted = None
         if wake:
             try:
                 sock.shutdown(socket.SHUT_RDWR)
             except OSError:
                 pass
+            except BaseException as error:
+                interrupted = error     # the close below is still attempted
         try:
             sock.close()
         except BaseException as error:
-            return error      # an interrupt too: the caller decides, so that no earlier error is lost with it
-        return None
+            # An interrupt too: the caller decides, so that no earlier error is lost with it.
+            if interrupted is not None:
+                error.add_note('The wake-up shutdown was also interrupted: %s' % type(interrupted).__name__)
+            return error
+        return interrupted
 
     def _listener_closed(self):
         """Closure is judged by the socket itself: a closed socket has no descriptor."""
@@ -528,6 +534,9 @@ class LiveCompanion:
         # attempt takes over the state, so a stopper that finishes later cannot overwrite it; the next stop() retries.
         forced = self._raw_close(wake=True)
         if forced is not None and not isinstance(forced, Exception):
+            if background:
+                with self._lock:
+                    self._undelivered.append(forced)     # nobody receives what is raised here
             raise forced
         if self._listener_closed():
             message = 'The listener is still being stopped by another caller; its port is closed.'
