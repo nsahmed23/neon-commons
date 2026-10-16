@@ -540,6 +540,7 @@ intune_iac/sim_render.py
 intune_iac/sim_result.py
 intune_iac/sim_settings.py
 intune_iac/synthetic.py
+intune_iac/system_map_projection.py
 intune_iac/target.py
 intune_iac/validity.py
 intune_iac/windows_capture.py
@@ -1041,6 +1042,7 @@ plugin_tests/test_start_wording.py
 plugin_tests/test_stateful_service_epoch.py
 plugin_tests/test_successor_expiry_latch.py
 plugin_tests/test_synthetic_completion.py
+plugin_tests/test_system_map_projection.py
 plugin_tests/test_target.py
 plugin_tests/test_terminal_interrupt_r4.py
 plugin_tests/test_terminal_security_epoch.py
