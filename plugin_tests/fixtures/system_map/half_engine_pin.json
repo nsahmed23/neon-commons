@@ -1,0 +1,461 @@
+{
+  "scenario": "half_engine_pin",
+  "expected_revision": "8bb1c78d366cd2ddf9ea38207030817a68ef33842ec591c2c6c0dd4e069f5e88",
+  "body_sha256": "a6bcf2ad33473e7518ffab7bc7c75913bcb96291a90abdf23842b373a0fa9d69",
+  "snapshot": {
+    "schema_version": "system-map/1",
+    "object_id": "22222222-2222-4222-8222-222222222222",
+    "tenant_id": "11111111-1111-4111-8111-111111111111",
+    "name": "Windows Privacy Pilot",
+    "evidence_class": "synthetic",
+    "boundaries": [
+      {
+        "id": "host",
+        "label": "this host"
+      },
+      {
+        "id": "repository",
+        "label": "the repository"
+      },
+      {
+        "id": "cloud",
+        "label": "the cloud"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "repo.source",
+        "kind": "repository_source",
+        "boundary": "repository",
+        "layer": 0,
+        "state": "recorded",
+        "identity": {
+          "revision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "source_files": [
+            "stacks/dev.yaml",
+            "stacks/base.yaml"
+          ]
+        },
+        "basis": {
+          "record": "repository_intent",
+          "field": "status, source_revision, resolution.sources",
+          "record_id": "e927410221924400000000000000000000000000000000000000000000000000"
+        },
+        "reason": null,
+        "facts": {
+          "recorded_at": "2026-10-14T19:50:01.000001Z",
+          "effective_pointer": "/vars/policies/key"
+        },
+        "opens": "9"
+      },
+      {
+        "id": "atmos.component",
+        "kind": "atmos_component",
+        "boundary": "repository",
+        "layer": 1,
+        "state": "recorded",
+        "identity": {
+          "stack": "orgs/reference/dev",
+          "component": "intune-reference"
+        },
+        "basis": {
+          "record": "repository_intent",
+          "field": "scope.stack, scope.component, status",
+          "record_id": "e927410221924400000000000000000000000000000000000000000000000000"
+        },
+        "reason": null,
+        "facts": {
+          "pinned_atmos_version": "8.8.8"
+        },
+        "opens": "9"
+      },
+      {
+        "id": "tofu.engine",
+        "kind": "opentofu",
+        "boundary": "host",
+        "layer": 2,
+        "state": "unknown",
+        "identity": {
+          "engine": "tofu",
+          "version": null
+        },
+        "basis": {
+          "record": "integration_manifest",
+          "field": "setup_context.pinned.engine, setup_context.pinned.engine_version",
+          "record_id": null
+        },
+        "reason": "engine_pin_incomplete",
+        "facts": {},
+        "opens": null
+      },
+      {
+        "id": "tofu.backend",
+        "kind": "backend",
+        "boundary": "host",
+        "layer": 2,
+        "state": "recorded",
+        "identity": {
+          "backend": "local"
+        },
+        "basis": {
+          "record": "repository_intent",
+          "field": "scope.backend",
+          "record_id": "e927410221924400000000000000000000000000000000000000000000000000"
+        },
+        "reason": null,
+        "facts": {},
+        "opens": "9"
+      },
+      {
+        "id": "provider",
+        "kind": "provider",
+        "boundary": "host",
+        "layer": 3,
+        "state": "configured",
+        "identity": {
+          "source": "example/provider",
+          "version": "7.7.7"
+        },
+        "basis": {
+          "record": "integration_manifest",
+          "field": "setup_context.pinned.provider_source, setup_context.pinned.provider_version",
+          "record_id": null
+        },
+        "reason": null,
+        "facts": {},
+        "opens": null
+      },
+      {
+        "id": "service",
+        "kind": "service",
+        "boundary": "cloud",
+        "layer": 4,
+        "state": "recorded",
+        "identity": {
+          "service": "Example Service",
+          "evidence_class": "synthetic"
+        },
+        "basis": {
+          "record": "observation",
+          "field": "evidence_class",
+          "record_id": "4"
+        },
+        "reason": null,
+        "facts": {},
+        "opens": "2"
+      },
+      {
+        "id": "readback",
+        "kind": "readback",
+        "boundary": "host",
+        "layer": 5,
+        "state": "unknown",
+        "identity": {
+          "operation_id": null,
+          "classification": null
+        },
+        "basis": {
+          "record": "delivery",
+          "field": "stages.readback.status",
+          "record_id": null
+        },
+        "reason": "no_operation",
+        "facts": {},
+        "opens": null
+      },
+      {
+        "id": "observation",
+        "kind": "observation",
+        "boundary": "host",
+        "layer": 5,
+        "state": "recorded",
+        "identity": {
+          "run_id": 4,
+          "observed_at": "2026-10-14T19:55:52.390326Z"
+        },
+        "basis": {
+          "record": "observation",
+          "field": "freshness, freshness_reasons, eligibility.reason, eligibility.code, coverage, run_id",
+          "record_id": "4"
+        },
+        "reason": null,
+        "facts": {
+          "coverage": "complete",
+          "freshness": "fresh"
+        },
+        "opens": "2"
+      }
+    ],
+    "edges": [
+      {
+        "id": "cites:repo.source>atmos.component",
+        "type": "cites",
+        "from": "repo.source",
+        "to": "atmos.component",
+        "state": "recorded",
+        "basis": {
+          "record": "repository_intent",
+          "field": "scope.stack, scope.component",
+          "record_id": "e927410221924400000000000000000000000000000000000000000000000000"
+        }
+      },
+      {
+        "id": "cites:atmos.component>tofu.backend",
+        "type": "cites",
+        "from": "atmos.component",
+        "to": "tofu.backend",
+        "state": "recorded",
+        "basis": {
+          "record": "repository_intent",
+          "field": "scope.backend",
+          "record_id": "e927410221924400000000000000000000000000000000000000000000000000"
+        }
+      },
+      {
+        "id": "observes:service>observation",
+        "type": "observes",
+        "from": "service",
+        "to": "observation",
+        "state": "recorded",
+        "basis": {
+          "record": "observation",
+          "field": "run_id",
+          "record_id": "4"
+        }
+      }
+    ],
+    "operation": null,
+    "read_only": true,
+    "execution_authorized": false,
+    "cloud_authority": false,
+    "revision": "8bb1c78d366cd2ddf9ea38207030817a68ef33842ec591c2c6c0dd4e069f5e88"
+  },
+  "payload": {
+    "schema_version": "system-map/1",
+    "object_id": "22222222-2222-4222-8222-222222222222",
+    "tenant_id": "11111111-1111-4111-8111-111111111111",
+    "name": "Windows Privacy Pilot",
+    "evidence_class": "synthetic",
+    "boundaries": [
+      {
+        "id": "host",
+        "label": "this host"
+      },
+      {
+        "id": "repository",
+        "label": "the repository"
+      },
+      {
+        "id": "cloud",
+        "label": "the cloud"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "repo.source",
+        "kind": "repository_source",
+        "boundary": "repository",
+        "layer": 0,
+        "state": "recorded",
+        "identity": {
+          "revision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "source_files": [
+            "stacks/dev.yaml",
+            "stacks/base.yaml"
+          ]
+        },
+        "basis": {
+          "record": "repository_intent",
+          "field": "status, source_revision, resolution.sources",
+          "record_id": "e927410221924400000000000000000000000000000000000000000000000000"
+        },
+        "reason": null,
+        "facts": {
+          "recorded_at": "2026-10-14T19:50:01.000001Z",
+          "effective_pointer": "/vars/policies/key"
+        },
+        "opens": "9"
+      },
+      {
+        "id": "atmos.component",
+        "kind": "atmos_component",
+        "boundary": "repository",
+        "layer": 1,
+        "state": "recorded",
+        "identity": {
+          "stack": "orgs/reference/dev",
+          "component": "intune-reference"
+        },
+        "basis": {
+          "record": "repository_intent",
+          "field": "scope.stack, scope.component, status",
+          "record_id": "e927410221924400000000000000000000000000000000000000000000000000"
+        },
+        "reason": null,
+        "facts": {
+          "pinned_atmos_version": "8.8.8"
+        },
+        "opens": "9"
+      },
+      {
+        "id": "tofu.engine",
+        "kind": "opentofu",
+        "boundary": "host",
+        "layer": 2,
+        "state": "unknown",
+        "identity": {
+          "engine": "tofu",
+          "version": null
+        },
+        "basis": {
+          "record": "integration_manifest",
+          "field": "setup_context.pinned.engine, setup_context.pinned.engine_version",
+          "record_id": null
+        },
+        "reason": "engine_pin_incomplete",
+        "facts": {},
+        "opens": null
+      },
+      {
+        "id": "tofu.backend",
+        "kind": "backend",
+        "boundary": "host",
+        "layer": 2,
+        "state": "recorded",
+        "identity": {
+          "backend": "local"
+        },
+        "basis": {
+          "record": "repository_intent",
+          "field": "scope.backend",
+          "record_id": "e927410221924400000000000000000000000000000000000000000000000000"
+        },
+        "reason": null,
+        "facts": {},
+        "opens": "9"
+      },
+      {
+        "id": "provider",
+        "kind": "provider",
+        "boundary": "host",
+        "layer": 3,
+        "state": "configured",
+        "identity": {
+          "source": "example/provider",
+          "version": "7.7.7"
+        },
+        "basis": {
+          "record": "integration_manifest",
+          "field": "setup_context.pinned.provider_source, setup_context.pinned.provider_version",
+          "record_id": null
+        },
+        "reason": null,
+        "facts": {},
+        "opens": null
+      },
+      {
+        "id": "service",
+        "kind": "service",
+        "boundary": "cloud",
+        "layer": 4,
+        "state": "recorded",
+        "identity": {
+          "service": "Example Service",
+          "evidence_class": "synthetic"
+        },
+        "basis": {
+          "record": "observation",
+          "field": "evidence_class",
+          "record_id": "4"
+        },
+        "reason": null,
+        "facts": {},
+        "opens": "2"
+      },
+      {
+        "id": "readback",
+        "kind": "readback",
+        "boundary": "host",
+        "layer": 5,
+        "state": "unknown",
+        "identity": {
+          "operation_id": null,
+          "classification": null
+        },
+        "basis": {
+          "record": "delivery",
+          "field": "stages.readback.status",
+          "record_id": null
+        },
+        "reason": "no_operation",
+        "facts": {},
+        "opens": null
+      },
+      {
+        "id": "observation",
+        "kind": "observation",
+        "boundary": "host",
+        "layer": 5,
+        "state": "recorded",
+        "identity": {
+          "run_id": 4,
+          "observed_at": "2026-10-14T19:55:52.390326Z"
+        },
+        "basis": {
+          "record": "observation",
+          "field": "freshness, freshness_reasons, eligibility.reason, eligibility.code, coverage, run_id",
+          "record_id": "4"
+        },
+        "reason": null,
+        "facts": {
+          "coverage": "complete",
+          "freshness": "fresh"
+        },
+        "opens": "2"
+      }
+    ],
+    "edges": [
+      {
+        "id": "cites:repo.source>atmos.component",
+        "type": "cites",
+        "from": "repo.source",
+        "to": "atmos.component",
+        "state": "recorded",
+        "basis": {
+          "record": "repository_intent",
+          "field": "scope.stack, scope.component",
+          "record_id": "e927410221924400000000000000000000000000000000000000000000000000"
+        }
+      },
+      {
+        "id": "cites:atmos.component>tofu.backend",
+        "type": "cites",
+        "from": "atmos.component",
+        "to": "tofu.backend",
+        "state": "recorded",
+        "basis": {
+          "record": "repository_intent",
+          "field": "scope.backend",
+          "record_id": "e927410221924400000000000000000000000000000000000000000000000000"
+        }
+      },
+      {
+        "id": "observes:service>observation",
+        "type": "observes",
+        "from": "service",
+        "to": "observation",
+        "state": "recorded",
+        "basis": {
+          "record": "observation",
+          "field": "run_id",
+          "record_id": "4"
+        }
+      }
+    ],
+    "operation": null,
+    "read_only": true,
+    "execution_authorized": false,
+    "cloud_authority": false,
+    "revision": "8bb1c78d366cd2ddf9ea38207030817a68ef33842ec591c2c6c0dd4e069f5e88"
+  }
+}

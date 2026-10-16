@@ -18,6 +18,7 @@ The shared presentation helpers are imported from the modules that own them; nei
 """
 from __future__ import annotations
 
+import json
 import re
 
 from .system_map_projection import EDGE_TYPES, SCHEMA, STATE_WORDS, STATES
@@ -284,4 +285,60 @@ def render(snapshot, width, height, *, colour=False, unicode=False, focus=None):
     return rows
 
 
+# ---- plain text and JSON ----------------------------------------------------------------------------------------------
 
+def text(snapshot, width):
+    """The plain-text form (`intune-iac workbench system-map`): the same words as the map, every node and every link in full,
+    and no terminal control. The map rows lead where the width holds them; the blocks below are the whole record."""
+    reason = unavailable_reason(snapshot)
+    if reason:
+        return unavailable_lines(reason, width)
+    glyphs = GLYPHS['ascii']
+    nodes, edges = snapshot['nodes'], snapshot['edges']
+    tags = _tags(snapshot)
+    rows = _header(snapshot, width)
+    # The title shortens what it must; these rows hold the whole values.
+    rows += _hang('name', safe_text(snapshot.get('name')) if isinstance(snapshot.get('name'), str) and snapshot['name']
+                  else '(no name)', width)
+    rows += _hang('policy', safe_text(snapshot.get('object_id') or '(none)'), width)
+    rows += _hang('evidence', safe_text(snapshot.get('evidence_class') or 'not recorded'), width)
+    rows += _hang('revision', safe_text(snapshot.get('revision') or 'none'), width)
+    if width >= MIN_SIZE[0]:
+        rows += [_node_row(node, tags, False, width, glyphs, False) for node in nodes]
+        rows += [_edge_row(edge, width, glyphs, False, width >= 100) for edge in edges] or ['  no link is recorded']
+    rows += word_wrap('  '.join('%s %s' % (tags[item['id']], safe_text(item.get('label') or item['id']))
+                                for item in snapshot['boundaries']), width)
+    rows += word_wrap(HAZARD, width) + ['', 'NODES']
+    for number, node in enumerate(nodes, 1):
+        rows += word_wrap('%d %s: %s | %s' % (number, _label(node['id']), _word(node['state']), _reason(node)), width)
+        rows += _hang('  identity', '; '.join('%s %s' % pair for pair in _pairs(node.get('identity'))) or 'none recorded',
+                      width, 12)
+        rows += _hang('  basis', _basis(node.get('basis')), width, 12)
+        if _facts(node):
+            rows += _hang('  recorded', _facts(node), width, 12)
+        rows += _hang('  opens', _opens(node), width, 12)
+    rows += ['', 'LINKS']
+    for number, edge in enumerate(edges, 1):
+        rows += word_wrap('%d %s %s -> %s: %s' % (number, edge['type'], _label(edge['from']), _label(edge['to']),
+                                                  _word(edge['state'])), width)
+        rows += _hang('  basis', _basis(edge.get('basis')), width, 12)
+    if not edges:
+        rows.append('no link is recorded')
+    return rows + [''] + word_wrap(READ_ONLY, width)
+
+
+def to_json(snapshot):
+    """One JSON value and nothing around it: the snapshot as it is, in its own order, with its nulls, identities and authority
+    flags. A snapshot that cannot be drawn is an explicit unavailable value, never the snapshot passed off as a map. Non-ASCII
+    is written as JSON escapes, so no raw control or line separator reaches a terminal."""
+    reason = unavailable_reason(snapshot)
+    body = snapshot
+    if reason is None:
+        try:
+            return json.dumps(body, ensure_ascii=True, allow_nan=False, indent=2) + '\n'
+        except (TypeError, ValueError):
+            reason = 'its values cannot be written as JSON'
+    received = snapshot.get('schema_version') if isinstance(snapshot, dict) else None
+    body = {'schema_version': UNAVAILABLE_SCHEMA, 'available': False, 'reason': reason,
+            'received_schema_version': received if isinstance(received, str) else None}
+    return json.dumps(body, ensure_ascii=True, allow_nan=False, indent=2) + '\n'

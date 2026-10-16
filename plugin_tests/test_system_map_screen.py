@@ -148,9 +148,20 @@ class UnavailableTests(unittest.TestCase):
                     self.assertNotIn('|- ' + label, joined, (name, size))
                 self.assertTrue(all(width_of(row) <= size[0] for row in rows), (name, size))
 
+    def test_the_text_and_json_forms_say_the_same_instead_of_a_partial_map(self):
+        for name, build in self.BAD.items():
+            rows = screen().text(build(), 80)
+            self.assertTrue(rows and rows[0].startswith('System map unavailable: '), (name, rows))
+            payload = json.loads(screen().to_json(build()))
+            self.assertIs(payload['available'], False, name)
+            self.assertEqual(payload['schema_version'], 'system-map-unavailable/1')
+            self.assertTrue(payload['reason'], name)
+            self.assertNotIn('nodes', payload, name)
+
     def test_the_unsupported_schema_is_named_in_its_reason(self):
         rows = screen().render(unsupported_schema(), 80, 24, colour=False, unicode=False)
         self.assertIn('system-map/2', ' '.join(rows))
+        self.assertEqual(json.loads(screen().to_json(unsupported_schema())).get('received_schema_version'), 'system-map/2')
 
 
 def _set_node(snapshot, identifier, **changes):
@@ -345,8 +356,128 @@ class ModeTests(unittest.TestCase):
                 self.assertTrue(styled)
                 self.assertTrue(all(word in screen().STATE_WORDS.values() for word in styled), styled)
 
+    def test_the_text_form_has_no_colour_and_no_glyph_beyond_ascii(self):
+        rows = screen().text(stale_link(), 100)
+        self.assertTrue(all(ord(char) < 128 for row in rows for char in row))
 
 
+class TextTests(unittest.TestCase):
+    def test_the_text_form_lists_every_node_and_edge_in_full_at_every_width(self):
+        for name in ('recorded', 'stale_link', 'unknown_observation', 'absent_edges', 'half_engine_pin'):
+            snapshot = SCENARIOS[name]()
+            for width in (40, 60, 80, 120):
+                rows = screen().text(snapshot, width)
+                where = (name, width)
+                self.assertEqual(controls_in(rows), [], where)
+                self.assertTrue(all(width_of(row) <= width for row in rows), where)
+                joined = ' '.join(row.strip() for row in rows)
+                for number, node in enumerate(snapshot['nodes'], 1):
+                    self.assertIn('%d %s: %s' % (number, screen().LABELS[node['id']], screen().STATE_WORDS[node['state']]), joined, where)
+                    self.assertIn(node['basis']['record'], joined, where)
+                for edge in snapshot['edges']:
+                    self.assertIn('%s %s -> %s: %s' % (edge['type'], screen().LABELS[edge['from']], screen().LABELS[edge['to']],
+                                                       screen().STATE_WORDS[edge['state']]), joined, where)
+                self.assertIn(screen().HAZARD, joined, where)
+                self.assertTrue(joined.endswith(screen().READ_ONLY), where)
+
+    def test_the_text_form_names_the_reason_of_a_node_that_is_not_recorded(self):
+        joined = ' '.join(screen().text(half_engine_pin(), 80))
+        self.assertIn('opentofu: unknown | reason engine_pin_incomplete', joined)
+
+    def test_the_text_form_holds_the_same_words_the_map_rows_do(self):
+        snapshot = stale_link()
+        text_rows = screen().text(snapshot, 120)
+        map_rows = screen().render(snapshot, 120, 40, colour=False, unicode=False)
+        self.assertTrue(text_rows and map_rows)
+        self.assertEqual(text_rows[0], map_rows[0])
+        # The map marks the focused row with `>`; the text form focuses nothing, so the gutter is blank.
+        in_text = [row[2:] for row in text_rows]
+        for row in map_rows[1:len(snapshot['nodes']) + len(snapshot['edges']) + 1]:
+            self.assertIn(row[2:], in_text, row)
+
+
+class JsonTests(unittest.TestCase):
+    def test_the_json_form_is_one_parseable_value_with_nothing_around_it(self):
+        for name in ('recorded', 'stale_link', 'unknown_observation', 'absent_edges', 'half_engine_pin'):
+            snapshot = SCENARIOS[name]()
+            body = screen().to_json(snapshot)
+            self.assertTrue(body.startswith('{'), name)
+            self.assertTrue(body.endswith('}\n'), name)
+            self.assertNotIn('\x1b', body)
+            self.assertEqual(json.loads(body), snapshot, name)
+
+    def test_it_keeps_raw_identities_nulls_ordering_and_authority_flags(self):
+        snapshot = unknown_observation()
+        parsed = json.loads(screen().to_json(snapshot), object_pairs_hook=lambda pairs: pairs)
+        self.assertEqual([key for key, _ in parsed], list(snapshot))
+        loaded = json.loads(screen().to_json(snapshot))
+        self.assertEqual([node['id'] for node in loaded['nodes']], proj.NODE_IDS)
+        self.assertIsNone(next(n for n in loaded['nodes'] if n['id'] == 'observation')['identity']['run_id'])
+        self.assertEqual((loaded['read_only'], loaded['execution_authorized'], loaded['cloud_authority']), (True, False, False))
+        self.assertEqual(loaded['revision'], snapshot['revision'])
+
+    def test_terminal_escaping_never_applies_to_json(self):
+        snapshot = hostile()
+        body = screen().to_json(snapshot)
+        self.assertNotIn('\x1b', body)
+        self.assertEqual(controls_in([body.replace('\n', '')]), [])
+        loaded = json.loads(body)
+        self.assertEqual(loaded.get('name'), HOSTILE + LONG)
+        self.assertEqual(loaded.get('object_id'), 'policy-' + HOSTILE + LONG)
+        self.assertEqual(loaded, snapshot)
+
+    def test_no_banner_key_hint_or_ansi_comes_with_it(self):
+        body = screen().to_json(recorded())
+        self.assertFalse(SGR.search(body))
+        for word in ('Enter', 'Esc', 'press', 'SYSTEM MAP', 'read-only: it reads'):
+            self.assertNotIn(word, body)
+
+
+class FixtureTests(unittest.TestCase):
+    NAMES = sorted(SCENARIOS)
+
+    def load(self, name):
+        return json.loads((FIXTURES / (name + '.json')).read_text(encoding='utf-8'))
+
+    @staticmethod
+    def canonical(value):
+        return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False)
+
+    def test_there_is_one_fixture_per_scenario(self):
+        self.assertEqual(sorted(path.stem for path in FIXTURES.glob('*.json')), self.NAMES)
+
+    def test_each_fixture_holds_its_revision_its_body_digest_and_the_complete_payload(self):
+        for name in self.NAMES:
+            fixture = self.load(name)
+            self.assertEqual(sorted(fixture), ['body_sha256', 'expected_revision', 'payload', 'scenario', 'snapshot'], name)
+            self.assertEqual(fixture['scenario'], name)
+            self.assertEqual(hashlib.sha256(self.canonical(fixture['snapshot']).encode('utf-8')).hexdigest(),
+                             fixture['body_sha256'], name)
+            self.assertEqual(fixture['snapshot'].get('revision'), fixture['expected_revision'], name)
+            if name != 'unsupported_schema':
+                body = {key: value for key, value in fixture['snapshot'].items() if key != 'revision'}
+                self.assertEqual(hashlib.sha256(self.canonical(body).encode('utf-8')).hexdigest(),
+                                 fixture['expected_revision'], name)
+
+    def test_the_json_form_of_each_fixture_is_exactly_its_payload(self):
+        for name in self.NAMES:
+            fixture = self.load(name)
+            self.assertEqual(json.loads(screen().to_json(fixture['snapshot'])), fixture['payload'], name)
+
+    def test_the_projection_still_produces_each_frozen_snapshot(self):
+        for name in self.NAMES:
+            self.assertEqual(SCENARIOS[name](), self.load(name)['snapshot'], name)
+
+    def test_the_valid_scenarios_say_what_they_are_for(self):
+        states = lambda name: {n['id']: n['state'] for n in self.load(name)['snapshot']['nodes']}
+        edges = lambda name: {e['id']: e['state'] for e in self.load(name)['snapshot']['edges']}
+        self.assertEqual(set(states('recorded').values()) - {'recorded', 'configured'}, set())
+        self.assertEqual((states('stale_link')['tofu.backend'], edges('stale_link')['cites:atmos.component>tofu.backend']),
+                         ('recorded', 'stale'))
+        self.assertEqual(states('unknown_observation')['observation'], 'unknown')
+        self.assertEqual(self.load('absent_edges')['snapshot']['edges'], [])
+        self.assertEqual(states('half_engine_pin')['tofu.engine'], 'unknown')
+        self.assertEqual(self.load('unsupported_schema')['payload']['schema_version'], 'system-map-unavailable/1')
 
 
 
