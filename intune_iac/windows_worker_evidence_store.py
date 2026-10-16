@@ -40,6 +40,7 @@ def _record(value):
 
 
 CLOCK='worker_evidence_clock'
+MARK_STEP=60  # seconds the observed time may run ahead of the stored mark before a read records it
 
 
 def _mark(db):
@@ -209,11 +210,26 @@ def _reopen(store,request_sha256,trust_path,pin_path,scratch,api,*,historical=Fa
             with store._connection() as db:
                 _validate_schema(db);finish(db,verified)
         else:
-            # Authenticate on a read-only reading, then record the authenticated time and decide in one transaction.
+            # Authenticate on a read-only reading (no clock effect), then judge on the read connection. The write connection (and
+            # the two permanent root receipts each one leaves) is opened only to record something: a closed window not yet
+            # covered by the mark, or an observed time more than MARK_STEP ahead of it. Within the step the read is admitted on
+            # the read connection; the expiry slack that allows is bounded by the step.
             auth_time=_peek(store);auth=contract.verify_envelope(envelope,request,policy,verify,now=auth_time,historical=True).result()
             if auth['tenant_id']!=store.tenant_id:contract.fail('workbench_evidence_identity')
-            pending=_transaction(store,auth_time,lambda now:contract.verify_envelope(envelope,request,policy,verify,now=now),finish)
-            if pending is not None:raise pending
+            decide=lambda now:contract.verify_envelope(envelope,request,policy,verify,now=now)
+            with store._connection() as db:
+                _validate_schema(db);mark=_mark(db)
+            now=_effective(store,mark)
+            try:verified=decide(now)
+            except AppError as refusal:
+                if refusal.code not in ('worker_evidence_expired','worker_evidence_stale_snapshot') or mark>=now:raise
+                verified=None  # a closure the mark does not yet cover: record it
+            if verified is None or now-mark>MARK_STEP:
+                pending=_transaction(store,auth_time,decide,finish)
+                if pending is not None:raise pending
+            else:
+                with store._connection() as db:
+                    _validate_schema(db);finish(db,verified)
         result=holder['result']
     return result
 

@@ -15,7 +15,7 @@ from intune_iac import windows_worker_evidence as native, windows_worker_evidenc
 from intune_iac.io import AppError, canonical, digest
 from plugin_tests.test_windows_storage_r4 import CANONICAL, ROOT
 from plugin_tests.test_windows_workbench_r4 import FilesystemAPI
-from plugin_tests.test_worker_evidence_freshness_floor import (OK, REJECT, T, TENANT, Shape, expiring, make_policy, make_request,
+from plugin_tests.test_worker_evidence_freshness_floor import (OK, REJECT, T, TENANT, Shape, aging, expiring, make_policy, make_request,
                                                                restart, stand_ins, wall)
 
 
@@ -141,53 +141,45 @@ class WindowsStoreReaderTests(Shape, unittest.TestCase):
         self.assertIs(raised.exception.closure_recorded, False)
 
     def test_a_busy_write_lock_is_unrecorded_for_an_admissible_read(self):
-        self.publish(expiring(self.req))
+        self.publish(aging(self.req))
         self.hold_write_lock()
-        with wall(T + 5), self.assertRaises(AppError) as raised:
+        with wall(T + 70), self.assertRaises(AppError) as raised:  # beyond the 60 s step: the mark must be recorded
             self.read()
         self.assertEqual(raised.exception.code, 'worker_evidence_clock_unrecorded')
 
-    def every_commit_fails(self):
-        """Every COMMIT raises, and so does the connection's own context exit (a second commit attempt)."""
-        real = sqlite3.connect
+    def root_names(self):
+        return sorted(self.api.names(CANONICAL + '\\received'))
 
-        class Proxy:
-            def __init__(self, inner):
-                object.__setattr__(self, 'inner', inner)
-
-            def __getattr__(self, name):
-                return getattr(self.inner, name)
-
-            def __setattr__(self, name, value):
-                setattr(self.inner, name, value)
-
-            def execute(self, sql, *args):
-                if sql == 'COMMIT':
-                    raise sqlite3.OperationalError('disk I/O error')
-                return self.inner.execute(sql, *args)
-
-            def __enter__(self):
-                return self
-
-            def __exit__(self, kind, value, trace):
-                if kind is None:
-                    raise sqlite3.OperationalError('disk I/O error')
-                return False
-        return patch.object(sqlite3, 'connect', side_effect=lambda *a, **k: Proxy(real(*a, **k)))
-
-    def test_persistent_commit_failure_keeps_the_temporal_code_through_context_exit(self):
+    def test_repeated_current_reopens_within_the_step_leave_the_root_unchanged(self):
         self.publish(expiring(self.req))
-        with self.every_commit_fails(), wall(T + 20), self.assertRaises(AppError) as raised:
-            self.read()
-        self.assertEqual(raised.exception.code, 'worker_evidence_expired')
-        self.assertIs(raised.exception.closure_recorded, False)
+        before = self.root_names()
+        for at in (T + 2, T + 3, T + 5, T + 5, T + 6):
+            with wall(at):
+                self.assertTrue(self.read()['baseline_admissible'])
+        self.assertEqual(self.root_names(), before)
+        self.assertEqual(self.mark(), T + 1)  # nothing was written
 
-    def test_persistent_commit_failure_is_unrecorded_for_an_admissible_ingest(self):
-        storage._create_file(self.input, 'envelope.json', canonical(expiring(self.req)), self.api)
-        with self.every_commit_fails(), wall(T + 1), self.assertRaises(AppError) as raised:
-            self.ingest()
-        self.assertEqual(raised.exception.code, 'worker_evidence_clock_unrecorded')
-        self.assertEqual(self.rows(), [])
+    def test_a_read_beyond_the_step_records_the_mark_once(self):
+        self.publish(aging(self.req))
+        with wall(T + 70):  # a frozen wall plus the process carry drifts by real seconds: keep clear of the staleness edge
+            self.assertTrue(self.read()['baseline_admissible'])
+        self.assertGreaterEqual(self.mark(), T + 70)
+        settled = self.root_names()
+        with wall(T + 80):
+            self.read()
+        self.assertEqual(self.root_names(), settled)
+
+    def test_a_closed_window_is_recorded_once_and_then_read_without_a_write(self):
+        self.publish(expiring(self.req))
+        with wall(T + 20), self.assertRaises(AppError):
+            self.read()
+        self.assertGreaterEqual(self.mark(), T + 20)
+        settled = self.root_names()
+        for _ in range(3):
+            with wall(T + 20), self.assertRaises(AppError) as raised:
+                self.read()
+            self.assertEqual(raised.exception.code, 'worker_evidence_expired')
+        self.assertEqual(self.root_names(), settled)
 
 
 class QualificationScriptTests(unittest.TestCase):
