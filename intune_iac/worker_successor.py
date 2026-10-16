@@ -290,13 +290,17 @@ def _critical(policy, payload, transfer, deadline):
                              expired_code='successor_signature_expired', domain=DOMAIN)
 
 
-def _record_expiry_of(policy, transfer, signed, successor_manifest):
+def _record_expiry_of(policy, transfer, signed, successor_manifest, original_job):
     """Record the reached expiry of a transfer approval whose execution was refused before the approval was judged (the
     manifest window, the transfer's own window and its age are checked on the bare clock first). The approval is
     authenticated with the clock pinned to its issue time; the writing section is entered only when its expiry may have
-    been reached, and a backward step is reported as the hold it is. One that does not authenticate records nothing."""
+    been reached, and a backward step is reported as the hold it is. One that does not authenticate records nothing, and
+    neither does a transfer that does not bind this policy's authority and this original job: the expiry is written into
+    this job's store, so only a transfer made for that store may write there."""
     try:
         transfer, manifest = _copy(transfer), _copy(successor_manifest)
+        if (transfer.get('authority') != _authority(policy)
+                or transfer.get('original', {}).get('operation_id') != original_job.identifier): return
         payload = _authenticated(transfer, signed, policy, manifest, signed['payload']['issued_at'])
     except (AppError, OSError, KeyError, TypeError, AttributeError): return
     if service._expiry_may_be_reached(policy.root, payload):
@@ -314,7 +318,7 @@ def execute_transfer(transfer, signed, *, original_job, successor_manifest, reco
         # expiry of an approval that authenticates, or a rollback after the refusal would reopen it.
         policy = getattr(original_job, 'policy', None)
         if policy is not None and error.code not in ('successor_signature_expired', validity.HELD):
-            _record_expiry_of(policy, transfer, signed, successor_manifest)
+            _record_expiry_of(policy, transfer, signed, successor_manifest, original_job)
         raise
 
 

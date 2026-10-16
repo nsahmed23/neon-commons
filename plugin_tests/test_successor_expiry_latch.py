@@ -55,7 +55,7 @@ class SuccessorFixture(unittest.TestCase):
         self.successor_manifest = {'operation_id': self.successor_id, 'profile': 'native_docker_laboratory_protocol',
                                    'host_spec': {'modeled': True}, 'expires_at': self.expires}
         self.transfer = {'schema_version': successor.VERSION, 'transfer_id': str(uuid.uuid4()), 'prepared_at': self.start,
-            'expires_at': self.expires, 'authority': {}, 'original': {'operation_id': self.original_id, 'scopes': ['scope']},
+            'expires_at': self.expires, 'authority': successor._authority(self.policy), 'original': {'operation_id': self.original_id, 'scopes': ['scope']},
             'successor': {'operation_id': self.successor_id, 'manifest_sha256': digest(self.successor_manifest),
                           'job_root': str(self.root / 'jobs' / 'successor')},
             'recovery_completion': {'recovery_operation_id': str(uuid.uuid4())},
@@ -207,6 +207,25 @@ class ApprovalLatchTests(SuccessorFixture):
         self.clocks.wall = self.start - 10
         self.restart()
         self.assertEqual(self.refused(lambda: self.execute(signed)).code, 'clock_moved_backward')
+
+    def refused_for_its_window_with(self, **changes):
+        """A transfer (and an authentic approval of it) that is refused for the bare-clock window rule, with some of the
+        transfer's own fields changed; the approval signs the changed transfer, so it authenticates."""
+        self.window_rule = True
+        self.transfer = dict(self.transfer, **changes)
+        signed = self.approval()
+        self.clocks.elapse(LIFETIME + 1)
+        self.assertEqual(self.refused(lambda: self.execute(signed)).code, 'successor_transfer_scope')
+
+    def test_a_transfer_naming_another_authority_records_no_expiry_in_this_store(self):
+        self.refused_for_its_window_with(authority=dict(successor._authority(self.policy), authority_root='/another/root'))
+        self.assertEqual(self.latched(), [])
+        self.assertFalse((self.policy.root / 'clock.json').exists())
+
+    def test_a_transfer_naming_another_original_operation_records_no_expiry_in_this_store(self):
+        self.refused_for_its_window_with(original=dict(self.transfer['original'], operation_id=str(uuid.uuid4())))
+        self.assertEqual(self.latched(), [])
+        self.assertFalse((self.policy.root / 'clock.json').exists())
 
     def test_an_approval_that_does_not_authenticate_records_nothing(self):
         forged = self.approval()
