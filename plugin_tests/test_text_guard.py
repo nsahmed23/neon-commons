@@ -373,6 +373,26 @@ class PortabilityTests(unittest.TestCase):
             self.assertNotIn(b'\r', written, label)
             self.assertEqual(forbidden_in(written), [], label)
 
+    def test_an_import_time_failure_in_the_launcher_writes_no_cr_byte_to_stderr(self):
+        """The launcher configures LF-only streams before it imports intune_iac.cli, so a traceback from a broken import is LF
+        only. The driver gives the process Windows-style streams (every LF written as CRLF) to show it on any host."""
+        tree = self.base / 'broken'
+        (tree / 'scripts').mkdir(parents=True)
+        (tree / 'intune_iac').mkdir()
+        (tree / 'intune_iac' / '__init__.py').write_text("__version__ = 'test'\n")
+        (tree / 'intune_iac' / 'cli.py').write_text("raise RuntimeError('this module is made unimportable')\n")
+        launcher = tree / 'scripts' / 'intune-iac.py'
+        launcher.write_bytes((ROOT / 'scripts' / 'intune-iac.py').read_bytes())
+        driver = ('import io, os, runpy, sys\n'
+                  'for name, fd in (("stdout", 1), ("stderr", 2)):\n'
+                  '    setattr(sys, name, io.TextIOWrapper(os.fdopen(os.dup(fd), "wb"), encoding="utf-8", newline="\\r\\n", write_through=True))\n'
+                  'runpy.run_path(sys.argv[1], run_name="__main__")\n')
+        done = subprocess.run([sys.executable, '-B', '-c', driver, str(launcher)], capture_output=True, cwd=str(self.base))
+        self.assertNotEqual(done.returncode, 0)
+        self.assertIn(b'this module is made unimportable', done.stderr)
+        self.assertNotIn(b'\r', done.stderr)
+        self.assertNotIn(b'\r', done.stdout)
+
     def test_a_real_run_writes_no_cr_byte_to_either_stream(self):
         fixture = Fixture.__new__(Fixture)
         fixture.base, fixture.env = self.base, dict(os.environ, PYTHONDONTWRITEBYTECODE='1')
