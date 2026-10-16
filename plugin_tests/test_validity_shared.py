@@ -107,7 +107,11 @@ class ToyStoreTests(unittest.TestCase):
         self.assertEqual(error.code, 'clock_moved_backward')
         self.assertIn('reads %d' % (self.start + 10), error.message)
         self.assertIn('time %d' % (self.start + 30), error.message)
-        self.assertIn('Correct the host clock, or wait until it reads at or after the recorded time', error.message)
+        # the recorded time includes the boot time elapsed since it was recorded (the carried floor), so only the exits that
+        # work are named: waiting and a new approval are held the same way for the rest of the boot
+        self.assertIn('set the host clock to at least the recorded time %d' % (self.start + 30), error.message)
+        self.assertIn('start a new boot of this host', error.message)
+        self.assertNotIn('wait until', error.message)
         self.assertEqual(self.latched(), [])
 
     def test_a_monotonic_deadline_reached_is_an_expiry_even_when_the_wall_clock_reads_earlier(self):

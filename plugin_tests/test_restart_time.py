@@ -200,7 +200,12 @@ class StoreTests(StoreFixture):
         error = self.refused(lambda: self.enter(dict(self.payload, nonce='b' * 32, expires_at=START + 1000)))
         self.assertEqual(error.code, 'clock_moved_backward')
         self.assertIn(BLIP_WORDS, error.message)
-        self.assertIn('Correct the host clock', error.message)
+        # Only the exits that work: a new boot, or the clock set to at least the recorded time. Waiting, restarting and a
+        # new approval are all held the same way for the rest of the boot, so the words must not offer them.
+        self.assertIn('start a new boot of this host', error.message)
+        self.assertIn('set the host clock to at least the recorded time', error.message)
+        for advice in ('prepare the approval anew', 'prepared anew', 'wait until', 'then restart', 'Correct the host clock'):
+            self.assertNotIn(advice, error.message)
 
     def test_open_rows_count_against_the_capacity_and_fail_closed(self):
         self.clocks.wall = START + 50

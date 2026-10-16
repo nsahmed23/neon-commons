@@ -207,22 +207,23 @@ def deadline(root, expires_at):
     return time.monotonic() + max(0, expires_at - effective_now(root))
 
 
-_CARRIED_WORDS = (' The recorded time includes the time this host has run since it was recorded, so restarting does not clear '
-                  'this: correct the host clock, prepare the approval anew, or start a new boot of this host (for example '
-                  'wsl --shutdown).')
-
-
 def hold(reading):
     """The refusal for a backward step: the approval is held, not judged, and it says how to recover. When the floor the
-    clock reads behind includes boot time carried since it was recorded, it also says that a restart does not clear it."""
-    message = ("Approval held: this host's clock reads %d, earlier than the time %d this approval store recorded, "
-               'so whether the approval is still valid cannot be established. Correct the host clock, or wait until '
-               'it reads at or after the recorded time, then restart; verifying again does not clear this.'
-               % (reading['wall'], reading['floor']))
+    clock reads behind includes boot time carried since it was recorded, only two exits work (a new boot of the host, or the
+    host clock set to at least the recorded time): waiting, restarting and a new approval are all held the same way for the
+    rest of the boot, so that case does not offer them."""
     carried = reading.get('carried')
     if carried is not None and carried > (reading.get('mark') or 0):
-        message += _CARRIED_WORDS
-    return AppError('clock_moved_backward', message)
+        return AppError('clock_moved_backward',
+            "Approval held: this host's clock reads %d, earlier than the time %d this approval store recorded, so whether "
+            'the approval is still valid cannot be established. The recorded time includes the time this host has run since '
+            'it was recorded, so restarting does not clear this, and neither does a new approval or verifying again. Either '
+            'start a new boot of this host (for example wsl --shutdown), or set the host clock to at least the recorded '
+            'time %d.' % (reading['wall'], reading['floor'], reading['floor']))
+    return AppError('clock_moved_backward',
+        "Approval held: this host's clock reads %d, earlier than the time %d this approval store recorded, so whether the "
+        'approval is still valid cannot be established. Correct the host clock, or wait until it reads at or after the '
+        'recorded time, then restart; verifying again does not clear this.' % (reading['wall'], reading['floor']))
 
 
 def hold_lost(expires_at, legacy=False):
