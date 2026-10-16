@@ -141,7 +141,7 @@ def _strict_utf8(text):
 
 def hidden_internals(raw):
     """The private fields kept beside a hidden name: its digest and whether it carries a credential signature."""
-    return {'digest': name_digest(raw), 'signature': credential_signature(raw)}
+    return {'digest': name_digest(raw), 'digest_folded': name_digest(raw.lower()), 'signature': credential_signature(raw)}
 
 
 def shown_host(value):
@@ -286,7 +286,9 @@ def _clean_accounts(facts, provider):
         private = {}
         if name == NOT_SHOWN:
             digest = entry.get('digest')
+            folded = entry.get('digest_folded')
             private = {'digest': digest if isinstance(digest, str) and re.fullmatch(r'[0-9a-f]{64}', digest) else None,
+                       'digest_folded': folded if isinstance(folded, str) and re.fullmatch(r'[0-9a-f]{64}', folded) else None,
                        'signature': entry.get('signature') is not False}  # unknown counts as a signature: fail closed
         if provider == 'azure':
             tenant = shown(entry.get('tenant'), GUID)
@@ -449,12 +451,41 @@ def refused(status, tenant, answered=None):
         return _verdict('azure', 'wrong_tenant', 'The token request answered for tenant %s; the context names tenant %s. Nothing '
                         'proceeds.' % (other.lower(), wanted), 'Sign in to the tenant the context names: %s; then run this '
                         'command again.' % login, tenant)
+    if status == 'account_mismatch':
+        return _verdict('azure', 'account_mismatch', 'The token was issued for a different account than the one the Azure CLI '
+                        'listed as its default (an unverified claim in the token names another account; such claims may only '
+                        'refuse). Nothing proceeds.',
+                        'The default account may have changed during the request. To see it, run %s yourself; then run this '
+                        'command again (add --account NAME, the account name, to confirm it).' % DEFAULT_ACCOUNT_STEP, tenant)
     if status == 'expired':
         return _verdict('azure', 'expired', 'The Azure CLI could not refresh the sign-in: it reports it has expired. Nothing '
                         'that needs a token runs.', 'Sign in again to the tenant the context names: %s; then run this command '
                         'again.' % login, tenant)
     return _verdict('azure', 'not_signed_in', 'The Azure CLI reports no usable sign-in.',
                     'Sign in to the tenant the context names: %s; then run this command again.' % login, tenant)
+
+
+def claim_binding(facts, claims):
+    """Whether a token's unverified account claim names the default account the listing judged.
+
+    True when it names it, False when it names another, None when the claims name no account (an opaque token, or a JWT with
+    no upn, unique_name or appid), which is no evidence either way: unverified claims may only refuse, never permit. A user
+    token is judged by upn, else unique_name; a service principal (no such claim) by appid. Compared without regard to case;
+    a hidden name only by its digest, so no name is ever printed.
+    """
+    accounts = [a for a in _clean_accounts(facts, 'azure') if a['listing_state'] in AZURE_ACTIVE_STATES]
+    defaults = [a for a in accounts if a['default']]
+    if len(defaults) != 1 or not isinstance(claims, dict):
+        return None
+    claim = next((claims[k] for k in ('upn', 'unique_name') if isinstance(claims.get(k), str) and claims[k]), None)
+    if claim is None and isinstance(claims.get('appid'), str) and claims['appid']:
+        claim = claims['appid']
+    if claim is None or not _strict_utf8(claim):
+        return None
+    entry = defaults[0]
+    if entry['account'] != NOT_SHOWN:
+        return entry['account'].lower() == claim.lower()
+    return entry.get('digest_folded') is not None and hmac.compare_digest(entry['digest_folded'], name_digest(claim.lower()))
 
 
 def _evaluate_github(facts):

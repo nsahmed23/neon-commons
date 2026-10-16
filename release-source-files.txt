@@ -959,6 +959,7 @@ plugin_tests/test_signin_fix1.py
 plugin_tests/test_signin_fix2.py
 plugin_tests/test_signin_fix4.py
 plugin_tests/test_signin_fix5a.py
+plugin_tests/test_signin_5b_binding.py
 plugin_tests/test_signin_5b_cloud.py
 plugin_tests/test_signin_5b_partial.py
 plugin_tests/test_signin_not_permission.py

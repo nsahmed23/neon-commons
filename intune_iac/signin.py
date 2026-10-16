@@ -24,6 +24,7 @@ cgroup (or a subreaper) could contain it, and no such mechanism exists in the pr
 """
 from __future__ import annotations
 
+import base64
 import hashlib
 import hmac
 import json
@@ -292,7 +293,8 @@ def obtain_token(tenant, account=None, deadline=DEFAULT_DEADLINE):
     """
     if signin_facts.shown(tenant, signin_facts.GUID) is None:
         raise AppError('signin_tenant_invalid', 'The tenant must be a GUID.')
-    verdict = signin_facts.evaluate(detect_azure(deadline), tenant, account)
+    facts = detect_azure(deadline)
+    verdict = signin_facts.evaluate(facts, tenant, account)
     if not verdict['usable']:
         raise SigninBlocked(verdict)
     try:
@@ -312,7 +314,24 @@ def obtain_token(tenant, account=None, deadline=DEFAULT_DEADLINE):
         if any(marker in lowered for marker in _NOT_SIGNED_IN_MARKERS):
             raise SigninBlocked(signin_facts.refused('not_signed_in', tenant))
         raise AppError('signin_token_unavailable', 'The Azure CLI could not return a token.')
-    return _token_from(out, tenant)
+    token = _token_from(out, tenant)
+    # Bind the token to the account that was judged (or confirmed with --account): the default may have changed between the
+    # listing and the token request. The claims are unverified, so they may only refuse.
+    if signin_facts.claim_binding(facts, _unverified_claims(token)) is False:
+        raise SigninBlocked(signin_facts.refused('account_mismatch', tenant))
+    return token
+
+
+def _unverified_claims(token):
+    """The payload claims of a JWT-shaped token, read without verification; {} for anything else. Never raises."""
+    try:
+        parts = token.split('.')
+        if len(parts) != 3 or len(token) > 16384:
+            return {}
+        payload = json.loads(base64.urlsafe_b64decode(parts[1] + '=' * (-len(parts[1]) % 4)))
+        return payload if isinstance(payload, dict) else {}
+    except (ValueError, TypeError, UnicodeError, RecursionError):
+        return {}
 
 
 def _expires_on(value):
