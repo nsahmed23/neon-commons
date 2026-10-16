@@ -598,23 +598,28 @@ class RecoveryPlanJob:
         try:return self.manifest.get('implementation_files')==service.implementation_binding()
         except AppError:return None
     def cancel(self,*,administrative=False):
-        """A plan prepared under an earlier controller is refused here; an explicit administrative cancel stays available,
-        makes no host call and records in its event that it was administrative and whether the controller is current."""
+        """Cancel only restricts and makes no host call, so no inventory gate applies: a plan dispatched under an earlier
+        controller can always be cancelled. An explicit administrative cancel records in its event that it was administrative
+        and whether the controller is current."""
         self._check(expiry=False);current=self._implementation_current()
-        if not current and not administrative:_fail('adoption_recovery_runtime_changed')
+        self._request_cancel(current,administrative)
+        return self.status()
+    def _request_cancel(self,current,administrative):
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE');db.execute("UPDATE adoption_recovery_plans SET cancelled=1,status=CASE WHEN dispatches=0 THEN 'cancelled_before_dispatch' ELSE status END WHERE operation_id=?",(self.identifier,))
             self.policy.event(db,self.original.identifier,'adoption_recovery_plan_cancel_requested',{'operation_id':self.identifier,'ownership_released':False,
                 **({'administrative':True,'implementation_current':current} if administrative else {})});db.execute('COMMIT')
-        return self.status()
     def recover(self):
-        """Recovery calls the host and writes state, so the current-implementation gate runs before any transaction."""
+        """Recovery with the current controller calls the host and writes state. A plan prepared under another controller (or
+        whose inventory cannot be read) makes no host call: if its recorded controller is dead, recovery only marks it
+        outcome_unknown and clears the controller identity, so it can still be settled after an install."""
         self._check(expiry=False)
-        if not self._implementation_current():_fail('adoption_recovery_runtime_changed')
-        self.cancel()
+        current=bool(self._implementation_current())
+        self._request_cancel(None,False)
         with self.policy.connection() as db:row=db.execute('SELECT controller_pid,controller_start FROM adoption_recovery_plans WHERE operation_id=?',(self.identifier,)).fetchone()
         if row[0] is not None and service._controller_identity(row[0])==row[1]:_fail('adoption_recovery_controller_active')
-        result=host.recover(self.root/'host-run') if (self.root/'host-run/journal.json').exists() else {'container_never_recorded':True}
+        if not current:result={'host_call_made':False,'implementation_current':False,'cleanup_not_attempted':True}
+        else:result=host.recover(self.root/'host-run') if (self.root/'host-run/journal.json').exists() else {'container_never_recorded':True}
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE');db.execute("UPDATE adoption_recovery_plans SET controller_pid=NULL,controller_start=NULL,status=CASE WHEN status='running' THEN 'outcome_unknown' ELSE status END WHERE operation_id=?",(self.identifier,))
             self.policy.event(db,self.original.identifier,'adoption_recovery_plan_stopped_no_replay',{'operation_id':self.identifier,'host':result,'ownership_released':False});db.execute('COMMIT')

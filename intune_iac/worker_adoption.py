@@ -559,11 +559,11 @@ class AdoptionJob:
         try: return self.manifest.get('implementation_files') == service.implementation_binding()
         except AppError: return None
     def cancel(self, *, administrative=False):
-        """A job prepared under an earlier controller is refused here; an explicit administrative cancel stays available,
-        makes no host call and records in its event that it was administrative and whether the controller is current."""
+        """Cancel only restricts and makes no host call, so no inventory gate applies: a job dispatched under an earlier
+        controller can always be cancelled. An explicit administrative cancel records in its event that it was administrative
+        and whether the controller is current."""
         self._check(expiry=False)
         current = self._implementation_current()
-        if not current and not administrative: _fail('adoption_implementation_changed')
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE')
             db.execute("UPDATE jobs SET cancelled=1,status=CASE WHEN dispatches=0 THEN 'cancelled_before_dispatch' ELSE status END WHERE id=?", (self.identifier,))
@@ -572,9 +572,11 @@ class AdoptionJob:
                 **({'administrative': True, 'implementation_current': current} if administrative else {})}); db.execute('COMMIT')
         return self.status()
     def recover(self):
-        """Recovery calls the host and writes state, so the current-implementation gate runs before any transaction."""
+        """Recovery with the current controller calls the host and writes state. A job prepared under another controller (or
+        whose inventory cannot be read) makes no host call: if its recorded controller is dead, recovery only marks it
+        outcome_unknown and clears the controller identity, so it can still be settled after an install."""
         self._check(expiry=False)
-        if not self._implementation_current(): _fail('adoption_implementation_changed')
+        current = bool(self._implementation_current())
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE')
             row = db.execute('SELECT controller_pid,controller_start,status,dispatches FROM jobs WHERE id=?', (self.identifier,)).fetchone()
@@ -584,7 +586,8 @@ class AdoptionJob:
         records = {}
         for name in ('host-run', 'verification-host-run'):
             root = self.root / name
-            records[name] = host.recover(root) if (root / 'journal.json').exists() else {'container_never_recorded': True}
+            if not current: records[name] = {'host_call_made': False, 'implementation_current': False, 'cleanup_not_attempted': True}
+            else: records[name] = host.recover(root) if (root / 'journal.json').exists() else {'container_never_recorded': True}
         with self.policy.connection() as db:
             db.execute('BEGIN IMMEDIATE')
             db.execute("UPDATE jobs SET controller_pid=NULL,controller_start=NULL,status=CASE WHEN dispatches=0 THEN 'cancelled_before_dispatch' WHEN status IN ('running','verification_running') THEN 'outcome_unknown' ELSE status END WHERE id=?", (self.identifier,))

@@ -92,26 +92,47 @@ class AdoptionJobTests(adoption_tests.AdoptionFixture):
         return (self.job_row(), self.rows('SELECT cancelled FROM jobs'), self.rows('SELECT kind FROM events'),
                 self.rows('SELECT status, controller_pid FROM jobs'))
 
-    def test_recover_runs_the_gate_before_any_transaction_or_host_call(self):
+    def outstanding(self, start='the-dead-controller', status='running'):
+        """A job the earlier controller dispatched: running, with that controller's identity recorded."""
+        with self.policy.connection() as db:
+            db.execute("UPDATE jobs SET status=?, dispatches=1, controller_pid=999999, controller_start=? WHERE id=?",
+                       (status, start, self.job.identifier))
+
+    def test_an_outstanding_job_of_another_controller_is_recovered_to_outcome_unknown_without_a_host_call(self):
         self.upgrade()
-        before = self.state()
+        self.outstanding()
         with patch.object(adoption.AdoptionJob, 'status', return_value={}), \
                 patch.object(adoption.host, 'recover', side_effect=AssertionError('the host was touched')) as host:
-            with self.assertRaises(AppError) as raised:
-                self.job.recover()
-        self.assertEqual(raised.exception.code, 'adoption_implementation_changed')
+            self.job.recover()
         host.assert_not_called()
-        self.assertEqual(self.state(), before)
+        self.assertEqual(self.rows('SELECT status, cancelled, dispatches, controller_pid, controller_start FROM jobs'),
+                         [('outcome_unknown', 1, 1, None, None)])
+        self.assertEqual(len(self.rows("SELECT kind FROM events WHERE kind='adoption_recovery_no_replay'")), 1)
 
-    def test_a_normal_cancel_is_refused_and_an_administrative_cancel_records_why(self):
+    def test_a_job_whose_other_controller_is_alive_is_not_recovered_without_the_gate_either(self):
         self.upgrade()
-        before = self.state()
+        self.outstanding(start='controller-start')  # the patched identity of that pid matches: it is alive
         with patch.object(adoption.AdoptionJob, 'status', return_value={}), \
                 patch.object(adoption.host, 'recover', side_effect=AssertionError('the host was touched')):
             with self.assertRaises(AppError) as raised:
-                self.job.cancel()
-            self.assertEqual(raised.exception.code, 'adoption_implementation_changed')
-            self.assertEqual(self.state(), before)
+                self.job.recover()
+        self.assertEqual(raised.exception.code, 'adoption_cleanup_owner_active')
+        self.assertEqual(self.rows('SELECT status, controller_pid FROM jobs'), [('running', 999999)])
+
+    def test_an_outstanding_job_of_another_controller_can_be_cancelled_with_no_host_call(self):
+        self.upgrade()
+        self.outstanding()
+        with patch.object(adoption.AdoptionJob, 'status', return_value={}), \
+                patch.object(adoption.host, 'recover', side_effect=AssertionError('the host was touched')):
+            self.job.cancel()
+        self.assertEqual(self.rows('SELECT status, cancelled FROM jobs'), [('running', 1)])
+        event = self.rows("SELECT payload FROM events WHERE kind='adoption_cancel_requested'")
+        self.assertEqual([load_json_text(p) for (p,) in event], [{'dispatch_replayed': False}])
+
+    def test_an_administrative_cancel_still_records_why(self):
+        self.upgrade()
+        with patch.object(adoption.AdoptionJob, 'status', return_value={}), \
+                patch.object(adoption.host, 'recover', side_effect=AssertionError('the host was touched')):
             self.job.cancel(administrative=True)
         self.assertEqual(self.rows('SELECT cancelled FROM jobs'), [(1,)])
         event = self.rows("SELECT payload FROM events WHERE kind='adoption_cancel_requested'")
@@ -135,25 +156,44 @@ class RecoveryPlanJobTests(recovery_tests.RecoveryFixture):
     def state(self):
         return (self.rows('SELECT status, cancelled, dispatches FROM adoption_recovery_plans'), self.rows('SELECT kind FROM events'))
 
-    def test_recover_runs_the_gate_before_any_transaction_or_host_call(self):
+    def outstanding(self, start='the-dead-controller'):
+        """A plan the earlier controller dispatched: running, with that controller's identity recorded."""
+        with self.policy.connection() as db:
+            db.execute("UPDATE adoption_recovery_plans SET status='running', dispatches=1, controller_pid=999999, "
+                       "controller_start=? WHERE operation_id=?", (start, self.job.identifier))
+
+    def test_an_outstanding_plan_of_another_controller_is_recovered_to_outcome_unknown_without_a_host_call(self):
         self.upgrade()
-        before = self.state()
+        self.outstanding()
         with patch.object(bridge.RecoveryPlanJob, 'status', return_value={}), \
                 patch.object(bridge.host, 'recover', side_effect=AssertionError('the host was touched')) as host:
+            self.job.recover()
+        host.assert_not_called()
+        self.assertEqual(self.rows('SELECT status, cancelled, dispatches, controller_pid, controller_start FROM adoption_recovery_plans'),
+                         [('outcome_unknown', 1, 1, None, None)])
+        self.assertEqual(len(self.rows("SELECT kind FROM events WHERE kind='adoption_recovery_plan_stopped_no_replay'")), 1)
+
+    def test_a_plan_whose_other_controller_is_alive_is_not_recovered_without_the_gate_either(self):
+        self.upgrade()
+        self.outstanding(start='controller-start')
+        with patch.object(bridge.RecoveryPlanJob, 'status', return_value={}), \
+                patch.object(bridge.host, 'recover', side_effect=AssertionError('the host was touched')):
             with self.assertRaises(AppError) as raised:
                 self.job.recover()
-        self.assertEqual(raised.exception.code, 'adoption_recovery_runtime_changed')
-        host.assert_not_called()
-        self.assertEqual(self.state(), before)
+        self.assertEqual(raised.exception.code, 'adoption_recovery_controller_active')
+        self.assertEqual(self.rows('SELECT status, controller_pid FROM adoption_recovery_plans'), [('running', 999999)])
 
-    def test_a_normal_cancel_is_refused_and_an_administrative_cancel_records_why(self):
+    def test_an_outstanding_plan_of_another_controller_can_be_cancelled_with_no_host_call(self):
         self.upgrade()
-        before = self.state()
+        self.outstanding()
+        with patch.object(bridge.RecoveryPlanJob, 'status', return_value={}), \
+                patch.object(bridge.host, 'recover', side_effect=AssertionError('the host was touched')):
+            self.job.cancel()
+        self.assertEqual(self.rows('SELECT status, cancelled FROM adoption_recovery_plans'), [('running', 1)])
+
+    def test_an_administrative_cancel_still_records_why(self):
+        self.upgrade()
         with patch.object(bridge.RecoveryPlanJob, 'status', return_value={}):
-            with self.assertRaises(AppError) as raised:
-                self.job.cancel()
-            self.assertEqual(raised.exception.code, 'adoption_recovery_runtime_changed')
-            self.assertEqual(self.state(), before)
             self.job.cancel(administrative=True)
         self.assertEqual(self.rows('SELECT cancelled FROM adoption_recovery_plans'), [(1,)])
         event = self.rows("SELECT payload FROM events WHERE kind='adoption_recovery_plan_cancel_requested'")
