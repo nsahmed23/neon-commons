@@ -71,7 +71,7 @@ class NotPermissionTests(unittest.TestCase):
         out = io.StringIO()
         with patch.dict(os.environ, {'PATH': fakes.path_entry() + os.pathsep + os.environ.get('PATH', '')}), \
                 contextlib.redirect_stdout(out):
-            code = main(['signin', 'status', '--tenant', TENANT_A, '--provider', 'all'])
+            code = main(['signin', 'status', '--tenant', TENANT_A, '--provider', 'all', '--json'])
         value = json.loads(out.getvalue())
         self.assertEqual((code, value['status']), (0, 'ready'))
         # Changed in PKG-SETUP-5A round 1: a ready report says it once, in ready_for; it carries no access block or note.

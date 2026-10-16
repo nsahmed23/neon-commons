@@ -22,6 +22,7 @@ import hashlib
 import hmac
 import json
 import re
+import textwrap
 
 GUID = re.compile(r'[0-9a-fA-F]{8}-(?:[0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}')
 NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.@+-]{0,119}')
@@ -540,3 +541,76 @@ def _evaluate_github(facts):
         '%s as %s' % (a['host'], HIDDEN_NAME if a['account'] == NOT_SHOWN else a['account']) for a in active),
         'To see the login name, run gh auth status yourself.' if hidden else 'No sign-in step is needed.', None, usable=False,
         signed_in=active)
+
+
+# Text form ---------------------------------------------------------------------------------------------------------
+
+ACCESS_UNKNOWN_LINE = 'Graph, Intune and state-storage access are unknown until a read is attempted.'
+_REASON = re.compile(r'\(reason: ([a-z_]+)\)')
+_PROVIDER_LABELS = (('azure', 'AZURE'), ('github', 'GITHUB'))
+
+
+def _printable(text):
+    """Text for a terminal: anything that is not printable (a control byte, an escape) becomes a question mark."""
+    return ''.join(ch if ch.isprintable() else '?' for ch in str(text))
+
+
+def _wrap(text, width, first='', rest=''):
+    """Rows of at most width columns, broken only at spaces: a GUID, a name or a command word is never split, so a word wider
+    than the row stands alone on its row."""
+    wrapper = textwrap.TextWrapper(width=max(width, 40), initial_indent=first, subsequent_indent=rest, break_long_words=False,
+                                   break_on_hyphens=False)
+    return wrapper.wrap(_printable(text)) or [first.rstrip()]
+
+
+def _verdict_line(label, verdict):
+    status = verdict.get('status')
+    if verdict.get('usable') or (verdict.get('provider') == 'github' and status == 'signed_in'):
+        return '%s: READY' % label
+    if status == 'signed_in':
+        return '%s: REPORTED (no tenant was given to compare)' % label
+    reason = _REASON.search(verdict.get('message') or '')
+    code = '%s: %s' % (status, reason.group(1)) if status == 'unknown' and reason else status
+    return '%s: BLOCKED (%s)' % (label, _printable(code))
+
+
+def _account_row(verdict, entry):
+    name = entry.get('account', NOT_SHOWN)
+    if verdict.get('provider') == 'github':
+        return '%s on %s%s' % (name, entry.get('host', NOT_SHOWN), ' (active)' if entry.get('active') else '')
+    return '%s%s' % (name, ' (default)' if entry.get('default') else '')
+
+
+def status_lines(report, width, code):
+    """The text screen for `signin status`: for each provider a verdict line first (READY, REPORTED or BLOCKED with the reason
+    code), the tenant wanted and found, the account with the default marked, the cause, and the next step on its own rows;
+    then one line that access is unknown, and what the exit code means. Pure: it reads only the report's display fields."""
+    lines = []
+    for name, label in _PROVIDER_LABELS:
+        verdict = report.get(name)
+        if not isinstance(verdict, dict):
+            continue
+        if lines:
+            lines.append('')
+        lines.append(_verdict_line(label, verdict))
+        entries = verdict.get('signed_in') or []
+        if name == 'azure':
+            found = []
+            for entry in entries:
+                if entry.get('tenant') not in found:
+                    found.append(entry.get('tenant'))
+            lines += _wrap('Tenant wanted: %s' % (verdict.get('tenant_wanted') or 'none given'), width)
+            lines += _wrap('Tenant found: %s' % (', '.join(found) or 'none'), width)
+        for row in [_account_row(verdict, entry) for entry in entries] or ['none usable (the cause below names any listed one)']:
+            lines += _wrap('Account: %s' % row, width)
+        lines.append('Why:')
+        lines += _wrap(verdict.get('message') or '', width, '    ', '    ')
+        if verdict.get('next_step'):
+            lines.append('Next step:')
+            lines += _wrap(verdict['next_step'], width, '    ', '    ')
+    status = report.get('status')
+    meaning = {'ready': '(2 means blocked).', 'reported': '(2 means blocked).', 'blocked': '(0 means ready).'}.get(status, '')
+    lines.append('')
+    lines += _wrap(ACCESS_UNKNOWN_LINE, width)
+    lines += _wrap(('Exit code %s: %s %s' % (code, status, meaning)).strip(), width)
+    return lines

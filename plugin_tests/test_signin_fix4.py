@@ -168,7 +168,7 @@ class ArgumentTests(Base):
 
     def test_the_cli_accepts_a_long_upn_as_the_account_argument(self):
         self.fakes.answer('az', 'account', 'list', out=azure_list(azure_account(user=LONG_UPN)))
-        code, out, err = self.run_cli('signin', 'status', '--tenant', TENANT_A, '--account', LONG_UPN)
+        code, out, err = self.run_cli('signin', 'status', '--tenant', TENANT_A, '--account', LONG_UPN, '--json')
         self.assertEqual(code, 0)
         self.assertEqual(json.loads(out)['status'], 'ready')
         self.assertNotIn('alexander', out + err)

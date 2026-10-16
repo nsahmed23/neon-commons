@@ -334,7 +334,7 @@ class AggregateTests(Base):  # decision 7
         self.fakes.answer('gh', 'auth', 'status', out='{' )
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
-            code = cli.main(['signin', 'status', '--tenant', TENANT_A, '--provider', 'all'])
+            code = cli.main(['signin', 'status', '--tenant', TENANT_A, '--provider', 'all', '--json'])
         self.assertEqual((code, json.loads(out.getvalue())['status']), (2, 'blocked'))
 
 

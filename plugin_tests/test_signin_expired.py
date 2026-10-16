@@ -62,7 +62,7 @@ class ExpiredTests(unittest.TestCase):
 
     def test_status_reports_expired_as_blocked_and_runs_only_the_listing(self):
         self.listing(state='Expired')
-        code, out, _ = self.cli('signin', 'status', '--tenant', TENANT_A)
+        code, out, _ = self.cli('signin', 'status', '--tenant', TENANT_A, '--json')
         value = json.loads(out)
         self.assertEqual(code, 2)
         self.assertEqual((value['status'], value['azure']['status']), ('blocked', 'subscription_expired'))

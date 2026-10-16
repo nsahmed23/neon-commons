@@ -256,6 +256,7 @@ def parser():
     status.add_argument('--account',type=_account,help='The account to use when several are signed in; it must be the one the Azure CLI uses by default')
     status.add_argument('--provider',choices=('azure','github','all'),default='azure')
     status.add_argument('--deadline',type=float,default=15.0,help='Seconds allowed for each CLI call (greater than zero, at most 60)')
+    status.add_argument('--json',action='store_true',help='Print the result as JSON (for scripts) instead of the readable screen')
     collect_with=signin.add_parser('collect',help='Collect read-only evidence (like capture) with the reused Azure sign-in: a short-lived token goes to the collecting child on an inherited file descriptor, never an argument or the environment')
     collect_with.add_argument('--tenant',required=True,type=_tenant)
     collect_with.add_argument('--policy',required=True,type=_policy)
@@ -492,6 +493,12 @@ def main(argv=None):
             from .catalog import catalog_lines
             print('\n'.join(catalog_lines(result,shutil.get_terminal_size((100,40)).columns)));sys.stdout.flush()
             return 0
+        if args.command=='signin' and args.signin_command=='status' and not args.json:
+            # A person reads the sign-in status; --json keeps the data form for scripts. The exit code is the same either way.
+            from .signin_facts import status_lines
+            code=exit_code(result)
+            print('\n'.join(status_lines(result,shutil.get_terminal_size((100,40)).columns,code)));sys.stdout.flush()
+            return code
         if args.command=='engineering' and not args.json:
             # A person reads the engineering view; --json keeps the data form. Read-only, so the exit is 0.
             from .engineering_view import lines_for
