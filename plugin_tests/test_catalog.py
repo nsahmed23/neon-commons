@@ -144,5 +144,71 @@ class RecordTests(unittest.TestCase):
         self.assertEqual(families[0]['release_stage'], 'offline reference')
 
 
+def flat(lines):
+    return " ".join(" ".join(lines).split())
+
+
+def text_of(value, width=100):
+    from intune_iac import catalog as module
+    return module.catalog_lines(value, width)
+
+
+class NoUniversalSupportTests(unittest.TestCase):
+    def test_the_text_says_no_other_integration_is_available_and_lists_only_the_manifests_one(self):
+        text = flat(text_of(catalog()))
+        self.assertIn('No other integration is available in this build.', text)
+        self.assertIn('Microsoft Intune', text)
+        self.assertEqual(catalog()['other_integrations'], 'No other integration is available in this build.')
+        for name in ('Terraform Cloud', 'Jamf', 'Workspace ONE', 'Ansible', 'Okta', 'ServiceNow'):
+            self.assertNotIn(name, text)
+
+    def test_an_object_kind_the_manifest_does_not_list_is_said_to_be_unsupported_not_omitted_silently(self):
+        text = flat(text_of(catalog()))
+        self.assertIn('An object kind or goal not listed here is unsupported', text)
+
+    def test_every_state_is_a_word_for_every_goal(self):
+        lines = text_of(catalog())
+        for goal in GOALS:
+            start = next(i for i, line in enumerate(lines) if line.strip() == 'GOAL ' + goal)
+            block = lines[start + 1:start + 1 + 40]
+            labels = [line.strip().split(':')[0] for line in block if line.startswith('    ') and not line.startswith('     ')]
+            self.assertEqual(labels[:6], ['available', 'configured', 'authenticated', 'operation-ready', 'blocked', 'unsupported'])
+
+    def test_the_json_form_carries_the_same_states_as_the_text(self):
+        value = catalog(tr.repository_item(), tr.context_item())
+        lines = '\n'.join(text_of(value))
+        goals = goals_of(value)
+        self.assertIn('authenticated:   not checked', lines)
+        for name in GOALS:
+            self.assertEqual(goals[name]['authenticated']['state'], 'not_checked')
+            ready = goals[name]['operation_ready']
+            self.assertIn('operation-ready: %s (readiness status: %s)' % (ready['state'], ready['status']), lines)
+
+    def test_the_text_never_calls_an_unchecked_sign_in_authenticated_and_never_implies_permission(self):
+        text = flat(text_of(catalog()))
+        self.assertNotIn('authenticated: yes', text)
+        self.assertNotIn('authenticated: authenticated', text)
+        self.assertIn('not checked', text)
+        signed = catalog(tr.context_item(tenant=GOOD['accounts'][0]['tenant']), signin={'azure': GOOD})
+        text = flat(text_of(signed))
+        self.assertIn('authenticated: authenticated', text)
+        self.assertIn('not permission for any operation', text)
+
+    def test_unknown_levels_stay_explicit_and_families_say_live_not_run(self):
+        text = flat(text_of(catalog()))
+        self.assertIn('qualification unknown (no record establishes it)', text)
+        self.assertIn('qualification review-only (record: family-coverage.csv)', text)
+        self.assertIn('live: not run', text)
+        self.assertNotIn('adoption-qualified', text)
+        self.assertNotIn('change-qualified', text)
+
+    def test_the_lines_fit_120_80_and_60_columns_in_ascii(self):
+        value = catalog(tr.repository_item(), tr.context_item())
+        for width in (120, 80, 60):
+            for line in text_of(value, width):
+                self.assertLessEqual(len(line), width, line)
+                self.assertTrue(all(32 <= ord(c) < 127 for c in line), repr(line))
+
+
 if __name__ == '__main__':
     unittest.main()

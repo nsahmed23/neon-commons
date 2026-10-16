@@ -141,3 +141,80 @@ def build(survey, doctor=None, signin=None, manifest=None, goal=None):
     return {'schema_version': VERSION, 'directory': survey.get('directory') if isinstance(survey, dict) else None,
             'integrations': [record], 'other_integrations': NO_OTHERS, 'signin_checked': bool(model.get('signin')),
             'execution_authorized': False, 'cloud_authority': False}
+
+
+# -- text ----------------------------------------------------------------------------------------------------------
+LABEL = 17
+LEVEL_PREFIX = 'qualification '
+
+
+def _state_lines(goal, width):
+    from .entry import _flow
+    rest = ' ' * (4 + LABEL)
+
+    def row(name, text):
+        if width < 90:
+            # A narrow window: the state word on its own row, the text indented under it, so a command still fits.
+            return ['    %s:' % name] + _flow(text, width, '      ', '      ', commands=True)
+        return _flow(text, width, '    ' + ('%s:' % name).ljust(LABEL), rest, commands=True)
+
+    available, configured = goal['available'], goal['configured']
+    auth, ready, blocked, unsupported = goal['authenticated'], goal['operation_ready'], goal['blocked'], goal['unsupported']
+    if available['state'] == 'available':
+        text = 'yes (operations: %s; evidence: %s)' % (', '.join(available['operations']),
+                                                       ', '.join(c.replace('_', ' ') for c in available['evidence_classes']))
+    else:
+        text = 'no (the manifest lists no %s operation)' % ', '.join(available['missing_operations'])
+    lines = row('available', text)
+    text = configured['state'] + (' (not ready: %s)' % ', '.join(configured['not_ready']) if configured['not_ready'] else
+                                  ' (checked: %s)' % ', '.join(configured['inputs_checked']))
+    lines += row('configured', text)
+    if auth['state'] == 'not_checked':
+        text = 'not checked; ' + auth['message'].replace('Sign-in is not checked. ', '', 1)
+    else:
+        text = '%s (Azure CLI sign-in: %s)' % (auth['state'].replace('_', ' '), auth.get('message') or auth.get('status'))
+        text += ' ' + auth['permission']
+    lines += row('authenticated', text)
+    lines += row('operation-ready', '%s (readiness status: %s)' % (ready['state'], ready['status']))
+    if blocked['state'] == 'blocked':
+        text = 'yes, by %s (%s). %s Next action: %s' % (blocked['row'], blocked['row_state'], blocked['missing'] or '',
+                                                       blocked['next_action'])
+    else:
+        text = 'no prerequisite is reported as not ready'
+    lines += row('blocked', text)
+    if unsupported['state'] == 'unsupported':
+        text = 'yes: ' + ' '.join(unsupported['reasons'])
+    else:
+        text = 'nothing recorded as unsupported in this build'
+    text += ' Live: not run. Live blockers recorded: %s.' % ', '.join(b.replace('_', ' ') for b in unsupported['live_blockers'])
+    lines += row('unsupported', text)
+    return lines
+
+
+def catalog_lines(value, width):
+    """The catalog as plain lines: ASCII words for every state, wrapped to the width."""
+    from .entry import _flow
+    from .workbench_screens import word_wrap
+    lines = ['INTEGRATION CATALOG']
+    lines += word_wrap('%s | offline | this lists only what this build holds' % (value.get('directory') or 'no directory'), width)
+    lines += word_wrap(value['other_integrations'], width)
+    for record in value['integrations']:
+        lines.append('')
+        lines += word_wrap('%s (id %s, %s %s)' % (record['label'], record['id'], record['product'], record['product_version']), width)
+        lines.append('GOALS')
+        for goal in record['goals']:
+            lines.append('  GOAL ' + goal['goal'])
+            lines += _state_lines(goal, width)
+        lines += _flow('An object kind or goal not listed here is unsupported; a level word appears only where a record '
+                       'establishes it.', width, '', '')
+        lines.append('OBJECT KINDS')
+        for kind in record['object_kinds']:
+            level = kind['level'] if kind['level_record'] is None else '%s (record: %s)' % (kind['level'], kind['level_record'])
+            classes = ', '.join(c.replace('_', ' ') for c in kind['evidence_classes']) or 'no operation listed'
+            lines += _flow('%s (family %s): %s%s | evidence: %s | scope: %s' % (
+                kind['label'], kind['family'], LEVEL_PREFIX, level, classes, kind['scope']), width, '  ', '    ')
+        lines.append('FAMILIES')
+        for family in record['families']:
+            lines += _flow('%s: release stage %s; live: %s' % (family['family'], family['release_stage'], family['live']),
+                           width, '  ', '    ')
+    return lines
