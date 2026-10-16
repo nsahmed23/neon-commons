@@ -36,7 +36,9 @@ class HiddenNameTests(Base):
         verdict = verdict_for(self.fakes, LONG_UPN)
         self.assertEqual((verdict['status'], verdict['usable']), ('signed_in', True))
         self.assertIn(NOT_SHOWN_TEXT, verdict['message'])
-        self.assertIn('longer than this display allows, or shaped like a credential', verdict['message'])
+        # Changed in PKG-SETUP-5C: the one reason that matched, not an alternative a usable name cannot have.
+        self.assertIn('(it is longer than this display allows)', verdict['message'])
+        self.assertNotIn('shaped like a credential', verdict['message'])
         self.assertIn('az account show --query user.name -o tsv', verdict['next_step'])
         self.assertIn('--account NAME', verdict['next_step'])
         self.assertNotIn('alexander', json.dumps(verdict))

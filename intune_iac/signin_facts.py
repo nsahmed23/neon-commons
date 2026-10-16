@@ -97,7 +97,23 @@ CHILD_ERROR_CODES = frozenset({
 _TOKEN_PREFIXES = ('ghp_', 'gho_', 'ghu_', 'ghs_', 'ghr_', 'github_pat_')
 _UNBROKEN_RUN = re.compile(r'[A-Za-z0-9]{24,}')
 _ACCOUNT_ARGUMENT = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.@+-]{0,127}')
-HIDDEN_NAME = 'an account whose name is not shown here (it is longer than this display allows, or shaped like a credential)'
+# Why a name is not shown: a closed set of codes, each with the one phrase it prints. A code says which rule matched and carries
+# nothing of the name. A credential signature (token_prefix, unbroken_run) blocks use; the other reasons only hide the name.
+REASON_TEXT = {
+    'token_prefix': 'it starts with a token prefix',
+    'unbroken_run': 'it holds an unbroken run of 24 or more letters and digits',
+    'credential_word': 'it contains a word that credentials carry',
+    'shape': 'it has characters this display does not allow',
+    'length': 'it is longer than this display allows',
+    'caps_block': 'it is a block of 12 or more capitals and digits, which looks like a key',
+}
+UNKNOWN_REASON_TEXT = 'it cannot be shown safely'
+
+
+def hidden_name_text(entry):
+    """The words for an account whose name is not shown, with the reason that matched (from the closed set), else a plain fallback."""
+    reasons = [r for r in (entry.get('hidden_reasons') or ()) if isinstance(r, str) and r in REASON_TEXT]
+    return 'an account whose name is not shown here (%s)' % (' and '.join(REASON_TEXT[r] for r in reasons) or UNKNOWN_REASON_TEXT)
 
 
 def credential_signature(raw):
@@ -107,6 +123,30 @@ def credential_signature(raw):
     separator. A name that is merely long, or split by separators, is hidden from display (opaque) but is not blocked.
     """
     return isinstance(raw, str) and (raw.startswith('eyJ') or raw.startswith(_TOKEN_PREFIXES) or bool(_UNBROKEN_RUN.search(raw)))
+
+
+def hidden_reasons(raw):
+    """Why shown_name hides this raw name: the codes of REASON_TEXT that matched, a credential signature taking the place of the rest.
+
+    Worked out from the raw name once, when the listing is parsed; it names the rule, never any part of the name.
+    """
+    if not isinstance(raw, str):
+        return []
+    signature = [code for code, hit in (('token_prefix', raw.startswith('eyJ') or raw.startswith(_TOKEN_PREFIXES)),
+                                        ('unbroken_run', bool(_UNBROKEN_RUN.search(raw)))) if hit]
+    if signature:
+        return signature
+    reasons = []
+    normalized = _SEPARATORS.sub('', raw)
+    if _TOKENISH.search(raw):
+        reasons.append('credential_word')
+    if not (_UPN.fullmatch(raw) or NAME.fullmatch(raw)):
+        reasons.append('shape')
+    elif len(normalized) >= RUN_LIMIT or not (_UPN.fullmatch(raw) or len(raw) <= 64):
+        reasons.append('length')
+    if len(normalized) >= BLOCK_LIMIT and not any(c.islower() for c in normalized):
+        reasons.append('caps_block')
+    return reasons
 
 
 def name_digest(raw):
@@ -142,7 +182,8 @@ def _strict_utf8(text):
 
 def hidden_internals(raw):
     """The private fields kept beside a hidden name: its digest and whether it carries a credential signature."""
-    return {'digest': name_digest(raw), 'digest_folded': name_digest(raw.lower()), 'signature': credential_signature(raw)}
+    return {'digest': name_digest(raw), 'digest_folded': name_digest(raw.lower()), 'signature': credential_signature(raw),
+            'hidden_reasons': hidden_reasons(raw)}
 
 
 def shown_host(value):
@@ -273,6 +314,11 @@ def parse_github(text, code, error_text):
 
 # Judgement -------------------------------------------------------------------------------------------------------
 
+def _closed_reasons(value):
+    """The reason codes of a facts entry that belong to the closed set, in order; anything else is dropped."""
+    return [r for r in value if isinstance(r, str) and r in REASON_TEXT] if isinstance(value, list) else []
+
+
 def _clean_accounts(facts, provider):
     """The accounts of a facts dictionary that pass the plain-shape rules; a dictionary from elsewhere is never trusted."""
     listed = facts.get('accounts') if isinstance(facts, dict) else None
@@ -290,7 +336,8 @@ def _clean_accounts(facts, provider):
             folded = entry.get('digest_folded')
             private = {'digest': digest if isinstance(digest, str) and re.fullmatch(r'[0-9a-f]{64}', digest) else None,
                        'digest_folded': folded if isinstance(folded, str) and re.fullmatch(r'[0-9a-f]{64}', folded) else None,
-                       'signature': entry.get('signature') is not False}  # unknown counts as a signature: fail closed
+                       'signature': entry.get('signature') is not False,  # unknown counts as a signature: fail closed
+                       'hidden_reasons': _closed_reasons(entry.get('hidden_reasons'))}
         if provider == 'azure':
             tenant = shown(entry.get('tenant'), GUID)
             if tenant:
@@ -329,7 +376,7 @@ def _verdict(provider, status, message, next_step, tenant, usable=False, signed_
 
 
 def _who(entry):
-    name = entry['account'] if entry['account'] != NOT_SHOWN else HIDDEN_NAME
+    name = entry['account'] if entry['account'] != NOT_SHOWN else hidden_name_text(entry)
     return 'tenant %s as %s (%s)' % (entry['tenant'], name, entry['cloud'])
 
 
@@ -405,16 +452,17 @@ def evaluate(facts, tenant=None, account=None):
                         '%s; then run this command again.' % login, tenant, signed_in=active)
     if default['cloud'] == NOT_SHOWN:
         return _verdict('azure', 'unknown', 'The cloud the Azure CLI uses is not a known Azure cloud name, so it is not used. '
-                        'Signed in to tenant %s as %s.' % (default['tenant'], HIDDEN_NAME if default['account'] == NOT_SHOWN
-                                                           else default['account']),
+                        'Signed in to tenant %s as %s.' % (default['tenant'], hidden_name_text(default)
+                                                           if default['account'] == NOT_SHOWN else default['account']),
                         'Run az account list --output json yourself to see the sign-in.', tenant, signed_in=active)
     if default['cloud'] != PUBLIC_CLOUD:
         # This build's collector reads the public Graph endpoint and the token is requested for the public Graph resource, so a
         # sovereign-cloud sign-in is refused by cloud rather than judged usable.
         return _verdict('azure', 'unknown', 'The Azure CLI is signed in to %s in the %s cloud; this build collects only from the '
                         'public Azure cloud (%s), so that sign-in is not used.' % (
-                            'tenant %s as %s' % (default['tenant'], HIDDEN_NAME if default['account'] == NOT_SHOWN
-                                                 else default['account']), default['cloud'], PUBLIC_CLOUD),
+                            'tenant %s as %s' % (default['tenant'], hidden_name_text(default)
+                                                 if default['account'] == NOT_SHOWN else default['account']),
+                            default['cloud'], PUBLIC_CLOUD),
                         'Switch the Azure CLI to the public cloud with: az cloud set --name %s; then sign in to the tenant the '
                         'context names: %s; then run this command again.' % (PUBLIC_CLOUD, login), tenant, signed_in=active)
     if len(names) > 1 and not (account is not None and _matches(default, account)):
@@ -538,7 +586,7 @@ def _evaluate_github(facts):
                         'Run gh auth status yourself to see it.', None, signed_in=active)
     hidden = any(a['account'] == NOT_SHOWN for a in active)
     return _verdict('github', 'signed_in', 'Signed in to %s.' % '; '.join(
-        '%s as %s' % (a['host'], HIDDEN_NAME if a['account'] == NOT_SHOWN else a['account']) for a in active),
+        '%s as %s' % (a['host'], hidden_name_text(a) if a['account'] == NOT_SHOWN else a['account']) for a in active),
         'To see the login name, run gh auth status yourself.' if hidden else 'No sign-in step is needed.', None, usable=False,
         signed_in=active)
 
