@@ -376,6 +376,12 @@ def hazard_band(facts, signals, width):
 BAND_ESSENTIAL = {'operation_outcome_unknown': 'never replays'}
 # The shortest complete form of such a hazard: two rows at 24 columns ("! Outcome unknown." and "Reconcile, never replays").
 BAND_COMPACT = {'operation_outcome_unknown': '! Outcome unknown. Reconcile, never replays'}
+# The unknown-outcome band's complete forms for a window with too little room, longest first, each a tuple of rows. Every
+# one says the change is never replayed; none is ever cut to fit. The narrowest is the floor: below BAND_FLOOR_WIDTH cells
+# the band row is one "!" mark and no partial safety text is drawn.
+BAND_FORMS = (('! Outcome unknown.', 'Reconcile, never replays'), ('! Outcome unknown,', 'never replays'),
+              ('Unknown; never replays',), ('Unknown: NO REPLAY',), ('NO REPLAY',))
+BAND_FLOOR_WIDTH = 9                      # the width of the narrowest form, "NO REPLAY"
 
 
 # Key routes in the band's wording; dropped where no surface or key can take them (below the minimum, while typing).
@@ -562,11 +568,15 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
     if band and any(BAND_ESSENTIAL.get(code) for code in [_band_primary(facts, facts.get('signals') or [])[0].get('code')]):
         # The safety clause outranks everything but the first row: a short window keeps the whole compact form (two rows)
         # and gives up the header's row before it gives up "never replays"; one row holds the shortest statement of it.
-        if height < 2:
-            band = [fit('Unknown; never replays', width)]
-        elif width < cell_width(BAND_COMPACT['operation_outcome_unknown'].split('. ')[1]):
-            # Narrower than the compact form's response: it would wrap to a third row, so the two rows state the clause.
-            band = [fit('! Outcome unknown,', width), fit('never replays', width)]
+        if (height < 2 or width < cell_width(BAND_COMPACT['operation_outcome_unknown'].split('. ')[1])) and not (
+                height < 2 and band and cell_width(band[0]) <= width and 'never replays' in band[0]):
+            # One row, or narrower than the compact form's response: the first complete form of BAND_FORMS that fits the
+            # rows and the width. Never a form cut to fit; below BAND_FLOOR_WIDTH only a mark.
+            rows_allowed = 2 if height >= 2 else 1
+            band = next((list(form) for form in BAND_FORMS
+                         if len(form) <= rows_allowed and max(cell_width(row) for row in form) <= width), ['!'][:1])
+        elif height < 2:
+            band = band[:1]
         else:
             band = band[:max(min(len(band), 2), height - 1)]
     elif len(band) >= height:

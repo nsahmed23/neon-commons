@@ -3080,5 +3080,51 @@ class RoundThreeFindingFiveTests(LayerFixture):
             self.assertFalse(legend[-1].endswith('reached'), (size, legend))
 
 
+# ---- PKG-UXVIS-5b round 4: the safety text is never clipped ---------------------------------------------------------------
+
+class RoundFourClippedSafetyTextTests(unittest.TestCase):
+    def test_at_every_width_and_height_the_band_holds_a_complete_form_or_only_a_mark_below_the_floor(self):
+        from intune_iac import workbench_screens
+        from intune_iac.workbench_screens import constrained_rows
+        from plugin_tests.test_workbench_hazard import UNKNOWN
+        facts = {'signals': [UNKNOWN], 'operation': 'outcome_unknown', 'object_id': OBJECT, 'identity_prefixes': {}}
+        # (The defaults are the intended chain, so that a product without it fails by the frames, not by the name.)
+        BAND_FLOOR_WIDTH = getattr(workbench_screens, 'BAND_FLOOR_WIDTH', 9)
+        forms = [list(form) for form in getattr(workbench_screens, 'BAND_FORMS', (
+            ('! Outcome unknown.', 'Reconcile, never replays'), ('! Outcome unknown,', 'never replays'),
+            ('Unknown; never replays',), ('Unknown: NO REPLAY',), ('NO REPLAY',)))]
+        for layer in ('summary', 'workflow'):
+            for height in (1, 2, 3):
+                for width in range(1, 46):
+                    lines, band = constrained_rows(TENANT, OBJECT, facts, 'synthetic', width, height, '60x20', '', layer=layer,
+                                                   route=('/tmp/store', OBJECT))
+                    rows = [lines[index] for index in band]
+                    where = (layer, width, height, rows)
+                    if width < BAND_FLOOR_WIDTH:
+                        self.assertEqual(rows, ['!'], where)               # below the floor: one mark, no partial text
+                        continue
+                    whole = ' '.join(' '.join(rows).split())
+                    self.assertTrue(rows in forms or 'never replays' in whole, where)
+                    for row in rows:
+                        self.assertLessEqual(len(row), width, where)
+                    # No row is the start of a form cut short.
+                    for form in forms:
+                        for text in form:
+                            for row in rows:
+                                if row != text and len(row) >= 3:
+                                    self.assertFalse(text.startswith(row) and len(row) < len(text), where)
+
+    def test_the_forms_are_complete_longest_first_and_the_floor_is_the_narrowest(self):
+        from intune_iac.workbench_screens import BAND_FLOOR_WIDTH, BAND_FORMS
+        widths = [max(len(row) for row in form) for form in BAND_FORMS]
+        self.assertEqual(BAND_FLOOR_WIDTH, min(widths))
+        for form in BAND_FORMS:
+            self.assertRegex(' '.join(form), r'(?i)never replays|no replay')
+        self.assertEqual(self.one_row(BAND_FORMS)[0], 'Unknown; never replays')
+
+    def one_row(self, forms):
+        return [form[0] for form in forms if len(form) == 1]
+
+
 if __name__ == "__main__":
     unittest.main()
