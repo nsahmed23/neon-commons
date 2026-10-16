@@ -7,6 +7,7 @@ need a real operation (prepared, closed window, unknown outcome, reconciled, rec
 modeled service and the maintenance engine over temporary directories.
 """
 import copy
+import io
 import re
 import unittest
 from unittest import mock
@@ -908,6 +909,320 @@ class WorkflowMapLinesTests(unittest.TestCase):
         row = lanes_of(lines_of(broken))[4]
         self.assertEqual((row[7], row[-STATE_WORD_WIDTH:].strip()), ('?', 'unknown'))
         self.assertEqual(lanes_of(lines_of(dict(flow, stages=[]))), [])
+
+
+
+# ---- item 3: the workspace layer -----------------------------------------------------------------------------------
+
+ANSI = re.compile(r'\x1b\[[0-9;?]*[A-Za-z]')
+
+
+def typed(command):
+    """The keys that type a command into the command bar and submit it."""
+    return [('text', ':')] + [('text', char) for char in command] + ['enter']
+
+
+class Reader:
+    """A key reader that hands out the given keys in order; `eof` ends the loop of Workspace.input without a command."""
+
+    def __init__(self, items):
+        self.items = list(items)
+
+    def read(self):
+        return self.items.pop(0)
+
+
+class LayerFixture(unittest.TestCase):
+    """The real store, modeled service and maintenance engine behind a real Workspace driven by keys."""
+    RESOURCE_ADDRESS = repository_tests.RepositoryOwnedChangeTests.RESOURCE_ADDRESS
+    setUp = repository_tests.RepositoryOwnedChangeTests.setUp
+    import_intent = repository_tests.RepositoryOwnedChangeTests.import_intent
+    edit_description = repository_tests.RepositoryOwnedChangeTests.edit_description
+
+    def prepare(self):
+        from intune_iac.workbench_repository import propose_from_intent, refresh_intent
+        self.import_intent()
+        self.edit_description('Edited in the repository.')
+        self.intent = refresh_intent(self.store, OBJECT, 'b' * 40)
+        self.operation = self.root / 'operation'
+        return propose_from_intent(self.store.root, self.service.root, OBJECT, self.operation)
+
+    def run_keys(self, sequence, size=(120, 40), rules='unicode', color=False, watch=None):
+        """Run the real engine behind a Workspace fed these keys. ws.states[i] and frames[i] are what was on screen when key
+        i was asked for, that is after key i - 1 took effect; ws.sent lists the commands the workspace sent."""
+        from intune_iac.workbench import run_terminal
+        from intune_iac.workbench_tui import Workspace
+        out = io.StringIO()
+        ws = Workspace(self.store.root, stdout=out, stdin=io.StringIO(), no_color=not color)
+        ws.rules = rules
+        ws._terminal_size = lambda: size
+        frames, ws.states, ws.sent = [], [], []
+
+        class Keys(Reader):
+            def read(self):
+                frames.append(out.getvalue().split('\x1b[H')[-1].replace('\x1b[J', '').split('\r\n'))
+                ws.states.append(dict(tab=ws.tab, layer=ws.layer, notice=ws.notice, selected=ws.selected,
+                                      focus=ws.workflow_focus, scroll=ws.scroll, last=ws.last_command))
+                if watch:
+                    watch(len(frames) - 1, ws)
+                return super().read()
+        ws.key_reader = Keys(sequence)
+        original = ws._send
+        ws._send = lambda command, **kw: (ws.sent.append(command), original(command, **kw))[1]
+        result = run_terminal(self.store.root, service_root=self.service.root, input_fn=ws.input,
+                              output_fn=lambda line: None, result_fn=ws.receive)
+        self.assertEqual(result.get('status'), 'closed')
+        return ws, frames
+
+    def layer_workspace(self, size=(120, 40), rules='unicode', focus=None):
+        """A Workspace with the layer open on the real projection of the selected policy, and no engine behind it."""
+        from intune_iac import workbench
+        from intune_iac.workbench_tui import Workspace
+        ws = Workspace(self.store.root, stdout=io.StringIO(), stdin=io.StringIO(), no_color=True)
+        ws.pending.clear()                    # an earlier workspace on this store left a context to resume; this one starts bare
+        ws.rules = rules
+        ws._terminal_size = lambda: size
+        ws.size = size
+        ws.selected = OBJECT
+        ws.last_command = 'workflow'
+        ws.receive(workbench._workflow(self.store, OBJECT, service_root=self.service.root))
+        ws.workflow_focus = focus
+        return ws
+
+    @staticmethod
+    def press(ws, *keys):
+        """Feed keys to a workspace; the command it returns, or None when it read them all and wanted another."""
+        ws.key_reader = Reader(list(keys) + ['eof'])
+        try:
+            return ws.input('')
+        except EOFError:
+            return None
+
+    @staticmethod
+    def plain(rows):
+        return [ANSI.sub('', row) for row in rows]
+
+    def open_layer(self, size=(120, 40), rules='unicode', color=False, extra=()):
+        key = lambda char: ('text', char)
+        return self.run_keys(typed('select ' + OBJECT) + typed('workflow') + list(extra) + [key('q')], size, rules, color)
+
+
+class EngineCommandTests(LayerFixture):
+    def test_the_workflow_command_needs_a_selection_and_returns_the_projection_of_the_selected_policy(self):
+        from intune_iac import workbench
+        from intune_iac.workbench import run_terminal
+        self.prepare()
+        commands = iter(['workflow', 'select ' + OBJECT, 'workflow', 'workflow extra', 'quit'])
+        results = []
+        run_terminal(self.store.root, service_root=self.service.root, input_fn=lambda _: next(commands), result_fn=results.append)
+        errors = [item for item in results if item.get('status') == 'error']
+        self.assertEqual([item['error']['code'] for item in errors][:1], ['selection_required'])
+        flows_ = [item for item in results if item.get('schema_version') == 'workflow-map/1']
+        self.assertEqual(len(flows_), 1)
+        expected = workbench._workflow(self.store, OBJECT, service_root=self.service.root)
+        self.assertEqual(flows_[0]['revision'], expected['revision'])
+        self.assertEqual(flows_[0]['object_id'], OBJECT)
+        # Extra words are an invalid request, as for every read view that takes none.
+        self.assertEqual(errors[-1]['error']['code'], 'invalid_workbench_request')
+
+    def test_workflow_is_a_read_view_listed_in_the_help_and_never_a_resumable_context_view(self):
+        from intune_iac.workbench import HELP
+        from intune_iac.workbench_tui import LAYERS, READ_VIEWS, SUBVIEWS, VIEW_COMMANDS
+        self.assertIn('workflow', VIEW_COMMANDS)
+        self.assertNotIn('workflow', READ_VIEWS)
+        self.assertEqual((LAYERS['workflow'], SUBVIEWS['workflow']), ('read-only', 'Workflow map'))
+        line = next(entry for entry in HELP['navigation'] if entry.startswith('workflow'))
+        for word in ('selected policy', 'read-only', 'Esc'):
+            self.assertIn(word, line)
+
+    def test_the_help_reference_names_workflow_and_its_marks_and_keys_truthfully(self):
+        from intune_iac.workbench_screens import help_lines
+        text = ' '.join(' '.join(help_lines(100)).split())
+        self.assertIn(':workflow', text)
+        for word in ('x done', '+ current', ': waiting', '! blocked', '# refused', '? unknown', '_ not recorded',
+                     '- not applicable', '@ marks', 'Enter opens', 'Esc', 'intune-iac workbench workflow --root ROOT --policy ID'):
+            self.assertIn(word, text, word)
+        self.assertIn('reads and records nothing', text)
+
+
+class LayerFrameTests(LayerFixture):
+    def test_the_command_opens_the_layer_over_the_inspector_and_the_frame_names_it(self):
+        self.prepare()
+        ws, frames = self.open_layer()
+        state, rows = ws.states[-1], self.plain(frames[-1])
+        self.assertEqual((state['layer'], state['tab']), ('workflow', 1))
+        self.assertIn('INTUNE WORKBENCH  /  Inspector  /  Workflow map  /  read-only', rows[0])
+        text = ' '.join(' '.join(rows).split())
+        self.assertIn('[WORKFLOW]', text)
+        self.assertIn('approve, execute', text)
+        self.assertIn('Workflow map shown (read-only)', state['notice'])
+
+    def test_every_frame_line_fits_each_window_in_both_rules_and_ascii_has_no_high_byte(self):
+        self.prepare()
+        for size in ((120, 40), (80, 24), (60, 20)):
+            for rules in ('ascii', 'unicode'):
+                ws, frames = self.open_layer(size, rules)
+                rows = self.plain(frames[-1])
+                for row in rows:
+                    self.assertLessEqual(len(row), size[0], (size, rules, row))
+                # The focused lane is always in view (at 60x20 the header has scrolled away to make room for it).
+                self.assertIn('approve, execute', ' '.join(rows), (size, rules))
+                if rules == 'ascii':
+                    text = '\n'.join(frames[-1])
+                    self.assertTrue(all(ord(char) < 0x80 for char in text), (size, [c for c in text if ord(c) >= 0x80]))
+
+    def test_no_colour_draws_no_colour_code_and_colour_only_reinforces(self):
+        self.prepare()
+        ws, plain = self.open_layer((80, 24), 'ascii', color=False)
+        self.assertNotIn('38;5', '\n'.join(plain[-1]))
+        self.assertNotIn('48;5', '\n'.join(plain[-1]))
+        ws, coloured = self.open_layer((80, 24), 'ascii', color=True)
+        self.assertEqual(self.plain(coloured[-1])[3:], self.plain(plain[-1])[3:])
+        lane = next(row for row in coloured[-1] if 'approve, execute' in row)
+        self.assertIn('\x1b[38;5;', lane)                       # the mark is tinted ...
+        self.assertIn('waiting', ANSI.sub('', lane))              # ... and the word is still there
+
+    def test_at_80x24_the_focused_lane_stays_in_view_with_the_legend_and_the_focus_rows_pinned_below_it(self):
+        self.prepare()
+        ws, frames = self.run_keys(typed('select ' + OBJECT) + typed('workflow') + ['down'] * 10 + [('text', 'q')], (80, 24), 'ascii')
+        shown = 0
+        for rows in frames[-12:]:
+            rows = self.plain(rows)
+            text = '\n'.join(rows)
+            if '[WORKFLOW]' in text or 'FOCUS ' in text:
+                shown += 1
+                self.assertTrue(any(row.startswith('| >') for row in rows), text)
+                self.assertIn('> focus @ position', text)
+                self.assertIn('FOCUS ', text)
+        self.assertGreaterEqual(shown, 11)
+
+    def test_below_60x20_the_layer_says_it_needs_a_larger_window_with_the_plain_text_command_and_draws_no_map(self):
+        self.prepare()
+        for size in ((40, 12), (59, 24), (80, 19), (39, 11)):
+            ws, frames = self.open_layer(size, 'ascii')
+            text = ' '.join(' '.join(self.plain(frames[-1])).split())
+            self.assertIn('needs a larger window', text, size)
+            self.assertIn('intune-iac workbench workflow --root ROOT --policy ID', text, size)
+            self.assertNotIn('approve, execute', text, size)
+            self.assertNotIn('[WORKFLOW]', text, size)
+            for row in self.plain(frames[-1]):
+                self.assertLessEqual(len(row), size[0], (size, row))
+        # The layer is still open and Esc still closes it: only the drawing was left out.
+        self.assertEqual(ws.states[-1]['layer'], 'workflow')
+
+    def test_the_key_line_names_the_layers_keys_and_no_key_that_changes_anything(self):
+        from intune_iac.workbench_tui import help_line
+        for width in (120, 80, 60, 40):
+            line = help_line(width, 'workflow')
+            self.assertLessEqual(len(line), width)
+            self.assertIn('Esc', line)
+            for forbidden in ('a actions', 'execute', 'approve', 'record', 'prepare'):
+                self.assertNotIn(forbidden, line)
+        self.assertIn('Up/Down stage', help_line(120, 'workflow'))
+        self.assertIn('Enter open', help_line(120, 'workflow'))
+
+
+class LayerKeyTests(LayerFixture):
+    def test_up_and_down_move_the_focus_one_stage_at_a_time_through_all_eleven_and_stop_at_the_ends(self):
+        self.prepare()
+        ws = self.layer_workspace()
+        ids = [stage['id'] for stage in ws.value['stages']]
+        self.assertEqual(ws._workflow_focus(), ws.value['position'])         # it opens at the position the records give
+        for _ in range(14):
+            self.press(ws, 'up')
+        self.assertEqual(ws._workflow_focus(), ids[0])                       # stops at the first stage
+        walked = [ws._workflow_focus()]
+        for _ in range(10):
+            self.press(ws, 'down')
+            walked.append(ws._workflow_focus())
+        self.assertEqual(walked, ids)                                        # one at a time, none skipped
+        for _ in range(4):
+            self.press(ws, 'down')
+        self.assertEqual(ws._workflow_focus(), ids[-1])                      # and stops at the last
+        self.assertEqual((ws.selected, ws.layer), (OBJECT, 'workflow'))
+
+    def test_enter_opens_the_focused_stages_surface_for_the_same_selected_policy(self):
+        self.prepare()
+        import shlex
+        root = shlex.quote(str(self.operation))
+        expected = {'observe': ('inspect', 1), 'adopt': ('relationships', 2), 'intent': ('repository-status', 8),
+                    'propose': ('review ' + root, 4), 'review': ('review ' + root, 4),
+                    'approve_execute': ('delivery ' + root, 5), 'readback': ('delivery ' + root, 5),
+                    'reconcile': ('delivery ' + root, 5), 'record': ('delivery ' + root, 5),
+                    'observed_after': ('delivery ' + root, 5), 'maintain': ('views', 6)}
+        for stage, (command, tab) in expected.items():
+            ws = self.layer_workspace(focus=stage)
+            self.assertEqual(self.press(ws, 'enter'), command, stage)
+            self.assertEqual((ws.tab, ws.selected, ws.layer), (tab, OBJECT, 'summary'), stage)   # the surface replaces the layer
+
+    def test_a_stage_with_nothing_to_open_sends_nothing_and_says_why(self):
+        self.import_intent()
+        ws = self.layer_workspace(focus='record')
+        self.assertIsNone(self.press(ws, 'enter'))                          # nothing was sent
+        self.assertIn('no operation is recorded', ws.notice)
+        self.assertEqual((ws.layer, ws.selected, ws.workflow_focus), ('workflow', OBJECT, 'record'))
+
+    def test_a_e_r_and_f_in_the_layer_say_it_is_read_only_and_keep_the_layer(self):
+        self.prepare()
+        for char in ('a', 'e', 'r', 'f'):
+            ws = self.layer_workspace()
+            self.assertIsNone(self.press(ws, ('text', char)))
+            self.assertEqual(ws.layer, 'workflow', char)
+            self.assertIn('read-only', ws.notice, char)
+            self.assertFalse(ws.mode)
+
+    def test_b_and_escape_return_to_the_view_before_with_its_selection_and_scroll(self):
+        self.prepare()
+        key = lambda char: ('text', char)
+        for close in ('escape', key('b')):
+            # Estate, select the highlighted policy (the Inspector), scroll it down, then the command, then close the layer.
+            before_command = [key('1'), 'enter', 'pagedown']
+            sequence = before_command + typed('workflow') + [close, key('q')]
+            ws, _ = self.run_keys(sequence, (80, 24), 'unicode')
+            view_before = ws.states[len(before_command)]                     # asked for the first key of the command
+            opened = ws.states[len(before_command) + len(typed('workflow'))]          # asked for the closing key
+            returned = ws.states[-1]                                         # asked for q, after the return
+            self.assertGreater(view_before['scroll'], 0, 'the view before was scrolled')
+            self.assertEqual((view_before['layer'], opened['layer']), ('summary', 'workflow'), close)
+            self.assertEqual((returned['tab'], returned['selected'], returned['layer']),
+                             (view_before['tab'], view_before['selected'], 'summary'), close)
+            self.assertEqual(returned['scroll'], view_before['scroll'], close)       # the scroll it had
+            self.assertEqual(returned['last'], view_before['last'], close)           # the same view, from the same command
+
+
+class ReadOnlyTests(LayerFixture):
+    def test_no_key_in_the_layer_changes_the_store_or_an_operation_directory(self):
+        import hashlib
+        from pathlib import Path
+        self.prepare()
+        key = lambda char: ('text', char)
+
+        def tree():
+            names = ('observations.sqlite3', 'observations.sqlite3-wal', 'observations.sqlite3-shm')
+            files = [Path(self.store.root) / name for name in names]
+            files += [path for path in sorted(self.operation.rglob('*')) if path.is_file()]
+            return {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in files if path.exists()}
+        snapshots = []
+        sequence = (typed('select ' + OBJECT) + typed('workflow') + ['down'] * 6 + ['enter'] + [key('b')] + ['up', 'up', 'enter']
+                    + [key('b'), key('a'), key('e'), key('r'), key('f'), 'home', 'tab', 'escape', key('q')])
+        before = tree()
+        self.run_keys(sequence, watch=lambda index, ws: snapshots.append(tree()))
+        self.assertGreater(len(snapshots), 20)
+        for index, snapshot in enumerate(snapshots):
+            self.assertEqual(snapshot, before, 'after key %d' % index)
+        self.assertTrue(before)
+
+    def test_the_layer_sends_only_read_views_to_the_engine(self):
+        self.prepare()
+        key = lambda char: ('text', char)
+        sequence = (typed('select ' + OBJECT) + typed('workflow') + ['down'] * 10 + ['enter'] + [key('b'), 'escape', key('q')])
+        ws, _ = self.run_keys(sequence)
+        from intune_iac.workbench_tui import VIEW_COMMANDS
+        self.assertIn('workflow', ws.sent)
+        for command in ws.sent:
+            self.assertIn(command.split(' ', 1)[0], VIEW_COMMANDS | {'quit'}, command)
+        for forbidden in ('propose', 'execute', 'reconcile', 'collect', 'deployment-record', 'repository-refresh', 'approve'):
+            self.assertFalse(any(command.startswith(forbidden) for command in ws.sent), (forbidden, ws.sent))
 
 
 if __name__ == "__main__":

@@ -513,6 +513,11 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
         # The catalog is a layer of the Help surface; it says what it needs rather than a generic size line.
         header = next((text for text in ('Catalog needs a larger window (%s)' % need, 'Catalog needs a larger window',
                                          'Catalog: larger window') if cell_width(text) <= width), fit('Catalog: larger window', width))
+    if layer == 'workflow':
+        # The workflow map is a layer over the Inspector; below the frame minimum it says what it needs, the same way.
+        header = next((text for text in ('Workflow map needs a larger window (%s)' % need, 'Workflow map needs a larger window',
+                                         'Workflow map: larger window') if cell_width(text) <= width),
+                      fit('Workflow map: larger window', width))
     states = [('OBSERVED', 'OBS', observed_state(facts, None)), ('REPOSITORY', 'REPO', facts.get('repository')),
               ('OPERATION', 'OP', facts.get('operation'))]
     items = ['T ' + short_id(tenant), 'P ' + short_id(selected, facts.get('identity_prefixes')) if selected else 'no policy'] + [
@@ -520,6 +525,8 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
         if selected and str(value) in HAZARD_STATES[label]]
     # Only keys that work here: while a command is typed q is part of it, so Enter and Esc are the keys.
     forms = (('Enter submits; Esc discards', 'Esc discards') if typing else ('q exits; enlarge for the surfaces', 'q exits'))
+    if layer == 'workflow' and not typing:
+        forms = ('Esc closes the map; q exits', 'Esc closes; q exits', 'q exits')
     keys = next((text for text in forms if cell_width(text) <= width), '')
     # The abbreviated forms the strip shows are defined in the rows the window has left, after the keys.
     shown = ['T'] + (['P'] if selected else []) + [str(value) for label, short, value in states
@@ -528,6 +535,9 @@ def constrained_rows(tenant, selected, facts, mode_class, width, height, need, p
     groups = {'header': [header], 'strip': _pack(items, width), 'prompt': [prompt], 'keys': [keys] if keys else [],
               'band': hazard_rows(facts, facts.get('signals') or [], width, routes=False, surface=False) if selected else [],
               'legend': strip_key_rows([STRIP_DEFINITIONS[key] for key in dict.fromkeys(shown)], width)}
+    if layer == 'workflow':
+        # The one sentence, whole: what the map needs and the plain-text command that prints it anywhere.
+        groups['header'] = workflow_unavailable_lines(width)
     budget, kept = height, {}
     for name in ('band', 'header', 'prompt', 'strip', 'keys', 'legend'):
         kept[name] = groups[name][:max(0, budget)]
@@ -1679,6 +1689,13 @@ HELP_WORDS = (
                '+N more: 2 counts the others, which the Inspector lists.'),
     ('STATE', 'The Inspector, the Repository status and the Plan review show the observation, the repository intent '
               'and the newest operation as three separate states.'),
+    ('Workflow map', ":workflow draws the selected policy's change path over the Inspector, one lane for each stage: observe, "
+                     'adopt, intent, propose, review, approve and execute, readback (reconcile branches from it), record, '
+                     'observed after and maintain. A lane shows the state its records give: x done, + current, : waiting, '
+                     '! blocked, # refused, ? unknown, _ not recorded, - not applicable. @ marks where the records say the '
+                     "policy has got to and > the focus. Up and Down move the focus; Enter opens that stage's surface for "
+                     'the same policy; b and Esc return. It reads and records nothing. intune-iac workbench workflow --root '
+                     'ROOT --policy ID prints the same lines.'),
     ('Changes', 'propose DESIRED_JSON NEW_OPERATION_DIR or propose-from-intent NEW_OPERATION_DIR prepares a proposal; '
                 'execute OPERATION_DIR EXACT_REVIEW_DIGEST runs it only with the digest from its review; reconcile '
                 'OPERATION_DIR reads the service when an outcome is unknown and never replays. Moving around never '

@@ -198,7 +198,7 @@ def wrap(value, width):
 # Views shown on a surface that is not their own; the title names both, so the tab and the body agree.
 SUBVIEWS = {'estate-overview': 'Relationship overview', 'diagnostics': 'Diagnostics', 'health': 'Health', 'queue': 'Maintenance queue', 'delivery': 'Delivery',
             'families': 'Families', 'start': 'Start', 'catalog': 'Catalog', 'dictionary': 'Setting dictionary', 'dictionary-page': 'Setting dictionary',
-            'lineage': 'Lineage', 'repository-entry': 'Repository entry', 'workflows': 'CI runs'}
+            'lineage': 'Lineage', 'repository-entry': 'Repository entry', 'workflows': 'CI runs', 'workflow': 'Workflow map'}
 # From this many body cells, the readable summary and the exact engine record sit side by side.
 WIDE = 150
 # The documented minimum window (columns, rows): the hazard's shortest wording, its response and the whole short
@@ -273,14 +273,27 @@ HELP_LINES = ('? help | a actions | : command | / search | e details | r raw rec
 VIEW_COMMANDS = frozenset({'overview', 'select', 'inspect', 'relationships', 'history', 'history-recent', 'views',
                            'help', 'health', 'queue', 'start', 'families', 'dictionary', 'dictionary-page', 'lineage',
                            'catalog', 'diagnostics', 'estate-overview', 'repository-status', 'delivery', 'repository-entry',
-                           'operations', 'review', 'workflows', 'search', 'search-page', 'views-page'})
-LAYERS = {'details': 'typed details', 'raw': 'raw record', 'actions': 'actions', 'filters': 'filters', 'catalog': 'read-only'}
+                           'operations', 'review', 'workflows', 'workflow', 'search', 'search-page', 'views-page'})
+LAYERS = {'details': 'typed details', 'raw': 'raw record', 'actions': 'actions', 'filters': 'filters', 'catalog': 'read-only',
+          'workflow': 'read-only'}
 # The catalog layer needs this many columns and rows to show its lines whole; below it says so instead of cutting them.
 CATALOG_MIN = (60, 20)
 CATALOG_NEEDS = 'The catalog needs a larger window: at least %dx%d. Esc closes it; nothing else here has changed.' % CATALOG_MIN
 CATALOG_HELP_LINES = ('? help | : command | Esc close catalog | b back | q exit', '? help | Esc close | b back | q exit',
                       'Esc close | b back | q exit', 'Esc close | q exit')
 CATALOG_READ_ONLY = 'The catalog is read-only; Esc closes it.'
+# The workflow layer (PKG-UXVIS-5): the keys it has, and none that prepares, refreshes, approves, executes or records.
+WORKFLOW_HELP_LINES = ('? help | : command | Up/Down stage | Enter open | Esc close | b back | q exit',
+                       '? help | Up/Down stage | Enter open | Esc close | b back | q exit',
+                       '? help | Up/Down | Enter open | Esc close | q exit', 'Up/Down | Enter | Esc close | q exit',
+                       'Esc close | q exit')
+WORKFLOW_READ_ONLY = 'The workflow map is read-only; Esc closes it.'
+WORKFLOW_SHOWN = 'Workflow map shown (read-only). Esc closes it.'
+# What Enter sends for a stage's surface key (workflow_projection.OPENS): a read view, never a command that changes anything.
+WORKFLOW_SURFACE_COMMANDS = {'2': 'inspect', '3': 'relationships', '5': 'review', '7': 'views', '9': 'repository-status',
+                             'v': 'delivery'}
+# Those read views that name the operation directory of the policy's newest operation.
+WORKFLOW_OPERATION_COMMANDS = ('review', 'delivery')
 # The repository state the strip shows when the Inspector's diagnostics checked it.
 REPOSITORY_FROM_CHECK = {'clear': 'current', 'attention': 'needs attention', 'not_recorded': 'none recorded',
                          'unavailable': 'not checked', 'partly_checked': 'not checked'}
@@ -370,6 +383,8 @@ def help_line(width, layer='summary', lead=(), map_keys=False, inspect=True, pan
     with no route behind it is not drawn); stages: the focused action can be staged, so Enter stages is named."""
     if layer == 'catalog':
         return next((line for line in CATALOG_HELP_LINES if cell_width(line) <= width), CATALOG_HELP_LINES[-1])
+    if layer == 'workflow':
+        return next((line for line in WORKFLOW_HELP_LINES if cell_width(line) <= width), WORKFLOW_HELP_LINES[-1])
     if layer in ('actions', 'filters'):
         lines = ACTION_KEY_LINES if layer == 'actions' else FILTER_KEY_LINES
         if layer == 'actions' and not stages:
@@ -698,6 +713,9 @@ class Workspace:
         self.hscroll = 0
         self.follow_focus = False
         self._map_return = None
+        # The workflow layer: the focused stage (None: the position the records give) and the view it was opened from.
+        self.workflow_focus = None
+        self._workflow_return = None
         self.context_valid = False
         value = None
         if self.native_binding is not None:
@@ -801,6 +819,7 @@ class Workspace:
         self.value = value
         self.scroll = 0
         self._restore_map_view(value)
+        self._restore_workflow_return(value)
         if value.get('schema_version') == 'workbench-repository-entry/1':
             self.entry_focus = 0
         if value.get('status') == 'error':
@@ -907,6 +926,13 @@ class Workspace:
                 # A layer over the Help surface: the same lines as `intune-iac catalog`, read-only; Esc returns to the view before.
                 self.layer = 'catalog'
                 self.notice = 'Catalog shown (read-only). Esc closes it.'
+            if value.get('schema_version') == 'workflow-map/1' and self.last_command.split(' ', 1)[0] == 'workflow':
+                # A layer over the Inspector: the selected policy's change path, read-only; Esc returns to the view before it.
+                self.layer = 'workflow'
+                self.follow_focus = True
+                if getattr(self, 'workflow_focus', None) not in self._workflow_ids():
+                    self.workflow_focus = None
+                self.notice = WORKFLOW_SHOWN
             if self.tab == 2 and isinstance(value.get('relationships'), list) and isinstance(value.get('object_id'), str):
                 self.notice += self._note_topology(value)
         pending, self.pending_stage = getattr(self, 'pending_stage', None), None
@@ -1457,6 +1483,8 @@ class Workspace:
                                  submit=self._submit_word(), prefixes=facts.get('identity_prefixes')) + self._strip_note(width)
         if layer == 'catalog':
             return self._catalog_lines(width)
+        if layer == 'workflow':
+            return self._workflow_lines(width)
         if layer == 'filters':
             from .workbench_screens import filter_lines
             return filter_lines(filter_choices(), getattr(self, 'filter_focus', 0),
@@ -1476,6 +1504,79 @@ class Workspace:
             return word_wrap('No catalog is loaded. Esc closes this layer.', width)
         from .catalog import catalog_lines
         return catalog_lines(self.value, width)
+
+    # The workflow map (PKG-UXVIS-5): a read-only layer over the Inspector, drawn from the projection `workflow` returned.
+    def _workflow_flow(self):
+        value = getattr(self, 'value', None)
+        return value if isinstance(value, dict) and value.get('schema_version') == 'workflow-map/1' else None
+
+    def _workflow_ids(self):
+        flow = self._workflow_flow()
+        return [stage['id'] for stage in (flow or {}).get('stages') or [] if isinstance(stage, dict) and 'id' in stage]
+
+    def _workflow_focus(self):
+        """The focused stage: the one the keys moved to, else the position the records give, else the first stage."""
+        ids = self._workflow_ids()
+        focus = getattr(self, 'workflow_focus', None)
+        position = (self._workflow_flow() or {}).get('position')
+        return focus if focus in ids else position if position in ids else (ids[0] if ids else None)
+
+    def _workflow_shown(self):
+        """Whether the map is on screen now: the layer, a loaded projection and a window with room for it."""
+        from .workbench_screens import workflow_fits
+        return (getattr(self, 'layer', 'summary') == 'workflow' and self._workflow_flow() is not None
+                and workflow_fits(self._map_size()))
+
+    def _workflow_too_small(self):
+        """The workflow layer in a window below its minimum. The frame's rows then go to the strip and the hazard band, so
+        the layer says what it needs on the constrained screen, where its sentence cannot be crowded out of view."""
+        from .workbench_screens import workflow_fits
+        return getattr(self, 'layer', 'summary') == 'workflow' and not workflow_fits(self.size)
+
+    def _workflow_lines(self, width):
+        """The map as `intune-iac workbench workflow` prints it; below WORKFLOW_MIN_SIZE one sentence says it needs a
+        larger window and gives the plain-text command."""
+        from .workbench_screens import word_wrap, workflow_fits, workflow_map_lines, workflow_unavailable_lines
+        if not workflow_fits(self._map_size()):
+            return workflow_unavailable_lines(width)
+        flow = self._workflow_flow()
+        if flow is None:
+            return word_wrap('No workflow map is loaded. Esc closes this layer.', width)
+        facts = getattr(self, 'facts', None) or {}
+        prefixes = facts.get('identity_prefixes') if facts.get('object_id') == flow.get('object_id') else None
+        return workflow_map_lines(flow, width, getattr(self, 'rules', 'ascii'), focus=self._workflow_focus(), prefixes=prefixes)
+
+    def _workflow_move(self, key):
+        """Up and Down: the previous and next stage, in the projection's order, one at a time."""
+        ids = self._workflow_ids()
+        here = ids.index(self._workflow_focus())
+        self.workflow_focus = ids[max(0, min(len(ids) - 1, here + (-1 if key == 'up' else 1)))]
+        self.follow_focus = True
+        self.notice = WORKFLOW_SHOWN
+
+    def _workflow_enter(self):
+        """Enter: open the focused stage's surface for the same selected policy, by the read view that shows it. Navigation
+        only: nothing is selected, prepared, refreshed, approved, executed or recorded. A stage with nothing to open
+        says so."""
+        flow = self._workflow_flow()
+        stage = next((item for item in flow['stages'] if isinstance(item, dict) and item.get('id') == self._workflow_focus()), {})
+        command = WORKFLOW_SURFACE_COMMANDS.get(stage.get('opens'))
+        root = (flow.get('operation') or {}).get('operation_root')
+        if command is None or (command in WORKFLOW_OPERATION_COMMANDS and not (isinstance(root, str) and root)):
+            self.notice = 'Nothing to open from this stage%s. Esc closes the map.' % (
+                '' if flow.get('operation') else ': no operation is recorded')
+            return None
+        return self._send(command + (' ' + shlex.quote(root) if command in WORKFLOW_OPERATION_COMMANDS else ''))
+
+    def _restore_workflow_return(self, value):
+        """The view the workflow layer was opened from came back (Esc or b): its scroll returns, once. Its selection was
+        never changed, so nothing else needs restoring."""
+        saved = getattr(self, '_workflow_return', None)
+        if (not saved or not isinstance(value, dict) or value.get('status') == 'error' or self.tab != saved['tab']
+                or self.last_command != saved['command'] or self.selected != saved['selected']):
+            return
+        self._workflow_return = None
+        self.scroll = saved['scroll']
 
     def _strip_note(self, width):
         """Where no Operation row is shown, one line saying which operation the strip reports when it is not the newest
@@ -1531,7 +1632,7 @@ class Workspace:
 
     def _body_lines(self, inner, side):
         """The body as drawn. From WIDE cells, typed details or the raw record open beside the summary."""
-        if inner < WIDE or getattr(self, 'layer', 'summary') in ('summary', 'catalog'):
+        if inner < WIDE or getattr(self, 'layer', 'summary') in ('summary', 'catalog', 'workflow'):
             return self._data_lines(inner)
         left = (inner - 3) * 11 // 20
         right = inner - 3 - left
@@ -1652,7 +1753,7 @@ class Workspace:
     def draw(self):
         self.size = self._terminal_size()
         width, height = self.size
-        if width < MIN_SIZE[0] or height < MIN_SIZE[1]:
+        if width < MIN_SIZE[0] or height < MIN_SIZE[1] or self._workflow_too_small():
             return self._draw_constrained(width, height)
         inner = width - 2
         from .workbench_screens import hazard_rows, tab_line
@@ -1818,12 +1919,13 @@ class Workspace:
     def _draw_constrained(self, width, height):
         """Below MIN_SIZE: what the window is too small for, the session, the primary hazard and the prompt, by
         priority, never the body. Keys keep their meaning; the full frame returns when the window is large enough."""
-        from .workbench_screens import constrained_rows
+        from .workbench_screens import WORKFLOW_MIN_SIZE, constrained_rows
         ellipsis = '…' if getattr(self, 'rules', 'ascii') == 'unicode' else '...'
         selected = getattr(self, 'selected', None)
         known = self.facts if selected and getattr(self, 'facts', {}).get('object_id') == selected else {}
+        need = WORKFLOW_MIN_SIZE if getattr(self, 'layer', 'summary') == 'workflow' else MIN_SIZE
         lines, band_rows = constrained_rows(self.store.tenant_id, selected, known, getattr(self, 'mode_class', None), width,
-                                            height, '%dx%d' % MIN_SIZE, self._draw_constrained_prompt(width, ellipsis),
+                                            height, '%dx%d' % need, self._draw_constrained_prompt(width, ellipsis),
                                             typing=bool(self.mode), layer=getattr(self, 'layer', 'summary'))
         frame = [pad(safe_text(line), width) for line in lines] + [' ' * width] * (height - len(lines))
         if self.color:
@@ -2273,12 +2375,15 @@ class Workspace:
             # Leaving the relationship map keeps its focus and viewport; the return restores them.
             self._map_return = {'object_id': value.get('object_id'), 'focus': getattr(self, 'map_focus', None),
                                 'hscroll': getattr(self, 'hscroll', 0), 'scroll': self.scroll}
+        if name == 'workflow' and not returning and current is not None and current[1] != command:
+            # The layer opens over this view: Esc or b returns to it, and the scroll it had comes back with it.
+            self._workflow_return = {'tab': current[0], 'command': current[1], 'scroll': self.scroll, 'selected': self.selected}
         self.current_view = None
         tabs = {'overview': 0, 'search': 0, 'search-page': 0, 'views-page': 0, 'select': 1, 'inspect': 1, 'settings': 1,
                 'relationships': 2, 'lineage': 2, 'history': 3, 'history-recent': 3, 'evidence-history': 3, 'compare': 3, 'review': 4,
                 'propose': 4, 'execute': 5, 'reconcile': 5, 'restore-propose': 4, 'views': 6, 'help': 7,
                 'repository-status': 8, 'repository-refresh': 8, 'propose-from-intent': 4, 'dictionary': 1, 'dictionary-page': 1,
-                'health': 6, 'queue': 6, 'delivery': 5, 'start': 7, 'catalog': 7, 'diagnostics': 6, 'families': 7,
+                'health': 6, 'queue': 6, 'delivery': 5, 'start': 7, 'catalog': 7, 'workflow': 1, 'diagnostics': 6, 'families': 7,
                 'repository-entry': 8, 'estate-overview': 0, 'service-review': 4, 'service-status': 5, 'service-attach': 5,
                 'service-cancel': 5, 'service-recover': 5, 'adoption-review': 4,
                 'adoption-status': 5, 'adoption-attach': 5, 'adoption-cancel': 5, 'adoption-recover': 5,
@@ -2532,12 +2637,25 @@ class Workspace:
                     sent = self._back()
                     if sent is not None: return sent
                 return self._send('overview')
+            if key == 'escape' and getattr(self, 'layer', 'summary') == 'workflow':
+                # The same: back to the view before the layer, with its selection and scroll; with none, the Estate overview.
+                self.layer = 'summary'; self.scroll = 0
+                if getattr(self, 'trail', []):
+                    sent = self._back()
+                    if sent is not None: return sent
+                return self._send('overview')
             if key == 'escape' and getattr(self, 'layer', 'summary') != 'summary':
                 self.layer = 'summary'; self.scroll = 0; self.notice = 'Summary shown.'
             elif key == 'escape': self.notice = 'Nothing to close. :clear-selection clears the selected policy.'
             elif key == 'tab':
                 command = self._tab_command((self.tab + 1) % len(TABS))
                 if command: return command
+            elif key in ('up', 'down') and getattr(self, 'layer', 'summary') == 'workflow':
+                if self._workflow_shown():
+                    self._workflow_move(key)
+            elif key == 'enter' and getattr(self, 'layer', 'summary') == 'workflow':
+                sent = self._workflow_enter() if self._workflow_shown() else None
+                if sent: return sent
             elif key in ('up', 'down', 'home') and self._map_nodes():
                 self._map_move(key)
             elif key in ('left', 'right') and self._map_shown():
@@ -2575,6 +2693,9 @@ class Workspace:
                 if getattr(self, 'layer', 'summary') == 'catalog' and char in ('a', 'e', 'r', 'f'):
                     # No actions, evidence layers or filters over the catalog: it is a read-only list.
                     self.notice = CATALOG_READ_ONLY
+                elif getattr(self, 'layer', 'summary') == 'workflow' and char in ('a', 'e', 'r', 'f'):
+                    # The same for the workflow map: no action list (it stages commands), no layer that would replace it.
+                    self.notice = WORKFLOW_READ_ONLY
                 elif char in (':', '/'):
                     self.mode = 'search' if char == '/' else 'command'; self.buffer = ''; self.cursor = 0
                 elif char == 'f':

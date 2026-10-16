@@ -1058,7 +1058,9 @@ def command(args):
 
 
 HELP = {
-    'navigation': ['start [DIRECTORY] (what exists beside the store and the next step; read-only)', 'catalog [DIRECTORY] (the integrations this build holds and what each goal needs here; read-only; Esc closes it in the workspace)', 'diagnostics (selected object: what needs attention, with evidence and next steps)', 'families (every policy, application and script family with its support disposition)', 'overview [LIMIT [OFFSET]]', 'next', 'previous', 'search TEXT', 'search-page LIMIT OFFSET TEXT', 'select EXACT_OBJECT_ID', 'inspect', 'settings',
+    'navigation': ['start [DIRECTORY] (what exists beside the store and the next step; read-only)', 'catalog [DIRECTORY] (the integrations this build holds and what each goal needs here; read-only; Esc closes it in the workspace)',
+                   'workflow (selected policy: its change path as stages, each with the state its records give, the position and the next step; read-only; Esc closes it in the workspace)',
+                   'diagnostics (selected object: what needs attention, with evidence and next steps)', 'families (every policy, application and script family with its support disposition)', 'overview [LIMIT [OFFSET]]', 'next', 'previous', 'search TEXT', 'search-page LIMIT OFFSET TEXT', 'select EXACT_OBJECT_ID', 'inspect', 'settings',
                    'relationships', 'lineage [JSON_POINTER]', 'adoption-lineage', 'dictionary [SETTING_ID_QUERY]', 'references', 'reference-compare REFERENCE_ID [COMPANY_JSON]',
                    'dictionary-page LIMIT OFFSET [SETTING_ID_QUERY]', 'workflows', 'history [LIMIT [OFFSET]]', 'history-recent [LIMIT [OFFSET]] (newest first, default 10)', 'compare BEFORE_SNAPSHOT AFTER_SNAPSHOT',
                    'health [LIMIT [OFFSET]]', 'queue [LIMIT [OFFSET]]', 'operations [LIMIT [OFFSET]]',
@@ -1570,6 +1572,12 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                     # The record `intune-iac catalog` prints: facts only, offline, no sign-in check, nothing recorded.
                     result = build(survey(values[0] if values else Path(store.root).parent, relative_to=os.getcwd()),
                                    relative_to=os.getcwd())
+                elif name == 'workflow' and not values:
+                    if selected is None:
+                        raise AppError('selection_required', 'Select an exact immutable object ID first.')
+                    # The selected policy's change path as stages, read from the same records every surface reads; the
+                    # projection `intune-iac workbench workflow` prints. Read-only.
+                    result = _workflow(store, selected, service_root=service_root)
                 elif name == 'queue' and len(values) <= 2:
                     result = set_page('queue', int(values[0]) if values else 10, int(values[1]) if len(values) == 2 else 0)
                 elif name == 'dictionary':
