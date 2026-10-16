@@ -28,7 +28,6 @@ per-operation scopes, CI identity), the row says so in words.
 from __future__ import annotations
 
 import re
-import shlex
 
 VERSION = 'workbench-readiness/1'
 PROGRAM = 'intune-iac'
@@ -425,21 +424,17 @@ def display_refused(value):
 directory_hidden = display_refused
 
 
-def screen_note(note, directory=None, said=False):
+def screen_note(note, operand=None, legend=''):
     """A recorded note as a screen says it: the recorded no-sign-in-check note in two grammatical sentences, the command on its
     own rows (a screen puts every printed command there); any other note as it is.
 
     The command names the surveyed directory, so that it runs on what the screen is about and not on the directory it is typed
-    in. The directory is user input, so it is named only when directory_hidden does not refuse it. Otherwise the placeholder
-    DIRECTORY stands for it, and the note says in words that its name is not shown, the same words whatever the reason, so the
-    screen never says which rule applied; said=True when the screen has already said it (under its header), so that the screen
-    says it once."""
-    where, legend = '', ''
-    if directory:
-        if directory_hidden(directory):
-            where, legend = 'DIRECTORY ', '' if said else DIRECTORY_NOT_SHOWN
-        else:
-            where = shlex.quote(directory) + ' '
+    in. operand is that directory as a command argument, already written by the screen's path writer (entry.text_paths: DIRECTORY
+    for a name the screen may not show, otherwise a quoted path relative to where the command runs); this function neither
+    quotes nor decides. legend is what the note says in its bracket when it stands alone and its operand is DIRECTORY (the
+    DIRECTORY_NOT_SHOWN words, the same whatever the reason a name was refused); a screen that has said it under its header passes
+    nothing, so that the screen says it once."""
+    where = operand + ' ' if operand else ''
     for operation in OPERATIONS:
         if note == NO_CHECK_RECORDED % operation:
             return NO_CHECK_SCREEN % (PROGRAM, where, operation, legend)

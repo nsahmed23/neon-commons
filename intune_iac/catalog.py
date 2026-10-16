@@ -29,7 +29,6 @@ DIRECTORY plus the remainder, an operand it cannot show faithfully is PATH, and 
 from __future__ import annotations
 
 import copy
-import shlex
 from pathlib import Path
 
 from . import integration_manifest, readiness as readiness_model
@@ -202,10 +201,10 @@ def projects(survey, relative_to=None, paths=None):
     return rows
 
 
-def _signin_flag(directory, goal, operand=shlex.quote):
-    """The words that name the directory (and the goal) in the sign-in check command. operand writes the directory as a command
-    argument: shlex.quote for the JSON form, a screen's own writer (DIRECTORY for a directory it may not show) for the text build."""
-    where = operand(directory) + ' ' if directory else ''
+def _signin_flag(operand, goal):
+    """The words that name the directory (and the goal) in the sign-in check command. operand is the directory as a command
+    argument, written by a path writer (entry.json_paths for the JSON form, entry.text_paths for a screen); None without one."""
+    where = operand + ' ' if operand else ''
     return where + ('' if goal is None else '--goal %s ' % goal)
 
 
@@ -218,7 +217,10 @@ def build(survey, doctor=None, signin=None, manifest=None, goal=None, relative_t
         from . import cli
         doctor = cli.doctor(executables=False)
     model = readiness_model.readiness(survey, doctor.get('host_capabilities'), doctor, signin=signin)
-    flag = _signin_flag(survey.get('directory') if isinstance(survey, dict) else None, goal)
+    from .entry import json_paths
+    directory = survey.get('directory') if isinstance(survey, dict) else None
+    # the JSON form writes the directory as it always has: in full, quoted for the shell (the JSON writer, with no relative_to)
+    flag = _signin_flag(json_paths(Path(directory), None)[1](directory) if directory else None, goal)
     goals = [goal] if goal else list(readiness_model.OPERATIONS)
     integration = manifest['integration']
     record = {'id': integration['id'], 'label': integration['label'], 'product': integration['product'],
@@ -253,33 +255,33 @@ def _text_build(result, survey, goal, relative_to):
     if not isinstance(survey, dict):
         return data, frozenset()
     root = Path(survey['directory']) if survey.get('directory') else None
-    show, q, placeholders = entry.text_paths(root, relative_to)
+    show, q, placeholders, directory = entry.text_paths(root, relative_to)
     for row, written in zip(data['projects'], projects(survey, relative_to, paths=(show, q))):
         row['command'] = written['command']
         row['path'] = entry.screen_path(row['path'], placeholders)
-    directory = survey.get('directory')
-    hidden = bool(directory) and readiness_model.display_refused(directory)
-    if hidden:
-        placeholders.add(entry.DIRECTORY_PLACEHOLDER)
-    flag = _signin_flag(directory, goal, lambda value: entry.DIRECTORY_PLACEHOLDER if hidden else shlex.quote(value))
+    # the directory as a screen says it, and as the path writer writes it in a command (the refused name is not kept here)
+    data.update(entry.screen_directory(survey.get('directory'), directory()))
+    flag = _signin_flag(data['directory_operand'], goal)
     for item in data['integrations'][0]['goals']:
         if item['authenticated']['state'] == 'not_checked':
             item['authenticated']['message'] = SIGNIN_CHECK % flag
-    _shown_goal_steps(data['integrations'][0]['goals'], directory)
+    _shown_goal_steps(data['integrations'][0]['goals'], data['directory_operand'])
     return data, frozenset(placeholders)
 
 
-def _shown_goal_steps(goals, directory):
+def _shown_goal_steps(goals, operand):
     """The steps and the note each goal recorded, as a screen prints them: as recorded when no word in them is refused, otherwise
-    the fixed explanation without a command (entry.shown_step). A note that screen_note writes itself is left for it."""
+    the fixed explanation without a command (entry.shown_step). The recorded no-sign-in-check note is written by screen_note,
+    with the directory operand the screen's path writer wrote."""
     from . import entry
     for item in goals:
         for holder in (item, item['blocked']):
             if holder.get('next_action'):
                 holder['next_action'] = entry.shown_step(holder['next_action'])
         missing = item['blocked'].get('missing')
-        if missing and readiness_model.screen_note(missing, directory, said=True) == missing:
-            item['blocked']['missing'] = entry.shown_step(missing)
+        if missing:
+            written = readiness_model.screen_note(missing, operand)
+            item['blocked']['missing'] = written if written != missing else entry.shown_step(missing)
 
 
 def _plain_text_build(value):
@@ -289,8 +291,8 @@ def _plain_text_build(value):
     command is written again from the directory."""
     from . import entry
     data = copy.deepcopy(dict(value))
-    directory = data.get('directory')
-    hidden = readiness_model.display_refused(directory)
+    data.update(entry.plain_screen_directory(data.get('directory')))
+    hidden = data['directory_hidden']
     placeholders = set()
     for row in data.get('projects') or []:
         row['path'] = entry.screen_path(row['path'], placeholders)
@@ -299,12 +301,11 @@ def _plain_text_build(value):
             row['note'] = 'the command names a path whose name is not shown here'
     goals = data['integrations'][0]['goals']
     # every unchecked sign-in message is written again from the directory, shown or not: a recorded one may name anything
-    flag = _signin_flag(directory, goals[0]['goal'] if len(goals) == 1 else None,
-                        (lambda value: entry.DIRECTORY_PLACEHOLDER) if hidden else shlex.quote)
+    flag = _signin_flag(data['directory_operand'], goals[0]['goal'] if len(goals) == 1 else None)
     for item in goals:
         if item['authenticated']['state'] == 'not_checked':
             item['authenticated']['message'] = SIGNIN_CHECK % flag
-    _shown_goal_steps(goals, directory)
+    _shown_goal_steps(goals, data['directory_operand'])
     return data, frozenset(placeholders)
 
 
@@ -344,7 +345,7 @@ def verdict_words(goal):
     return 'operation-ready: %s; blocked: %s' % (_ready_words(goal), _blocked_words(goal))
 
 
-def _state_lines(goal, width, directory=None):
+def _state_lines(goal, width):
     from .entry import _flow
     rest = ' ' * (4 + LABEL)
 
@@ -373,10 +374,9 @@ def _state_lines(goal, width, directory=None):
     lines += row('authenticated', text)
     lines += row('operation-ready', _ready_words(goal))
     if blocked['state'] == 'blocked':
-        # said=True: a refused directory is said not to be shown once, under the screen's header, not again in each note
-        text = '%s. %s Next action: %s' % (_blocked_words(goal),
-                                          readiness_model.screen_note(blocked['missing'] or '', directory, said=True),
-                                          blocked['next_action'])
+        # the note is already as the screen says it (the text build wrote it); a refused directory is said not to be shown once,
+        # under the screen's header, not again in each note
+        text = '%s. %s Next action: %s' % (_blocked_words(goal), blocked['missing'] or '', blocked['next_action'])
         contact = readiness_model.capture_contact(blocked['next_action'])
         if contact:
             # The step ends in the closing bracket of its legend (no full stop): end that sentence before the next begins.
@@ -408,12 +408,10 @@ def catalog_lines(value, width):
     else:  # plain data (for example a result that crossed a JSON boundary)
         value, placeholders = _plain_text_build(value)
     lines = ['INTEGRATION CATALOG']
-    directory = value.get('directory')
-    # The directory is user input: a name the output-path rule of signin collect refuses prints as DIRECTORY, and the screen says
-    # once, under its header, that the name is not shown (the note under a goal then names only the placeholder).
-    hidden = readiness_model.directory_hidden(directory)
-    lines += word_wrap('%s | offline | this lists only what this build holds' % ('DIRECTORY' if hidden else directory or 'no directory'),
-                       width)
+    # The directory is user input: the text build holds it as a screen says it (a name the output-path rule of signin collect
+    # refuses is DIRECTORY), and the screen says once, under its header, that the name is not shown.
+    hidden = value.get('directory_hidden', False)
+    lines += word_wrap('%s | offline | this lists only what this build holds' % (value.get('directory') or 'no directory'), width)
     if hidden:
         lines += word_wrap(readiness_model.DIRECTORY_NOT_SHOWN_SENTENCE, width)
     if PATH_PLACEHOLDER in placeholders:
@@ -425,7 +423,7 @@ def catalog_lines(value, width):
         lines.append('GOALS')
         for goal in record['goals']:
             lines.append('  GOAL ' + goal['goal'])
-            lines += _state_lines(goal, width, value.get('directory'))
+            lines += _state_lines(goal, width)
         lines += _flow('An object kind or goal not listed here is unsupported; a level word appears only where a record '
                        'establishes it.', width, '', '')
         lines.append('OBJECT KINDS')

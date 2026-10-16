@@ -312,12 +312,14 @@ def json_paths(root, relative_to):
 
 
 def text_paths(root, relative_to):
-    """(show, q, placeholders): how a screen writes the same path operands, built from the operand and never patched into
-    rendered text. For an operand at or under a surveyed directory that display_refused refuses, the directory is not
+    """(show, q, placeholders, directory): how a screen writes the same path operands, built from the operand and never patched
+    into rendered text. For an operand at or under a surveyed directory that display_refused refuses, the directory is not
     written: the operand is DIRECTORY plus the remainder inside it, and quoting (q) applies to that. An operand that
     display_refused refuses (a credential shape, a character that terminal escaping would change) is the placeholder PATH.
     Any other operand is written as the JSON forms write it, with the same relative_to. placeholders collects the
-    placeholders written, so the screen can say once what they stand for."""
+    placeholders written, so the screen can say once what they stand for. directory() is the surveyed directory itself as a
+    command argument, written by the same writer: DIRECTORY when it is refused, relative to relative_to when there is one, in
+    full when there is not (None when there is no directory)."""
     from .readiness import display_refused
     show = _shower(root, relative_to)
     hidden = root is not None and display_refused(str(root))
@@ -336,7 +338,36 @@ def text_paths(root, relative_to):
             placeholders.add(PATH_PLACEHOLDER)
             return PATH_PLACEHOLDER
         return shown
-    return text, (lambda rel: shlex.quote(text(rel))), placeholders
+
+    def q(rel):
+        return shlex.quote(text(rel))
+
+    def directory():
+        if root is None:
+            return None
+        return q('.' if relative_to is not None or hidden else str(root))
+    return text, q, placeholders, directory
+
+
+def screen_directory(directory, operand):
+    """The directory fields of a text build: directory (as a sentence says it: DIRECTORY when display_refused refuses it),
+    directory_hidden, and directory_operand (the directory as a command argument, written by the path writer). A screen reads
+    these; the refused name itself is not kept in a text build."""
+    from .readiness import display_refused
+    hidden = bool(directory) and display_refused(directory)
+    return {'directory': DIRECTORY_PLACEHOLDER if hidden else directory, 'directory_hidden': hidden,
+            'directory_operand': operand}
+
+
+def plain_screen_directory(directory):
+    """screen_directory for plain data: no relative_to is known, so the operand is the directory in full (the JSON forms' own
+    writer, json_paths, quotes it), or DIRECTORY when it is refused."""
+    from .readiness import display_refused
+    if not directory:
+        return screen_directory(directory, None)
+    hidden = display_refused(directory)
+    operand = DIRECTORY_PLACEHOLDER if hidden else json_paths(Path(directory), None)[1](directory)
+    return screen_directory(directory, operand)
 
 
 def screen_path(rel, placeholders):
@@ -471,8 +502,10 @@ def survey(directory, relative_to=None):
                      'next_actions': _next_actions(items, root, relative_to), 'missing': _missing(items), 'skipped_links': links,
                      'truncated': truncated, 'execution_authorized': False, 'cloud_authority': False})
     # The same next steps, built from the same items and the same relative_to with the screen's path operands (text_paths).
-    show, q, placeholders = text_paths(root, relative_to)
-    result.text_build = screen_survey(result, _next_actions(items, root, relative_to, (show, q)), placeholders)
+    show, q, placeholders, directory = text_paths(root, relative_to)
+    built = screen_survey(result, _next_actions(items, root, relative_to, (show, q)), placeholders)
+    built.update(screen_directory(str(root), directory()))
+    result.text_build = built
     result.text_placeholders = frozenset(placeholders)
     return result
 
@@ -748,8 +781,9 @@ def goal_summary(view):
     return 'GOAL READINESS: %s (status: %s)' % (view['goal'], view['status'])
 
 
-def _goal_lines(view, width):
-    """The goal's readiness: its status, the selected directory, host and tenant, the needed rows and what is not checked."""
+def _goal_lines(view, width, operand=None):
+    """The goal's readiness: its status, the selected directory, host and tenant, the needed rows and what is not checked.
+    operand is the surveyed directory as a command argument, as the path writer wrote it for this screen."""
     from .readiness import capture_contact, directory_hidden, screen_note
     from .workbench_screens import word_wrap
     host = view['host']
@@ -784,7 +818,7 @@ def _goal_lines(view, width):
         else:
             lines.append('    %s:' % ('Could not check' if row['state'] == 'unknown' else 'Missing'))
             for note in row['missing']:
-                said = screen_note(note, view['directory'], said=True)
+                said = screen_note(note, operand)
                 # a recorded note (one screen_note did not write) is printed only when no word in it is refused
                 lines += _flow(said if said != note else shown_step(note), width, '      - ', '        ', commands=True)
         lines.append('    Next action (%s):' % row['owner_role'])
@@ -810,24 +844,25 @@ def start_lines(value, width, goal=None, goal_hint=False):
     goal is the result of goal_readiness and adds that goal's readiness after the survey; goal_hint adds the one closing line
     that names the goals and the flag. The workspace screen passes neither.
     """
-    from .readiness import DIRECTORY_NOT_SHOWN_SENTENCE, directory_hidden
+    from .readiness import DIRECTORY_NOT_SHOWN_SENTENCE
     from .workbench_screens import word_wrap
     lines = ['INTUNE WORKBENCH: START']
     # The directory is user input: a name the output-path rule of signin collect refuses prints as DIRECTORY, here, in the
     # Directory: line, in a note's command and in the catalog pointer, and the screen says once, under its header, that it is not shown.
-    hidden = directory_hidden(value['directory'])
-    # The next steps for the screen are built from the operands (Survey.text_build); a survey that this module did not build
-    # (plain data) has only the recorded steps, which are shown only when they name nothing the screen may not show.
+    # The next steps and the directory operand for the screen are built from the operands (Survey.text_build); a survey that this
+    # module did not build (plain data) has only the recorded steps, shown only when they name nothing the screen may not show.
     built = getattr(value, 'text_build', None)
     if built is not None:
-        value, placeholders = built, value.text_placeholders
+        value, placeholders = built, set(value.text_placeholders)
     else:
+        fields = plain_screen_directory(value.get('directory'))
         placeholders = set()
-        value = screen_survey(value, [recorded_step_for_screen(action, hidden) or UNSHOWN_STEP for action in value['next_actions']],
+        value = screen_survey(value, [shown_step(action, fields['directory_hidden']) for action in value['next_actions']],
                               placeholders)
+        value.update(fields)
+    hidden, operand = value['directory_hidden'], value['directory_operand']
     actions = value['next_actions']
-    lines += word_wrap('%s | offline (no live connection) | synthetic evidence stays labelled synthetic' % (
-        'DIRECTORY' if hidden else value['directory']), width)
+    lines += word_wrap('%s | offline (no live connection) | synthetic evidence stays labelled synthetic' % value['directory'], width)
     if hidden:
         lines += word_wrap(DIRECTORY_NOT_SHOWN_SENTENCE, width)
     if PATH_PLACEHOLDER in placeholders:
@@ -863,17 +898,14 @@ def start_lines(value, width, goal=None, goal_hint=False):
     if value.get('truncated'):
         lines += word_wrap('The walk stopped at %d entries; narrow the directory to see everything.' % MAX_ENTRIES, width)
     if goal:
-        lines += _goal_lines(goal, width)
+        lines += _goal_lines(goal, width, operand)
     elif goal_hint:
         lines += word_wrap(GOAL_HINT, width)
     if goal or goal_hint:
-        # One pointer, not a copy: the catalog holds what each goal needs and the saved projects.
-        directory = value['directory']
-        # A name the output-path rule refuses (a control character, a credential shape, too long) is never echoed into a command;
-        # the placeholder stands for it.
-        shown = 'DIRECTORY' if hidden else shlex.quote(directory)
-        lines += _flow('Catalog of what this build supports and where each goal stands: intune-iac catalog %s' % shown,
-                       width, '', '    ', commands=True)
+        # One pointer, not a copy: the catalog holds what each goal needs and the saved projects. Its directory is the path
+        # writer's operand (a refused name is DIRECTORY there), like every other command on the screen.
+        lines += _flow('Catalog of what this build supports and where each goal stands: intune-iac catalog%s' % (
+            ' ' + operand if operand else ''), width, '', '    ', commands=True)
     if goal:
         # The goal block is longer than a 40-row pane, which then shows only the tail of the screen: the verdict closes the
         # screen too. It is a short fixed line and is never wrapped, so a pane always shows it whole.

@@ -22,6 +22,18 @@ def flat(lines):
     return ' '.join(' '.join(lines).replace(' \\ ', ' ').split())
 
 
+def note_for(directory, goal='discover', said=False):
+    """The recorded no-sign-in-check note as a screen says it for a surveyed directory: the operand is the one the screen's path
+    writer writes for it (entry.text_paths, with no relative_to: DIRECTORY for a refused name, otherwise the directory in full,
+    quoted), and the legend rides in the note only when the screen has not said it under its header (said=False)."""
+    from pathlib import Path
+    from intune_iac import entry, readiness
+    operand = entry.text_paths(Path(directory), None)[3]()
+    fields = entry.screen_directory(directory, operand)
+    legend = '' if said or not fields['directory_hidden'] else readiness.DIRECTORY_NOT_SHOWN
+    return readiness.screen_note(readiness.NO_CHECK_RECORDED % goal, fields['directory_operand'], legend)
+
+
 def goal_rows(lines, goal):
     """{state label: its text joined across the wrapped rows} of one goal's block at 90 columns or more."""
     start = lines.index('  GOAL ' + goal)
@@ -255,9 +267,8 @@ class GarbledSentenceTests(Base):
         import tempfile
         from pathlib import Path
         from intune_iac import catalog as module, cli, entry, readiness
-        recorded = readiness.NO_CHECK_RECORDED % 'discover'
-        self.assertIn("run: intune-iac start '/tmp/a b' --goal discover", readiness.screen_note(recorded, '/tmp/a b'))
-        shown = readiness.screen_note(recorded, '/tmp/a\x1b[31mb')
+        self.assertIn("run: intune-iac start '/tmp/a b' --goal discover", note_for('/tmp/a b'))
+        shown = note_for('/tmp/a\x1b[31mb')
         self.assertIn('run: intune-iac start DIRECTORY --goal discover', shown)
         self.assertNotIn('\x1b', shown)
         with tempfile.TemporaryDirectory() as temp:
@@ -498,7 +509,7 @@ class DirectoryInCommandTests(Base):
         from intune_iac import readiness
         for label, (directory, forbidden) in self.REJECTED.items():
             with self.subTest(label):
-                note = readiness.screen_note(self.recorded(), directory)
+                note = note_for(directory)
                 self.assertIn('run: intune-iac start DIRECTORY --goal discover --check-signin azure (' + self.NOT_SHOWN, note)
                 self.assertEqual(note.count('not shown'), 1)
                 self.assertTrue(note.startswith('No sign-in check was run. To look for an existing Azure sign-in, run: '))
@@ -508,14 +519,14 @@ class DirectoryInCommandTests(Base):
 
     def test_every_rejection_reads_the_same_so_the_screen_does_not_say_which_rule_applied(self):
         from intune_iac import readiness
-        notes = {readiness.screen_note(self.recorded(), directory) for directory, _ in self.REJECTED.values()}
+        notes = {note_for(directory) for directory, _ in self.REJECTED.values()}
         self.assertEqual(len(notes), 1, notes)
 
     def test_an_ordinary_directory_prints_exactly_as_before(self):
         from intune_iac import readiness
         for directory in ('/tmp/work/context dir', '/home/someone/estate', 'C:\\work\\estate dir', '/tmp/x.y/z', '/tmp/' + 'a' * 23,
                           '/tmp/Bearer', '/tmp/ghp'):
-            note = readiness.screen_note(self.recorded(), directory)
+            note = note_for(directory)
             self.assertEqual(note, GarbledSentenceTests('sentence').sentence('discover', directory), directory)
             self.assertNotIn('not shown', note)
         # no directory at all (a survey that names none): the command without one, as the first round printed it
@@ -888,7 +899,7 @@ class TerminalSafetyTests(Base):
             text = flat(data.decode('utf-8').split('\n'))
             self.assertNotIn('DIRECTORY', text)
             self.assertIn("intune-iac workbench workspace --root 'estate dir/store' --service-root 'estate dir/service'", text)
-            self.assertIn("intune-iac catalog '%s' --check-signin azure" % folder, text)
+            self.assertIn("intune-iac catalog 'estate dir' --check-signin azure", text)  # round 6: the writer's operand, relative to cwd
             _, data = self.raw_output(temp, 'start', str(folder))
             self.assertNotIn('DIRECTORY', data.decode('utf-8'))
 
@@ -1087,15 +1098,20 @@ class OperandRenderingTests(Base):
         def judged(value):
             """The build without the strings that carry paths: every state and verdict stays."""
             value = copy.deepcopy(dict(value))
+            for key in ('directory', 'directory_hidden', 'directory_operand'):  # the text build holds the directory as a screen says it
+                value.pop(key, None)
             for project in value['projects']:
                 project['command'] = project['path'] = None
             for goal in value['integrations'][0]['goals']:
-                goal['authenticated']['message'] = None
+                goal['authenticated']['message'] = goal['next_action'] = None
+                goal['blocked']['next_action'] = goal['blocked']['missing'] = None  # recorded strings; the states beside them stay
             return value
 
         def surveyed(survey):
             """The survey without the strings that carry paths: every item, state and note stays."""
             survey = copy.deepcopy(dict(survey))
+            for key in ('directory', 'directory_hidden', 'directory_operand'):
+                survey.pop(key, None)
             survey['next_actions'] = survey['skipped_links'] = None
             for item in survey['items']:
                 item['path'] = None
@@ -1147,7 +1163,13 @@ class OperandRenderingTests(Base):
                 built = (module.catalog_lines(value, 120), entry.start_lines(survey, 120))
                 plain = (module.catalog_lines(plain_value, 120), entry.start_lines(plain_survey, 120))
                 if not refused:
-                    self.assertEqual(plain, built, name)
+                    # the same screens; the only difference is the directory operand of the sign-in command, the note and the pointer:
+                    # the builders write it relative to where the command runs, plain data (no relative_to) has it in full
+                    import os
+                    import shlex
+                    absolute, relative = shlex.quote(str(folder)), shlex.quote(os.path.relpath(folder, temp))
+                    for shown_plain, shown_built in zip(plain, built):
+                        self.assertEqual(flat(shown_plain).replace(absolute, relative), flat(shown_built), name)
                     continue
                 shown = '\n'.join(plain[0] + plain[1])
                 for fragment in ('ghp_', 'abc1234', 'cafe', '\\u0301', chr(0x301)):
@@ -1293,6 +1315,53 @@ class OperandRenderingTests(Base):
                 self.assertNotIn(fragment, shown, fragment)
             self.assertIn(self.EXPLANATION, flat(lines))
             self.assertIn('No action needed.', flat(lines))  # a step that names nothing is not hidden with the others
+
+    # -- round 6, item 3: one writer for every command operand ------------------------------------------------------------------
+    def test_the_note_the_pointer_and_the_sign_in_command_are_written_relative_to_relative_to_like_the_actions(self):
+        import tempfile
+        from intune_iac import catalog as module, entry
+        with tempfile.TemporaryDirectory() as base:
+            folder = self.estate_in(base, 'estate dir')
+            survey = entry.survey(folder, relative_to=base)
+            seen = {'note': 0, 'pointer': 0, 'sign-in': 0, 'action': 0}
+            for goal in GOALS:
+                start = entry.start_lines(survey, 120, entry.goal_readiness(survey, goal))
+                catalog = module.catalog_lines(module.build(survey, doctor=tc.doctor(), goal=goal, relative_to=base), 120)
+                for label, lines in (('start', start), ('catalog', catalog)):
+                    for row in self.command_rows('\n'.join(lines)):
+                        self.assertNotIn(str(folder), row, (goal, label, row))  # no command names the directory in full
+                    text = flat(lines)
+                    seen['action'] += "intune-iac workbench workspace --root 'estate dir/store'" in text
+                    seen['note'] += "intune-iac start 'estate dir' --goal %s --check-signin azure" % goal in text
+                    seen['pointer'] += label == 'start' and "intune-iac catalog 'estate dir'" in text
+                    seen['sign-in'] += "intune-iac catalog 'estate dir' --goal %s --check-signin azure" % goal in text
+            for what, count in seen.items():
+                self.assertGreater(count, 0, what)
+
+    def test_without_a_relative_to_the_pointer_and_the_note_keep_the_directory_in_full(self):
+        import shlex
+        import tempfile
+        from intune_iac import entry
+        with tempfile.TemporaryDirectory() as base:
+            folder = self.estate_in(base, 'estate dir')
+            survey = entry.survey(folder)
+            text = flat(entry.start_lines(survey, 120, entry.goal_readiness(survey, 'adopt')))
+            self.assertIn('intune-iac catalog %s' % shlex.quote(str(folder)), text)
+            self.assertIn('intune-iac start %s --goal adopt --check-signin azure' % shlex.quote(str(folder)), text)
+
+    def test_a_text_build_holds_the_directory_as_a_screen_says_it_never_the_refused_name(self):
+        import json
+        import tempfile
+        from intune_iac import catalog as module, entry
+        with tempfile.TemporaryDirectory() as temp:
+            folder = self.estate_in(temp, 'ghp_abc1234')
+            survey = entry.survey(folder, relative_to=temp)
+            value = module.build(survey, doctor=tc.doctor(), relative_to=temp)
+            for built in (survey.text_build, value.text_build):
+                self.assertEqual(built['directory'], 'DIRECTORY')
+                self.assertNotIn('ghp_abc1234', json.dumps(built))
+            ordinary = self.estate_in(temp, 'estate dir')
+            self.assertEqual(entry.survey(ordinary, relative_to=temp).text_build['directory'], str(ordinary))
 
     def test_the_json_forms_keep_today_rendering_for_a_refused_directory(self):
         import tempfile
