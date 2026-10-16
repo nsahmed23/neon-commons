@@ -1684,7 +1684,7 @@ class StopTests(Fixture):
         self.assertEqual([kind for kind, _ in outcome], ['raised'])
         self.assertIsInstance(outcome[0][1], AppError)
         self.assertEqual(outcome[0][1].code, 'companion_live_stop_timeout')
-        self.assertEqual(live._generation, last[0], 'the active retry was superseded by the timed-out follower')
+        self.assertEqual(live._generation, last[0], 'the active retry must not be superseded by the timed-out follower: its generation stays current')
 
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
