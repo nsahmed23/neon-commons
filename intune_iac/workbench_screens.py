@@ -1741,6 +1741,26 @@ def hidden_strip_fields(full, shown):
     return hidden
 
 
+def hidden_strip_rows(hidden, width):
+    """The rows that name the states the strip left out, with their values. Each `LABEL value` stays whole and fields that
+    share a row are joined by ' | '. A break falls between two fields and takes the separator with it, so a row never ends
+    with `|` (journey 29 run 13, frame 37, rows 6 and 7) and a label is never left apart from its value."""
+    rows = word_wrap('Hidden in the strip at this size (+%d more):' % len(hidden), width)
+    current, started = rows.pop(), False
+    for label, value in hidden:
+        field = '%s %s' % (label, value)
+        joined = current + (' | ' if started else ' ') + field
+        if cell_width(joined) <= width:
+            current = joined
+        else:
+            rows.append(current)
+            parts = word_wrap(field, width)
+            rows += parts[:-1]
+            current = parts[-1]
+        started = True
+    return rows + [current]
+
+
 def help_lines(width, map_keys=False, strip=None, strip_shown=None):
     """The one reference: keys first, one per row, then the words the screens use.
 
@@ -1751,8 +1771,7 @@ def help_lines(width, map_keys=False, strip=None, strip_shown=None):
     lines = ['HELP']
     hidden = hidden_strip_fields(strip, strip_shown) if strip and strip_shown else []
     if hidden:
-        lines += word_wrap('Hidden in the strip at this size (+%d more): %s' % (
-            len(hidden), ' | '.join('%s %s' % pair for pair in hidden)), width)
+        lines += hidden_strip_rows(hidden, width)
     lines.append('KEYS')
     for key, text in HELP_KEYS:
         lines += _labelled('  ' + key, text, width, 14)

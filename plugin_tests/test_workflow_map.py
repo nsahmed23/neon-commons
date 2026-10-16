@@ -1374,5 +1374,54 @@ class TextLinesTests(unittest.TestCase):
         self.assertIn('Position: reconcile', flat)
 
 
+
+# ---- item 5: the Help row that names the strip's hidden fields (journey 29 run 13, frame 37, rows 6 and 7) ------------
+
+class HiddenStripRowTests(unittest.TestCase):
+    """"Hidden in the strip at this size (+2 more): OBS fresh |" ended a row with the separator and left the next field
+    for the row below. A break falls between two fields, never after a separator, and a field is never split from its label."""
+    FULL = ('SYNTHETIC | TENANT 029c33b1 | POLICY Windows Privacy Pilot (d665d54b) | OBS fresh | REPO current | '
+            'OP prepared')
+    SHOWN_TWO = 'SYNTHETIC | T 029c33b1 | P d665d54b | REPO current | +2 more: ?'
+    FULL_THREE = ('SYNTHETIC | TENANT 029c33b1 | POLICY Windows Privacy Pilot (d665d54b) | OBS source changed | '
+                  'REPO current | OP outcome unknown')
+    SHOWN_THREE = 'SYNTHETIC | T 029c33b1 | P d665d54b | +3 more: ?'
+
+    def block(self, width, full, shown):
+        from intune_iac.workbench_screens import help_lines
+        lines = help_lines(width, strip=full, strip_shown=shown)
+        return lines[1:lines.index('KEYS')]
+
+    def test_the_journey_case_does_not_end_a_row_with_a_separator(self):
+        rows = self.block(56, self.FULL, self.SHOWN_TWO)
+        self.assertTrue(rows[0].startswith('Hidden in the strip at this size (+2 more):'), rows)
+        for row in rows:
+            self.assertFalse(row.rstrip().endswith('|'), rows)
+            self.assertFalse(row.lstrip().startswith('|'), rows)
+        self.assertEqual(' '.join(' '.join(rows).split()),
+                         'Hidden in the strip at this size (+2 more): OBS fresh OP prepared')
+
+    def test_no_width_breaks_after_a_separator_or_splits_a_label_from_its_value(self):
+        cases = ((self.FULL, self.SHOWN_TWO, ('OBS fresh', 'OP prepared')),
+                 (self.FULL_THREE, self.SHOWN_THREE, ('OBS source changed', 'REPO current', 'OP outcome unknown')))
+        for full, shown, fields in cases:
+            for width in range(36, 121):
+                rows = self.block(width, full, shown)
+                for row in rows:
+                    self.assertLessEqual(len(row), width, (width, row))
+                    self.assertFalse(row.rstrip().endswith('|'), (width, rows))
+                    self.assertFalse(row.lstrip().startswith('|'), (width, rows))
+                for field in fields:
+                    self.assertEqual(sum(field in row for row in rows), 1, (width, field, rows))
+
+    def test_fields_that_fit_one_row_keep_their_separators_and_the_joined_text_is_unchanged(self):
+        rows = self.block(100, self.FULL_THREE, self.SHOWN_THREE)
+        self.assertEqual(rows, ['Hidden in the strip at this size (+3 more): OBS source changed | REPO current | '
+                                'OP outcome unknown'])
+        rows = self.block(60, self.FULL_THREE, self.SHOWN_THREE)
+        joined = ' '.join(rows)
+        self.assertIn('REPO current | OP outcome unknown', joined)                   # the fields that share a row stay separated
+
+
 if __name__ == "__main__":
     unittest.main()
