@@ -10,6 +10,7 @@ import platform
 import re
 import shutil
 import sys
+import unicodedata
 
 from . import __version__
 from .io import AppError, load_json
@@ -59,18 +60,26 @@ def _parser_message(message):
 # move the cursor, rewrite the terminal, start a row of its own or reorder what a person reads. Text safe_text already escaped
 # holds none of these and is unchanged. Not applied to --json: JSON output keeps its own escaping.
 #
-# The guarded set, final: U+0000 to U+001F (C0), U+007F (DEL), U+0080 to U+009F (C1), U+061C (Arabic letter mark), U+200B to U+200F
-# (zero-width space, non-joiner, joiner, left-to-right and right-to-left marks), U+2028 and U+2029 (line and paragraph separators),
-# U+202A to U+202E (embeddings and overrides), U+2060 to U+2064 (word joiner and the invisible math operators), U+2066 to U+2069
-# (isolates) and U+FEFF (byte order mark, zero-width no-break space). The direction marks and the invisible format characters
-# reorder or hide what a person reads without moving the cursor.
-_TEXT_GUARDED=re.compile('[\x00-\x1f\x7f-\x9f\u061c\u200b-\u200f\u2028\u2029\u202a-\u202e\u2060-\u2064\u2066-\u2069\ufeff]')
+# THE RULE is a Unicode category, not a list: every character whose unicodedata.category is Cc (controls: C0, DEL, C1), Cf (format
+# characters: direction marks, embeddings, overrides and isolates, zero-width and joiner characters, the deprecated U+206A to U+206F,
+# the byte order mark, the tag characters), Zl or Zp (line and paragraph separators) is shown as an escape. A format character added
+# by a later Unicode version is covered without a change here. What it costs: the guard also escapes format characters that are
+# harmless, so an emoji sequence joined with U+200D, a soft hyphen (U+00AD), Arabic number signs (U+0600 to U+0605) and a Persian
+# text with U+200C show their escapes instead of the joined glyph. Unassigned points (Cn), private use (Co), spaces (Zs) and
+# combining marks (M) are left alone.
+_TEXT_GUARDED_CATEGORIES=frozenset(('Cc','Cf','Zl','Zp'))
 _TEXT_NAMED={'\n':'\\n','\r':'\\r','\t':'\\t'}
+
+
+def _guard_char(char):
+    if unicodedata.category(char) not in _TEXT_GUARDED_CATEGORIES:return char
+    number=ord(char)
+    return _TEXT_NAMED.get(char) or ('\\u%04x'%number if number<=0xffff else '\\U%08x'%number)
 
 
 def text_guard(text):
     """One row of text with every guarded character shown as the escape safe_text uses."""
-    return _TEXT_GUARDED.sub(lambda m:_TEXT_NAMED.get(m.group(),'\\u%04x'%ord(m.group())),text)
+    return ''.join(map(_guard_char,text)) if not text.isascii() or not text.isprintable() else text
 
 
 def text_guard_rows(rows):

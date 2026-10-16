@@ -13,6 +13,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import unicodedata
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -29,14 +30,29 @@ CLI = ROOT / 'scripts/intune-iac.py'
 # ESC with a CSI tail, CR and LF inside one value, BEL, DEL, C1 CSI, the line and paragraph separators and a bidirectional override.
 HOSTILE = ''.join(chr(n) for n in (0x1b,)) + '[31m' + 'a' + chr(13) + 'b' + chr(10) + 'c' + chr(7) + chr(0x7f) + chr(0x9b) + \
     chr(0x2028) + chr(0x2029) + chr(0x202e) + chr(0x200e) + chr(0x200f) + chr(0x061c) + chr(0xfeff) + chr(0x200b) + \
-    chr(0x2060) + chr(0x2064) + 'z'
+    chr(0x2060) + chr(0x2064) + chr(0x206b) + chr(0xad) + chr(0xe0001) + 'z'
 # A file or directory name cannot hold a slash; this one holds every other character of the hostile value.
 CLEAN = 'plain-value'
-FORBIDDEN = re.compile('[\x00-\x09\x0b-\x1f\x7f-\x9f\u061c\u200b-\u200f\u2028\u2029\u202a-\u202e\u2060-\u2064\u2066-\u2069\ufeff]')
-# Every member of the guarded set, as ranges (the unit cases walk each one) and a few neighbours that must pass unchanged.
-GUARDED_RANGES = ((0x00, 0x1f), (0x7f, 0x9f), (0x061c, 0x061c), (0x200b, 0x200f), (0x2028, 0x202e), (0x2060, 0x2064),
-                  (0x2066, 0x2069), (0xfeff, 0xfeff))
-NEIGHBOURS = (0x20, 0x7e, 0xa0, 0xad, 0x061b, 0x061d, 0x200a, 0x2010, 0x202f, 0x205f, 0x2065, 0x206a, 0xfefe, 0xff00)
+GUARDED_CATEGORIES = frozenset(('Cc', 'Cf', 'Zl', 'Zp'))
+
+
+def _forbidden_pattern():
+    """A character class of every code point whose category is guarded, except the row-separating LF, built from the table."""
+    ranges, start = [], None
+    for number in range(0x110001):
+        hit = (number < 0x110000 and number != 10 and not 0xd800 <= number <= 0xdfff
+               and unicodedata.category(chr(number)) in GUARDED_CATEGORIES)
+        if hit and start is None:
+            start = number
+        elif not hit and start is not None:
+            ranges.append('\\U%08x-\\U%08x' % (start, number - 1))
+            start = None
+    return re.compile('[' + ''.join(ranges) + ']')
+
+
+FORBIDDEN = _forbidden_pattern()
+# Characters next to the guarded categories that must pass unchanged: spaces, ordinary letters and punctuation, unassigned points.
+NEIGHBOURS = (0x20, 0x7e, 0xa0, 0x061b, 0x061d, 0x200a, 0x2010, 0x202f, 0x205f, 0x2065, 0xfefe, 0xff00, 0x41, 0x39, 0x2e, 0xe9, 0x4e2d)
 OLD_NAME = 'Privacy pilot 7'
 # Line-ending rule: the guard joins rows with one LF. Where the platform newline is CRLF (Windows) print() may write CRLF between
 # rows; that pair is the row separator and is allowed nowhere else.
@@ -309,20 +325,43 @@ class TextGuardSweepTests(unittest.TestCase):
 
 
 class GuardUnitTests(unittest.TestCase):
-    def test_every_forbidden_character_is_shown_as_the_escape_safe_text_uses(self):
+    def test_every_code_point_is_changed_if_and_only_if_its_category_is_cc_cf_zl_or_zp(self):
         from intune_iac.workbench_tui import safe_text
-        every = [chr(n) for low, high in GUARDED_RANGES for n in range(low, high + 1) if n != 10]
-        self.assertEqual(len(every), 32 - 1 + 33 + 1 + 5 + 7 + 5 + 4 + 1)
-        for char in every:
-            with self.subTest(code=hex(ord(char))):
-                shown = cli.text_guard('x' + char + 'y')
-                self.assertEqual(shown, 'x' + safe_text(char) + 'y')
-                self.assertNotRegex(shown, FORBIDDEN)
+        wrong, covered, changed = [], 0, 0
+        for number in range(0x110000):
+            if 0xd800 <= number <= 0xdfff:
+                continue
+            char, covered = chr(number), covered + 1
+            shown = cli.text_guard(char)
+            guarded = unicodedata.category(char) in GUARDED_CATEGORIES
+            changed += shown != char
+            if (shown != char) != guarded or (guarded and shown != safe_text(char)):
+                wrong.append(hex(number))
+        self.assertEqual(wrong[:20], [])
+        self.assertEqual(covered, 0x110000 - 0x800)
+        self.assertGreater(changed, 100)
+
+    def test_the_forbidden_pattern_matches_exactly_the_guarded_categories_except_the_row_newline(self):
+        sample = [chr(n) for n in range(0x110000) if not 0xd800 <= n <= 0xdfff]
+        matched = {ch for ch in sample if FORBIDDEN.match(ch)}
+        expected = {ch for ch in sample if unicodedata.category(ch) in GUARDED_CATEGORIES and ch != '\n'}
+        self.assertEqual(len(matched ^ expected), 0)
+
+    def test_the_deprecated_format_controls_are_escaped(self):
+        for number in range(0x206a, 0x2070 - 0):
+            if unicodedata.category(chr(number)) == 'Cf':
+                with self.subTest(code=hex(number)):
+                    self.assertEqual(cli.text_guard('Policy 123' + chr(number) + 'ABC'), 'Policy 123\\u%04xABC' % number)
+
+    def test_a_character_outside_the_basic_plane_is_escaped_with_the_long_form_safe_text_uses(self):
+        self.assertEqual(cli.text_guard('a' + chr(0xe0001) + 'b'), 'a\\U000e0001b')
 
     def test_the_characters_next_to_the_guarded_set_pass_unchanged(self):
         for number in NEIGHBOURS:
             with self.subTest(code=hex(number)):
                 self.assertEqual(cli.text_guard('x' + chr(number) + 'y'), 'x' + chr(number) + 'y')
+        ordinary = 'Policy 123, "quoted" (a-z) éèü 中文 Ж א ا —    '
+        self.assertEqual(cli.text_guard(ordinary), ordinary)
 
     def test_the_direction_marks_and_invisible_format_characters_are_escaped(self):
         for number in (0x200e, 0x200f, 0x061c, 0xfeff, 0x200b, 0x200c, 0x200d, 0x2060, 0x2061, 0x2062, 0x2063, 0x2064):
