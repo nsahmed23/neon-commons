@@ -17,7 +17,7 @@ python scripts/intune-iac.py start /path/to/working-directory
 Each item shows four distinct states:
 - **discovered:** found on disk.
 - **configured:** has what it needs, or the reason it does not.
-- **authenticated:** "no live connection"; an export is "source-asserted, not authenticated".
+- **authenticated:** "no live connection"; an export is "source-asserted, authentication not checked".
 - **qualified:** synthetic evidence says "synthetic only"; nothing is natively or live qualified.
 
 `NEXT` lists concrete commands in a useful order: resume a session, resolve a conflict, collect into an empty store, open the workspace, record a repository with `repository-import` or check it with `repository-status`, start from an unused export, follow an operation with `delivery`. An empty directory gets the two ways to begin. `MISSING` says what is absent, and that offline inspection and preparation remain available without a live connection.
