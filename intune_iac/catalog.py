@@ -50,6 +50,13 @@ GOAL_OPERATIONS = {
 CONFIGURATION_ROWS = ('mode_goal', 'tools_host', 'repository', 'iac_target', 'backend')
 SIGNIN_CHECK = ('Sign-in is not checked. Run: intune-iac catalog %s--check-signin azure (it runs az account list '
                 '--output json and nothing else, and reads no token).')
+# A screen that may not show the directory prints no command for it: a stand-in such as DIRECTORY is a valid relative path, so a
+# copied command would address that folder. It says what is missing, in the words the workflow layer uses.
+DIRECTORY_CANNOT_BE_SHOWN = 'the directory cannot be shown here'
+DIRECTORY_NOT_KNOWN = 'the directory is not known here'
+COMMAND_NOT_SHOWN = 'the command names a path whose name is not shown here'
+SIGNIN_CHECK_HIDDEN = ('Sign-in is not checked. To look for an existing Azure sign-in, run the catalog command with %s '
+                       '(%s; it runs az account list --output json and nothing else, and reads no token).')
 NOT_PERMISSION = 'A sign-in is not permission for any operation; access to Graph, Intune and state storage is not established.'
 # The manifest's evidence class of an operation that runs only as a bounded local process against the modeled service, and the
 # live blocker it records for the missing cloud route.
@@ -208,6 +215,15 @@ def _signin_flag(operand, goal):
     return where + ('' if goal is None else '--goal %s ' % goal)
 
 
+def _signin_message(operand, goal, hidden):
+    """The unchecked sign-in message as a screen says it. With a directory operand the screen may show, the command; where the
+    directory is refused, the same instruction in words, with no command and no stand-in operand."""
+    if hidden:
+        options = ['this directory'] + (['--goal %s' % goal] if goal else []) + ['--check-signin azure']
+        return SIGNIN_CHECK_HIDDEN % (', '.join(options[:-1]) + ' and ' + options[-1], DIRECTORY_CANNOT_BE_SHOWN)
+    return SIGNIN_CHECK % _signin_flag(operand, goal)
+
+
 def build(survey, doctor=None, signin=None, manifest=None, goal=None, relative_to=None):
     """The catalog as plain data. `survey` is entry.survey's result; `doctor` the doctor result (default: the offline
     one that looks up no executable); `signin` the detect result when the engineer asked for the check; `relative_to` the
@@ -260,32 +276,42 @@ def _text_build(result, survey, goal, relative_to):
         return data, frozenset()
     root = Path(survey['directory']) if survey.get('directory') else None
     show, q, placeholders, directory = entry.text_paths(root, relative_to)
-    for row, written in zip(data['projects'], projects(survey, relative_to, paths=(show, q))):
-        row['command'] = written['command']
+    for row, item in zip(data['projects'], survey.get('items') or []):
+        # Each resume command is written by a path writer of its own: when it had to write DIRECTORY (or DIRECTORY/store), which a
+        # shell takes for a real folder, because the surveyed directory may not be shown, the command is not printed. (A surveyed
+        # file whose own name is refused is still PATH in its command, as before; the sentence under the header says what it is.)
+        _, own, stood_in, _ = entry.text_paths(root, relative_to)
+        command, note = _resume(item, survey['items'], own)
+        row['command'], row['note'] = (None, COMMAND_NOT_SHOWN) if entry.DIRECTORY_PLACEHOLDER in stood_in else (command, note)
         row['path'] = entry.screen_path(row['path'], placeholders)
     # the directory as a screen says it, and as the path writer writes it in a command (the refused name is not kept here)
     data.update(entry.screen_directory(survey.get('directory'), directory()))
-    flag = _signin_flag(data['directory_operand'], goal)
+    hidden = data['directory_hidden']
     for item in data['integrations'][0]['goals']:
         if item['authenticated']['state'] == 'not_checked':
-            item['authenticated']['message'] = SIGNIN_CHECK % flag
-    _shown_goal_steps(data['integrations'][0]['goals'], data['directory_operand'])
+            item['authenticated']['message'] = _signin_message(data['directory_operand'], goal, hidden)
+    _shown_goal_steps(data['integrations'][0]['goals'], data['directory_operand'], hidden)
     return data, frozenset(placeholders)
 
 
-def _shown_goal_steps(goals, operand):
+def _shown_goal_steps(goals, operand, hidden=False):
     """The steps and the note each goal recorded, as a screen prints them: as recorded when no word in them is refused, otherwise
     the fixed explanation without a command (entry.shown_step). The recorded no-sign-in-check note is written by screen_note,
-    with the directory operand the screen's path writer wrote."""
+    with the directory operand the screen's path writer wrote. Where the directory is refused (hidden), a recorded step that
+    says `start DIRECTORY` is said in words instead (readiness.without_stand_in): DIRECTORY would be a real folder to a shell."""
     from . import entry
     for item in goals:
         for holder in (item, item['blocked']):
             if holder.get('next_action'):
                 holder['next_action'] = entry.shown_step(holder['next_action'])
+                if hidden:
+                    holder['next_action'] = readiness_model.without_stand_in(holder['next_action'])
         missing = item['blocked'].get('missing')
         if missing:
-            written = readiness_model.screen_note(missing, operand)
+            written = readiness_model.screen_note(missing, operand, hidden=hidden)
             item['blocked']['missing'] = written if written != missing else entry.shown_step(missing)
+            if hidden:
+                item['blocked']['missing'] = readiness_model.without_stand_in(item['blocked']['missing'])
 
 
 def _plain_text_build(value):
@@ -302,14 +328,14 @@ def _plain_text_build(value):
         row['path'] = entry.screen_path(row['path'], placeholders)
         if row['command'] and entry.recorded_step_for_screen(row['command'], hidden) is None:
             row['command'] = None
-            row['note'] = 'the command names a path whose name is not shown here'
+            row['note'] = COMMAND_NOT_SHOWN
     goals = data['integrations'][0]['goals']
     # every unchecked sign-in message is written again from the directory, shown or not: a recorded one may name anything
-    flag = _signin_flag(data['directory_operand'], goals[0]['goal'] if len(goals) == 1 else None)
     for item in goals:
         if item['authenticated']['state'] == 'not_checked':
-            item['authenticated']['message'] = SIGNIN_CHECK % flag
-    _shown_goal_steps(goals, data['directory_operand'])
+            item['authenticated']['message'] = _signin_message(data['directory_operand'],
+                                                               goals[0]['goal'] if len(goals) == 1 else None, hidden)
+    _shown_goal_steps(goals, data['directory_operand'], hidden)
     return data, frozenset(placeholders)
 
 

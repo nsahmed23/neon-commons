@@ -294,14 +294,25 @@ def catalog_route(value, width):
     Its directory is the operand the catalog's own path writer wrote for a screen (entry.text_paths, kept in the result's text
     build as directory_operand: DIRECTORY for a name the display rule refuses, otherwise relative to where the command runs,
     quoted once), exactly as given. This function does not read the recorded directory, quote anything or decide what may
-    be shown: a command on one screen names a directory in one way. The shared placeholder DIRECTORY stands where the result
-    has no operand, or the row does not hold it. The longest form that fits is drawn, the operand before the placeholder."""
-    from .entry import DIRECTORY_PLACEHOLDER
+    be shown: a command on one screen names a directory in one way. Where the operand cannot be shown (the display rule refused
+    the name, the result has none, or no form holds it in the row) there is no command at all: a stand-in such as DIRECTORY is
+    a valid relative path and a copied command would address that folder. A notice says what is missing instead, in the words
+    the workflow layer uses; below 40 cells (a 40x12 frame's body holds 34 cells and three rows, two of them the sentence above)
+    the notice is the one-row form, 34 cells at most."""
+    from .catalog import DIRECTORY_CANNOT_BE_SHOWN, DIRECTORY_NOT_KNOWN
     built = getattr(value, 'text_build', None)
-    operand = built.get('directory_operand') if isinstance(built, dict) else None
-    forms = [form % operand for form in CATALOG_ROUTE_FORMS] if isinstance(operand, str) and operand else []
-    forms += [form % DIRECTORY_PLACEHOLDER for form in CATALOG_ROUTE_FORMS]
-    return next((form for form in forms if cell_width(form) <= width), forms[-1])
+    built = built if isinstance(built, dict) else {}
+    operand = built.get('directory_operand')
+    shown = isinstance(operand, str) and bool(operand) and not built.get('directory_hidden')
+    if shown:
+        fits = [form % operand for form in CATALOG_ROUTE_FORMS if cell_width(form % operand) <= width]
+        if fits:
+            return fits[0]
+    named = shown or built.get('directory_hidden') or (isinstance(value, dict) and value.get('directory'))
+    why = DIRECTORY_CANNOT_BE_SHOWN if named else DIRECTORY_NOT_KNOWN
+    if width < 40:
+        return why[:1].upper() + why[1:]
+    return "Plain text: intune-iac catalog, with this workspace's directory (%s)." % why
 
 
 CATALOG_HELP_LINES = ('? help | : command | Esc close catalog | b back | q exit', '? help | Esc close | b back | q exit',

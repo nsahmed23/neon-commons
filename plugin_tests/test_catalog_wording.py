@@ -15,6 +15,9 @@ GOALS = ('inspect', 'discover', 'adopt', 'change')
 WIDTH = 120
 PANE = 39  # the visible rows of a 40-row pane: the shell prompt takes the last one
 ENTRY = re.compile(r'^  (inspect|discover|adopt|change):$')
+# What the catalog says, for a directory it may not show, where the start screen prints the start command (PKG-CATALOG-6).
+HIDDEN_NOTE = ('run the start command with this directory, --goal discover and --check-signin azure '
+               '(the directory cannot be shown here; it runs az account list')
 
 
 def flat(lines):
@@ -544,8 +547,10 @@ class DirectoryInCommandTests(Base):
             shutil.copyfile(ROOT / 'examples/context.json', directory / 'context.json')
             lines = tc.text_of(module.build(entry.survey(directory), doctor=tc.doctor(), goal='discover'), 120)
             rows = goal_rows(lines, 'discover')
-            # a screen says once, under its header, that the name is not shown (round 3); the note only names the placeholder
-            self.assertIn('run: intune-iac start DIRECTORY --goal discover --check-signin azure (it runs az account list', rows['blocked'])
+            # a screen says once, under its header, that the name is not shown (round 3). The catalog prints no command for a
+            # directory it may not show (PKG-CATALOG-6: DIRECTORY is a valid relative path); the start screen keeps its note
+            self.assertIn(HIDDEN_NOTE, rows['blocked'])
+            self.assertNotIn('start DIRECTORY', rows['blocked'])
             self.assertNotIn('ghp_', rows['blocked'])
             self.assertEqual(flat(lines).count('its name is not shown here'), 1)
             text = run_cli(str(directory), '--goal', 'discover', width=120)[1]
@@ -571,7 +576,7 @@ class DirectoryInCommandTests(Base):
                 self.skipTest('this file system refuses a control byte in a name')
             shutil.copyfile(ROOT / 'examples/context.json', directory / 'context.json')
             rows = goal_rows(tc.text_of(module.build(entry.survey(directory), doctor=tc.doctor(), goal='discover'), 120), 'discover')
-            self.assertIn('run: intune-iac start DIRECTORY --goal discover --check-signin azure (it runs az account list', rows['blocked'])
+            self.assertIn(HIDDEN_NOTE, rows['blocked'])
             self.assertNotIn('\x1b', rows['blocked'])
 
 
@@ -770,8 +775,8 @@ class DirectoryEchoTests(Base):
             commands = [line.strip() for line in StartGoalTests('logical_lines').logical_lines(lines)]
             self.assertIn('intune-iac start DIRECTORY --goal discover --check-signin azure', commands)
             _, lines = self.catalog_screen(directory)
-            self.assertIn('run: intune-iac start DIRECTORY --goal discover --check-signin azure (it runs az account list',
-                          self.blocked_row(lines, 'discover'))
+            # the catalog prints no command for a directory it may not show (PKG-CATALOG-6); the start screen above still does
+            self.assertIn(HIDDEN_NOTE, self.blocked_row(lines, 'discover'))
         self.each(check)
 
     def test_each_screen_says_once_that_the_name_is_not_shown_and_prints_no_piece_of_it(self):
@@ -883,9 +888,13 @@ class TerminalSafetyTests(Base):
                             self.assertNotIn(fragment, text, screen)
                     # the printed copies that carry the directory say DIRECTORY (read across the wrapped rows)
                     catalog = flat(screens['catalog'].decode('utf-8').split('\n'))
-                    self.assertIn('intune-iac catalog DIRECTORY --check-signin azure', catalog)            # the authenticated rows
-                    self.assertIn('intune-iac workbench workspace --root DIRECTORY/store', catalog)       # the resume commands
-                    self.assertIn('intune-iac wizard --session DIRECTORY/session.json', catalog)
+                    # PKG-CATALOG-6: the catalog prints no command with a stand-in for the directory, in the authenticated rows
+                    # or in the resume commands; it says what is missing. The start screen below keeps DIRECTORY.
+                    self.assertNotIn('catalog DIRECTORY', catalog)
+                    self.assertNotIn('DIRECTORY/', catalog)
+                    self.assertIn('run the catalog command with this directory and --check-signin azure '
+                                  '(the directory cannot be shown here', catalog)
+                    self.assertIn('Resume: no command (the command names a path whose name is not shown here)', catalog)
                     start = flat(screens['start'].decode('utf-8').split('\n'))
                     self.assertIn('intune-iac workbench workspace --root DIRECTORY/store', start)         # the next steps
                     self.assertIn('intune-iac wizard --session DIRECTORY/session.json', start)
@@ -975,8 +984,8 @@ class OperandRenderingTests(Base):
                 for label, text in shown.items():
                     for fragment in ('ghp_', 'abc1234', 'connor'):
                         self.assertNotIn(fragment, text, (cwd == temp, label))
-                for label in ('catalog', 'start'):
-                    self.assertIn('intune-iac workbench workspace --root DIRECTORY/store', flat(shown[label].split('\n')), label)
+                self.assertIn('intune-iac workbench workspace --root DIRECTORY/store', flat(shown['start'].split('\n')), 'start')
+                self.assertNotIn('DIRECTORY/', flat(shown['catalog'].split('\n')), 'the catalog prints no stand-in command')
 
     def test_the_relative_to_the_build_was_given_is_the_one_the_text_uses_not_the_working_directory(self):
         import os
@@ -995,7 +1004,7 @@ class OperandRenderingTests(Base):
                     start = flat(entry.start_lines(survey, 120))
                     if refused:
                         self.assertNotIn('ghp_', catalog + start)
-                        self.assertIn('intune-iac workbench workspace --root DIRECTORY/store', catalog)
+                        self.assertNotIn('DIRECTORY/', catalog)  # PKG-CATALOG-6: no stand-in inside a catalog command
                         self.assertIn('intune-iac workbench workspace --root DIRECTORY/store', start)
                     else:  # written for temp, where the paths are relative to it
                         self.assertIn("intune-iac workbench workspace --root 'estate dir/store'", catalog)
@@ -1018,7 +1027,8 @@ class OperandRenderingTests(Base):
                         self.assertNotIn('cafe', row, (label, row))
                     self.assertNotIn('cafe', text, label)
                 shown = self.screens(cwd, folder)
-                self.assertIn('intune-iac workbench workspace --root DIRECTORY/store', flat(shown['catalog'].split('\n')))
+                self.assertNotIn('DIRECTORY/', flat(shown['catalog'].split('\n')))  # PKG-CATALOG-6
+                self.assertIn('intune-iac workbench workspace --root DIRECTORY/store', flat(shown['start'].split('\n')))
                 self.assertEqual(shown['start'].count('its name is not shown here'), 1)
             # a surveyed file: an operand inside an ordinary folder
             work = Path(temp) / 'work'
@@ -1101,7 +1111,9 @@ class OperandRenderingTests(Base):
             for key in ('directory', 'directory_hidden', 'directory_operand'):  # the text build holds the directory as a screen says it
                 value.pop(key, None)
             for project in value['projects']:
+                # a command the screen may not print says why in its note (PKG-CATALOG-6); the commands themselves are path strings
                 project['command'] = project['path'] = None
+                project['note'] = None if project['note'] == module.COMMAND_NOT_SHOWN else project['note']
             for goal in value['integrations'][0]['goals']:
                 goal['authenticated']['message'] = goal['next_action'] = None
                 goal['blocked']['next_action'] = goal['blocked']['missing'] = None  # recorded strings; the states beside them stay
@@ -1174,7 +1186,9 @@ class OperandRenderingTests(Base):
                 shown = '\n'.join(plain[0] + plain[1])
                 for fragment in ('ghp_', 'abc1234', 'cafe', '\\u0301', chr(0x301)):
                     self.assertNotIn(fragment, shown, (name, fragment))
-                self.assertIn('intune-iac catalog DIRECTORY --check-signin azure', flat(plain[0]), name)
+                self.assertNotIn('catalog DIRECTORY', flat(plain[0]), name)  # PKG-CATALOG-6: words, never a stand-in command
+                self.assertIn('run the catalog command with this directory and --check-signin azure (the directory cannot be shown here',
+                              flat(plain[0]), name)
                 self.assertIn('Resume: no command (the command names a path whose name is not shown here)', flat(plain[0]), name)
                 self.assertIn('A next step names a path whose name is not shown here.', flat(plain[1]), name)
 

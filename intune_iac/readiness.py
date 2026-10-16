@@ -424,7 +424,22 @@ def display_refused(value):
 directory_hidden = display_refused
 
 
-def screen_note(note, operand=None, legend=''):
+NO_CHECK_HIDDEN = ('No sign-in check was run. To look for an existing Azure sign-in, run the start command with this directory, '
+                    '--goal %s and --check-signin azure (the directory cannot be shown here; it runs az account list '
+                    '--output json and nothing else).')
+# What the recorded steps say where the engineer's own directory goes, and what a screen that may not show the directory says in
+# its place: words, not a command (DIRECTORY is a valid relative path, so a copied command would address that folder).
+START_STAND_IN = '%s start DIRECTORY' % PROGRAM
+START_IN_WORDS = 'the start command with this directory (the directory cannot be shown here)'
+
+
+def without_stand_in(step):
+    """A recorded step as a screen that may not show the directory prints it: the start command with the stand-in DIRECTORY is
+    said in words. Any other step is as it is."""
+    return step.replace(START_STAND_IN, START_IN_WORDS) if step else step
+
+
+def screen_note(note, operand=None, legend='', hidden=False):
     """A recorded note as a screen says it: the recorded no-sign-in-check note in two grammatical sentences, the command on its
     own rows (a screen puts every printed command there); any other note as it is.
 
@@ -433,10 +448,13 @@ def screen_note(note, operand=None, legend=''):
     for a name the screen may not show, otherwise a quoted path relative to where the command runs); this function neither
     quotes nor decides. legend is what the note says in its bracket when it stands alone and its operand is DIRECTORY (the
     DIRECTORY_NOT_SHOWN words, the same whatever the reason a name was refused); a screen that has said it under its header passes
-    nothing, so that the screen says it once."""
+    nothing, so that the screen says it once. hidden: the screen may not show the directory and prints no command for it (the
+    catalog; DIRECTORY would be a real folder to a shell): the note then says the instruction in words (NO_CHECK_HIDDEN)."""
     where = operand + ' ' if operand else ''
     for operation in OPERATIONS:
         if note == NO_CHECK_RECORDED % operation:
+            if hidden:
+                return NO_CHECK_HIDDEN % operation
             return NO_CHECK_SCREEN % (PROGRAM, where, operation, legend)
     return note
 

@@ -259,16 +259,21 @@ class CatalogPlainTextRouteTests(CatalogLayerCase):
     ROUTE = 'Plain text: intune-iac catalog'
 
     def route_row(self, size, data=None):
+        """What the layer says under the larger-window sentence: the command, or (PKG-CATALOG-6) the notice that says the
+        directory cannot be shown, joined across its rows."""
         rows = catalog_layer.rows_of(self.layer(size, data))
-        routes = [row for row in self.body(rows) if row.startswith(('Plain text: intune-iac catalog', 'Text: intune-iac catalog'))]
-        self.assertEqual(len(routes), 1, (size, rows))
-        return routes[0]
+        body = self.body(rows)
+        end = next(index for index, row in enumerate(body) if row.endswith('closes it.'))
+        routes = ' '.join(' '.join(body[end + 1:]).split())
+        self.assertTrue(routes, (size, rows))
+        return routes
 
     def test_at_40x12_the_layer_names_the_plain_text_route_in_the_rows_it_has(self):
         rows = catalog_layer.rows_of(self.layer((40, 12)))
         body = self.body(rows)
         self.assertEqual(len(body), 3, rows)                       # three rows are all a 40x12 frame has for the body
-        self.assertEqual(body[2], 'Text: intune-iac catalog DIRECTORY')
+        # the estate's directory does not fit the row quoted, so there is no command (a stand-in would be a real folder)
+        self.assertEqual(body[2], 'The directory cannot be shown here')
         text = ' '.join(body)
         self.assertIn('The catalog needs a larger window: at least 60x20.', text)
         self.assertIn('Esc closes it.', text)
@@ -284,7 +289,7 @@ class CatalogPlainTextRouteTests(CatalogLayerCase):
     def test_an_ordinary_directory_prints_as_the_catalog_writes_it_where_the_row_holds_it(self):
         cases = (((40, 12), '/work', 'Plain text: intune-iac catalog /work'),
                  ((40, 12), '/work/a', 'Text: intune-iac catalog /work/a'),          # the label gives way before the name does
-                 ((40, 12), '/work/estate dir', 'Text: intune-iac catalog DIRECTORY'),   # a name the row cannot hold
+                 ((40, 12), '/work/estate dir', 'The directory cannot be shown here'),   # a name the row cannot hold: no command
                  ((59, 24), '/work/estate dir', "Plain text: intune-iac catalog '/work/estate dir'"),
                  ((80, 19), '/work/estate dir', "Plain text: intune-iac catalog '/work/estate dir'"))
         for size, directory, expected in cases:
@@ -298,11 +303,12 @@ class CatalogPlainTextRouteTests(CatalogLayerCase):
         self.assertEqual(self.route_row((40, 12), estate_catalog('/work/estate dir', relative_to='/work/estate dir')),
                          'Plain text: intune-iac catalog .')
 
-    def test_a_result_with_no_operand_shows_the_shared_placeholder(self):
+    def test_a_result_with_no_operand_shows_a_notice_and_no_command(self):
         import json
         plain = json.loads(json.dumps(estate_catalog('/work/estate dir')))      # crossed a JSON boundary: no text build
-        self.assertEqual(self.route_row((80, 19), plain), 'Plain text: intune-iac catalog DIRECTORY')
-        self.assertEqual(self.route_row((40, 12), plain), 'Text: intune-iac catalog DIRECTORY')
+        self.assertEqual(self.route_row((80, 19), plain),
+                         "Plain text: intune-iac catalog, with this workspace's directory (the directory cannot be shown here).")
+        self.assertEqual(self.route_row((40, 12), plain), 'The directory cannot be shown here')
 
 
 class RouteDirectoryTests(CatalogLayerCase):
@@ -335,9 +341,11 @@ class RouteDirectoryTests(CatalogLayerCase):
             for size in ((40, 12), (59, 24), (80, 19)):
                 with self.subTest(what=what, size=size):
                     rows = self.screen_of(directory, size)
-                    expected = ('Text: intune-iac catalog DIRECTORY' if size == (40, 12)
-                                else 'Plain text: intune-iac catalog DIRECTORY')
-                    self.assertIn(expected, self.body(rows))
+                    # PKG-CATALOG-6: no command at all for a directory the screen may not show, not even with the stand-in
+                    expected = ('The directory cannot be shown here' if size == (40, 12)
+                                else "Plain text: intune-iac catalog, with this workspace's directory (the directory cannot be shown here).")
+                    self.assertIn(expected, ' '.join(' '.join(self.body(rows)).split()))
+                    self.assertNotIn('catalog DIRECTORY', ' '.join(rows))
                     for text in ('\n'.join(rows), ''.join(row.strip() for row in rows), ' '.join(row.strip() for row in rows)):
                         for refused in (directory, safe_text(directory)) + pieces:
                             self.assertNotIn(refused, text)
@@ -346,7 +354,8 @@ class RouteDirectoryTests(CatalogLayerCase):
         for size in ((40, 12), (59, 24), (80, 19)):
             for directory in ('/work', '/work/estate dir'):
                 rows = self.screen_of(directory, size)
-                self.assertTrue(any(row.startswith(('Plain text: intune-iac catalog', 'Text: intune-iac catalog'))
+                self.assertTrue(any(row.startswith(('Plain text: intune-iac catalog', 'Text: intune-iac catalog',
+                                                    'The directory cannot be shown here'))  # a name the 40x12 row cannot hold
                                     for row in self.body(rows)), (directory, size))
 
 
