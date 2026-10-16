@@ -4,9 +4,11 @@ Items are added in the order of the brief; each class names its item. Temporary 
 """
 import unittest
 
+from plugin_tests import test_workbench_diagnostics as diagnostics_tests
 from plugin_tests import test_workbench_states as states_tests
 from plugin_tests.test_workbench_map_truth import MapTruth
 from plugin_tests.test_workbench_run10 import action
+from plugin_tests.test_workbench_run11 import Proposed
 from plugin_tests.test_workbench_screens import delivery_value
 
 
@@ -314,3 +316,36 @@ class ExecutionStageWordsTests(unittest.TestCase):
         text = self.row(engine_status=None, error_code='model_response_lost')
         self.assertIn("outcome unknown: the modeled service's response was lost (model_response_lost) | no engine result "
                       "recorded", text)
+
+
+class RefreshRouteTests(Proposed):
+    """Item 8, M-74 (frames 10, 74): no screen prints `repository-refresh REVISION`, a form without the digest that the
+    staged route (9, then a) pins; they name the staged route, which asks for the REVISION and pins the difference."""
+    ROUTE = 'choose Refresh the repository intent (a: actions)'
+    view = diagnostics_tests.DiagnosticsTests.view
+
+    def source(self, module):
+        from pathlib import Path
+        return (Path(__file__).resolve().parents[1] / 'intune_iac' / (module + '.py')).read_text(encoding='utf-8')
+
+    def test_no_screen_text_prints_the_unpinned_form(self):
+        for module in ('workbench_diagnostics', 'workbench_screens', 'workbench_repository', 'workbench_tui'):
+            self.assertNotIn('repository-refresh REVISION', self.source(module), module)
+
+    def test_the_repository_band_next_names_the_staged_route(self):
+        self.import_intent()
+        self.edit_description('Edited in the repository.')
+        _, signals = self.view()
+        step = signals['repository_stale']['next_step']
+        self.assertEqual(step, 'Review the difference on the Repository surface (9), then ' + self.ROUTE + ': it asks for '
+                               'the REVISION and pins the difference you reviewed.')
+
+    def test_the_refusals_and_the_status_name_it_too(self):
+        from intune_iac.workbench_repository import NEXT_ACTIONS
+        from intune_iac.workbench_screens import KNOWN_NEXT, REFUSALS
+        for step in (REFUSALS['maintenance_repository_stale'][1], REFUSALS['workbench_repository_stale'][1],
+                     KNOWN_NEXT['consumer_changed'], NEXT_ACTIONS['stale']):
+            self.assertIn('Refresh the repository intent (a: actions)', step)
+            self.assertIn('pins', step)
+        self.assertIn('Then Prepare a proposal from the recorded intent (a: actions).',
+                      REFUSALS['maintenance_repository_stale'][1])

@@ -131,9 +131,10 @@ class PlaceholderTemplateTests(CommandRows, unittest.TestCase):
         from intune_iac.workbench_screens import refusal_lines
         value = {'status': 'error', 'error': {'code': 'workbench_repository_stale', 'message': 'Refused.'}}
         rows = refusal_lines(value, 118)
-        self.assert_command_alone(rows, 'repository-refresh REVISION')
+        # Run 12 (M-74): no unpinned form is printed; the staged route is named.
+        self.assertIn('choose Refresh the repository intent (a: actions)', ' '.join(' '.join(rows).split()))
         rows = refusal_lines(value, 118, known=('The component no longer consumes this policy.', 'consumer_changed'))
-        self.assert_command_alone(rows, 'repository-refresh REVISION')
+        self.assertIn('choose Refresh the repository intent (a: actions)', ' '.join(' '.join(rows).split()))
         missing = {'status': 'error', 'error': {'code': 'workbench_repository_intent_missing', 'message': 'None.'}}
         self.assert_command_alone(refusal_lines(missing, 118), ':repository-entry REPOSITORY')
 
@@ -171,7 +172,7 @@ class DiagnosticsCommandRowTests(CommandRows, unittest.TestCase):
         value, _ = self.view()
         rows = _attention_lines({'attention': {'signals': value['signals'], 'checked': {}}, 'actions': []}, 118)
         self.assert_command_alone(rows, 'reconcile %s' % shlex.quote(str(operation)))
-        self.assert_command_alone(rows, 'repository-refresh REVISION')
+        self.assertIn('choose Refresh the repository intent (a: actions)', ' '.join(' '.join(rows).split()))  # run 12, M-74
 
 
 class DispatchClauseTests(unittest.TestCase):

@@ -2953,12 +2953,13 @@ REFUSALS = {
     'maintenance_repository_stale': (
         'The repository changed after this proposal cited its intent, or its component no longer consumes exactly '
         'this policy.',
-        'Press 9 to see which; fix the component if it no longer consumes the policy, then record the current source '
-        'with:' + COMMAND_BREAK + '  repository-refresh REVISION' + COMMAND_BREAK + 'Then Prepare a proposal from the recorded intent (a: actions).'),
+        'Press 9 to see which; fix the component if it no longer consumes the policy, then choose Refresh the repository '
+        'intent (a: actions): it asks for the REVISION and pins the difference you reviewed. Then Prepare a proposal from '
+        'the recorded intent (a: actions).'),
     'workbench_repository_stale': (
         'The repository changed since its recorded intent, or its component no longer consumes exactly this policy.',
-        'Press 9 to see which; fix the component if it no longer consumes the policy, then record the current source '
-        'with:' + COMMAND_BREAK + '  repository-refresh REVISION'),
+        'Press 9 to see which; fix the component if it no longer consumes the policy, then choose Refresh the repository '
+        'intent (a: actions): it asks for the REVISION and pins the difference you reviewed.'),
     'maintenance_observation_stale': (
         'The newest observation of this policy is not fresh, or the service changed after it was collected; a change '
         'is never prepared against it.',
@@ -3192,8 +3193,8 @@ def _names_specifics(message):
 # The next step for a known cause, where the engine's code covers several.
 KNOWN_NEXT = {
     'repository_changed': 'Press 9 to review the difference; then Refresh the repository intent (a: actions).',
-    'consumer_changed': 'Fix the component so it consumes exactly this policy, then record the current source with:'
-                        + COMMAND_BREAK + '  repository-refresh REVISION',
+    'consumer_changed': 'Fix the component so it consumes exactly this policy, then choose Refresh the repository intent '
+                        '(a: actions): it asks for the REVISION and pins the difference you reviewed.',
     'service_changed': 'Collect again (a lists it), then Prepare a proposal from the recorded intent (a: actions).',
     'policy_changed': 'Collect again (a lists it), then Prepare a proposal from the recorded intent (a: actions).',
     'source_mismatch': 'Collect again from the configured service (a lists it), then Prepare a proposal from the recorded intent (a: actions).',

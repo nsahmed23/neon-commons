@@ -75,7 +75,7 @@ class DiagnosticsTests(unittest.TestCase):
         self.assertIn('reconcile ' + str(operation), signals['operation_outcome_unknown']['next_step'])
         self.assertIn('model_response_lost', signals['operation_outcome_unknown']['observed'])
         self.assertEqual(signals['repository_stale']['evidence']['changed'], [repository_tests.STACK])
-        self.assertIn('repository-refresh', signals['repository_stale']['next_step'])
+        self.assertIn('choose Refresh the repository intent (a: actions)', signals['repository_stale']['next_step'])
         self.assertIn('truncated', signals['device_capture_incomplete']['observed'])
         self.assertIn('last-good', signals['collection_failed']['observed'])
         self.assertIn('Collect again (a: actions)', signals['collection_failed']['next_step'])

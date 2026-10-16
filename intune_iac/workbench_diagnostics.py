@@ -322,8 +322,8 @@ def _repository(store, object_id):
         signals.append(_signal('repository', 'repository_stale',
                                'The repository changed since its recorded intent: %s.' % ', '.join(
                                    '%s %s' % (kind, ', '.join(sources.get(kind) or [])) for kind in ('changed', 'added', 'removed') if sources.get(kind)),
-                               'Review the difference on the Repository surface, then record the current source '
-                               'with:\n  repository-refresh REVISION',
+                               'Review the difference on the Repository surface (9), then choose Refresh the repository intent '
+                               '(a: actions): it asks for the REVISION and pins the difference you reviewed.',
                                dict(evidence, **{kind: sources.get(kind) or [] for kind in ('changed', 'added', 'removed')})))
     elif freshness['status'] == 'unavailable':
         return [_signal('repository', 'repository_unavailable',
@@ -337,7 +337,8 @@ def _repository(store, object_id):
         signals.append(_signal('repository', 'repository_consumer_mismatch',
                                'The component does not consume exactly this policy: %s.' % ', '.join(reasons or ['reason not recorded']),
                                'Proposals and execution refuse this intent until the component consumes exactly this policy; '
-                               'fix the component, then record the current source with:\n  repository-refresh REVISION',
+                               'fix the component, then choose Refresh the repository intent (a: actions): it shows the '
+                               'difference first, asks for the REVISION and pins the difference you reviewed.',
                                dict(evidence, reasons=reasons)))
     return signals, 'attention' if signals else 'clear'
 
