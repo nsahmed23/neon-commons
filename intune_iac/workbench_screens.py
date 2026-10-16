@@ -2393,14 +2393,15 @@ def _workflow_route(flow, stage):
 
 
 def workflow_detail_rows(flow, stage, width):
-    """The focused stage in words: the identity row (state, reason, where Enter goes), then its basis, the recorded
-    values and the step the existing screens give. (pinned rows, flow rows): the pane keeps the first in view."""
+    """The focused stage in words, in reading order: the identity row (state, reason, where Enter goes), its basis, the
+    recorded values and the step the existing screens give. The identity row and the first rows of the step are
+    PinnedRows, which the pane keeps in view when the map is taller than it; the rest scrolls."""
     _, word = _workflow_state(stage.get('state'))
     reason = stage.get('reason')
     parts = ['FOCUS ' + workflow_stage_label(stage), word,
              'reason ' + safe_text(str(reason)) if reason else 'no reason recorded', _workflow_route(flow, stage)]
-    pinned = [PinnedRow(row) for row in _pack(parts, width)]
-    rows = _labelled('basis', str(stage.get('basis')), width, WORKFLOW_DETAIL_LABEL)
+    rows = [PinnedRow(row) for row in _pack(parts, width)]
+    rows += _labelled('basis', str(stage.get('basis')), width, WORKFLOW_DETAIL_LABEL)
     facts = workflow_fact_words(stage)
     if facts:
         rows += _labelled('recorded', '; '.join(facts), width, WORKFLOW_DETAIL_LABEL)
@@ -2409,9 +2410,9 @@ def workflow_detail_rows(flow, stage, width):
         # A step that prints commands writes each on its own row after the sentence, as every screen does.
         first, *commands = step.split(COMMAND_BREAK)
         head = _labelled('next', first, width, WORKFLOW_DETAIL_LABEL)
-        pinned += [PinnedRow(row) for row in head[:2]]
-        rows += head[2:] + [row for part in commands for row in _labelled('', part, width, WORKFLOW_DETAIL_LABEL)]
-    return pinned, rows
+        rows += [PinnedRow(row) for row in head[:2]] + head[2:]
+        rows += [row for part in commands for row in _labelled('', part, width, WORKFLOW_DETAIL_LABEL)]
+    return rows
 
 
 def workflow_map_lines(flow, width, rules='ascii', focus=None, prefixes=None, detail=True):
@@ -2442,8 +2443,7 @@ def workflow_map_lines(flow, width, rules='ascii', focus=None, prefixes=None, de
     lines.append(PinnedRow(next((form for form in forms if cell_width(form) <= width), forms[-1])))
     chosen = next((stage for stage in stages if stage.get('id') == focus), None)
     if detail and chosen is not None:
-        pinned, rows = workflow_detail_rows(flow, chosen, width)
-        lines += pinned + rows
+        lines += workflow_detail_rows(flow, chosen, width)
     return lines
 
 

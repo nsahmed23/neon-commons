@@ -811,6 +811,16 @@ class WorkflowMapLinesTests(unittest.TestCase):
         self.assertTrue(any(str(row).strip().startswith('execute /w/operation DIGEST') for row in lines), lines)
         self.assertTrue(any(str(row).startswith('        ') and 'execute /w/operation DIGEST' in str(row) for row in lines), lines)
 
+    def test_the_detail_rows_read_in_order_identity_basis_recorded_then_the_step(self):
+        lines = [str(row) for row in lines_of(flows()['waiting'], 76, focus='approve_execute')]
+        below = lines[legend_at(lines) + 1:]
+        first = {word: next(index for index, row in enumerate(below) if row.startswith(word))
+                 for word in ('FOCUS', 'basis', 'recorded', 'next')}
+        self.assertEqual(sorted(first, key=first.get), ['FOCUS', 'basis', 'recorded', 'next'])
+        # The commands the step prints come after its sentence, each on a row of its own.
+        self.assertGreater(next(index for index, row in enumerate(below) if row.strip().startswith('execute /w/operation')),
+                           first['next'])
+
     def test_a_reason_is_shown_as_the_recorded_code_and_an_absent_one_is_said(self):
         flows_ = flows()
         text = '\n'.join(str(row) for row in lines_of(flows_['closed'], 76, focus='approve_execute'))
@@ -1466,6 +1476,76 @@ class FollowUpTests(LayerFixture):
         text = ' '.join(' '.join(self.plain(frames[-1])).split())
         self.assertIn('No policy is selected (selection_required)', text)       # the product's own refusal, as for every read view
         self.assertNotIn('[WORKFLOW]', text)
+
+
+
+class InvariantTests(unittest.TestCase):
+    """Every combination of the statuses Delivery can report keeps the rules the stages promise."""
+
+    APPROVAL = ('done', 'waiting', 'expired', 'clock_unreadable', 'clock_uncertain', 'not_open', 'rejected')
+    EXECUTION = ('not_started', 'done', 'unknown')
+    READBACK = ('not_started', 'not_recorded', 'pending', 'failed', 'done')
+    RECONCILIATION = ('not_needed', 'required', 'pending', 'done')
+    RECORD = ('not_yet', 'available', 'done', 'not_available', 'not_applicable')
+    OBSERVED = ('not_yet', 'matches_desired', 'differs', 'unknown', 'not_applicable')
+
+    def deliveries(self):
+        import itertools
+        for approval, execution, readback, reconciliation, record, observed in itertools.product(
+                self.APPROVAL, self.EXECUTION, self.READBACK, self.RECONCILIATION, self.RECORD, self.OBSERVED):
+            delivery = prepared_delivery()
+            delivery['stages'][2] = stage_row('approval', approval, opens_at=1, closes_at=2)
+            delivery['stages'][3] = stage_row('execution', execution, error_code='some_code' if execution == 'unknown' else None)
+            delivery['stages'][4] = stage_row('readback', readback, classification='desired_state_observed')
+            delivery['stages'][5] = stage_row('reconciliation', reconciliation, classification='desired_state_observed')
+            delivery['stages'][6] = stage_row('deployment_record', record, reason='no_verified_readback' if record in
+                                              ('not_available', 'not_applicable') else None)
+            delivery['stages'][7] = stage_row('observed_after', observed, observation_freshness='fresh')
+            yield (approval, execution, readback, reconciliation, record, observed), delivery
+
+    def test_no_combination_breaks_a_promise_the_stages_make(self):
+        import json
+        from intune_iac.workflow_projection import STAGE_IDS
+        count = 0
+        for key, delivery in self.deliveries():
+            approval, execution, readback, reconciliation, record, observed = key
+            journal = 'outcome_unknown' if execution == 'unknown' else 'prepared'
+            flow = project(with_operation(baseline(), delivery=delivery, journal=journal,
+                                          review=prepared_review('open', status=journal)))
+            stages = by_id(flow)
+            count += 1
+            self.assertEqual([stage['id'] for stage in flow['stages']], list(STAGE_IDS), key)
+            for stage in flow['stages']:
+                self.assertIn(stage['state'], STATES, (key, stage))
+                self.assertTrue(isinstance(stage['basis'], str) and stage['basis'], (key, stage))
+                self.assertTrue(stage['reason'] is None or isinstance(stage['reason'], str), (key, stage))
+            # An unknown outcome is never done.
+            if execution == 'unknown':
+                self.assertNotEqual(stages['approve_execute']['state'], 'done', key)
+                self.assertNotEqual(stages['readback']['state'], 'done', key)
+            # Done needs the recorded fact: an approved and verified execution, a readback that says done.
+            if stages['approve_execute']['state'] == 'done':
+                self.assertEqual((approval, execution), ('done', 'done'), key)
+            if stages['readback']['state'] == 'done':
+                self.assertEqual((readback, execution == 'unknown'), ('done', False), key)
+            # An absent record is not recorded, never a started stage.
+            if readback == 'not_started':
+                self.assertEqual(stages['readback']['state'], 'not_recorded', key)
+            if record == 'not_yet':
+                self.assertEqual(stages['record']['state'], 'not_recorded', key)
+            if observed == 'not_yet':
+                self.assertEqual(stages['observed_after']['state'], 'not_recorded', key)
+            # The reconcile branch appears only for an unknown or reconciled outcome.
+            if reconciliation == 'not_needed':
+                self.assertEqual(stages['reconcile']['state'], 'not_applicable', key)
+            # Maintenance needs a complete path.
+            if stages['maintain']['state'] != 'not_recorded':
+                self.assertEqual((stages['approve_execute']['state'], stages['readback']['state']), ('done', 'done'), key)
+            self.assertTrue(flow['position'] is None or flow['position'] in STAGE_IDS, key)
+            if flow['position'] is not None:
+                self.assertNotIn(stages[flow['position']]['state'], ('not_recorded', 'not_applicable'), key)
+            json.dumps(flow, allow_nan=False)
+        self.assertEqual(count, 7 * 3 * 5 * 4 * 5 * 5)
 
 
 if __name__ == "__main__":
