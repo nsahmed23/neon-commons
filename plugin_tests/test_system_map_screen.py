@@ -321,7 +321,7 @@ class SizeTests(unittest.TestCase):
             rows = screen().render(snapshot, 40, 12, colour=colour, unicode=unicode)
             joined = ' '.join(rows)
             self.assertIn('The system map needs a larger window (at least 60x20). Plain text:', joined)
-            self.assertIn('intune-iac workbench system-map --root ROOT --policy ID', ' '.join(row.rstrip(' \\').strip() for row in rows))
+            self.assertIn("Plain text: intune-iac workbench system-map, with this workspace's --root and --policy", joined)
             self.assertLessEqual(len(rows), 12)
             self.assertTrue(all(width_of(row) <= 40 for row in rows))
             for label in screen().LABELS.values():
@@ -329,6 +329,33 @@ class SizeTests(unittest.TestCase):
         # Short in either direction is no room: 59 columns or 19 rows is the same sentence.
         for size in ((59, 24), (80, 19)):
             self.assertIn('needs a larger window', ' '.join(screen().render(snapshot, size[0], size[1], colour=False, unicode=False)))
+
+
+class CommandTests(unittest.TestCase):
+    STAND_INS = ('ROOT', 'DIRECTORY', 'ID', 'PATH')
+
+    def test_no_row_at_any_size_holds_a_command_with_a_stand_in_operand(self):
+        for snapshot in (recorded(), hostile(), unsupported_schema()):
+            for size in ALL_SIZES + ((59, 24), (80, 19), (20, 5)):
+                for colour, unicode in MODES:
+                    rows = screen().render(snapshot, size[0], size[1], colour=colour, unicode=unicode)
+                    for row in plain(rows):
+                        if 'intune-iac' in row:
+                            self.assertFalse(set(row.replace('\\', ' ').split()) & set(self.STAND_INS), (size, row))
+            for width in (40, 80, 120):
+                for row in screen().text(snapshot, width):
+                    self.assertFalse(set(row.split()) & set(self.STAND_INS), row)
+
+    def test_below_the_map_size_the_notice_is_whole_and_names_the_route_in_words(self):
+        notice = ("The system map needs a larger window (at least 60x20). Plain text: intune-iac workbench system-map, "
+                  "with this workspace's --root and --policy")
+        for size in ((40, 12), (59, 24), (80, 19), (30, 8)):
+            rows = screen().render(recorded(), size[0], size[1], colour=False, unicode=False)
+            self.assertIn(notice, ' '.join(row.strip() for row in rows), size)
+            self.assertTrue(all(width_of(row) <= size[0] for row in rows), size)
+
+    def test_at_the_map_size_there_is_no_notice(self):
+        self.assertNotIn('larger window', ' '.join(screen().render(recorded(), 60, 20, colour=False, unicode=False)))
 
 
 class ModeTests(unittest.TestCase):

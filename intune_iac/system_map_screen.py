@@ -26,8 +26,8 @@ from .workbench_screens import word_wrap
 from .workbench_tui import cell_width, clip, pad, safe_text
 
 MIN_SIZE = (60, 20)
-COMMAND_UNITS = ('intune-iac workbench system-map', '--root ROOT', '--policy ID')
-NEEDS = 'The system map needs a larger window (at least %dx%d). Plain text:' % MIN_SIZE
+NEEDS = ("The system map needs a larger window (at least %dx%d). Plain text: intune-iac workbench system-map, with this "
+         "workspace's --root and --policy." % MIN_SIZE)
 UNAVAILABLE = 'System map unavailable: '
 UNAVAILABLE_SCHEMA = 'system-map-unavailable/1'
 HAZARD = 'recorded means on record, not current or successful.'
@@ -100,22 +100,11 @@ def unavailable_lines(reason, width):
     return word_wrap(UNAVAILABLE + reason + '.', width)
 
 
-def command_rows(width):
-    """The plain-text command on rows to copy: it breaks between its arguments, every row but the last ending in a backslash."""
-    rows, current = [], ''
-    for unit in COMMAND_UNITS:
-        candidate = unit if not current else current + ' ' + unit
-        if current and cell_width(candidate) > width - 2:
-            rows.append(current + ' \\')
-            current = '    ' + unit
-        else:
-            current = candidate
-    return rows + [current]
-
-
 def no_map_lines(width):
-    """What the map says where there is no room for it: that it needs a larger window, then the plain-text route."""
-    return word_wrap(NEEDS, width) + command_rows(width)
+    """What the map says where there is no room for it: that it needs a larger window, and the plain-text route in words.
+    A copyable command never holds a stand-in operand (ROOT, ID), so the operands are named, not written, as the workflow
+    map's small-window notice does when it cannot show the real ones."""
+    return word_wrap(NEEDS, width)
 
 
 # ---- the words of one node and one edge -------------------------------------------------------------------------------
