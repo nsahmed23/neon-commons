@@ -1042,7 +1042,7 @@ class EngineCommandTests(LayerFixture):
         from intune_iac.workbench_tui import LAYERS, READ_VIEWS, SUBVIEWS, VIEW_COMMANDS
         self.assertIn('workflow', VIEW_COMMANDS)
         self.assertNotIn('workflow', READ_VIEWS)
-        self.assertEqual((LAYERS['workflow'], SUBVIEWS['workflow']), ('read-only', 'Workflow map'))
+        self.assertEqual((LAYERS['workflow'], SUBVIEWS['workflow']), ('read-only', 'Workflow'))
         line = next(entry for entry in HELP['navigation'] if entry.startswith('workflow'))
         for word in ('selected policy', 'read-only', 'Esc'):
             self.assertIn(word, line)
@@ -1063,7 +1063,10 @@ class LayerFrameTests(LayerFixture):
         ws, frames = self.open_layer()
         state, rows = ws.states[-1], self.plain(frames[-1])
         self.assertEqual((state['layer'], state['tab']), ('workflow', 1))
-        self.assertIn('INTUNE WORKBENCH  /  Inspector  /  Workflow map  /  read-only', rows[0])
+        self.assertIn('INTUNE WORKBENCH  /  Inspector  /  Workflow  /  read-only', rows[0])
+        # The title fits the narrowest window the map is drawn in, so "read-only" is never cut.
+        ws, frames = self.open_layer((60, 20), 'ascii')
+        self.assertTrue(self.plain(frames[-1])[0].rstrip().endswith('read-only'), self.plain(frames[-1])[0])
         text = ' '.join(' '.join(rows).split())
         self.assertIn('[WORKFLOW]', text)
         self.assertIn('approve, execute', text)

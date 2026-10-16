@@ -198,7 +198,7 @@ def wrap(value, width):
 # Views shown on a surface that is not their own; the title names both, so the tab and the body agree.
 SUBVIEWS = {'estate-overview': 'Relationship overview', 'diagnostics': 'Diagnostics', 'health': 'Health', 'queue': 'Maintenance queue', 'delivery': 'Delivery',
             'families': 'Families', 'start': 'Start', 'catalog': 'Catalog', 'dictionary': 'Setting dictionary', 'dictionary-page': 'Setting dictionary',
-            'lineage': 'Lineage', 'repository-entry': 'Repository entry', 'workflows': 'CI runs', 'workflow': 'Workflow map'}
+            'lineage': 'Lineage', 'repository-entry': 'Repository entry', 'workflows': 'CI runs', 'workflow': 'Workflow'}
 # From this many body cells, the readable summary and the exact engine record sit side by side.
 WIDE = 150
 # The documented minimum window (columns, rows): the hazard's shortest wording, its response and the whole short
