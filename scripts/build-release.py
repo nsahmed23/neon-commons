@@ -2,6 +2,8 @@
 """Build separate runnable plugin and source/evaluation archives."""
 import argparse
 import contextlib
+import fnmatch
+import getpass
 import hashlib
 import json
 import os
@@ -20,6 +22,22 @@ from intune_iac import build_identity
 
 EXCLUDE={'.git','__pycache__','.venv','.intune-iac','.superpowers','dist','build'}
 SOURCE_INVENTORY = 'release-source-files.txt'
+# Names a release never carries, matched on the file's own name without regard to case. The older guard in source_files stays
+# as it was; these are refused beside it.
+SENSITIVE_NAMES = ('*.tfstate', '*.tfstate.*', '.env', '.env.*', '*.pem', '*.key', '*.pfx', '*.p12', 'id_rsa*', 'id_ed25519*',
+                   'credentials.json', '.netrc', '.npmrc', '.pypirc')
+# The content report. SHAPE_KINDS names the product detector's shapes (intune_iac.judge._SECRET_SHAPES) in their order.
+ALLOWANCE_FILE = 'release-sensitive-allow.txt'
+SHAPE_KINDS = ('jwt', 'bearer', 'private_key', 'vendor_token', 'entra_secret', 'url_password')
+# These refuse the build unless the reviewed allowance file covers the file. The two weakest shapes (a Bearer word followed by
+# token-like text, and user:password in a URL) match prose and examples about as often as secrets, so they are counted in the
+# receipt and never refuse: an allowance entry for each would be a rubber stamp.
+REFUSED_KINDS = ('private_key', 'jwt', 'vendor_token', 'entra_secret', 'host_home_path')
+COUNTED_KINDS = ('bearer', 'url_password')
+PRIVATE_KEY_MARKER = re.compile(r'-----BEGIN [A-Z0-9 ]*PRIVATE KEY(?: BLOCK)?-----')
+CONTENT_LIMITS = ("This control matches fixed secret shapes, private-key block markers and the building host's own home path and "
+                  "user name. It does not classify arbitrary content: a secret with no recognizable shape passes, and so does "
+                  "the home path of another host.")
 
 
 def git_environment():
@@ -160,11 +178,17 @@ def source_reader():
         os.close(root_fd)
 
 
+def sensitive_name(name):
+    """Whether the file's own name is one a release never carries."""
+    own = Path(name).name.lower()
+    return any(fnmatch.fnmatchcase(own, pattern) for pattern in SENSITIVE_NAMES)
+
+
 def source_files(inventory_bytes=None):
     """Only reviewed inventory entries enter the source distribution.
 
-    This is a selection boundary, not a content/credential scanner. Adding
-    files requires deliberate review and editing the inventory in source control.
+    This is a selection boundary: it refuses sensitive names. The bytes of what is selected are looked at by scan_content.
+    Adding files requires deliberate review and editing the inventory in source control.
     """
     inventory = ROOT / SOURCE_INVENTORY
     if not allowed(inventory):
@@ -180,6 +204,8 @@ def source_files(inventory_bytes=None):
         if name in names or not allowed(ROOT / name):
             raise ValueError('Duplicate, missing or unsafe source inventory member: ' + name)
         if Path(name).name == '.env' or '.tfstate' in Path(name).name or Path(name).suffix in {'.key', '.pem'}:
+            raise ValueError('Sensitive artifact name is not allowed in a release: ' + name)
+        if sensitive_name(name):
             raise ValueError('Sensitive artifact name is not allowed in a release: ' + name)
         names.append(name)
     if SOURCE_INVENTORY not in names:
@@ -271,6 +297,90 @@ def runtime_files():
     return sorted(set(names))
 
 
+def host_identity():
+    """The building host's home folder and user name: the two things a release must not carry by accident."""
+    try:
+        user = getpass.getuser()
+    except (KeyError, OSError):
+        user = ''
+    return os.environ.get('HOME') or str(Path.home()), user
+
+
+def mask(value):
+    """Enough of a value to find the place, not enough to use it: its first four characters and its length."""
+    return value[:4] + '*' * 8 + f' ({len(value)} characters)'
+
+
+def read_allowances(data):
+    """The reviewed allowance file: one 'path | sha256 | kind | reason' per line; blank lines and # comments are skipped.
+
+    An entry covers one kind of finding in one file with exactly these bytes, so editing the file ends the allowance.
+    """
+    entries = {}
+    for number, line in enumerate(data.decode('utf-8').splitlines(), 1):
+        if not line.strip() or line.lstrip().startswith('#'):
+            continue
+        parts = [part.strip() for part in line.split(' | ', 3)]
+        valid = (len(parts) == 4 and re.fullmatch(r'[0-9a-f]{64}', parts[1]) is not None and parts[2] in REFUSED_KINDS
+                 and 0 < len(parts[3]) <= 300)
+        try:
+            valid = valid and safe_name(parts[0]) == parts[0]
+        except ValueError:
+            valid = False
+        key = tuple(parts[:3])
+        if not valid or key in entries:
+            raise ValueError(f'{ALLOWANCE_FILE} line {number} is not a new "path | sha256 | kind | reason" entry '
+                             f'with a known kind ({", ".join(REFUSED_KINDS)}) and a one-line reason.')
+        entries[key] = parts[3]
+    return entries
+
+
+def scan_content(snapshot):
+    """Look at the bytes about to be archived for what a source tree should not carry.
+
+    Returns (findings, counted, scanned_bytes). A finding is one kind in one file: its path, the sha256 of the captured bytes,
+    the kind, how many matches, the first line and the first match masked; the value itself is never kept. The kinds are the
+    product's own secret shapes (intune_iac.judge), private-key block markers and the building host's home path and user name.
+    The two weakest shapes are only counted.
+    """
+    from intune_iac import judge
+    if len(judge._SECRET_SHAPES) != len(SHAPE_KINDS):
+        raise ValueError('The product secret detector changed; update SHAPE_KINDS in this script before building.')
+    home, user = host_identity()
+    host = []
+    if len(home) > 1:
+        host.append((re.compile(re.escape(home.encode()) + rb'(?![A-Za-z0-9_.-])'), '<home>'))
+    if len(user) >= 3 and user != 'root':
+        host.append((re.compile(rb'(?<=[/\\])' + re.escape(user.encode()) + rb'(?![A-Za-z0-9_.-])'), '<user>'))
+    findings, counted, scanned = [], {kind: {'files': 0, 'matches': 0} for kind in COUNTED_KINDS}, 0
+    for name, data in sorted(snapshot.items()):
+        scanned += len(data)
+        text = data.decode('utf-8', errors='replace')
+        found = {}
+        for kind, shape in zip(SHAPE_KINDS, judge._SECRET_SHAPES):
+            found.setdefault(kind, {}).update({match.start(): (text.count('\n', 0, match.start()) + 1, mask(match.group(0)))
+                                               for match in shape.finditer(text)})
+        found['private_key'].update({match.start(): (text.count('\n', 0, match.start()) + 1, mask(match.group(0)))
+                                     for match in PRIVATE_KEY_MARKER.finditer(text)})
+        found['host_home_path'], covered_spans = {}, []
+        for pattern, label in host:     # the home path first: a user name inside it is the same occurrence, not a second one
+            for match in pattern.finditer(data):
+                if not any(start <= match.start() and match.end() <= end for start, end in covered_spans):
+                    found['host_home_path'][match.start()] = (data.count(b'\n', 0, match.start()) + 1, label)
+                    covered_spans.append((match.start(), match.end()))
+        digest = hashlib.sha256(data).hexdigest()
+        for kind in COUNTED_KINDS:
+            if found[kind]:
+                counted[kind]['files'] += 1
+                counted[kind]['matches'] += len(found[kind])
+        for kind in REFUSED_KINDS:
+            if found[kind]:
+                first = found[kind][min(found[kind])]
+                findings.append({'path': name, 'sha256': digest, 'kind': kind, 'count': len(found[kind]), 'line': first[0],
+                                 'masked': first[1]})
+    return findings, counted, scanned
+
+
 def write_archive(destination,names,prefix):
     if destination.is_symlink():
         raise ValueError('Archive destination must not be a symlink.')
@@ -323,21 +433,38 @@ def main():
         if not set(runtime).issubset(source):
             raise ValueError('Runtime members must be included in the reviewed source inventory.')
         snapshot = {name: inventory_bytes if name == SOURCE_INVENTORY else read(name) for name in source}
+        allowance_bytes = read(ALLOWANCE_FILE) if allowed(ROOT / ALLOWANCE_FILE) else None
     after = git_state(detail=True)
     if before != after:
         raise ValueError('The checkout changed while the snapshot was read (its commit, tree or tracked modifications); '
                          'build again from a checkout that is not being edited.')
-    differing = bind_to_commit(snapshot, after)
+    # The reviewed allowance file is part of what is bound to the commit: an unreviewed one would review nothing.
+    differing = bind_to_commit(snapshot if allowance_bytes is None else dict(snapshot, **{ALLOWANCE_FILE: allowance_bytes}), after)
     state = {key: after[key] for key in ('commit', 'tree', 'dirty')}
     if differing:
         state['dirty'] = True
+    # What is about to be archived is looked at once, here, before anything is written.
+    allowances = read_allowances(allowance_bytes) if allowance_bytes is not None else {}
+    findings, counted, scanned_bytes = scan_content(snapshot)
+    covered = {key for key in allowances if any(key == (item['path'], item['sha256'], item['kind']) for item in findings)}
+    uncovered = [item for item in findings if (item['path'], item['sha256'], item['kind']) not in allowances]
+    if uncovered:
+        raise ValueError(f'Sensitive content is not covered by the reviewed {ALLOWANCE_FILE} (path, sha256 of these bytes, kind, '
+                         'one-line reason): ' + '; '.join(f"{item['path']} ({item['kind']}, line {item['line']}, {item['count']} "
+                                                          f"match{'es' if item['count'] != 1 else ''})" for item in uncovered[:20])
+                         + (f'; and {len(uncovered) - 20} more' if len(uncovered) > 20 else ''))
+    sensitive = {'scanned_files': len(snapshot), 'scanned_bytes': scanned_bytes, 'kinds_refused': list(REFUSED_KINDS),
+                 'kinds_counted_only': list(COUNTED_KINDS), 'allowance_file': ALLOWANCE_FILE,
+                 'allowance_file_sha256': hashlib.sha256(allowance_bytes).hexdigest() if allowance_bytes is not None else None,
+                 'allowance_entries': len(allowances), 'allowance_unused': len(allowances) - len(covered),
+                 'findings': [dict(item, allowed=True) for item in findings], 'counted_only': counted, 'limits': CONTENT_LIMITS}
     if args.check_only:
         source_hashes={name:hashlib.sha256(data).hexdigest() for name,data in sorted(snapshot.items())}
         report={'status':'PASS','mode':'inventory_validation_only','version':__version__,
             'source_files':len(source),'runtime_files':len(runtime),'source_bytes':sum(map(len,snapshot.values())),
             'source_inventory_sha256':hashlib.sha256(inventory_bytes).hexdigest(),
             'source_snapshot_sha256':hashlib.sha256(json.dumps(source_hashes,sort_keys=True,separators=(',',':')).encode()).hexdigest(),
-            'runtime_in_reviewed_source':True,'archives_created':False,
+            'runtime_in_reviewed_source':True,'archives_created':False,'sensitive_content':sensitive,
             'qualification':'Selection and bounded no-follow file validation only; no package, security, platform or production acceptance.',
             'required_follow_up':'Freeze exact source revision, build reproducibly, verify and independently qualify the exact final archives.'}
         print(json.dumps(report,indent=2))
@@ -365,7 +492,8 @@ def main():
     receipts=[runtime_receipt,source_receipt]
     receipt={'version':__version__,'build':build,'archives':receipts,
              'source_inventory_sha256':hashlib.sha256(inventory_bytes).hexdigest(),
-             'source_selection':'Explicit reviewed file inventory; unlisted local files are excluded. Contents are not automatically classified for secrets.',
+             'source_selection':'Explicit reviewed file inventory; unlisted local files are excluded. The bytes are scanned for fixed secret shapes, private-key block markers and the building host\'s home path before anything is written (see sensitive_content); that is not a classification of arbitrary content.',
+             'sensitive_content':sensitive,
              'runtime_excludes':['tests','golden output projects','historical research','upstream clones','model weights']}
     with (out/'Intune_IaC_Plugin_Archive_Receipt.json').open('x', encoding='utf-8') as stream:
         stream.write(json.dumps(receipt,indent=2)+'\n')

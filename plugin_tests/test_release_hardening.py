@@ -719,6 +719,180 @@ class GitBindingTests(unittest.TestCase):
         self.assertEqual((record['commit'], record['tree'], record['dirty']), (None, None, None))
 
 
+# Secret-shaped test data is assembled here, never written out whole, so that this file does not itself hold what the control
+# looks for when a release is built from the checkout this file belongs to.
+FAKE_HOME = '/home/' + 'fixture-user'
+SHAPES = {
+    'private_key': lambda: ('-----BEGIN ' + 'RSA PRIVATE KEY-----\n' + 'MIIB' * 5 + '\n').encode(),
+    'jwt': lambda: ('token = eyJ' + 'a' * 10 + '.' + 'b' * 12 + '.' + 'c' * 10 + '\n').encode(),
+    'vendor_token': lambda: ('key = gh' + 'p_' + 'A1b2C3d4E5' * 4 + '\n').encode(),
+    'entra_secret': lambda: ('secret = abc' + '1' + 'Q' + '~' + 'x' * 24 + '\n').encode(),
+    'host_home_path': lambda: ('see ' + FAKE_HOME + '/projects/notes.txt\n').encode(),
+}
+COUNTED_ONLY = {
+    'bearer': lambda: ('Authorization: Bear' + 'er ' + 'abcdefghij0123456789' + '\n').encode(),
+    'url_password': lambda: ('https://' + 'someone:' + 'pa55word' + chr(64) + 'example.test/path\n').encode(),
+}
+
+
+class SensitiveFixture:
+    """A FixtureBuild with extra inventoried files, an optional allowance file and a fixed idea of the building host."""
+
+    def __init__(self, case, files=None, allowance=None):
+        self.fixture = base.FixtureBuild(case)
+        root = self.fixture.root
+        names = ['README.md', 'NOTES.md']
+        for name, data in (files or {}).items():
+            (root / name).parent.mkdir(parents=True, exist_ok=True)
+            (root / name).write_bytes(data)
+            names.append(name)
+        (root / 'release-source-files.txt').write_text('\n'.join(names + ['release-source-files.txt']) + '\n')
+        if allowance is not None:
+            (root / 'release-sensitive-allow.txt').write_text(allowance)
+        self.root = root
+
+    def build(self):
+        with patch.object(builder, 'host_identity', create=True, return_value=(FAKE_HOME, 'fixture-user')):
+            receipt = self.fixture.build()
+        if 'sensitive_content' not in receipt:
+            raise AssertionError('the receipt has no sensitive_content block')
+        return receipt
+
+    def digest(self, name):
+        return sha256(( self.root / name).read_bytes())
+
+
+sha256 = base.sha256
+
+
+class SensitiveNameTests(unittest.TestCase):
+    """Item 6, names: the existing guard stays as it is, and these names are refused beside it."""
+
+    DENIED = ('.env', '.env.local', 'config/.env.production', 'terraform.tfstate', 'terraform.tfstate.backup', 'x/state.tfstate.1',
+              'ca.pem', 'deploy/server.key', 'store.pfx', 'store.p12', 'id_rsa', 'home/id_rsa.pub', 'id_ed25519', 'id_ed25519.pub',
+              'credentials.json', 'cfg/credentials.json', '.netrc', '.npmrc', 'sub/.pypirc', 'CA.PEM', 'Credentials.JSON')
+    ALLOWED = ('env.md', 'docs/keys.md', 'credentials-guide.md', 'README.pem.md', 'docs/envelope.txt', 'identity.py', 'docs/netrc.md')
+
+    def source_files(self, name):
+        fixture = base.FixtureBuild(self)
+        (fixture.root / name).parent.mkdir(parents=True, exist_ok=True)
+        (fixture.root / name).write_text('content\n')
+        inventory = ('README.md\n' + name + '\nrelease-source-files.txt\n').encode()
+        with patch.object(builder, 'ROOT', fixture.root):
+            return builder.source_files(inventory)
+
+    def test_each_sensitive_name_is_refused(self):
+        for name in self.DENIED:
+            with self.subTest(name):
+                with self.assertRaises(ValueError) as caught:
+                    self.source_files(name)
+                self.assertIn('Sensitive artifact name', str(caught.exception))
+                self.assertIn(name, str(caught.exception))
+
+    def test_ordinary_names_that_only_look_similar_are_accepted(self):
+        for name in self.ALLOWED:
+            with self.subTest(name):
+                self.assertIn(name, self.source_files(name))
+
+    def test_the_existing_tfstate_guard_is_still_there_word_for_word(self):
+        guard = ("if Path(name).name == '.env' or '.tfstate' in Path(name).name or Path(name).suffix in {'.key', '.pem'}:")
+        self.assertIn(guard, (ROOT / 'scripts/build-release.py').read_text())
+
+
+class SensitiveContentTests(unittest.TestCase):
+    """Item 6, content: the bytes about to be archived are scanned for fixed secret shapes, private-key markers and the building
+    host's own home path. A finding that no reviewed allowance covers refuses the build; the receipt records what was found,
+    masked, with counts."""
+
+    def test_each_kind_refuses_the_build_and_the_message_never_holds_the_value(self):
+        for kind, make in SHAPES.items():
+            with self.subTest(kind):
+                data = make()
+                sensitive = SensitiveFixture(self, {'docs/found.txt': data})
+                with self.assertRaises(ValueError) as caught:
+                    sensitive.build()
+                message = str(caught.exception)
+                self.assertIn('docs/found.txt', message)
+                self.assertIn(kind, message)
+                self.assertIn('release-sensitive-allow.txt', message)
+                self.assertNotIn(data.decode().strip().split()[-1], message)
+                self.assertFalse(sensitive.fixture.output.exists() and any(sensitive.fixture.output.iterdir()), 'no archive was written')
+
+    def allowance_for(self, sensitive, name, kind, reason='a made-up value used by a test'):
+        return f'{name} | {sensitive.digest(name)} | {kind} | {reason}\n'
+
+    def test_a_reviewed_allowance_lets_the_build_through_and_the_receipt_records_the_finding_masked(self):
+        for kind, make in SHAPES.items():
+            with self.subTest(kind):
+                data = make()
+                probe = SensitiveFixture(self, {'docs/found.txt': data})
+                allowance = '# reviewed by the release owner\n\n' + self.allowance_for(probe, 'docs/found.txt', kind)
+                sensitive = SensitiveFixture(self, {'docs/found.txt': data}, allowance=allowance)
+                receipt = sensitive.build()
+                block = receipt['sensitive_content']
+                found = [item for item in block['findings'] if item['kind'] == kind]
+                self.assertEqual(len(found), 1, block['findings'])
+                self.assertEqual((found[0]['path'], found[0]['sha256'], found[0]['count'], found[0]['allowed']),
+                                 ('docs/found.txt', sensitive.digest('docs/found.txt'), 1, True))
+                self.assertEqual(found[0]['line'], 1)
+                value = data.decode().strip().split()[-1]
+                self.assertNotIn(value, json.dumps(receipt), 'the receipt holds the value itself')
+                if kind == 'host_home_path':
+                    self.assertIn(found[0]['masked'], ('<home>', '<user>'))
+                else:
+                    self.assertIn('*', found[0]['masked'])
+                self.assertEqual(block['allowance_file_sha256'], sha256((sensitive.root / 'release-sensitive-allow.txt').read_bytes()))
+
+    def test_an_allowance_that_does_not_match_the_bytes_or_the_kind_covers_nothing(self):
+        data = SHAPES['jwt']()
+        probe = SensitiveFixture(self, {'docs/found.txt': data})
+        good = self.allowance_for(probe, 'docs/found.txt', 'jwt')
+        cases = {'the file was edited after review': good.replace(probe.digest('docs/found.txt'), '0' * 64),
+                 'a different kind': good.replace('| jwt |', '| vendor_token |'),
+                 'a different path': good.replace('docs/found.txt', 'docs/other.txt')}
+        for name, allowance in cases.items():
+            with self.subTest(name):
+                sensitive = SensitiveFixture(self, {'docs/found.txt': data}, allowance=allowance)
+                with self.assertRaises(ValueError) as caught:
+                    sensitive.build()
+                self.assertIn('docs/found.txt', str(caught.exception))
+
+    def test_an_unused_allowance_is_counted_and_does_not_refuse(self):
+        stale = f'docs/gone.txt | {"1" * 64} | jwt | the file this reviewed was removed\n'
+        receipt = SensitiveFixture(self, allowance=stale).build()
+        self.assertEqual((receipt['sensitive_content']['allowance_entries'], receipt['sensitive_content']['allowance_unused']), (1, 1))
+
+    def test_a_malformed_allowance_line_refuses_the_build(self):
+        for line in ('docs/found.txt | not-a-digest | jwt | reason\n', f'docs/found.txt | {"1" * 64} | no_such_kind | reason\n',
+                     f'docs/found.txt | {"1" * 64} | jwt |\n', 'only three | fields | here\n'):
+            with self.subTest(line):
+                with self.assertRaises(ValueError) as caught:
+                    SensitiveFixture(self, allowance=line).build()
+                self.assertIn('release-sensitive-allow.txt', str(caught.exception))
+
+    def test_the_two_weakest_shapes_are_counted_and_never_refuse(self):
+        files = {f'docs/{kind}.txt': make() for kind, make in COUNTED_ONLY.items()}
+        receipt = SensitiveFixture(self, files).build()
+        block = receipt['sensitive_content']
+        self.assertEqual(block['findings'], [])
+        for kind in COUNTED_ONLY:
+            self.assertEqual(block['counted_only'][kind], {'files': 1, 'matches': 1}, kind)
+
+    def test_a_clean_tree_reports_what_it_scanned_and_what_the_control_does_not_do(self):
+        receipt = SensitiveFixture(self).build()
+        block = receipt['sensitive_content']
+        self.assertEqual((block['findings'], block['scanned_files']), ([], 3))
+        self.assertGreater(block['scanned_bytes'], 0)
+        self.assertIn('does not classify arbitrary content', block['limits'])
+        self.assertNotIn('not automatically classified', receipt['source_selection'])
+        self.assertIn('sensitive_content', receipt['source_selection'])
+
+    def test_the_guide_says_what_the_control_does_and_does_not_do(self):
+        text = squashed(guide_section('Support limits'))
+        for phrase in ('release-sensitive-allow.txt', 'does not classify arbitrary content', 'home path'):
+            self.assertIn(phrase, text)
+
+
 class GuideDigestTests(unittest.TestCase):
     """The guide shows only the forms the script accepts and says where a digest is to be taken from."""
 

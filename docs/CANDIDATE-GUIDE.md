@@ -466,6 +466,15 @@ independent security review and the owner's production decision); none is closed
 session, the hazard and the prompt, never the body. The relationship map, the catalog layer and the workflow layer
 each need at least 60 columns by 20 rows; in a smaller window they say that they need a larger one.
 
+**What the build checks about secrets.** The release builder refuses a file whose own name is one a release never
+carries (Terraform state files, environment files, private keys and certificate stores, SSH keys, and the credential
+files of common tools). Before it writes an archive it also scans the bytes it is about to archive for the product's own
+secret shapes (JWTs, vendor-prefixed tokens, Entra client secrets), private-key block markers, and the building host's
+own home path and user name. A finding that the reviewed allowance file release-sensitive-allow.txt does not cover (path,
+sha256 of those bytes, kind and a one-line reason) refuses the build; the receipt lists what was found, masked, with
+counts, and counts two weaker shapes (a Bearer value, a password in a URL) without refusing. This does not classify
+arbitrary content: a secret with no recognizable shape passes, and so does the home path of another host.
+
 More detail: `docs/PRODUCT-STATUS.md` (the requirement-to-evidence table and the stages still open),
 `docs/OPERATING-PROFILE-R4.md`, `docs/EXTERNAL-GATES-R4.md` and `docs/DATA-HANDLING.md`.
 
