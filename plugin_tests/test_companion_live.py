@@ -1463,6 +1463,30 @@ class StopTests(Fixture):
         self.assertIn('companion_live_close_failed', ' '.join(getattr(startup, '__notes__', [])))
         self.assertTrue(self.port_accepts(live))
 
+    def test_a_failed_start_whose_cleanup_recovered_does_not_say_the_cleanup_failed(self):
+        from intune_iac import companion_live
+
+        class RecoveredClose(companion_live.BoundedServer):
+            def server_close(self):            # the first close fails; the fallback closes the raw socket
+                raise OSError('server_close failed')
+        live, startup = self.start_with_failing_thread_starts({1}, RecoveredClose)
+        self.assertEqual(live._state, 'closed')
+        self.assertIsNotNone(live.close_note, 'the recovered problem is kept as the close note')
+        self.assertEqual(getattr(startup, '__notes__', []), [], 'the port is verified closed: no cleanup failure is claimed')
+        with self.assertRaises(OSError):
+            socket.create_connection(('127.0.0.1', live.port), timeout=2)
+
+    def test_the_may_still_be_bound_clause_is_only_for_a_listener_that_is_not_closed(self):
+        from intune_iac.companion import note_cleanup_failure
+        from intune_iac.io import AppError
+        failure = AppError('companion_live_close_failed', 'The listener could not be closed: OSError')
+        for closed, expect_bound in ((False, True), (True, False)):
+            primary = RuntimeError('startup')
+            note_cleanup_failure(primary, failure, closed=closed)
+            notes = ' '.join(primary.__notes__)
+            self.assertIn('companion_live_close_failed', notes)
+            self.assertEqual('may still be bound' in notes, expect_bound, notes)
+
     def test_end_without_waiting_stops_in_this_thread_when_the_hand_over_thread_cannot_start(self):
         live = self.start()
         real_start, calls = threading.Thread.start, []

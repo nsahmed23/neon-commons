@@ -231,15 +231,16 @@ def _carry_classes(target, report):
             target.add_note(note)
 
 
-def note_cleanup_failure(primary, failure):
+def note_cleanup_failure(primary, failure, closed=False):
     """Attach a cleanup failure to the error that is already escaping, so the engineer still gets that error. The note
     carries the code and the class only: never an address, a token or a message. Every class the report names, in its own
-    notes or in those of the failures it is chained from, travels with it."""
+    notes or in those of the failures it is chained from, travels with it. `closed` is the caller's knowledge that the
+    listener is closed after all; the note then does not claim the port may still be bound."""
     shown = as_close_failure(failure)
     cause = shown.__cause__ or shown
     also = ''.join('; also %s' % name for name in _class_notes(shown))
-    primary.add_note('Cleanup also failed: %s (%s%s). The listener may still be bound until this process exits.'
-                     % (shown.code, type(cause).__name__, also))
+    outcome = 'The listener is closed.' if closed else 'The listener may still be bound until this process exits.'
+    primary.add_note('Cleanup also failed: %s (%s%s). %s' % (shown.code, type(cause).__name__, also, outcome))
 
 
 class _Attempt:
@@ -351,13 +352,12 @@ class LiveCompanion:
             mine = self._generation
         self._stop.set()
         primary, diagnostic = self._cleanup(join_watchdog=True)
-        for cleanup_failure in (primary, diagnostic):
-            if cleanup_failure is not None:
-                note_cleanup_failure(failure, cleanup_failure)
         if primary is None:
+            # Closure is verified: the diagnostic is a recovered problem, kept as the close note and not reported as a failure.
             self._settle(mine, 'closed', note=diagnostic, claim=False)
         else:
             self._settle(mine, 'failed', primary, claim=False)
+            note_cleanup_failure(failure, primary, closed=self.is_closed)
 
     def touch(self):
         with self._lock:
