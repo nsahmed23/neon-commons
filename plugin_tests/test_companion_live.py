@@ -646,6 +646,120 @@ class StopTests(Fixture):
         with self.assertRaises(OSError):
             socket.create_connection(('127.0.0.1', live.port), timeout=2)
 
+    def hold_first_stopper(self, live):
+        """Make server.shutdown() block until released, so the thread that began stopping is held inside it: the interval
+        in which the port has not yet been closed. Returns (entered, release)."""
+        entered, release = threading.Event(), threading.Event()
+        real = live.server.shutdown
+
+        def held():
+            entered.set()
+            release.wait(10)
+            real()
+        patch = mock.patch.object(live.server, 'shutdown', held)
+        patch.start()
+        self.addCleanup(patch.stop)
+        self.addCleanup(release.set)
+        return entered, release
+
+    def port_accepts(self, live):
+        try:
+            socket.create_connection(('127.0.0.1', live.port), timeout=2).close()
+        except OSError:
+            return False
+        return True
+
+    def run_in_thread(self, call):
+        outcome = []
+
+        def target():
+            try:
+                outcome.append(('returned', call()))
+            except Exception as error:
+                outcome.append(('raised', error))
+        thread = threading.Thread(target=target, daemon=True)
+        thread.start()
+        return thread, outcome
+
+    def test_wait_does_not_report_the_end_while_the_watchdog_is_still_stopping_it(self):
+        live = self.start(idle_seconds=600)
+        entered, release = self.hold_first_stopper(live)
+        self.clock.now += 601
+        self.assertTrue(entered.wait(5), 'the watchdog began stopping the listener')
+        self.assertTrue(self.port_accepts(live), 'precondition: the first stopper is held before the port is closed')
+        self.assertIsNone(live.wait_step(), 'wait_step reported an end while the port still accepts')
+        thread, outcome = self.run_in_thread(lambda: live.wait(poll=0.01))
+        thread.join(0.3)
+        self.assertTrue(thread.is_alive(), 'wait() returned while the port still accepts connections')
+        release.set()
+        thread.join(5)
+        self.assertEqual(outcome, [('returned', 'idle')])
+        with self.assertRaises(OSError):
+            socket.create_connection(('127.0.0.1', live.port), timeout=2)
+
+    def test_a_second_stop_does_not_return_before_the_first_has_closed_the_port(self):
+        live = self.start()
+        entered, release = self.hold_first_stopper(live)
+        first, first_outcome = self.run_in_thread(live.stop)
+        self.assertTrue(entered.wait(5), 'the first stop() is inside shutdown()')
+        second, second_outcome = self.run_in_thread(live.stop)
+        second.join(0.3)
+        self.assertTrue(second.is_alive(), 'the second stop() returned while the port still accepts connections')
+        self.assertTrue(self.port_accepts(live))
+        release.set()
+        first.join(5)
+        second.join(5)
+        self.assertEqual([first_outcome, second_outcome], [[('returned', None)], [('returned', None)]])
+        with self.assertRaises(OSError):
+            socket.create_connection(('127.0.0.1', live.port), timeout=2)
+
+    def test_a_second_end_that_waits_does_not_return_before_the_first_has_closed_the_port(self):
+        live = self.start()
+        entered, release = self.hold_first_stopper(live)
+        first, _ = self.run_in_thread(live.stop)
+        self.assertTrue(entered.wait(5))
+        second, second_outcome = self.run_in_thread(lambda: live.end('idle'))
+        second.join(0.3)
+        self.assertTrue(second.is_alive(), 'end(wait=True) returned while the port still accepts connections')
+        release.set()
+        first.join(5)
+        second.join(5)
+        self.assertEqual(second_outcome, [('returned', None)])
+        self.assertEqual(live.ended, 'stopped', 'the reason recorded first, under the lock, wins')
+        with self.assertRaises(OSError):
+            socket.create_connection(('127.0.0.1', live.port), timeout=2)
+
+    def test_a_second_stop_that_is_not_released_in_time_raises_instead_of_reporting_an_end(self):
+        from intune_iac import companion_live
+        from intune_iac.io import AppError
+        live = self.start()
+        entered, release = self.hold_first_stopper(live)
+        first, _ = self.run_in_thread(live.stop)
+        self.assertTrue(entered.wait(5))
+        # A shorter bound, only so the test does not wait the full production bound; the production bound is unchanged.
+        with mock.patch.object(companion_live, 'STOP_WAIT_SECONDS', 0.2, create=True):
+            with self.assertRaises(AppError) as caught:
+                live.stop()
+        self.assertEqual(caught.exception.code, 'companion_live_stop_timeout')
+        self.assertTrue(self.port_accepts(live))
+        release.set()
+        first.join(5)
+
+    def test_ending_from_a_request_thread_hands_the_stopping_over_and_the_first_reason_wins(self):
+        live = self.start()
+        entered, release = self.hold_first_stopper(live)
+        caller, outcome = self.run_in_thread(lambda: live.end('idle', wait=False))
+        caller.join(2)
+        self.assertEqual(outcome, [('returned', None)], 'end(wait=False) must not block its caller')
+        self.assertTrue(entered.wait(5), 'another thread is doing the stopping')
+        live.end('later', wait=False)
+        self.assertEqual(live.ended, 'idle')
+        self.assertIsNone(live.wait_step())
+        release.set()
+        self.assertEqual(live.wait(poll=0.01), 'idle')
+        with self.assertRaises(OSError):
+            socket.create_connection(('127.0.0.1', live.port), timeout=2)
+
     def test_only_a_page_request_with_the_token_extends_the_limit(self):
         live = self.start(idle_seconds=600)
         self.clock.now += 500

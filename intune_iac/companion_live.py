@@ -39,6 +39,8 @@ TOKEN_BYTES = 24
 REQUEST_TIMEOUT = 5
 SNAPSHOT_NAME = 'snapshot'
 WATCH_SECONDS = 0.05
+# How long a second stop() waits for the first to finish closing the port, and how long each thread join waits.
+STOP_WAIT_SECONDS = 5
 MAX_HANDLERS = 8
 # What every non-page response is allowed to do: nothing, and not be framed.
 DEFAULT_CSP = "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
@@ -188,6 +190,8 @@ class LiveCompanion:
         self.last_page = None
         self.ended = None
         self._stop = threading.Event()
+        # Set once the listening socket is closed (or there was none): the only thing that means "ended".
+        self._done = threading.Event()
         self._lock = threading.Lock()
         self._thread = None
         self._watchdog = None
@@ -235,10 +239,11 @@ class LiveCompanion:
             threading.Thread(target=self.stop, daemon=True).start()
 
     def wait_step(self):
-        """One look at whether the listener has ended: 'stopped' or 'idle', or None while it runs."""
+        """One look at whether the listener has ended: 'stopped' or 'idle', or None while it runs or is still being
+        stopped. It ends only once the port is closed, never while a stopper is still inside shutdown()."""
         if not self._stop.is_set() and self.expired():
             self.end('idle')
-        return (self.ended or 'stopped') if self._stop.is_set() else None
+        return (self.ended or 'stopped') if self._done.is_set() else None
 
     def wait(self, poll=0.2):
         """Block until the listener ends, and say why: 'idle' or 'stopped'."""
@@ -246,23 +251,31 @@ class LiveCompanion:
             reason = self.wait_step()
             if reason:
                 return reason
-            self._stop.wait(poll)
+            self._done.wait(poll)
 
     def stop(self):
+        """Stop the listener; returns once the port is closed. A call that is not the first waits for the first to finish
+        closing it, and raises if that takes longer than STOP_WAIT_SECONDS, rather than return before the end happened."""
         with self._lock:
-            if self._closed:
-                return
+            first = not self._closed
             self._closed = True
-            if self.ended is None:
+            if first and self.ended is None:
                 self.ended = 'stopped'
+        if not first:
+            if not self._done.wait(STOP_WAIT_SECONDS):
+                raise AppError('companion_live_stop_timeout', 'The listener is still being stopped by another caller.')
+            return
         self._stop.set()
         if self.server is not None:
             if self._thread is not None:
                 self.server.shutdown()
-                self._thread.join(5)
+                self._thread.join(STOP_WAIT_SECONDS)
             self.server.server_close()
+        # Closed: only now may anything report that the listener ended. Set before the watchdog join below, because the
+        # watchdog may itself be waiting above as a second caller.
+        self._done.set()
         if self._watchdog is not None and self._watchdog is not threading.current_thread():
-            self._watchdog.join(5)
+            self._watchdog.join(STOP_WAIT_SECONDS)
 
     def __enter__(self):
         return self.start()
