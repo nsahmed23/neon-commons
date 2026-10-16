@@ -2401,7 +2401,7 @@ WORKFLOW_FACT_WORDS = (
     ('field_changes', 'field changes'), ('opens_at', 'approval window opened'), ('closes_at', 'approval window closes'),
     ('closed_at', 'approval window closed'), ('classification', 'readback'), ('second_plan', 'second plan'),
     ('mismatch_count', 'mismatches'), ('previous_status', 'after'), ('count', 'reconciliations'),
-    ('journal_status', 'journal'), ('service_revision', 'service revision'), ('before_revision', 'before revision'),
+    ('journal_status', 'journal'), ('observed_revision', 'captured revision'), ('service_revision', 'service revision'), ('before_revision', 'before revision'),
     ('baseline_admissible', 'baseline admissible'), ('context_changed', 'context changed'))
 
 

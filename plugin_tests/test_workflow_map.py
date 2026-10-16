@@ -1696,7 +1696,9 @@ class ReviewStoreTests(LayerFixture):
         self.assertEqual((stages['readback']['state'], stages['readback']['reason']),
                          ('unknown', 'maintenance_visibility_pending'))
         self.assertEqual((stages['reconcile']['state'], stages['reconcile']['reason']), ('done', 'desired_state_observed'))
-        self.assertEqual([name for name, stage in stages.items() if stage['continuation']], [])
+        # The execution moved the service, so the observation is blocked and carries its own step (collect again); nothing
+        # else keeps a step, and in particular not the stale reconcile step.
+        self.assertEqual([name for name, stage in stages.items() if stage['continuation']], ['observe'])
         # The reconcile is done and the record cannot be made (the readback never verified): that is where the records
         # put the policy, an outcome the records show after dispatch.
         self.assertEqual((stages['record']['state'], flow['position']), ('not_applicable', 'record'))
@@ -1707,8 +1709,9 @@ class ReviewStoreTests(LayerFixture):
         maintenance.execute(self.operation, approve_digest=review['approval_digest'], fault='lost-response')
         maintenance.reconcile(self.operation)
         stages = by_id(self.flow())
+        from intune_iac.workbench_screens import ELIGIBILITY_FINDINGS
         self.assertEqual({name: stage['continuation'] for name, stage in stages.items() if stage['continuation']},
-                         {'record': NO_RECORD_STEP})
+                         {'observe': ELIGIBILITY_FINDINGS['service_changed'][1], 'record': NO_RECORD_STEP})
 
     def test_enter_on_propose_or_review_without_an_operation_opens_the_plan_list_the_surface_the_row_names(self):
         self.import_intent()
@@ -2572,6 +2575,95 @@ class StoredSeparatorTests(RecordedNameFixture):
                     for separator in SEPARATORS:
                         self.assertNotIn(separator, row, (size, rules))
                     self.assertLessEqual(len(row.splitlines()), 1, (size, rules, row))
+
+
+# ---- PKG-UXVIS-5b item 1: a blocked observation names its continuation ---------------------------------------------------
+
+def moved_source(read, observed=1, service=2, reason='service_changed'):
+    """The baseline's observation, fresh by age, with the proposal's own check saying the source moved on."""
+    read['states']['observation']['eligibility'] = {'code': 'maintenance_observation_stale', 'reason': reason,
+                                                    'observed_revision': observed, 'service_revision': service}
+    return read
+
+
+class BlockedObservationPureTests(unittest.TestCase):
+    def test_a_source_that_moved_on_carries_the_revision_fact_and_the_collect_again_step_the_inspector_gives(self):
+        from intune_iac.workbench_screens import ELIGIBILITY_FINDINGS
+        stage = by_id(project(moved_source(baseline())))['observe']
+        self.assertEqual((stage['state'], stage['reason']), ('blocked', 'service_changed'))
+        self.assertEqual({key: stage['facts'].get(key) for key in ('observed_revision', 'service_revision')},
+                         {'observed_revision': 1, 'service_revision': 2})
+        # The step is the one the diagnostics view already gives for this check, not a sentence written for the map.
+        self.assertEqual(stage['continuation'], ELIGIBILITY_FINDINGS['service_changed'][1])
+        self.assertIn('Collect again', stage['continuation'])
+
+    def test_the_revision_fact_is_said_in_words_in_the_detail_rows_and_the_text_form(self):
+        from intune_iac.workbench_screens import workflow_detail_rows, workflow_text_lines
+        flow = project(moved_source(baseline(), observed=7, service=9))
+        stage = by_id(flow)['observe']
+        detail = ' '.join(' '.join(str(row) for row in workflow_detail_rows(flow, stage, 100)).split())
+        self.assertIn('captured revision 7', detail)
+        self.assertIn('service revision 9', detail)
+        self.assertIn('next', detail)
+        self.assertIn('Collect again', detail)
+        text = ' '.join(' '.join(workflow_text_lines(flow, 100)).split())
+        self.assertIn('captured revision 7; service revision 9', text)
+        self.assertIn('Collect again', text)
+
+    def test_a_recorded_diagnostics_step_still_leads_and_no_other_check_invents_a_revision(self):
+        from intune_iac.workbench_screens import ELIGIBILITY_FINDINGS
+        read = moved_source(baseline())
+        read['attention'] = {'status': 'attention', 'checked': {}, 'signals': [
+            {'area': 'freshness', 'code': 'observation_stale', 'observed': 'x', 'evidence': {},
+             'next_step': 'Collect again (a: actions) before preparing or judging a change.'}]}
+        self.assertEqual(by_id(project(read))['observe']['continuation'],
+                         'Collect again (a: actions) before preparing or judging a change.')
+        # A policy that changed at the source has no revision to show, and still names the one step the check gives.
+        stage = by_id(project(moved_source(baseline(), reason='policy_changed')))['observe']
+        self.assertEqual((stage['state'], stage['reason']), ('blocked', 'policy_changed'))
+        self.assertEqual(stage['continuation'], ELIGIBILITY_FINDINGS['policy_changed'][1])
+        # A current observation says nothing: no revision fact and no step.
+        stage = by_id(project(baseline()))['observe']
+        self.assertEqual((stage['state'], stage['continuation']), ('done', None))
+        self.assertNotIn('observed_revision', stage['facts'])
+        self.assertNotIn('service_revision', stage['facts'])
+
+
+class BlockedObservationStateFiveTests(LayerFixture):
+    """State 5 of the journey: the response was lost, so the execution moved the service and the observation reads blocked."""
+
+    def lose_the_response(self):
+        from intune_iac import maintenance
+        review = self.prepare()
+        maintenance.execute(self.operation, approve_digest=review['approval_digest'], fault='lost-response')
+
+    def test_the_observe_stage_names_the_revisions_and_the_next_step_at_state_5(self):
+        from intune_iac import workbench
+        self.lose_the_response()
+        recorded = workbench._workflow_read(self.store, OBJECT, service_root=self.service.root)['states']['observation']['eligibility']
+        self.assertEqual(recorded['reason'], 'service_changed')
+        ws = self.layer_workspace(focus='observe')
+        stage = by_id(ws.value)['observe']
+        self.assertEqual((stage['state'], stage['reason']), ('blocked', 'service_changed'))
+        self.assertEqual({key: stage['facts'].get(key) for key in ('observed_revision', 'service_revision')},
+                         {key: recorded[key] for key in ('observed_revision', 'service_revision')})
+        self.assertIn('Collect again', stage['continuation'] or '')
+
+    def test_the_focus_rows_of_the_observe_stage_show_both_at_each_window_the_map_is_drawn_in(self):
+        from intune_iac import workbench
+        self.lose_the_response()
+        recorded = workbench._workflow_read(self.store, OBJECT, service_root=self.service.root)['states']['observation']['eligibility']
+        key = lambda char: ('text', char)
+        for size in ((120, 40), (80, 24), (60, 20)):
+            # The identity row and the head of the step are pinned; the recorded values scroll, so the smaller windows
+            # reach them with PgDn.
+            ws, frames = self.run_keys(typed('select ' + OBJECT) + typed('workflow') + ['up'] * 7 + ['pagedown'] * 3 + [key('q')],
+                                       size, 'ascii')
+            seen = [' '.join(' '.join(row.strip(' |') for row in self.plain(frame)).split()) for frame in frames[-4:]]
+            self.assertIn('FOCUS observe', seen[0], size)
+            self.assertIn('Collect again', seen[0], size)
+            self.assertTrue(any('captured revision %s' % recorded['observed_revision'] in text for text in seen), (size, seen))
+            self.assertTrue(any('service revision %s' % recorded['service_revision'] in text for text in seen), (size, seen))
 
 
 if __name__ == "__main__":

@@ -104,8 +104,11 @@ def _observe(states, service_checked=None, check=None):
     freshness = observation.get('freshness')
     if freshness == 'fresh':
         # Fresh by age is not current: the source can have moved on since (the proposal's own check says so).
-        eligibility = _text(_dict(observation.get('eligibility')).get('reason'))
+        check = _dict(observation.get('eligibility'))
+        eligibility = _text(check.get('reason'))
         if eligibility:
+            # The revisions the Inspector shows for a source that moved on (captured, now) are the check's own record.
+            facts.update(_facts(check, ('observed_revision', 'service_revision')))
             return _row('blocked', 'states.observation.eligibility.reason', eligibility, facts)
         if unmade:
             # Whether the source moved on could not be checked, so a fresh age is not read as a current observation.
@@ -375,7 +378,7 @@ def _signal_step(signals, codes):
 
 def _continuations(rows, read, by, delivery):
     """stage id -> the one step the existing logic gives for that stage's state. A stage with no such step has none."""
-    from .workbench_screens import RECONCILE_NEXT, lifecycle_next
+    from .workbench_screens import ELIGIBILITY_FINDINGS, RECONCILE_NEXT, lifecycle_next
     states, attention = _dict(read.get('states')), _dict(read.get('attention'))
     signals = [item for item in attention.get('signals') or [] if isinstance(item, dict)]
     eligibility = read.get('eligibility') if isinstance(read.get('eligibility'), dict) else None
@@ -383,6 +386,11 @@ def _continuations(rows, read, by, delivery):
     steps = {}
     if rows['observe']['state'] in ('blocked', 'unknown'):
         steps['observe'] = _signal_step(signals, OBSERVATION_SIGNALS)
+        if not steps['observe'] and rows['observe']['basis'] == 'states.observation.eligibility.reason':
+            # A fresh observation the source has moved on from has no diagnostics signal; the check's own finding
+            # carries the response (the diagnostics view's Next for it), never a sentence written here.
+            found = ELIGIBILITY_FINDINGS.get(rows['observe']['reason'])
+            steps['observe'] = found[1] if found else None
     status = _dict(states.get('intent')).get('status')
     if rows['intent']['state'] in ('blocked', 'unknown'):
         # A repository that changed is refreshed (the Repository surface's step). A component that no longer consumes the
