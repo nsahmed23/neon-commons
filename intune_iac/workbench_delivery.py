@@ -120,6 +120,19 @@ def _reconciliation(root, journal, times):
     return {'stage': 'reconciliation', 'status': 'required' if journal['status'] == 'outcome_unknown' else 'not_needed'}
 
 
+def _changed_context(plan, repository):
+    """A bound context file that changed: the flag, the operation it was bound by and the file's path (the plan's own
+    record, which the review reports as context_path), so a step names both (run 12, frame 66)."""
+    return {'context_changed': True, 'operation_id': plan['operation_id'], 'context_path': repository.get('context_path')}
+
+
+def _bound_words(stage):
+    """(file, operation) as a step names them: ` 'path'` and `operation 1a2b3c4d`, or the general words when unknown."""
+    path, identity = stage.get('context_path'), stage.get('operation_id')
+    return (' ' + command_arg(path) if isinstance(path, str) and path else '',
+            'operation ' + identity[:8] if isinstance(identity, str) and identity else 'this operation')
+
+
 def _deployment(store, plan, journal, repository):
     receipts = [row for row in store.artifacts(kind='deployment_receipt')
                 if isinstance(row['data'].get('proof'), dict) and row['data']['proof'].get('operation_id') == plan['operation_id']]
@@ -133,10 +146,11 @@ def _deployment(store, plan, journal, repository):
                 'platform_qualified': earliest.get('platform_qualified'),
                 **({'record_count': len(receipts)} if len(receipts) > 1 else {}),
                 # The views recheck the bound context bytes, so a record whose context changed is no longer admitted.
-                **({'context_changed': True} if repository.get('context_changed') else {})}
+                **(_changed_context(plan, repository) if repository.get('context_changed') else {})}
     if repository.get('context_changed'):
         # deployment-record checks the bound context bytes; a changed file can never pass.
-        return {'stage': 'deployment_record', 'status': 'not_available', 'reason': 'context_changed'}
+        return {'stage': 'deployment_record', 'status': 'not_available', 'reason': 'context_changed',
+                **_changed_context(plan, repository)}
     if not repository.get('cited'):
         return {'stage': 'deployment_record', 'status': 'not_applicable', 'reason': 'no_repository_intent_cited'}
     # These are the conditions deployment-record checks first; it still performs every check itself.
@@ -243,8 +257,9 @@ def _next_step(stages, operation_root, store_root):
     record, observed = stages['deployment_record'], stages['observed_after']
     operation, store = command_arg(operation_root), command_arg(store_root)
     if approval['status'] == 'waiting' and stages['proposal'].get('context_changed'):
-        return ('The context file this proposal bound changed after it was prepared, so execute refuses it '
-                '(maintenance_source_changed); Prepare a proposal from the recorded intent (a: actions).')
+        file, who = _bound_words(stages['proposal'])
+        return ('The context file%s that %s bound changed after it was prepared, so execute refuses it '
+                '(maintenance_source_changed); Prepare a proposal from the recorded intent (a: actions).' % (file, who))
     if approval['status'] == 'waiting':
         # Each command stands on its own row after its sentence, so a copied row carries no words (run 9, frame 20).
         return ('Review the change (5); the digest is the one on the review, never filled in for you. Approve before %s '
@@ -275,12 +290,14 @@ def _next_step(stages, operation_root, store_root):
                 '  intune-iac workbench deployment-record --root %s --operation %s --intent %s'
                 % (then, operation, record['intent_id'], store, operation, record['intent_id']))
     if record['status'] == 'done' and record.get('context_changed'):
-        return ('The deployment was recorded, but the context file this operation bound has changed since, so the '
+        file, who = _bound_words(record)
+        return ('The deployment of %s was recorded, but the context file%s it bound has changed since, so the '
                 'record no longer passes its own check (the views reread those bytes); '
-                'Prepare a proposal from the recorded intent (a: actions) to record a baseline again.')
+                'Prepare a proposal from the recorded intent (a: actions) to record a baseline again.' % (who, file))
     if record['status'] == 'not_available' and record.get('reason') == 'context_changed':
-        return ('The context file this operation bound changed after it was prepared, so it cannot become a deployment '
-                'record; collect to observe the policy.')
+        file, who = _bound_words(record)
+        return ('The context file%s that %s bound changed after it was prepared, so it cannot become a deployment '
+                'record; collect to observe the policy.' % (file, who))
     if record['status'] == 'not_available':
         # Reconcile's readback is said once, in its own stage above; this step names what follows from it.
         return ('This operation cannot become a deployment record because its own readback was never verified; '
@@ -375,7 +392,7 @@ def delivery(operation_root, *, now=None):
         {'stage': 'proposal', 'status': 'done', 'recorded_at': times.get('prepared'), 'object_id': plan['object_id'],
          'desired_sha256': plan['desired_sha256'], 'repository_intent_id': repository.get('repository_intent_id'),
          'intent_freshness': repository.get('freshness') if repository.get('cited') else None,
-         **({'context_changed': True} if repository.get('context_changed') else {})},
+         **(_changed_context(plan, repository) if repository.get('context_changed') else {})},
         {'stage': 'review', 'status': 'done', 'changes': plan['changes'], 'no_configuration_change': review['no_configuration_change'],
          'field_changes': review['field_changes'], 'approval_digest': review['approval_digest'],
          'saved_plan_sha256': review['saved_plan_sha256']},

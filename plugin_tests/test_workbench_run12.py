@@ -349,3 +349,61 @@ class RefreshRouteTests(Proposed):
             self.assertIn('pins', step)
         self.assertIn('Then Prepare a proposal from the recorded intent (a: actions).',
                       REFUSALS['maintenance_repository_stale'][1])
+
+
+class ChangedFileNamedTests(Proposed):
+    """Item 8, M-66 (frame 66; delivery next steps): the refusal and the Delivery steps for a changed bound file name the
+    operation and the file (the plan's context path, which maintenance._repository_review reports as context_path)."""
+
+    def refusal(self, **kw):
+        from intune_iac.workbench_screens import refusal_lines
+        value = {'status': 'error', 'error': {'code': 'maintenance_source_changed', 'message': 'A bound file changed.'}}
+        return ' '.join(' '.join(refusal_lines(value, 118, **kw)).split())
+
+    def test_the_cause_names_the_operation_and_the_context_file(self):
+        text = self.refusal(operation='650a1a61', verb='execute', context_file='/w/my ctx.json')
+        self.assertIn("Cause: A file this proposal bound changed after operation 650a1a61 was prepared (the context file "
+                      "'/w/my ctx.json'), so its review no longer describes what would run.", text)
+
+    def test_with_only_the_operation_known_it_says_which_operation(self):
+        text = self.refusal(operation='650a1a61', verb='execute')
+        self.assertIn('Cause: A file this proposal bound changed after operation 650a1a61 was prepared (its context file), '
+                      'so its review no longer describes what would run.', text)
+
+    def test_neither_known_keeps_the_general_cause(self):
+        self.assertIn('Cause: A file this proposal bound changed after it was prepared (its context file), so its review '
+                      'no longer describes what would run.', self.refusal(verb='execute'))
+
+    def test_the_workspace_reads_the_context_file_the_plan_bound(self):
+        from intune_iac.workbench_tui import Workspace
+        review = self.propose()
+        operation = self.root / 'operation'
+        context = self.root / 'operation.intent-context.json'
+        ws = self.workspace(4, {})
+        self.assertEqual(Workspace._context_file_for(ws, 'execute %s %s' % (shlex_quote(operation), review['approval_digest'])),
+                         str(context))
+        self.assertIsNone(Workspace._context_file_for(ws, 'collect'))
+        self.assertIsNone(Workspace._context_file_for(ws, 'execute /nonexistent/operation DIGEST'))
+
+    def test_delivery_steps_name_the_operation_and_the_file(self):
+        from intune_iac.workbench_delivery import _next_step
+        proposal = {'context_changed': True, 'context_path': '/w/my ctx.json', 'operation_id': 'a' * 32}
+        stages = {'proposal': proposal, 'approval': {'status': 'waiting', 'closes_at': 4102444800},
+                  'readback': {'status': 'done'}, 'reconciliation': {'status': 'not_needed'},
+                  'deployment_record': {'status': 'not_yet'}, 'observed_after': {'status': 'not_yet'}}
+        step = ' '.join(_next_step(stages, '/w/op', '/w/store').split())
+        self.assertIn("The context file '/w/my ctx.json' that operation aaaaaaaa bound changed after it was prepared, so "
+                      'execute refuses it (maintenance_source_changed)', step)
+        done = dict(stages, approval={'status': 'done'}, deployment_record={'status': 'done', 'context_changed': True,
+                                                                           'context_path': '/w/my ctx.json', 'operation_id': 'a' * 32})
+        self.assertIn("The deployment of operation aaaaaaaa was recorded, but the context file '/w/my ctx.json' it bound "
+                      'has changed since', ' '.join(_next_step(done, '/w/op', '/w/store').split()))
+        gone = dict(stages, approval={'status': 'done'}, deployment_record={'status': 'not_available', 'reason': 'context_changed',
+                                                                           'context_path': '/w/my ctx.json', 'operation_id': 'a' * 32})
+        self.assertIn("The context file '/w/my ctx.json' that operation aaaaaaaa bound changed after it was prepared, so it "
+                      'cannot become a deployment record', ' '.join(_next_step(gone, '/w/op', '/w/store').split()))
+
+
+def shlex_quote(path):
+    import shlex
+    return shlex.quote(str(path))

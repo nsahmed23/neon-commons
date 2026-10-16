@@ -1071,7 +1071,9 @@ class Workspace:
                                       operation=short_id(operation, (getattr(self, 'facts', None) or {}).get('identity_prefixes')) if operation else None,
                                       verb=verb,
                                       recorded=self._recorded_deployment(command)
-                                      if code == 'workbench_deployment_intent_not_cited' else None))
+                                      if code == 'workbench_deployment_intent_not_cited' else None,
+                                      context_file=self._context_file_for(command)
+                                      if code == 'maintenance_source_changed' and isinstance(command, str) else None))
             rows.append('')
         elif (isinstance(value.get('artifact_id'), str) and isinstance(value.get('kind'), str)
                 and isinstance(value.get('data'), dict) and 'created' in value):
@@ -2224,6 +2226,24 @@ class Workspace:
                                      (getattr(self, 'facts', None) or {}).get('identity_prefixes'))
         self.draw()
         return command
+
+    def _context_file_for(self, command):
+        """The context file the plan of the operation a command names bound (the plan's own record), else None. Read
+        only; a command that names no operation, or an operation that cannot be read, leaves the refusal general."""
+        cache = self.__dict__.setdefault('_context_file_cache', {})  # each draw asks again; the plan is read once
+        if command in cache:
+            return cache[command]
+        path = None
+        try:
+            parts = shlex.split(command)
+            if len(parts) >= 2 and parts[0] in ('execute', 'reconcile', 'deployment-record', 'restore-propose'):
+                from . import maintenance
+                context = maintenance._load(os.path.abspath(parts[1]))[1].get('context')
+                path = context.get('path') if isinstance(context, dict) else None
+        except Exception:
+            path = None
+        cache[command] = path if isinstance(path, str) and path else None
+        return cache[command]
 
     def _operation_id_for(self, command):
         """The id of the operation directory a command names, when this workspace has seen that operation."""

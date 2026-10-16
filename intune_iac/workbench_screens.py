@@ -3104,7 +3104,7 @@ def execution_effect_lines(result, width):
     return []
 
 
-def refusal_lines(value, width, known=None, clock_fact=None, operation=None, verb=None, recorded=None):
+def refusal_lines(value, width, known=None, clock_fact=None, operation=None, verb=None, recorded=None, context_file=None):
     """A refusal in one shape: the refusal in words with its code in parentheses, then Cause, Effect (when the engine
     established what changed) and Next (when the code is known).
 
@@ -3114,6 +3114,7 @@ def refusal_lines(value, width, known=None, clock_fact=None, operation=None, ver
     verb: the command's own word; a restore reads the code in its own terms.
     recorded: the deployment record the named operation already has, for a refused deployment-record command; the
     refusal then says so and names it, and never asks for a record that exists (run 9, frame 67).
+    context_file: the path of the context file the plan bound, for a changed-file refusal, so the cause names it.
     """
     error = value.get('error') if isinstance(value.get('error'), dict) else {}
     code = str(error.get('code', 'unknown'))
@@ -3121,6 +3122,13 @@ def refusal_lines(value, width, known=None, clock_fact=None, operation=None, ver
     restore = RESTORE_REFUSALS.get(code) if verb == 'restore-propose' else None
     lines = word_wrap('[REFUSED] %s (%s)' % (restore[0], code) if restore else refusal_header(code), width)
     named = 'operation %s' % operation if operation else 'that operation'
+    override = None
+    if code == 'maintenance_source_changed' and not restore and (operation or context_file):
+        # Names the operation and the file (run 12, frame 66); with neither known the general meaning stands.
+        prepared = 'operation %s was prepared' % operation if operation else 'it was prepared'
+        which = 'the context file %s' % _path_words(context_file) if context_file else 'its context file'
+        override = ('A file this proposal bound changed after %s (%s), so its review no longer describes what would run.'
+                    % (prepared, which), REFUSALS[code][1])
     if operation and message.startswith('This operation '):
         # The engine's message says "This operation"; with the operation known, it says which one.
         message = 'Operation %s %s' % (operation, message[len('This operation '):])
@@ -3143,7 +3151,7 @@ def refusal_lines(value, width, known=None, clock_fact=None, operation=None, ver
         if message:
             lines += word_wrap("The engine's own message is in the typed details (e).", width)
         return lines
-    meaning, step = REFUSALS.get(code, (None, None))
+    meaning, step = override or REFUSALS.get(code, (None, None))
     if restore:
         meaning, step = restore[1].replace('{original}', named.replace('that ', '')), restore[2]
     step = already or step
