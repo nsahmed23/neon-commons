@@ -239,26 +239,35 @@ def output_conflict(message, cause, number=None):
     return error
 
 
-def classify_output_failure(error):
-    """Which condition a failed call on the output path found, read from that call's errno alone; never from a later lookup.
+def classify_output_failure(error, stage):
+    """Which condition a failed call found, from that call's errno and the operation it was: never from a later lookup.
 
-    ELOOP from an open with O_NOFOLLOW is the one errno that establishes a symbolic link. ENOTDIR (what Linux returns for a
-    link or a plain file under O_DIRECTORY|O_NOFOLLOW) does not tell them apart, so it is told neutrally. Anything not listed is
-    'unchecked'.
+    stage is 'ancestor' (opening an existing folder on the way, without following links), 'mkdir' (making the last folder),
+    'after_mkdir' (anything done to the folder once mkdir made it) or 'final_stat' (the preflight's look at the last name).
+    The same errno means different things at different stages, so ENOENT is a missing ancestor only at 'ancestor'. ELOOP from
+    an open with O_NOFOLLOW is the one errno that establishes a symbolic link; ENOTDIR does not tell a link from a plain file,
+    so it is told neutrally. Anything not listed is 'unchecked'.
     """
     number = getattr(error, 'errno', None)
+    if stage == 'after_mkdir':
+        return 'created_then_failed'
     if number == errno.ENAMETOOLONG:
         return 'name_too_long'
-    if number == errno.EEXIST:
-        return 'exists'
-    if number in (errno.EACCES, errno.EPERM, errno.EROFS):
+    if stage == 'mkdir':
+        if number == errno.EEXIST:
+            return 'exists'
+        if number in (errno.EACCES, errno.EPERM, errno.EROFS):
+            return 'parent_not_writable'
+        return 'unchecked'
+    if number in (errno.EACCES, errno.EPERM):
         return 'permission_denied'
-    if number == errno.ENOENT:
-        return 'ancestor_missing'
-    if number == errno.ELOOP:
-        return 'ancestor_symlink'
-    if number == errno.ENOTDIR:
-        return 'ancestor_not_real_directory'
+    if stage == 'ancestor':
+        if number == errno.ENOENT:
+            return 'ancestor_missing'
+        if number == errno.ELOOP:
+            return 'ancestor_symlink'
+        if number == errno.ENOTDIR:
+            return 'ancestor_not_real_directory'
     return 'unchecked'
 
 
@@ -271,11 +280,14 @@ def _new_directory(destination):
     flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
     parent_fd = os.open('/', flags)
     output_fd = None
+    stage = 'ancestor'
     try:
         for piece in path.parts[1:-1]:
             next_fd = os.open(piece, flags, dir_fd=parent_fd)
             os.close(parent_fd); parent_fd = next_fd
+        stage = 'mkdir'
         os.mkdir(path.name, mode=0o700, dir_fd=parent_fd)
+        stage = 'after_mkdir'
         output_fd = os.open(path.name, flags, dir_fd=parent_fd)
         os.fchmod(output_fd, 0o700)
         os.fsync(output_fd); os.fsync(parent_fd)
@@ -283,7 +295,7 @@ def _new_directory(destination):
     except OSError as error:
         if output_fd is not None: os.close(output_fd)
         raise output_conflict('Capture requires a new directory with no symlinked ancestors; existing files are preserved.',
-                              classify_output_failure(error), error.errno) from None
+                              classify_output_failure(error, stage), error.errno) from None
     finally:
         os.close(parent_fd)
 

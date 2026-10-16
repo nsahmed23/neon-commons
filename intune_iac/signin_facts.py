@@ -772,6 +772,7 @@ _REFUSAL_CAUSE = {
     'ancestor_missing': 'A folder on the way to the output folder does not exist; this command creates only the last folder.',
     'name_too_long': 'A name in the output path is too long for the file system to hold.',
     'parent_not_writable': 'The folder that would hold the output folder does not allow this user to write to it.',
+    'created_then_failed': 'The output folder may have been created and is not used: a step after making it failed.',
     'permission_denied': 'This user is not allowed to open a folder on the way to the output folder.',
 }
 

@@ -1,4 +1,5 @@
 """PKG-SETUP-5E item 2: the refusal of an output folder names the condition the check actually found."""
+import contextlib
 import errno
 import os
 from pathlib import Path
@@ -65,6 +66,69 @@ def fake_stat(kind):
     def stat_(name, *args, **kw):
         return os.stat_result((kind | 0o600, 1, 1, 1, 0, 0, 0, 0, 0, 0))
     return stat_
+
+
+class OperationCauseTests(unittest.TestCase):
+    """The cause is classified at the operation that failed: an ancestor open, the final mkdir, or a step after mkdir made it."""
+
+    def run_with(self, patch_target, error, after_mkdir=False):
+        with tempfile.TemporaryDirectory() as scratch:
+            made = []
+            real_mkdir, real_open = os.mkdir, os.open
+
+            def mkdir(*args, **kw):
+                real_mkdir(*args, **kw)
+                made.append(True)
+
+            def open_(*args, **kw):
+                if made and patch_target == 'open':
+                    raise error
+                return real_open(*args, **kw)
+            patches = [mock.patch.object(os, 'mkdir', mkdir)]
+            if patch_target == 'open':
+                patches.append(mock.patch.object(os, 'open', open_))
+            elif patch_target in ('fchmod', 'fsync'):
+                patches.append(mock.patch.object(os, patch_target, side_effect=error))
+            elif patch_target == 'mkdir':
+                patches = [mock.patch.object(os, 'mkdir', side_effect=error)]
+            with contextlib.ExitStack() as stack:
+                for item in patches:
+                    stack.enter_context(item)
+                with self.assertRaises(AppError) as caught:
+                    capture._new_directory(str(Path(scratch) / 'new'))
+            return caught.exception
+
+    def test_a_missing_final_component_after_mkdir_is_not_a_missing_ancestor(self):
+        error = self.run_with('open', OSError(errno.ENOENT, 'gone'))
+        self.assertEqual(getattr(error, 'cause', None), 'created_then_failed')
+        self.assertEqual(getattr(error, 'cause_errno', None), 'ENOENT')
+
+    def test_a_failure_of_fchmod_or_fsync_after_mkdir_is_the_same_cause(self):
+        for target in ('fchmod', 'fsync'):
+            error = self.run_with(target, OSError(errno.EIO, 'io'))
+            self.assertEqual(getattr(error, 'cause', None), 'created_then_failed', target)
+            self.assertEqual(getattr(error, 'cause_errno', None), 'EIO', target)
+
+    def test_the_sentence_says_the_folder_may_have_been_created_and_is_not_used(self):
+        from intune_iac.signin_facts import _refusal_why
+        why = flat(_refusal_why({'cause': 'created_then_failed', 'cause_errno': 'ENOENT'}))
+        self.assertIn('may have been created', why)
+        self.assertIn('not used', why)
+        self.assertNotIn('does not exist', why)
+        self.assertNotIn('nothing was written', why)
+
+    def test_the_final_mkdir_has_its_own_causes(self):
+        for error, cause in ((FileExistsError(errno.EEXIST, 'x'), 'exists'),
+                             (PermissionError(errno.EACCES, 'x'), 'parent_not_writable'),
+                             (OSError(errno.ENAMETOOLONG, 'x'), 'name_too_long'),
+                             (OSError(errno.ENOENT, 'x'), 'unchecked')):
+            self.assertEqual(getattr(self.run_with('mkdir', error), 'cause', None), cause, error)
+
+    def test_an_ancestor_open_still_reports_a_missing_ancestor(self):
+        with tempfile.TemporaryDirectory() as scratch:
+            with self.assertRaises(AppError) as caught:
+                capture._new_directory(str(Path(scratch) / 'missing' / 'new'))
+        self.assertEqual(getattr(caught.exception, 'cause', None), 'ancestor_missing')
 
 
 class NamedCauseTests(unittest.TestCase):

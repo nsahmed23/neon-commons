@@ -568,7 +568,8 @@ def check_new_output(destination):
     try:
         parent_fd = os.open('/', flags)
     except OSError as error:
-        raise output_conflict(message, classify_output_failure(error), error.errno) from None
+        raise output_conflict(message, classify_output_failure(error, 'ancestor'), error.errno) from None
+    stage = 'ancestor'
     try:
         for piece in path.parts[1:-1]:
             next_fd = os.open(piece, flags, dir_fd=parent_fd)
@@ -577,6 +578,7 @@ def check_new_output(destination):
         if not os.access('.', os.W_OK | os.X_OK, dir_fd=parent_fd, effective_ids=True):
             # a stable non-writable parent: the capture command's mkdir would fail after the token was minted
             raise output_conflict(message, 'parent_not_writable')
+        stage = 'final_stat'
         try:
             os.stat(path.name, dir_fd=parent_fd, follow_symlinks=False)
         except FileNotFoundError:
@@ -585,7 +587,7 @@ def check_new_output(destination):
     except AppError:
         raise
     except OSError as error:
-        raise output_conflict(message, classify_output_failure(error), error.errno) from None
+        raise output_conflict(message, classify_output_failure(error, stage), error.errno) from None
     finally:
         os.close(parent_fd)
 
