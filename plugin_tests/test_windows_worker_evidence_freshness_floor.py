@@ -228,6 +228,48 @@ class WindowsStoreReaderTests(Shape, unittest.TestCase):
         self.assertIn(admitted, ('worker_evidence_expired', True))
         self.assertFalse(admitted is True and seen['mark_at_check'] >= T + 20, (admitted, seen))
 
+    def every_commit_fails(self):
+        """Every COMMIT raises, and so does the connection's own context exit (a second commit attempt)."""
+        real = sqlite3.connect
+
+        class Proxy:
+            def __init__(self, inner):
+                object.__setattr__(self, 'inner', inner)
+
+            def __getattr__(self, name):
+                return getattr(self.inner, name)
+
+            def __setattr__(self, name, value):
+                setattr(self.inner, name, value)
+
+            def execute(self, sql, *args):
+                if sql == 'COMMIT':
+                    raise sqlite3.OperationalError('disk I/O error')
+                return self.inner.execute(sql, *args)
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, kind, value, trace):
+                if kind is None:
+                    raise sqlite3.OperationalError('disk I/O error')
+                return False
+        return patch.object(sqlite3, 'connect', side_effect=lambda *a, **k: Proxy(real(*a, **k)))
+
+    def test_persistent_commit_failure_keeps_the_temporal_code_through_context_exit(self):
+        self.publish(expiring(self.req))
+        with self.every_commit_fails(), wall(T + 20), self.assertRaises(AppError) as raised:
+            self.read()
+        self.assertEqual(raised.exception.code, 'worker_evidence_expired')
+        self.assertIs(raised.exception.closure_recorded, False)
+
+    def test_persistent_commit_failure_is_unrecorded_for_an_admissible_ingest(self):
+        storage._create_file(self.input, 'envelope.json', canonical(expiring(self.req)), self.api)
+        with self.every_commit_fails(), wall(T + 1), self.assertRaises(AppError) as raised:
+            self.ingest()
+        self.assertEqual(raised.exception.code, 'worker_evidence_clock_unrecorded')
+        self.assertEqual(self.rows(), [])
+
 
 class QualificationScriptTests(unittest.TestCase):
     """The native harness judges current admissibility, so it must do so through a store, never a loose-file inspect."""
