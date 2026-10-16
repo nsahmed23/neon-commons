@@ -621,6 +621,7 @@ intune_iac/worker_state.py
 intune_iac/worker_state_recovery.py
 intune_iac/worker_successor.py
 intune_iac/workflow.py
+intune_iac/workflow_projection.py
 labs/atmos-adoption/README.md
 labs/atmos-adoption/fixture/atmos.yaml
 labs/atmos-adoption/fixture/components/terraform/identity/main.tf
@@ -1150,6 +1151,7 @@ plugin_tests/test_worker_state_recovery_r4.py
 plugin_tests/test_worker_successor_r4.py
 plugin_tests/test_workflow.py
 plugin_tests/test_workflow_audit.py
+plugin_tests/test_workflow_map.py
 provider-api-coverage.csv
 recipes/assignment-preservation.md
 recipes/atmos-integration.md
