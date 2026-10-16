@@ -2,21 +2,25 @@
 # Clean-install demonstration: unpack a runtime archive, install only from a folder of locked wheels, run the
 # candidate guide's quickstart without a terminal, and print what each step did.
 #
-# Usage: demo-clean-install.sh [--pip-wheel PATH] [--pip-wheel-sha256 HEX] ARCHIVE WHEEL_FOLDER WORK_FOLDER
-#                              [EXPECTED_ARCHIVE_SHA256]
+# Usage: demo-clean-install.sh [--pip-wheel PATH --pip-wheel-sha256 HEX] ARCHIVE WHEEL_FOLDER WORK_FOLDER
+#                              EXPECTED_ARCHIVE_SHA256
 #
-# It refuses to run inside a git checkout (the current folder or WORK_FOLDER), refuses an archive whose digest or
-# file list does not match its own SHA256SUMS (or EXPECTED_ARCHIVE_SHA256, when given), and installs with
-# --no-index, so it needs no network and reads nothing from the development workspace. The interpreter is
-# `python3` unless PYTHON names another CPython 3.12 that has the venv module.
+# It refuses to run inside a git checkout (the current folder or WORK_FOLDER), refuses an archive whose digest is not
+# EXPECTED_ARCHIVE_SHA256 or whose file list does not match its own SHA256SUMS, and installs with --no-index, so it needs
+# no network and reads nothing from the development workspace. The interpreter is `python3` unless PYTHON names
+# another CPython 3.12 that has the venv module.
+#
+# Neither executable input runs on trust. An archive carries its own SHA256SUMS, so a tampered archive can be consistent
+# with itself, and a pip wheel runs as code. EXPECTED_ARCHIVE_SHA256 (64 lowercase hex digits) is therefore required, and so
+# is --pip-wheel-sha256 whenever --pip-wheel is given; a run without either is refused with exit status 64 before anything is
+# created. Take each digest from the published release record, not from this script's own printed line, which only echoes
+# the file it was given.
 #
 # Many Debian and Ubuntu hosts ship CPython without ensurepip, so `python3 -m venv` fails there. Either install the
 # python3.12-venv package, or give --pip-wheel PATH (any pip wheel file, read in place): the virtual environment is
 # then made with --without-pip and every pip command runs from the wheel itself (python PATH/pip ...), still from
-# WHEEL_FOLDER only. The wheel's sha256 is printed. The wheel runs as code, so --pip-wheel-sha256 HEX (64 lowercase hex
-# digits, only with --pip-wheel) names the digest it must have: a wheel with any other digest is refused, with exit status
-# 64 and both digests printed, before the script creates anything. Take HEX from a source you trust, not from this
-# script's own printed line, which only echoes the file it was given.
+# WHEEL_FOLDER only. A wheel whose sha256 is not --pip-wheel-sha256 is refused, with exit status 64 and both digests
+# printed, before the script creates anything.
 #
 # The quickstart's sign-in step runs with no search path, so its answer (a blocked report, exit status 2) is the
 # same on every host whether or not an Azure CLI is installed; no other step looks for one.
@@ -30,7 +34,7 @@ PYTHON=${PYTHON:-python3}
 
 say() { printf '%s\n' "$*"; }
 refuse() { code=$1; shift; say "REFUSED: $*" >&2; exit "$code"; }
-usage() { say "Usage: $0 [--pip-wheel PATH] [--pip-wheel-sha256 HEX] ARCHIVE WHEEL_FOLDER WORK_FOLDER [EXPECTED_ARCHIVE_SHA256]" >&2; exit 64; }
+usage() { say "Usage: $0 [--pip-wheel PATH --pip-wheel-sha256 HEX] ARCHIVE WHEEL_FOLDER WORK_FOLDER EXPECTED_ARCHIVE_SHA256" >&2; exit 64; }
 usage_error() { say "REFUSED: $*" >&2; usage; }
 
 PIP_WHEEL=
@@ -58,11 +62,22 @@ if [ "$PIP_WHEEL_SHA256_GIVEN" = yes ]; then
     esac
     [ "${#PIP_WHEEL_SHA256}" -eq 64 ] || usage_error "--pip-wheel-sha256 must be 64 lowercase hex digits."
 fi
-if [ "${#POSITIONAL[@]}" -lt 3 ] || [ "${#POSITIONAL[@]}" -gt 4 ]; then usage; fi
+# A pip wheel runs as code: without its digest the script would run whatever file it was pointed at.
+if [ "$PIP_WHEEL_GIVEN" = yes ] && [ "$PIP_WHEEL_SHA256_GIVEN" = no ]; then
+    usage_error "--pip-wheel needs --pip-wheel-sha256: the wheel runs as code, so say which file it must be."
+fi
+if [ "${#POSITIONAL[@]}" -eq 3 ]; then
+    usage_error "EXPECTED_ARCHIVE_SHA256 is required: the archive carries its own SHA256SUMS, so only a digest taken from the published release record can tell a tampered archive."
+fi
+if [ "${#POSITIONAL[@]}" -ne 4 ]; then usage; fi
 ARCHIVE=${POSITIONAL[0]}
 WHEELS=${POSITIONAL[1]}
 WORK=${POSITIONAL[2]}
-EXPECTED=${POSITIONAL[3]:-}
+EXPECTED=${POSITIONAL[3]}
+case $EXPECTED in
+    ''|*[!0123456789abcdef]*) usage_error "EXPECTED_ARCHIVE_SHA256 must be 64 lowercase hex digits." ;;
+esac
+[ "${#EXPECTED}" -eq 64 ] || usage_error "EXPECTED_ARCHIVE_SHA256 must be 64 lowercase hex digits."
 
 # A folder is inside a checkout when it, or any folder above it, holds a .git entry (a directory, or a file for a worktree).
 inside_checkout() {
@@ -98,7 +113,7 @@ if [ "$PIP_WHEEL_GIVEN" = yes ]; then
     # The digest is taken and compared first, so that nothing opens a wheel that is not the one that was named, and a
     # refusal here has created nothing.
     pip_sha256=$(sha256sum "$PIP_WHEEL" | cut -d' ' -f1)
-    if [ "$PIP_WHEEL_SHA256_GIVEN" = yes ] && [ "$pip_sha256" != "$PIP_WHEEL_SHA256" ]; then
+    if [ "$pip_sha256" != "$PIP_WHEEL_SHA256" ]; then
         refuse 64 "the pip wheel's sha256 does not match --pip-wheel-sha256 (expected $PIP_WHEEL_SHA256, actual $pip_sha256); nothing was created."
     fi
     # A pip wheel is a zip that holds the package's __main__.py, which is what `python PATH/pip` runs.
@@ -109,9 +124,9 @@ fi
 archive_sha256=$(sha256sum "$ARCHIVE" | cut -d' ' -f1)
 say "archive sha256: $archive_sha256"
 if [ "$PIP_WHEEL_GIVEN" = yes ]; then
-    if [ "$PIP_WHEEL_SHA256_GIVEN" = yes ]; then say "pip wheel sha256: $pip_sha256 (matches --pip-wheel-sha256)"; else say "pip wheel sha256: $pip_sha256"; fi
+    say "pip wheel sha256: $pip_sha256 (matches --pip-wheel-sha256)"
 fi
-if [ -n "$EXPECTED" ] && [ "$archive_sha256" != "$EXPECTED" ]; then
+if [ "$archive_sha256" != "$EXPECTED" ]; then
     refuse 3 "the archive digest does not match EXPECTED_ARCHIVE_SHA256 ($EXPECTED)."
 fi
 

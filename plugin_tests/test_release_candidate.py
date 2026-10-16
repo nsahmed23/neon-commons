@@ -447,7 +447,9 @@ class GuideStructureTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             for command in commands:
                 with self.subTest(command=command):
-                    result = subprocess.run(['bash', str(DEMO), *shlex.split(command)[2:]], cwd=directory, capture_output=True,
+                    # The guide names the archive digest by a placeholder, which the script would rightly refuse as not hex.
+                    tokens = ['0' * 64 if token == 'RELEASE_RECORD_ARCHIVE_SHA256' else token for token in shlex.split(command)[2:]]
+                    result = subprocess.run(['bash', str(DEMO), *tokens], cwd=directory, capture_output=True,
                                             text=True, env={'PATH': os.environ['PATH']}, timeout=60)
                     # The placeholder paths do not exist, so the first refusal is the archive: every option was accepted.
                     self.assertEqual(result.returncode, 64, result.stdout + result.stderr)
@@ -610,9 +612,14 @@ class CleanInstallScriptTests(unittest.TestCase):
         self.outside = self.base / 'outside'
         self.outside.mkdir()
 
-    def run_script(self, *args, cwd=None):
+    def run_script(self, *args, cwd=None, trusted=True):
+        """Run the script. It requires the archive's digest as a fourth argument: unless a test says `trusted=False`, a run
+        of ARCHIVE, WHEEL_FOLDER and WORK_FOLDER is given the digest of the archive it names."""
+        args = list(map(str, args))
+        if trusted and len(args) == 3 and not args[0].startswith('-'):
+            args.append(sha256(Path(args[0]).read_bytes()))
         environment = {'PATH': os.environ['PATH'], 'LANG': 'C.UTF-8'}
-        return subprocess.run(['bash', str(DEMO), *map(str, args)], cwd=cwd or self.outside, capture_output=True, text=True,
+        return subprocess.run(['bash', str(DEMO), *args], cwd=cwd or self.outside, capture_output=True, text=True,
                               env=environment, timeout=120)
 
     def rewritten(self, change):
@@ -815,11 +822,29 @@ class PipWheelInstallTests(unittest.TestCase):
         (self.host_bin / 'az').write_text('#!/bin/sh\necho "az $*" >> "$FAKE_AZ_LOG"\nexit 0\n')
         (self.host_bin / 'az').chmod(0o755)
 
-    def run_script(self, *args, ensurepip='missing'):
+    def run_script(self, *args, ensurepip='missing', trusted=True):
+        """Run the script. The script requires the archive's digest and, with a pip wheel, the wheel's: unless a test says
+        `trusted=False`, a run that gives neither is given the digest of the first path it names (the archive) and of
+        `self.pip_wheel`, so the tests of the install path need not repeat them."""
+        args = list(map(str, args))
+        if trusted:
+            positional, skip = [], False
+            for argument in args:
+                if skip:
+                    skip = False
+                elif argument in ('--pip-wheel', '--pip-wheel-sha256'):
+                    skip = True
+                elif not argument.startswith('--'):
+                    positional.append(argument)
+            wheel_given = any(a == '--pip-wheel' or a.startswith('--pip-wheel=') for a in args)
+            if wheel_given and not any(a.startswith('--pip-wheel-sha256') for a in args):
+                args += ['--pip-wheel-sha256', sha256(self.pip_wheel.read_bytes())]
+            if len(positional) == 3:
+                args.append(sha256(Path(positional[0]).read_bytes()))
         environment = {'PATH': f'{self.host_bin}:{os.environ["PATH"]}', 'LANG': 'C.UTF-8', 'PYTHON': str(self.interpreter),
                        'REAL_PYTHON': sys.executable, 'FAKE_ENSUREPIP': ensurepip, 'FAKE_LOG': str(self.log),
                        'FAKE_PIP_LOG': str(self.pip_log), 'FAKE_AZ_LOG': str(self.az_log)}
-        return subprocess.run(['bash', str(DEMO), *map(str, args)], cwd=self.outside, capture_output=True, text=True,
+        return subprocess.run(['bash', str(DEMO), *args], cwd=self.outside, capture_output=True, text=True,
                               env=environment, timeout=180)
 
     def pip_calls(self):
@@ -953,7 +978,7 @@ class PipWheelInstallTests(unittest.TestCase):
                 self.assertEqual((self.venv_calls(), self.pip_calls()), ([], []))
         with self.subTest('no value'):
             result = self.run_script('--pip-wheel', self.pip_wheel, self.archive, self.wheels, self.base / 'work',
-                                     '--pip-wheel-sha256')
+                                     '--pip-wheel-sha256', trusted=False)
             self.assertEqual(result.returncode, 64, result.stdout + result.stderr)
             self.assertIn('--pip-wheel-sha256 needs a value', result.stderr)
             self.assertFalse((self.base / 'work').exists())
@@ -1009,8 +1034,7 @@ class PipWheelInstallTests(unittest.TestCase):
 
     def test_usage_names_the_options_and_the_comment_says_when_to_use_them(self):
         usage = self.run_script().stderr
-        self.assertIn('[--pip-wheel PATH]', usage)
-        self.assertIn('[--pip-wheel-sha256 HEX]', usage)
+        self.assertIn('[--pip-wheel PATH --pip-wheel-sha256 HEX]', usage)
         header = '\n'.join(DEMO.read_text().splitlines()[:40])
         self.assertIn('--pip-wheel', header)
         self.assertIn('ensurepip', header)

@@ -341,27 +341,30 @@ To see the whole path work on a machine that has never held the product, run the
 unpacks the archive into a new folder, checks `SHA256SUMS`, makes a fresh virtual environment, installs only from the
 folder of wheels with `--no-index`, runs the quickstart above without a terminal (every command in it except the
 interactive workspace, which it replaces with the text variant of step 7), and prints one line for each step. Run it
-from a folder that is not inside a git checkout, and give it a work folder that does not exist yet (a fourth
-argument, the archive digest from the build receipt, makes it refuse a different archive):
+from a folder that is not inside a git checkout, and give it a work folder that does not exist yet.
+
+The script refuses to run without the archive's sha256 as its last argument (exit status 64, nothing created). An
+archive carries its own `SHA256SUMS`, so an altered archive can agree with itself; only a digest that reached you by
+another route can tell. Take the digest from the published release record for this build (its build receipt,
+`Intune_IaC_Plugin_Archive_Receipt.json`, gives the archive's), not from the line the script prints: that line only
+echoes the file the script was given. In the command below, `RELEASE_RECORD_ARCHIVE_SHA256` stands for that value:
 
 ```sh
-bash scripts/demo-clean-install.sh /path/to/Intune_IaC_Plugin_0.9.0.zip /path/to/wheelhouse /path/to/new-work-folder
+bash scripts/demo-clean-install.sh /path/to/Intune_IaC_Plugin_0.9.0.zip /path/to/wheelhouse /path/to/new-work-folder RELEASE_RECORD_ARCHIVE_SHA256
 ```
 
 On a host whose Python has no `ensurepip`, add `--pip-wheel PATH`, the path of a pip wheel file (see
-Troubleshooting). The script then makes the environment without pip, runs every pip command from that wheel, still
-offline from the wheel folder, and prints the wheel's sha256 before it starts. The wheel runs as code, so also say
-which file you expect: `--pip-wheel-sha256` takes the wheel's sha256 (64 lowercase hex digits; it needs
-`--pip-wheel`), and the script refuses any other file, with exit status 64 and both digests printed, before it creates
-anything. The digest below is that of the `pip-24.0-py3-none-any.whl` that CPython 3.11.9 bundles in its
-`ensurepip/_bundled` folder:
+Troubleshooting), and `--pip-wheel-sha256`, its sha256 (64 lowercase hex digits); the script refuses one without the
+other. It then makes the environment without pip and runs every pip command from that wheel, still offline from the
+wheel folder. The wheel runs as code, so the script refuses any other file, with exit status 64 and both digests
+printed, before it creates anything. Take the wheel's digest from the same release record when it names a wheel, and
+otherwise from the hashes the pip project publishes for that exact release; never from the script's own printed line.
+The digest below is that of the `pip-24.0-py3-none-any.whl` that CPython 3.11.9 bundles in its `ensurepip/_bundled`
+folder:
 
 ```sh
-bash scripts/demo-clean-install.sh --pip-wheel /path/to/pip-24.0-py3-none-any.whl --pip-wheel-sha256 ba0d021a166865d2265246961bec0152ff124de910c5cc39f1156ce3fa7c69dc /path/to/Intune_IaC_Plugin_0.9.0.zip /path/to/wheelhouse /path/to/new-work-folder
+bash scripts/demo-clean-install.sh --pip-wheel /path/to/pip-24.0-py3-none-any.whl --pip-wheel-sha256 ba0d021a166865d2265246961bec0152ff124de910c5cc39f1156ce3fa7c69dc /path/to/Intune_IaC_Plugin_0.9.0.zip /path/to/wheelhouse /path/to/new-work-folder RELEASE_RECORD_ARCHIVE_SHA256
 ```
-
-Get the digest from a source you trust, not from the line the script prints: that line only echoes the file the
-script was given. Without `--pip-wheel-sha256` the script prints the digest and runs the wheel anyway.
 
 The script exits 0 when every step passed, 1 when a step failed, 2 when it refused to run in a checkout, 3 when
 the archive failed verification and 64 when it was called wrongly. It uses `python3` unless the `PYTHON` variable
@@ -459,8 +462,8 @@ python3 -m venv --without-pip .venv
 
 The hash flags work exactly as in the install section; only the program that reads them is different. The
 environment has no pip of its own afterwards, and nothing in this guide needs one. The demonstration script,
-`scripts/demo-clean-install.sh`, does the same with `--pip-wheel PATH`, and with `--pip-wheel-sha256` it refuses a
-wheel whose digest is any other (see "Check a clean install end to end").
+`scripts/demo-clean-install.sh`, does the same with `--pip-wheel PATH`, and requires `--pip-wheel-sha256` with it: it
+refuses a wheel whose digest is any other (see "Check a clean install end to end").
 
 **A usage error (exit status 2).** The parser printed a usage line and something like `argument --tenant: invalid value
 (the value is not shown)`. It never repeats what you typed, because a person can paste a secret where a name belongs.
