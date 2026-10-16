@@ -257,7 +257,7 @@ def parse_event(raw, roots=()):
     """(record, rejected evidence count) for one export line, or ContractFault. `roots` is from normalize_roots."""
     event_id, seq = event_key(raw)
     kind = raw.get('event_type')
-    if kind not in EVENT_TYPES:
+    if not isinstance(kind, str) or kind not in EVENT_TYPES:
         raise ContractFault('unknown_event_type', 'event_type is not in the contract list')
     stamp = raw.get('wall_utc')
     if not (isinstance(stamp, str) and _STAMP.fullmatch(stamp)):

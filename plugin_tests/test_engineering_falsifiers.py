@@ -364,6 +364,19 @@ class RedactionTests(Base):
         self.assertNotIn('secret-name', text)
         self.assertIn('see <path> for why', text)
 
+    def test_an_event_type_that_is_an_array_or_an_object_is_a_fault_shown_in_the_view(self):
+        from intune_iac.engineering_view import build_view, render_lines
+        for bad in (['dispatch.queued'], {'a': 'b'}, 7, None):
+            good = event(1, 'dispatch.queued', 'T-1', kind='advisor')
+            broken = dict(event(2, 'dispatch.started', 'T-1', adopted=False), event_type=bad)
+            write_export(self.dir, [good], raw_lines=[json.dumps(good), json.dumps(broken)],
+                         header=header_for([good, broken]))
+            model = build_view(self.dir)
+            text = '\n'.join(render_lines(model))
+            self.assertEqual([f['code'] for f in model['faults']], ['unknown_event_type'], repr(bad))
+            self.assertIn('unknown_event_type', text)
+            self.assertEqual(len(model['tasks']), 1)
+
 
 if __name__ == '__main__':
     unittest.main()
