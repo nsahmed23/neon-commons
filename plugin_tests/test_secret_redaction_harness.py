@@ -15,6 +15,7 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import secrets
 import shutil
 import socket
@@ -30,6 +31,7 @@ from intune_iac import cli
 from intune_iac.io import write_json
 
 PROJECT = Path(__file__).resolve().parents[1]
+_TOKEN = re.compile(rb"[!#$%&'*+.^_`|~0-9A-Za-z-]+")  # the HTTP token grammar
 
 
 def close_if_open(fd):
@@ -56,13 +58,77 @@ def canary(label):
     return label + '-' + secrets.token_urlsafe(30) + 'A1'
 
 
+def _aligned_base64(raw, encode):
+    """The base64 text a value leaves inside a larger base64 payload, at each of the three byte alignments.
+
+    Characters that mix the value's bits with unknown neighbouring bytes are dropped; the rest is fixed by the value.
+    """
+    found = []
+    for lead in range(3):
+        text = encode(b"\x00" * lead + raw).decode().rstrip("=")
+        total = lead + len(raw)
+        skip = -(-lead * 8 // 6)
+        keep = total // 3 * 4 + total % 3
+        if keep - skip >= 8:
+            found.append(text[skip:keep].encode())
+    return found
+
+
 def forms(value):
+    """The enumerated transformations a canary is searched for in (this list is the whole claim; nothing else is).
+
+    plain; JSON-escaped; hex (lower and upper case); percent-encoding of every byte (lower and upper case hex digits);
+    base64, standard and URL-safe alphabets, padded and unpadded; and each base64 alphabet as the value would appear
+    inside a larger base64 payload at the three byte alignments.
+    """
     raw = value.encode()
-    return {'plain': raw, 'base64': base64.b64encode(raw), 'urlsafe_base64': base64.urlsafe_b64encode(raw),
-            'hex': raw.hex().encode(), 'json_escaped': json.dumps(value).encode()[1:-1]}
+    standard, urlsafe = base64.b64encode(raw), base64.urlsafe_b64encode(raw)
+    found = {'plain': raw, 'json_escaped': json.dumps(value).encode()[1:-1],
+             'hex': raw.hex().encode(), 'hex_upper': raw.hex().upper().encode(),
+             'percent_upper': ''.join('%{:02X}'.format(b) for b in raw).encode(),
+             'percent_lower': ''.join('%{:02x}'.format(b) for b in raw).encode(),
+             'base64': standard, 'base64_unpadded': standard.rstrip(b'='),
+             'urlsafe_base64': urlsafe, 'urlsafe_base64_unpadded': urlsafe.rstrip(b'=')}
+    for number, form in enumerate(_aligned_base64(raw, base64.b64encode)):
+        found['base64_aligned_%d' % number] = form
+    for number, form in enumerate(_aligned_base64(raw, base64.urlsafe_b64encode)):
+        found['urlsafe_base64_aligned_%d' % number] = form
+    return found
 
 
-_WATCH = {'terminal': None}  # list while a command runs, else None
+class ConnectionRegistry:
+    """A monotonic id per socket object, assigned on first use, holding a strong reference to the object.
+
+    Never id(socket): once a socket is destroyed Python may give its id to an unrelated one, and their bytes would be
+    concatenated into a request that neither sent.
+    """
+
+    def __init__(self):
+        self.objects = []
+
+    def key(self, owner):
+        for number, known in enumerate(self.objects):
+            if known is owner:
+                return number
+        self.objects.append(owner)
+        return len(self.objects) - 1
+
+
+_WATCH = {'terminal': None, 'launch': None, 'deleted': None}  # lists/dicts while a command runs, else None
+
+
+def _scan_before_removal(path):
+    state = _WATCH['deleted']
+    try:
+        target = Path(os.fsdecode(path)).resolve()
+        if not any(root == target or root in target.parents for root in state['roots']):
+            return
+        files = [target] if target.is_file() else [q for q in target.rglob('*') if q.is_file()] if target.is_dir() else []
+        for item in files:
+            if state['leaks'].in_bytes(item.read_bytes()):
+                state['found'].append(item.name)
+    except OSError:
+        pass
 
 
 def _audit(event, args):
@@ -72,13 +138,18 @@ def _audit(event, args):
             text = os.fsdecode(path)
             if text.startswith(('/dev/tty', '/dev/pts/', '/dev/console')) or text.upper() in ('CON', 'CONOUT$', 'CONIN$'):
                 _WATCH['terminal'].append(text)
+    elif event in ('os.system', 'os.posix_spawn', 'os.exec') and _WATCH['launch'] is not None:
+        _WATCH['launch'].append((event, repr(args)))
+    elif event in ('os.remove', 'shutil.rmtree') and _WATCH['deleted'] is not None and isinstance(
+            args[0], (str, bytes, os.PathLike)):
+        _scan_before_removal(args[0])
 
 
 sys.addaudithook(_audit)
 
 
 class Leaks:
-    """Finds a canary in text, files, argv lists and environments, by every encoding of it."""
+    """Finds a canary in text, files, argv lists and environments, in the transformations forms() enumerates."""
 
     def __init__(self, *values):
         self.values = values
@@ -158,13 +229,16 @@ class RedactionHarness(unittest.TestCase):
             head = stream[position:end] if end >= 0 else b""
             lines = head.split(b"\r\n")
             first = lines[0].split(b" ")
-            if end < 0 or len(first) != 3 or not first[2].startswith(b"HTTP/") or not first[0].isalpha():
+            if end < 0 or len(first) != 3 or not first[2].startswith(b"HTTP/") or not first[0].isalpha():  # not even request-shaped
                 leftover += stream[position:]
                 break
             headers = []
+            syntax_ok = first[2] == b"HTTP/1.1" and _TOKEN.fullmatch(first[0]) is not None  # the version http.client emits
             for line in lines[1:]:
                 name, colon, value = line.partition(b":")
-                headers.append((name.strip(), value.strip()) if colon else (line, None))
+                if not colon or _TOKEN.fullmatch(name) is None:
+                    syntax_ok = False  # no colon, or a field name that is not an HTTP token (no surrounding whitespace)
+                headers.append((name, value.strip(b" \t")) if colon else (line, None))
             length = 0
             for name, value in headers:
                 if name.lower() == b"content-length" and value is not None and value.isdigit():
@@ -174,8 +248,8 @@ class RedactionHarness(unittest.TestCase):
                 # A partial request (its body is shorter than its Content-Length) is not complete: no exemption.
                 leftover += stream[position:]
                 break
-            if any(line[:1] in (b" ", b"\t") for line in lines[1:]):
-                # An obsolete folded continuation can change a header's value: no exemption, the request stays whole.
+            if not syntax_ok or any(line[:1] in (b" ", b"\t") for line in lines[1:]):
+                # Malformed syntax, or an obsolete folded continuation that can change a header's value: no exemption.
                 leftover += stream[position:body_start + length]
             else:
                 requests.append((first[0].decode(), first[1].decode("latin-1"), headers,
@@ -231,19 +305,40 @@ class RedactionHarness(unittest.TestCase):
         leaks = Leaks(*canaries)
         baseline = dict(os.environ)
         children, terminal, wire, inherited = [], [], [], []
+        stdin_data, launches, deleted = [], [], []
         allowed_routes = dict(bearer_ok)
         real_popen = subprocess.Popen
         real_send, real_sendall = socket.socket.send, socket.socket.sendall
 
+        connections = ConnectionRegistry()
+
         def watching_send(self_, data, *a):
-            wire.append((id(self_), bytes(data)))
+            wire.append((connections.key(self_), bytes(data)))
             return real_send(self_, data, *a)
 
         def watching_sendall(self_, data, *a):
-            wire.append((id(self_), bytes(data)))
+            wire.append((connections.key(self_), bytes(data)))
             return real_sendall(self_, data, *a)
 
+        class StdinProxy:
+            """Wraps a child's stdin pipe so every write is recorded; everything else passes through."""
+
+            def __init__(self, stream):
+                self.__dict__['stream'] = stream
+
+            def write(self, data):
+                stdin_data.append(data if isinstance(data, bytes) else str(data).encode())
+                return self.stream.write(data)
+
+            def __getattr__(self, name):
+                return getattr(self.stream, name)
+
         class Recording(real_popen):
+            def communicate(self, input=None, timeout=None):
+                if input is not None:
+                    stdin_data.append(input if isinstance(input, bytes) else str(input).encode())
+                return super().communicate(input, timeout)
+
             def __init__(self, args, *a, **k):
                 passed = list(k.get('pass_fds') or ())
                 children.append({'argv': [str(x) for x in args] if isinstance(args, (list, tuple)) else [str(args)],
@@ -258,6 +353,8 @@ class RedactionHarness(unittest.TestCase):
                 inherited.extend(RedactionHarness.inheritable_leaks(leaks))
                 inherited.extend(fd for fd in fds if fd in passed or RedactionHarness.descriptor_open_and_inheritable(fd))
                 super().__init__(args, *a, **k)
+                if self.stdin is not None:
+                    self.stdin = StdinProxy(self.stdin)
 
         # The system temporary directory for this call is a sandbox (TMPDIR and tempfile.tempdir point at it), so
         # every file the command creates there, nested or not, is seen by a recursive snapshot.
@@ -267,8 +364,17 @@ class RedactionHarness(unittest.TestCase):
         uncaught = None
         previous = os.getcwd()
         os.chdir(self.work)
+        # Descriptors 1 and 2 are captured at the descriptor level too: a write straight to the descriptor never
+        # passes through sys.stdout. The originals are saved with os.dup and restored afterwards.
+        fd_files = {number: tempfile.TemporaryFile() for number in (1, 2)}
+        saved = {number: os.dup(number) for number in (1, 2)}
         try:
+            for number, handle in fd_files.items():
+                os.dup2(handle.fileno(), number)
             _WATCH['terminal'] = terminal
+            _WATCH['launch'] = launches
+            _WATCH['deleted'] = {'leaks': leaks, 'roots': [self.work.resolve(), system_tmp.resolve(),
+                                                           *[Path(o).resolve() for o in outputs]], 'found': deleted}
             with patch('subprocess.Popen', Recording), patch.dict(os.environ, {**env, 'TMPDIR': str(system_tmp)}), \
                     patch.object(tempfile, 'tempdir', str(system_tmp)), \
                     patch.object(socket.socket, 'send', watching_send), patch.object(socket.socket, 'sendall', watching_sendall):
@@ -282,8 +388,16 @@ class RedactionHarness(unittest.TestCase):
                 inherited.extend(self.inheritable_leaks(leaks))
                 inherited.extend(fd for fd in fds if self.descriptor_open_and_inheritable(fd))
         finally:
-            _WATCH['terminal'] = None
+            _WATCH['terminal'] = _WATCH['launch'] = _WATCH['deleted'] = None
+            for number in (1, 2):
+                os.dup2(saved[number], number)
+                os.close(saved[number])
             os.chdir(previous)
+        fd_output = {}
+        for number, handle in fd_files.items():
+            handle.seek(0)
+            fd_output[number] = handle.read()
+            handle.close()
         # TMPDIR is the harness's own sandbox variable; every other variable must be the baseline plus the route's own.
         self.assertEqual({k: v for k, v in after.items() if k != 'TMPDIR'},
                          {k: v for k, v in {**baseline, **env}.items() if k != 'TMPDIR'},
@@ -291,7 +405,14 @@ class RedactionHarness(unittest.TestCase):
         if uncaught is not None:
             self.assertEqual(leaks.in_bytes(uncaught.encode()), [], 'canary in an uncaught exception')
             self.fail('uncaught exception: ' + uncaught.splitlines()[-1])
+        for number, data in fd_output.items():
+            self.assertEqual(leaks.in_bytes(data), [], 'canary written to file descriptor %d' % number)
         self.assert_clean(canaries, out.getvalue(), err.getvalue(), children)
+        self.assertEqual(deleted, [], 'a file held a canary before it was removed')
+        self.assertEqual(leaks.in_bytes(b''.join(stdin_data)), [], 'canary sent to a child process stdin')
+        self.assertEqual([event for event, _ in launches if leaks.in_bytes(repr(_).encode())], [],
+                         'canary in the arguments of a launch API')
+        self.assertEqual(launches, [], 'a launch API (os.system, posix_spawn or exec) was used; routes declare none')
         for root in outputs:
             self.assertEqual(leaks.in_tree(root), [], 'canary under a declared output root')
         self.assertEqual(terminal, [], 'the command opened a terminal device')
@@ -475,6 +596,15 @@ class RedactionHarness(unittest.TestCase):
                 ('body shorter than Content-Length',
                  (b'POST /v1/systemone HTTP/1.1\r\nAuthorization: Bearer ' + key.encode() + b'\r\n'
                   b'Content-Length: 1\r\n\r\n',), {key: route}),
+                ('unsupported HTTP version',
+                 (b'POST /v1/systemone HTTP/not-http\r\nAuthorization: Bearer ' + key.encode() + b'\r\n'
+                  b'Content-Length: 0\r\n\r\n',), {key: route}),
+                ('HTTP/1.0 is not emitted by the client',
+                 (b'POST /v1/systemone HTTP/1.0\r\nAuthorization: Bearer ' + key.encode() + b'\r\n'
+                  b'Content-Length: 0\r\n\r\n',), {key: route}),
+                ('whitespace before the colon of a field name',
+                 (b'POST /v1/systemone HTTP/1.1\r\nAuthorization : Bearer ' + key.encode() + b'\r\n'
+                  b'Content-Length: 0\r\n\r\n',), {key: route}),
                 ('declared path but another method',
                  (good.replace(b'POST', b'PUT', 1),), {key: route}),
                 ('payload in a body', (request([b'Authorization: ' + bearer], b'payload=' + bearer),), {key: route}),
@@ -487,6 +617,129 @@ class RedactionHarness(unittest.TestCase):
             with self.subTest(name):
                 with self.assertRaisesRegex(AssertionError, 'written to a socket'):
                     self.run_cli([], (key,), entry=sender(*writes), bearer_ok=allowed)
+
+    def test_the_connection_registry_never_merges_two_owners(self):
+        class Same:
+            def __eq__(self, other):
+                return True
+
+            def __hash__(self):
+                return 1
+
+        first, second = Same(), Same()
+        registry = ConnectionRegistry()
+        self.assertEqual((registry.key(first), registry.key(second), registry.key(first)), (0, 1, 0))
+        self.assertIs(registry.objects[0], first)  # a strong reference is held, so no id can be reused
+
+    def test_a_request_split_over_two_connections_is_not_reassembled_into_an_exempt_one(self):
+        key = canary('conn')
+        route = ('POST', '/v1/systemone')
+        head = b'POST /v1/systemone HTTP/1.1\r\nAuthorization: Bearer ' + key.encode() + b'\r\n'
+        tail = b'Content-Length: 0\r\n\r\n'
+
+        def two_sockets(argv):
+            import gc
+            first_left, first_right = socket.socketpair()
+            first_left.sendall(head)
+            first_left.close()
+            first_right.close()
+            del first_left, first_right
+            gc.collect()
+            second_left, second_right = socket.socketpair()
+            second_left.sendall(tail)
+            second_left.close()
+            second_right.close()
+            return 0
+
+        with self.assertRaisesRegex(AssertionError, 'written to a socket'):
+            self.run_cli([], (key,), entry=two_sockets, bearer_ok={key: route})
+
+    def test_planted_encodings_are_each_caught(self):
+        def std(v, lead=b'', tail=b''):
+            return base64.b64encode(lead + v.encode() + tail).decode()
+
+        def url(v, lead=b'', tail=b''):
+            return base64.urlsafe_b64encode(lead + v.encode() + tail).decode()
+
+        transforms = {
+            'hex upper': lambda v: v.encode().hex().upper(),
+            'percent upper': lambda v: ''.join('%{:02X}'.format(b) for b in v.encode()),
+            'percent lower': lambda v: ''.join('%{:02x}'.format(b) for b in v.encode()),
+            'base64 padded': std, 'base64 unpadded': lambda v: std(v).rstrip('='),
+            'urlsafe padded': url, 'urlsafe unpadded': lambda v: url(v).rstrip('='),
+            'embedded base64, alignment 1': lambda v: std(v, b'x', b'yyyy'),
+            'embedded base64, alignment 2': lambda v: std(v, b'xx', b'yyyyy'),
+            'embedded urlsafe, alignment 1': lambda v: url(v, b'x', b'yyyy'),
+        }
+        for name, transform in transforms.items():
+            def to_file(v, transform=transform):
+                Path('leak.txt').write_text(transform(v))
+                return 0
+
+            with self.subTest(form=name):
+                self.planted(to_file, 'file the command wrote')
+
+    def test_planted_descriptor_output_and_transient_files_are_caught(self):
+        def to_fd1(v):
+            os.write(1, v.encode())
+            return 0
+
+        def to_fd2(v):
+            os.write(2, v.encode())
+            return 0
+
+        def written_and_deleted(v):
+            path = Path('transient.txt')
+            path.write_text(v)
+            path.unlink()
+            return 0
+
+        def tree_written_and_removed(v):
+            Path('scratch').mkdir()
+            (Path('scratch') / 'deep.txt').write_text(v)
+            shutil.rmtree('scratch')
+            return 0
+
+        def temporary_written_and_deleted(v):
+            path = Path(tempfile.gettempdir()) / 'transient.tmp'
+            path.write_text(v)
+            os.remove(path)
+            return 0
+
+        for name, entry, pattern in (('fd 1', to_fd1, 'file descriptor 1'), ('fd 2', to_fd2, 'file descriptor 2'),
+                                     ('deleted work file', written_and_deleted, 'before it was removed'),
+                                     ('removed tree', tree_written_and_removed, 'before it was removed'),
+                                     ('deleted temporary file', temporary_written_and_deleted, 'before it was removed')):
+            with self.subTest(channel=name):
+                self.planted(entry, pattern)
+
+    def test_planted_child_stdin_and_other_launch_apis_are_caught(self):
+        def communicate_input(v):
+            subprocess.run(['cat'], input=v.encode(), stdout=subprocess.DEVNULL)
+            return 0
+
+        def stdin_pipe_write(v):
+            child = subprocess.Popen(['cat'], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL)
+            child.stdin.write(v.encode())
+            child.stdin.close()
+            child.wait()
+            return 0
+
+        def system_call(v):
+            # Deliberate: os.system is the launch API this plant exercises; the harness must catch it. Fixed command.
+            os.system('true ' + v)
+            return 0
+
+        def unneeded_launch(v):
+            os.system('true')  # deliberate plant: a launch on a route that declares none
+            return 0
+
+        for name, entry, pattern in (('communicate input', communicate_input, 'child process stdin'),
+                                     ('stdin pipe write', stdin_pipe_write, 'child process stdin'),
+                                     ('os.system with the canary', system_call, 'launch API'),
+                                     ('os.system on a route that declares none', unneeded_launch, 'launch API')):
+            with self.subTest(channel=name):
+                self.planted(entry, pattern)
 
     # start and doctor ------------------------------------------------------------------------------------
 
