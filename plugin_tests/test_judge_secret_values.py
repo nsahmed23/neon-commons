@@ -91,9 +91,16 @@ class JudgeSecretValueTests(unittest.TestCase):
         while len(user_setting) % 4:
             user_setting += 'x'
         self.assertEqual((len(setting) % 4, len(setting) >= 32), (0, True))
-        for value in (setting, user_setting):
-            self.judge.requests.clear()
-            self.assertEqual(self.judge.call(evidence=[{'definition': value}])['status'], 'assessed', value)
+        for field in ('settingDefinitionId', 'setting_definition_id'):
+            for value in (setting, user_setting):
+                self.judge.requests.clear()
+                self.assertEqual(self.judge.call(evidence=[{field: value}])['status'], 'assessed', (field, value))
+        # the form is honoured only in those two fields: under any other name, or as a mapping key, it is a plain value
+        credential_shaped = 'device_vendor_msft_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q'
+        self.refused({'detail': credential_shaped}, location='$.evidence{0}')
+        self.refused({'definition': setting}, location='$.evidence{0}')
+        self.refused({setting: 'fine'}, location='$.evidence{0}')
+        self.refused({'settingDefinitionIds': setting}, location='$.evidence{0}')
         # the same id under a secret-named member stays refused, like every other value
         self.refused({'key': setting}, location='$.evidence{0}')
         self.refused({'api_key': setting}, location='$.evidence{0}')

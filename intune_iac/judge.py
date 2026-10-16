@@ -112,9 +112,11 @@ _B64_RUN = re.compile(r"[A-Za-z0-9+/_=-]{32,}")
 _B64_ONLY = re.compile(r"[A-Za-z0-9+/_=-]+")
 _POLICY_KEY = re.compile(r"p_[0-9a-f]{32}_[0-9a-f]{32}")
 # A Settings Catalog setting definition id (device_vendor_msft_policy_config_..., lowercase snake_case) is a product
-# identifier, not a credential form. Accepted only as a whole value and only outside secret-named members, where it is
-# refused like every other value.
+# identifier, not a credential form. It is honoured ONLY as the whole value of a member named exactly
+# settingDefinitionId or setting_definition_id (the fields that hold such ids); under any other name, or as a mapping key,
+# it goes through the normal hex and base64 rules, because a credential could be issued in this shape.
 _SETTING_ID = re.compile(r"(?:device|user)_vendor_msft_[a-z0-9_]+")
+_SETTING_FIELDS = frozenset(("settingDefinitionId", "setting_definition_id"))
 _DIGEST_VALUE = re.compile(r"sha256:[0-9a-fA-F]{64}")  # the only prefixed form: lowercase prefix, 64 hex of either case
 # Under a member named for a secret exactly two value forms are accepted: a whole-value policy key and a relative
 # state path ending in .tfstate (characters [A-Za-z0-9._/-] only, so no ':', '@', '?' or '=', and no '..' segment).
@@ -224,7 +226,7 @@ def _shaped_once(text, digest_ok):
 
 def _secret_shaped(text, digest_ok=False):
     digest_ok = (digest_ok and _B64_ONLY.fullmatch(text) is not None or _DIGEST_VALUE.fullmatch(text) is not None
-                 or _POLICY_KEY.fullmatch(text) is not None or _SETTING_ID.fullmatch(text) is not None)
+                 or _POLICY_KEY.fullmatch(text) is not None)
     return any(_shaped_once(variant, digest_ok) for variant in _variants(text))
 
 
@@ -263,7 +265,8 @@ def _check_no_secret(value, root, key_value=None):
                 elif (type(child) is str and _SECRET_KEY.search(name) and len(child) >= 6 and not _placeholder(child)
                         and not (_POLICY_KEY.fullmatch(child) or _state_path(child))):
                     raise _Rejected("secret_shaped_value", where)
-                visit(child, where, _digest_key(key))
+                setting_id = key in _SETTING_FIELDS and type(child) is str and _SETTING_ID.fullmatch(child) is not None
+                visit(child, where, _digest_key(key) or setting_id)
         elif type(item) is list:
             for index, child in enumerate(item):
                 visit(child, path + "[" + str(index) + "]", digest_ok)
