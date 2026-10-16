@@ -1220,6 +1220,12 @@ def _adopted_service(store):
     return origin
 
 
+def _error_result(error):
+    effects = getattr(error, 'effects', None)
+    return {'status': 'error', 'error': dict({'code': error.code, 'message': error.message},
+                                             **({'effects': effects} if isinstance(effects, dict) else {}))}
+
+
 def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, result_fn=None, interrupt_check=lambda: None, _store_capability=None,
                   _current=None):
     """Accessible line terminal; no shell invocation, animation, or hidden approval.
@@ -1315,7 +1321,14 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                     from .windows_workspace_binding import require_command
                     require_command(name)
                 if name in ('quit', 'exit') and not values:
-                    stop_companions()
+                    try:
+                        stop_companions()
+                    except AppError as error:
+                        # A listener that will not close must not keep the session open: the error is shown, the session
+                        # ends, and the process exit releases the port. The listener is let go so the cleanup below does
+                        # not raise the same failure a second time over the closed result.
+                        present(_error_result(error))
+                        held.clear()
                     return {'status': 'closed', 'evidence_class': 'local_interface_result', 'history_persisted': True}
                 if name == 'help' and not values: result = HELP
                 elif name == 'views' and len(values) <= 1:
@@ -1580,9 +1593,7 @@ def _run_terminal(root, *, service_root=None, input_fn=None, output_fn=None, res
                 present({key: result[key] for key in ('status', 'interrupted_during', 'recovery')})
                 return result
             except AppError as error:
-                effects = getattr(error, 'effects', None)
-                present({'status': 'error', 'error': dict({'code': error.code, 'message': error.message},
-                                                        **({'effects': effects} if isinstance(effects, dict) else {}))})
+                present(_error_result(error))
             except (ValueError, TypeError, KeyError, OSError):
                 present({'status': 'error', 'error': {'code': 'invalid_workbench_request',
                          'message': 'Command or local input is invalid. Enter help for exact syntax.'}})

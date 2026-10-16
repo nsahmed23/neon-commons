@@ -415,6 +415,25 @@ class FailingStopTests(Fixture):
             self.run_terminal('select ' + self.object_id, 'companion serve', self.break_close, end_of_input)
         self.assertEqual(caught.exception.code, 'companion_live_close_failed')
 
+    def test_quit_ends_the_session_and_shows_the_error_when_a_held_listener_will_not_stop(self):
+        from intune_iac.workbench import _run_terminal
+        shown, script = [], ['select ' + self.object_id, 'companion serve', self.break_close, 'quit']
+
+        def feed(prompt):
+            while True:
+                if not script:
+                    self.fail('the session is still at the prompt after quit')
+                step = script.pop(0)
+                if callable(step):
+                    step()
+                else:
+                    return step
+        outcome = _run_terminal(self.root, input_fn=feed, result_fn=shown.append)
+        self.assertEqual(outcome['status'], 'closed')
+        codes = [item['error']['code'] for item in shown if isinstance(item, dict) and item.get('status') == 'error']
+        self.assertEqual(codes, ['companion_live_close_failed'], 'the failure is shown, never hidden')
+        self.assertFalse(self.listeners[0].is_closed, 'the listener is still bound; process exit is the last resort')
+
 
 class ActionsMenuTests(Fixture):
     def actions(self):
