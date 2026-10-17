@@ -912,6 +912,7 @@ plugin_tests/test_capture_reimport_r4.py
 plugin_tests/test_capture_retry.py
 plugin_tests/test_catalog.py
 plugin_tests/test_catalog_acquisition_security.py
+plugin_tests/test_catalog_commands.py
 plugin_tests/test_catalog_json_golden.py
 plugin_tests/test_catalog_layer.py
 plugin_tests/test_catalog_wording.py
@@ -1009,6 +1010,7 @@ plugin_tests/test_restore_evidence_layer_r4.py
 plugin_tests/test_restricted_hashes.py
 plugin_tests/test_runner.py
 plugin_tests/test_secret_redaction_harness.py
+plugin_tests/test_shell_differential.py
 plugin_tests/test_signin_collect.py
 plugin_tests/test_signin_collect_path_print.py
 plugin_tests/test_signin_collect_readable.py
