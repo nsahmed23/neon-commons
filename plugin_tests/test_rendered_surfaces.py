@@ -20,7 +20,9 @@ What it covers
   * The wizard, the guided workflow and the journey: every prompt handed to the person and every line printed, scripted through
     the answers a person types, with and without a repository-owned edit of the generated output.
   * simulate --format text, with the snapshot and revision documents test_sim_render_cli builds. start and catalog with
-    --check-signin, with az and gh stubbed as the sign-in tests stub them (FakeClis; no real tool, no network). The views behind
+    --check-signin, with az and gh stubbed as the sign-in tests stub them (FakeClis; no real tool, no network): each canned answer has a
+    result of its own that every run (route, directory, width) must show, and the fake's log must hold exactly the calls the provider
+    means, so a stub that was not in effect for one run is a failure and not a pass of the others. The views behind
     the service, adoption and adoption-plan navigation (review, status, attach, cancel, recover), with the hand-authored
     presentation fixtures of their TUI tests (the service one through plugin_tests/service_presentation_fixtures.py, which holds no
     docker import).
@@ -1486,11 +1488,23 @@ def sweep_simulate():
     return sweep
 
 
+SigninCase = collections.namedtuple('SigninCase', 'label provider azure github expect bare catalog', defaults=(None,))
+OTHER_TENANT = '55555555-5555-4555-8555-555555555555'
+# What the product asks of each CLI, in the arguments the fake logs (it logs the arguments, one line a call, not the tool): one call to
+# each tool the provider names, nothing else.
+EXPECTED_CALLS = {'azure': ['account list --output json'], 'github': ['auth status --json hosts'],
+                  'all': ['account list --output json', 'auth status --json hosts']}
+
+
 def signin_cases(context):
-    """(label, provider, canned az answer, canned gh answer, a phrase the screen must show) for start and catalog --check-signin. The
-    answers are the ones the sign-in tests give their fake az and gh (plugin_tests/signin_fakes.py); nothing real runs."""
+    """[SigninCase] for start and catalog --check-signin: the canned answers of the fake az and gh (the ones the sign-in tests give
+    them, plugin_tests/signin_fakes.py; nothing real runs), and what every screen of the case must show. expect: phrases that hold in a
+    directory with the example context; bare: those that hold in a directory with none (None when the case is not run there); catalog:
+    the phrases of the catalog routes where they differ (the catalog screen shows the Azure verdict, and the GitHub one only when it
+    blocks: the gh call is made and logged, and when gh is signed in, or beside Azure under `all`, the screen does not show it). Each
+    phrase comes from the canned answer or the product's verdict on it, so a screen that shows it was made from that answer: a fake
+    that was not invoked, or answered 127, shows none of them."""
     from plugin_tests.signin_fakes import azure_account, azure_list, github_hosts
-    other = '55555555-5555-4555-8555-555555555555'
 
     def az(*accounts, **extra):
         return dict(out=azure_list(*accounts), **extra)
@@ -1498,36 +1512,85 @@ def signin_cases(context):
     def gh(*entries, **extra):
         return dict(out=github_hosts(*entries), **extra)
     octo = ('github.com', 'octo-user', 'success', True)
+    nobody = dict(out='', err='You are not logged into any GitHub hosts.', code=1)
     return (
-        ('azure: signed in to the context tenant', 'azure', az(azure_account(tenant=context)), None, 'Signed in to tenant'),
-        ('azure: signed in to another tenant', 'azure', az(azure_account(tenant=other)), None, 'Sign in to the tenant the context names'),
-        ('azure: several accounts in the tenant', 'azure',
-         az(azure_account(tenant=context), azure_account(tenant=context, user='sam@example.test', default=False)), None,
-         'Several accounts are signed in'),
-        ('azure: not signed in', 'azure', az(), None, 'Not signed in to Azure'),
-        ('azure: an answer that is not a listing', 'azure', dict(out='this is not json'), None, 'could not be determined'),
-        ('azure: only an expired subscription', 'azure', az(azure_account(tenant=context, state='Expired')), None, 'subscription'),
-        ('azure: the CLI fails', 'azure', None, None, 'command_failed'),
-        ('github: signed in', 'github', None, gh(octo), 'Signed in to github.com'),
-        ('github: several accounts', 'github', None, gh(octo, ('github.com', 'other-user', 'success', False)), None),
-        ('github: an error state', 'github', None, gh(('github.com', 'octo-user', 'error', True)), None),
-        ('github: not logged in', 'github', None, dict(out='', err='You are not logged into any GitHub hosts.', code=1),
-         'Not signed in to GitHub'),
-        ('both: signed in to each', 'all', az(azure_account(tenant=context)), gh(octo), 'GitHub CLI sign-in'),
-        ('both: another tenant and not logged in', 'all', az(azure_account(tenant=other)),
-         dict(out='', err='You are not logged into any GitHub hosts.', code=1), 'Not signed in to GitHub'),
+        SigninCase('azure: signed in to the context tenant', 'azure', az(azure_account(tenant=context)), None,
+                   ('Signed in to tenant %s as alex@example.test (AzureCloud)' % context,), ('Signed in to tenant %s' % context,)),
+        SigninCase('azure: signed in to another tenant', 'azure', az(azure_account(tenant=OTHER_TENANT)), None,
+                   ('Sign in to the tenant the context names', OTHER_TENANT), ('Signed in to tenant %s' % OTHER_TENANT,)),
+        SigninCase('azure: several accounts in the tenant', 'azure',
+                   az(azure_account(tenant=context), azure_account(tenant=context, user='sam@example.test', default=False)), None,
+                   ('Several accounts are signed in', 'sam@example.test'), None),
+        SigninCase('azure: not signed in', 'azure', az(), None, ('Not signed in to Azure',), None),
+        SigninCase('azure: an answer that is not a listing', 'azure', dict(out='this is not json'), None,
+                   ('could not be determined', 'malformed_answer'), None),
+        SigninCase('azure: only an expired subscription', 'azure', az(azure_account(tenant=context, state='Expired')), None,
+                   ('lists the subscription as Expired', 'alex@example.test'), None),
+        SigninCase('azure: the CLI fails', 'azure', None, None, ('command_failed',), None),
+        SigninCase('github: signed in', 'github', None, gh(octo), ('Signed in to github.com', 'octo-user'), None, catalog=()),
+        SigninCase('github: several accounts', 'github', None, gh(octo, ('github.com', 'other-user', 'success', False)),
+                   ('Several accounts are listed for one host',
+                    'octo-user (gh state: success, active), other-user (gh state: success)'), None),
+        SigninCase('github: an error state', 'github', None, gh(('github.com', 'octo-user', 'error', True)),
+                   ('gh_state_error', 'octo-user (gh state: error)'), None),
+        SigninCase('github: not logged in', 'github', None, nobody, ('Not signed in to GitHub',), None),
+        SigninCase('both: signed in to each', 'all', az(azure_account(tenant=context)), gh(octo),
+                   ('as alex@example.test (AzureCloud)', 'Signed in to github.com', 'octo-user'), None,
+                   catalog=('as alex@example.test (AzureCloud)',)),
+        SigninCase('both: another tenant and not logged in', 'all', az(azure_account(tenant=OTHER_TENANT)), nobody,
+                   ('Sign in to the tenant the context names', OTHER_TENANT, 'Not signed in to GitHub'), None,
+                   catalog=('Sign in to the tenant the context names', OTHER_TENANT)),
     )
+
+
+def run_signin_case(sweep, case, folders, effective=True):
+    """Run start and catalog with --check-signin for one case in each folder, and judge each run on its own: the screen shows every
+    phrase the case expects for that directory, and the fake log shows exactly the calls the provider means. effective=False leaves
+    the fakes off the search path (and the real tools too: the path holds an empty directory only), to show a stub that is not in
+    effect is found."""
+    from plugin_tests.signin_fakes import FakeClis
+    fakes = FakeClis()
+    try:
+        for tool, first, second, answer in (('az', 'account', 'list', case.azure), ('gh', 'auth', 'status', case.github)):
+            if answer is not None:
+                fakes.answer(tool, first, second, **answer)
+        with tempfile.TemporaryDirectory() as nothing:
+            path = fakes.path_entry() if effective else nothing
+            with patch.dict(os.environ, {'PATH': path + os.pathsep + os.environ.get('PATH', '') if effective else path}):
+                for folder, name, wanted in folders:
+                    runs = [(['start', str(folder), '--goal', goal, '--check-signin', case.provider], 'start --goal %s' % goal)
+                            for goal in ('discover', 'adopt')]
+                    runs += [(['catalog', str(folder), '--check-signin', case.provider], 'catalog'),
+                             (['catalog', str(folder), '--goal', 'discover', '--check-signin', case.provider], 'catalog --goal discover')]
+                    for argv, route in runs:
+                        for width in (120, 60):
+                            before = len(fakes.calls())
+                            code, text, err = run_cli(argv, width)
+                            calls = fakes.calls()[before:]
+                            state, label = '%s; %s' % (case.label, name), '%s --check-signin %s' % (route, case.provider)
+                            sweep.text(state, label, (width, 0), text)
+                            sweep.text(state, label + ' (stderr)', (width, 0), err)
+                            shown = ' '.join(text.split())
+                            here = case.catalog if case.catalog is not None and route.startswith('catalog') and wanted == case.expect else wanted
+                            missing = [phrase for phrase in here if phrase not in shown]
+                            if missing:
+                                sweep.unmet.append((case.label, name, label, width, missing))
+                            if sorted(calls) != sorted(EXPECTED_CALLS[case.provider]):
+                                sweep.badcalls.append((case.label, name, label, width, calls))
+                            sweep.signin_runs += 1
+    finally:
+        fakes.cleanup()
 
 
 @functools.lru_cache(maxsize=1)
 def sweep_check_signin():
     """start --goal G --check-signin P and catalog --check-signin P (with and without a goal), with the az and gh the sign-in tests
-    stub (FakeClis: canned answers on a temporary search path, no real tool, no network), for every answer in signin_cases, in a
-    directory that holds the example context and in one that holds none, at two widths. sweep.unmet lists a case whose screen does
-    not show its phrase (the stub was not in effect)."""
-    from plugin_tests.signin_fakes import FakeClis
+    stub (FakeClis: canned answers on a temporary search path, no real tool, no network), for every case of signin_cases, in a
+    directory that holds the example context and (for the two cases that compare tenants) in one that holds none, at two widths. Each
+    run is judged on its own: sweep.unmet lists a run whose screen lacks a phrase its case expects (the stub was not in effect for
+    that route, directory or width), sweep.badcalls a run whose fake log is not exactly the calls the provider means."""
     sweep = Sweep()
-    sweep.unmet = []
+    sweep.unmet, sweep.badcalls, sweep.signin_runs = [], [], 0
     root = Path(__file__).resolve().parents[1]
     context = json.loads((root / 'examples/context.json').read_text())['tenant_id']
     with tempfile.TemporaryDirectory() as temp:
@@ -1535,31 +1598,9 @@ def sweep_check_signin():
         with_context.mkdir()
         bare.mkdir()
         shutil.copyfile(root / 'examples/context.json', with_context / 'context.json')
-        for index, (label, provider, azure, github, phrase) in enumerate(signin_cases(context)):
-            fakes = FakeClis()
-            try:
-                for tool, first, second, answer in (('az', 'account', 'list', azure), ('gh', 'auth', 'status', github)):
-                    if answer is not None:
-                        fakes.answer(tool, first, second, **answer)
-                shown = []
-                with patch.dict(os.environ, {'PATH': fakes.path_entry() + os.pathsep + os.environ.get('PATH', '')}):
-                    for folder, name in ((with_context, 'a context'), (bare, 'no context')):
-                        if folder is bare and index > 1:
-                            continue                       # the directory with no context is read for the first two answers only
-                        runs = [(['start', str(folder), '--goal', goal, '--check-signin', provider], 'start --goal %s' % goal)
-                                for goal in ('discover', 'adopt')]
-                        runs += [(['catalog', str(folder), '--check-signin', provider], 'catalog'),
-                                 (['catalog', str(folder), '--goal', 'discover', '--check-signin', provider], 'catalog --goal discover')]
-                        for argv, route in runs:
-                            for width in (120, 60):
-                                code, text, err = run_cli(argv, width)
-                                sweep.text('%s; %s' % (label, name), '%s --check-signin %s' % (route, provider), (width, 0), text)
-                                sweep.text('%s; %s' % (label, name), '%s --check-signin %s (stderr)' % (route, provider), (width, 0), err)
-                                shown.append(' '.join(text.split()))
-            finally:
-                fakes.cleanup()
-            if phrase and not any(phrase in text for text in shown):
-                sweep.unmet.append((label, phrase))
+        for case in signin_cases(context):
+            folders = [(with_context, 'a context', case.expect)] + ([(bare, 'no context', case.bare)] if case.bare else [])
+            run_signin_case(sweep, case, folders)
     return sweep
 
 
@@ -2203,12 +2244,39 @@ class RemainingRouteSweepTests(unittest.TestCase):
     def test_start_and_catalog_with_check_signin_against_the_stubbed_az_and_gh(self):
         sweep = sweep_check_signin()
         judge(self, sweep)
-        self.assertEqual(sweep.unmet, [], 'a canned answer whose verdict the screen did not show: the stub was not in effect')
+        self.assertEqual(sweep.unmet, [], 'a run whose screen lacks what its canned answer must show: the stub was not in effect there')
+        self.assertEqual(sweep.badcalls, [], 'a run whose fake log is not exactly the one call per tool the provider means')
         routes_read = {route for (_, route, *_) in sweep.coverage}
         for provider in ('azure', 'github', 'all'):
             for route in ('start --goal discover', 'start --goal adopt', 'catalog', 'catalog --goal discover'):
                 self.assertIn('%s --check-signin %s' % (route, provider), routes_read)
-        self.assertGreaterEqual(len({state for (state, *_) in sweep.coverage}), len(signin_cases('c')))
+        cases = signin_cases('c')
+        self.assertGreaterEqual(len({state for (state, *_) in sweep.coverage}), len(cases))
+        # every case has an expected result of its own, and every run of every case was judged against it: 4 routes at 2 widths, in
+        # the directory with the context and, for the cases that have an answer for it, in the one with none
+        self.assertTrue(all(case.expect for case in cases))
+        self.assertEqual(len({case.expect for case in cases}), len(cases))
+        self.assertEqual(sweep.signin_runs, (len(cases) + sum(1 for case in cases if case.bare)) * 8)
+
+    def test_a_stub_that_is_not_in_effect_is_found_whatever_the_case(self):
+        """With the fakes off the search path, a run shows none of what its answer must show, and its fake log is empty."""
+        root = Path(__file__).resolve().parents[1]
+        context = json.loads((root / 'examples/context.json').read_text())['tenant_id']
+        chosen = [case for case in signin_cases(context)
+                  if case.label in ('azure: signed in to the context tenant', 'github: several accounts', 'azure: the CLI fails')]
+        self.assertEqual(len(chosen), 3)
+        sweep = Sweep()
+        sweep.unmet, sweep.badcalls, sweep.signin_runs = [], [], 0
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp) / 'estate dir'
+            folder.mkdir()
+            shutil.copyfile(root / 'examples/context.json', folder / 'context.json')
+            for case in chosen:
+                run_signin_case(sweep, case, [(folder, 'a context', case.expect)], effective=False)
+        self.assertEqual(sweep.signin_runs, 3 * 8)
+        self.assertEqual({label for label, *_ in sweep.badcalls}, {case.label for case in chosen})     # the fake was never invoked
+        self.assertTrue(all(calls == [] for *_, calls in sweep.badcalls))
+        self.assertEqual({label for label, *_ in sweep.unmet}, {case.label for case in chosen})     # and the screens lack what the answers give
 
     def test_the_views_behind_the_service_adoption_and_adoption_plan_navigation(self):
         sweep = sweep_protected_views()
