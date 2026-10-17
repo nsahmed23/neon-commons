@@ -96,6 +96,59 @@ def command_names(text):
             if word == PROGRAM and (index == 0 or words[index - 1].endswith(':'))]
 
 
+# Words that end a command: a lowercase word after the program word that is prose, not a subcommand.
+_PROSE = frozenset(('and', 'or', 'then', 'from', 'with', 'to', 'for', 'in', 'as', 'the', 'a', 'is', 'it', 'its', 'pass', 'shows',
+                    'see', 'run', 'of', 'on', 'by', 'when', 'that', 'this', 'at'))
+_SUBCOMMAND = re.compile(r'[a-z][a-z-]*\Z')
+
+
+def commands_in(step):
+    """Each `intune-iac` command a printed step holds, as (begin, end, head, operands): where it starts and ends in the text, its
+    subcommand words (at most two) and its operands (the values of flags and a lone positional operand, in order). A command runs
+    from the program word, as a word of its own, to the last word that belongs to it: a flag, the value after a flag, a positional
+    operand that is a placeholder, a quoted path or a path, or a leading subcommand word; the first prose word, an opening
+    parenthesis or a word that ends in sentence punctuation (which that word still belongs to) ends it. The reading is for the
+    steps the product records, not for a shell."""
+    from .entry import is_fill_in
+    words = list(_WORD.finditer(step))
+    found, index = [], 0
+    while index < len(words):
+        if words[index].group() != PROGRAM:
+            index += 1
+            continue
+        begin, end, head, operands, after_flag = words[index].start(), words[index].end(), [], [], False
+        index += 1
+        while index < len(words):
+            raw = words[index].group()
+            word = raw.rstrip(',;.:') if len(raw) > 1 else raw
+            if not word or word.startswith('('):
+                break
+            if word.startswith('-'):
+                take, after_flag = True, True
+            elif after_flag:
+                take, after_flag = True, False
+                operands.append(word)
+            elif not operands and len(head) < 2 and _SUBCOMMAND.match(word) and word not in _PROSE:
+                take = True
+                head.append(word)
+            elif is_fill_in(word) or word.startswith("'") or '/' in word:
+                take = True
+                operands.append(word)
+            else:
+                break
+            end = words[index].start() + len(word)
+            index += 1
+            if word != raw:
+                break                                    # the sentence ends with this word
+        found.append((begin, end, head, operands))
+    return found
+
+
+def command_operands(step):
+    """The operands of every command in a printed step (see commands_in)."""
+    return [operand for _, _, _, operands in commands_in(step) for operand in operands]
+
+
 def capture_contact(text):
     """The sentence that says where capture sends the token, for a printed step that runs the capture command (as command_names
     reads it, never a substring of the text); '' for any other step."""

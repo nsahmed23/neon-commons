@@ -305,11 +305,16 @@ PATH_NOT_SHOWN_SENTENCE = PATH_PLACEHOLDER + ' is a path in this directory whose
 
 # The fill-in templates: a word that stands where the person must put a real value (a folder, a file, a tenant id). The start screen
 # never prints one as the operand of a command, because a shell takes it for a real name (STORE or SERVICE_ROOT is a valid relative
-# path) or the command fails; it says the step in words instead. One set, used by the product (has_fill_in) and by the tests: the
-# placeholders this module writes for a path it may not show (DIRECTORY, PATH), the generic names ROOT and ID, and every fixed
-# placeholder of the next steps below. A test walks this module's command strings and fails when one holds a name that is not here.
+# path) or the command fails; it says the step in words instead. One set, used by the product (has_fill_in, and the display
+# transform of readiness.py) and by the tests: the placeholders this module writes for a path it may not show (DIRECTORY, PATH), the
+# generic names ROOT and ID, and every fixed placeholder of the steps in this module, readiness.py and catalog.py. A test walks the
+# commands of all three and fails when one has an operand that is a placeholder and is not here.
 FILL_IN_TEMPLATES = frozenset((DIRECTORY_PLACEHOLDER, PATH_PLACEHOLDER, 'ROOT', 'ID', 'SERVICE_ROOT', 'TENANT_ID', 'STORE',
-                               'CONTEXT_JSON', 'EXPORT_JSON', 'REPOSITORY', 'NEW_OUTPUT_DIR', 'NEW_SESSION'))
+                               'CONTEXT_JSON', 'EXPORT_JSON', 'REPOSITORY', 'NEW_OUTPUT_DIR', 'NEW_SESSION',
+                               # the placeholders of the recorded steps in readiness.py (the goal rows of the start screen and the
+                               # catalog): the capture, target and repository commands
+                               'POLICY', 'NEW_DIR', 'TOKEN_VARIABLE_NAME', 'TARGET_JSON', 'FD', 'REPOSITORY_DIRECTORY', 'SESSION',
+                               'STACK', 'COMPONENT'))
 _FILL_IN = re.compile(r'(?:%s)(?:[/.].*)?\Z' % '|'.join(sorted(FILL_IN_TEMPLATES, key=len, reverse=True)), re.DOTALL)
 
 

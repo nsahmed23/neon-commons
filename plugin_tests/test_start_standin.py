@@ -428,7 +428,8 @@ class SharedTemplateSetTests(unittest.TestCase):
     """Round 2, item 1: one explicit set of fill-in templates, defined once (entry.FILL_IN_TEMPLATES) and used by the product and
     by these tests: a word a command may hold only until the person replaces it."""
     REQUIRED = ('DIRECTORY', 'PATH', 'ROOT', 'ID', 'SERVICE_ROOT', 'TENANT_ID', 'STORE', 'CONTEXT_JSON', 'EXPORT_JSON',
-                'REPOSITORY', 'NEW_OUTPUT_DIR', 'NEW_SESSION')
+                'REPOSITORY', 'NEW_OUTPUT_DIR', 'NEW_SESSION', 'POLICY', 'NEW_DIR', 'TOKEN_VARIABLE_NAME', 'TARGET_JSON', 'FD',
+                'REPOSITORY_DIRECTORY', 'SESSION', 'STACK', 'COMPONENT')
 
     @staticmethod
     def templates():
@@ -439,29 +440,37 @@ class SharedTemplateSetTests(unittest.TestCase):
         for name in self.REQUIRED:
             self.assertIn(name, self.templates())
 
-    def test_every_fill_in_word_of_a_command_string_in_entry_py_is_in_the_set(self):
+    def test_every_fill_in_word_of_a_command_in_entry_readiness_and_catalog_is_in_the_set(self):
+        """Round 3: the walk covers the recorded steps of readiness.py and the resume commands of catalog.py too, and reads a
+        command the way the display transform does (readiness.command_operands), so a prose word such as GET or GUID is not one."""
         import ast
-        path = Path(__file__).resolve().parents[1] / 'intune_iac' / 'entry.py'
-        tree = ast.parse(path.read_text(encoding='utf-8'))
+        from intune_iac import readiness
+        operands = getattr(readiness, 'command_operands', lambda text: [])
         word = re.compile(r'^[A-Z][A-Z0-9_]*[A-Z0-9](?:\.[a-z]+)?$')
-        found = set()
-        for node in ast.walk(tree):
-            if not (isinstance(node, ast.Constant) and isinstance(node.value, str)):
-                continue
-            if not re.search(r'(?:intune-iac|%s) +(?:workbench|wizard|capture|start|catalog)\b', node.value):
-                continue                                        # a command string, not a heading or a sentence
-            for token in node.value.split():
-                token = token.strip("'\"(),.;:")
-                if word.match(token):
-                    found.add(token.split('.')[0])
-        self.assertTrue({'STORE', 'TENANT_ID', 'NEW_SESSION', 'NEW_OUTPUT_DIR', 'CONTEXT_JSON', 'EXPORT_JSON',
-                         'REPOSITORY'} <= found, found)         # the walk found the producers
-        self.assertEqual(sorted(found - self.templates()), [])
+        found = {}
+        for module in ('entry.py', 'readiness.py', 'catalog.py'):
+            path = Path(__file__).resolve().parents[1] / 'intune_iac' / module
+            tree = ast.parse(path.read_text(encoding='utf-8'))
+            for node in ast.walk(tree):
+                if not (isinstance(node, ast.Constant) and isinstance(node.value, str)):
+                    continue
+                # %s after a flag is a value; any other %s is the program name
+                text = re.sub(r'(--[a-z-]+ )?%s', lambda m: (m.group(1) + 'value') if m.group(1) else 'intune-iac', node.value)
+                for token in operands(text):
+                    if word.match(token):
+                        found.setdefault(token.split('.')[0], set()).add(module)
+        required = {'STORE', 'TENANT_ID', 'NEW_SESSION', 'NEW_OUTPUT_DIR', 'CONTEXT_JSON', 'EXPORT_JSON', 'REPOSITORY', 'POLICY',
+                    'NEW_DIR', 'TOKEN_VARIABLE_NAME', 'TARGET_JSON', 'FD', 'REPOSITORY_DIRECTORY', 'SESSION', 'STACK', 'COMPONENT',
+                    'PATH', 'DIRECTORY'}
+        self.assertTrue(required <= set(found), sorted(required - set(found)))        # the walk found the producers
+        self.assertEqual(sorted(set(found) - self.templates()), [])
+        self.assertTrue({'readiness.py', 'catalog.py', 'entry.py'} <= set().union(*found.values()), found)
 
     def test_an_operand_is_a_template_when_it_is_one_or_starts_one(self):
         from intune_iac import entry
         is_fill_in = getattr(entry, 'is_fill_in', lambda token: False)
-        for token in ('STORE', 'DIRECTORY/store', 'NEW_SESSION.json', 'PATH', 'SERVICE_ROOT', 'ID'):
+        for token in ('STORE', 'DIRECTORY/store', 'NEW_SESSION.json', 'PATH', 'SERVICE_ROOT', 'ID', 'POLICY', 'NEW_DIR',
+                      'TOKEN_VARIABLE_NAME', 'TARGET_JSON', 'FD', 'REPOSITORY_DIRECTORY'):
             self.assertTrue(is_fill_in(token), token)
         for token in ('estate dir/store', 'STOREROOM', 'store', 'session.json', '--root'):
             self.assertFalse(is_fill_in(token), token)
