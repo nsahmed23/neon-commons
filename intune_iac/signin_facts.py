@@ -647,6 +647,12 @@ def _printable(text):
     return ''.join(ch if ch.isprintable() else '?' for ch in str(text))
 
 
+def _in_words(text):
+    """The text of a verdict as a person reads it: a command with a placeholder operand is said in words (readiness.placeholders_in_words)."""
+    from .readiness import placeholders_in_words
+    return placeholders_in_words(text)
+
+
 def _wrap(text, width, first='', rest=''):
     """Rows of at most width columns, broken only at spaces: a GUID, a name or a command word is never split, so a word wider
     than the row stands alone on its row."""
@@ -730,10 +736,10 @@ def status_lines(report, width, code, shown=None):
         for row in [_account_row(verdict, entry) for entry in entries] or ['none usable (the cause below names any listed one)']:
             lines += _wrap('Account: %s' % row, width)
         lines.append('Why:')
-        lines += _wrap(present['sentence'], width, '    ', '    ')
+        lines += _wrap(_in_words(present['sentence']), width, '    ', '    ')
         if verdict.get('next_step'):
             lines.append('Next step:')
-            lines += _wrap(verdict['next_step'], width, '    ', '    ')
+            lines += _wrap(_in_words(verdict['next_step']), width, '    ', '    ')
     status = report.get('status')
     meaning = {'ready': '(2 means blocked).', 'reported': '(2 means blocked).', 'blocked': '(0 means ready).'}.get(status, '')
     lines.append('')

@@ -9,7 +9,9 @@ and the workflow's answer words). The rendered-surface tests are the primary gua
 import ast
 import hashlib
 import json
+import os
 import re
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -214,6 +216,9 @@ RENDERED |= {
     ('workbench_repository.py', 'The repository changed since this intent was recorded. Review the diff'),
     ('workbench_screens.py', 'none recorded; repository-entry REPOSITORY finds where this policy is '),
     ('workbench_delivery.py', 'Review the change (5); the digest is the one on the review'),
+    # the sign-in steps: printed on the start screen and the catalog through the goal rows, rendered by CheckSigninScreenTests
+    ('signin_facts.py', 'az account set --subscription SUBSCRIPTION'), ('signin_facts.py', 'az logout --username NAME'),
+    ('signin_facts.py', 'Make one active with: gh auth switch --user NAME'),
     ('workbench_screens.py', ':repository-entry REPOSITORY'), ('workbench_screens.py', '    :queue-review-template %s NEW_JSON'),
     ('workbench_screens.py', '  :queue-review-template %s NEW_JSON'), ('workbench_screens.py', '    :queue-amend FILE %s'),
     ('workbench_tui.py', 'No active operation: review one first (5, or :review OPERATION_DIR).'),
@@ -591,6 +596,101 @@ class RevisionJsonPinsTests(unittest.TestCase):
                 self.assertNotIn('the REVISION', text)
                 # undoing the declared substitution gives the form as fa3f022 had it
                 self.assertEqual(_text_digest(text.replace('asks for the revision', 'asks for the REVISION')), REVISION_FORMS[form][0])
+
+
+
+# -- round 5: the external programs the product prints commands for -----------------------------------------------------------
+
+class ExternalDialectTests(unittest.TestCase):
+    def test_the_programs_come_from_the_products_own_tables(self):
+        from intune_iac import readiness
+        programs = getattr(readiness, 'external_programs', lambda: frozenset())()
+        self.assertEqual(sorted(programs), ['atmos', 'az', 'gh', 'tofu'])
+
+    def test_an_external_command_with_a_placeholder_is_words_and_its_explaining_legend_goes(self):
+        from intune_iac import signin_facts
+        self.assertEqual(said('Choose one with: ' + signin_facts.SUBSCRIPTION_STEP + '; then run this command again.'),
+                         'Choose one with: the az account set command, naming --subscription as the subscription id or name; '
+                         'then run this command again.')
+        self.assertEqual(said('Run: ' + signin_facts.LOGOUT_STEP),
+                         'Run: the az logout command, naming --username as the name of the account you signed in with '
+                         '(the account name to sign out)')
+        self.assertEqual(said('Make one active with: gh auth switch --user NAME (the login name to use), and remove the others'),
+                         'Make one active with: the gh auth switch command, naming --user as the name of the account you signed in '
+                         'with (the login name to use), and remove the others')
+
+    def test_resolved_external_commands_keep_their_form(self):
+        for text in ('Sign in with: az login --tenant 11111111-1111-4111-8111-111111111111; then run it again.',
+                     'Run az account list --output json yourself to see the sign-in.', 'Run: gh auth status yourself to see it.',
+                     'az cloud set --name AzureCloud', 'gh auth login'):
+            self.assertEqual(said(text), text)
+
+    def test_a_legend_that_only_explained_a_described_operand_never_doubles_beside_the_description(self):
+        self.assertEqual(said('with --serve instead of --out FILE (the file name) it serves'),
+                         'with --serve instead of --out (the file you name) it serves')
+        self.assertNotRegex(said('az logout --username NAME (the account name to sign out)'), r'\)\s*\(')
+
+
+class CheckSigninScreenTests(unittest.TestCase):
+    """start and catalog with --check-signin, the az and gh stubbed as the sign-in tests stub them."""
+
+    def screens(self, labels):
+        import json as _json
+        import shutil
+        from unittest.mock import patch
+        from plugin_tests import test_rendered_surfaces as sweep
+        from plugin_tests.signin_fakes import FakeClis
+        root = Path(__file__).resolve().parents[1]
+        context = _json.loads((root / 'examples/context.json').read_text())['tenant_id']
+        found = []
+        with tempfile.TemporaryDirectory() as temp:
+            folder = Path(temp) / 'estate dir'
+            folder.mkdir()
+            shutil.copyfile(root / 'examples/context.json', folder / 'context.json')
+            for label, provider, azure, github, phrase in sweep.signin_cases(context):
+                if label.split(': ', 1)[1] not in labels:
+                    continue
+                fakes = FakeClis()
+                try:
+                    fakes.answer('az', 'account', 'list', **azure)
+                    with patch.dict(os.environ, {'PATH': fakes.path_entry() + os.pathsep + os.environ.get('PATH', '')}):
+                        for argv in (['start', str(folder), '--goal', 'discover', '--check-signin', provider],
+                                     ['catalog', str(folder), '--goal', 'discover', '--check-signin', provider]):
+                            for width in (120, 60):
+                                code, text, err = sweep.run_cli(argv, width)
+                                found.append((label, argv[0], width, text))
+                finally:
+                    fakes.cleanup()
+        return found
+
+    def test_several_accounts_and_an_expired_subscription_print_words_with_no_doubled_legend(self):
+        found = self.screens(('several accounts in the tenant', 'only an expired subscription'))
+        self.assertEqual(len(found), 8)
+        for label, route, width, text in found:
+            with self.subTest(label=label, route=route, width=width):
+                self.assertEqual(unresolved(text), [], text)
+                flat = ' '.join(text.split())
+                # an option, its description in brackets, and a second bracket that only repeats it (the product's own prose may
+                # put two brackets together elsewhere)
+                self.assertNotRegex(flat, r'--[a-z-]+ \([^()]*\) \([^()]*\)')
+                self.assertNotIn('SUBSCRIPTION', flat)
+                self.assertNotIn('--username NAME', flat)
+        expired = ' '.join(' '.join(text for label, route, width, text in found if 'expired' in label and route == 'start').split())
+        self.assertIn('the az account set command, naming --subscription as the subscription id or name', expired)
+
+
+class SigninStatusTests(unittest.TestCase):
+    def test_signin_status_says_the_subscription_and_logout_steps_in_words(self):
+        from intune_iac import signin_facts
+        report = {'status': 'warning', 'verdicts': {}}
+        text = ' '.join(signin_facts._in_words('Choose one with: ' + signin_facts.SUBSCRIPTION_STEP + '. Or sign out the others with: '
+                                               + signin_facts.LOGOUT_STEP + '.').split())
+        self.assertEqual(unresolved(text), [], text)
+        self.assertIn('the az account set command, naming --subscription as the subscription id or name', text)
+        self.assertIn('the az logout command, naming --username as', text)
+        source = (PACKAGE / 'signin_facts.py').read_text(encoding='utf-8')
+        self.assertIn("_wrap(_in_words(verdict['next_step'])", source)
+        self.assertIn("_wrap(_in_words(present['sentence'])", source)
 
 
 if __name__ == '__main__':

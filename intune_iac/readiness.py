@@ -116,6 +116,15 @@ def _bare(word):
 
 
 @functools.lru_cache(maxsize=1)
+def external_programs():
+    """The programs other than this one that the product prints commands for, read from its own tables: the programs of the sign-in
+    listing commands (signin.LISTING_COMMANDS: az, gh) and the executables the readiness checks look up (EXECUTABLES: atmos, tofu)."""
+    from . import signin
+    return frozenset([command.split()[0] for command in signin.LISTING_COMMANDS.values()]
+                     + [name for names in EXECUTABLES.values() for name in names])
+
+
+@functools.lru_cache(maxsize=1)
 def dialects():
     """The command tables of the product itself, from which a printed command is recognized (never a list kept here).
 
@@ -191,6 +200,15 @@ def commands_in(step):
                     head, start = [candidate], start + 1
         elif bare == 'workbench' and following in shell.get('workbench', {}) and not (index and tidy(words[index - 1])[2] == PROGRAM):
             head, start = ['workbench', following], index + 2
+        elif bare in external_programs() and not word.startswith('(') and (index == 0 or tidy(words[index - 1])[2] != 'intune-iac'):
+            # another program: its lowercase subcommand words (at most three), then its options and operands as for the shell
+            head = [bare]
+            while start < len(words) and len(head) < 4:
+                candidate = tidy(words[start])
+                if candidate[1] != candidate[0] or not _SUBCOMMAND.match(candidate[2]) or candidate[2] in _PROSE:
+                    break
+                head.append(candidate[2])
+                start += 1
         if head is not None:
             items, option, index = [], None, start
             end = _end_of(words[start - 1], tidy(words[start - 1])[1])
@@ -287,6 +305,7 @@ TEMPLATE_WORDS = {
     'FILE': 'the file you name',
     'NEW_JSON': 'a new JSON file for the review form',
     'SERVICE': 'your service folder',
+    'SUBSCRIPTION': 'the subscription id or name',
     'EXACT_REVIEW_DIGEST': 'the digest that the review shows',
     'COMMIT': 'the Git commit that holds the edited project',
     'NAME': 'the name of the account you signed in with',
@@ -356,6 +375,8 @@ def placeholders_in_words(step):
                 if kept:
                     out.append(' (%s)' % '; '.join(kept))
                 at = legend.end()
+            elif _explains_only(legend.group(1), said):
+                at = legend.end()                       # a bracket that only said what an operand is: the words say it
         if re.match(r' [a-z]', step[at:]):
             out.append(',')
     out.append(step[at:])
@@ -364,12 +385,26 @@ def placeholders_in_words(step):
 
 # An option and its placeholder in a sentence that is not a command ("instead of --out FILE"): the option keeps its place and the
 # placeholder is described in brackets after it.
-_loose_option = re.compile(r'(?<![\w-])(--[a-z][a-z-]*) ([A-Z][A-Z0-9_]*[A-Z0-9])(?![\w])')
+_loose_option = re.compile(r'(?<![\w-])(--[a-z][a-z-]*) ([A-Z][A-Z0-9_]*[A-Z0-9])(?![\w])( \([^()]*\))?')
+_FILLER = frozenset(('a', 'an', 'the', 'of', 'to', 'is', 'are', 'or', 'and', 'for', 'that', 'your'))
+
+
+def _explains_only(legend, said):
+    """True when a bracket holds no word that the description it follows does not already have: it only said what the operand is."""
+    words = re.findall(r'[a-z]+', legend.lower())
+    allowed = set(re.findall(r'[a-z]+', said.lower())) | _FILLER
+    return bool(words) and ';' not in legend and all(word in allowed for word in words)
 
 
 def _describe_loose(match):
     from .entry import is_fill_in
-    return '%s (%s)' % (match.group(1), TEMPLATE_WORDS[match.group(2)]) if is_fill_in(match.group(2)) else match.group(0)
+    if not is_fill_in(match.group(2)):
+        return match.group(0)
+    said = TEMPLATE_WORDS[match.group(2)]
+    tail = match.group(3) or ''
+    if tail and not _explains_only(tail.strip(' ()'), said):
+        return '%s (%s)%s' % (match.group(1), said, tail)
+    return '%s (%s)' % (match.group(1), said)
 
 
 def capture_contact(text):

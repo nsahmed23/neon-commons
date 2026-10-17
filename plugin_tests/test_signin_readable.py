@@ -111,7 +111,9 @@ class WrappingTests(ReadableBase):
 
     def test_no_identifier_is_split_across_rows_at_60_80_and_120_columns(self):
         report = signin.status_report(TENANT_A, None, 'azure', 5)
-        words = set(report['azure']['next_step'].split()) | set(report['azure']['message'].split())
+        from intune_iac.readiness import placeholders_in_words
+        # the screen says a command with a placeholder in words (PKG-TEMPLATE-WORDS), so the words to find are those of the rendered text
+        words = set(placeholders_in_words(report['azure']['next_step']).split()) | set(placeholders_in_words(report['azure']['message']).split())
         for width in (60, 80, 120):
             code, out, _ = self.run_cli('signin', 'status', '--tenant', TENANT_A, columns=width)
             rows = out.splitlines()
