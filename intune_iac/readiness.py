@@ -102,6 +102,11 @@ _PROSE = frozenset(('and', 'or', 'then', 'from', 'with', 'to', 'for', 'in', 'as'
 _SUBCOMMAND = re.compile(r'[a-z][a-z-]*\Z')
 
 
+def _bare(word):
+    """A word without the quotes, backslashes and dollar signs that only change how a shell spells it."""
+    return word.strip("\\'\"$")
+
+
 def commands_in(step):
     """Each `intune-iac` command a printed step holds, as (begin, end, head, operands): where it starts and ends in the text, its
     subcommand words (at most two) and its operands (the values of flags and a lone positional operand, in order). A command runs
@@ -113,7 +118,7 @@ def commands_in(step):
     words = list(_WORD.finditer(step))
     found, index = [], 0
     while index < len(words):
-        if words[index].group() != PROGRAM:
+        if _bare(words[index].group()) != PROGRAM:
             index += 1
             continue
         begin, end, head, operands, after_flag = words[index].start(), words[index].end(), [], [], False
@@ -123,6 +128,8 @@ def commands_in(step):
             word = raw.rstrip(',;.:') if len(raw) > 1 else raw
             if not word or word.startswith('('):
                 break
+            quoted, word_end = word, len(word)
+            word = _bare(word)                       # a word the shell reads the same however it is quoted
             if word.startswith('-'):
                 take, after_flag = True, True
             elif after_flag:
@@ -131,14 +138,14 @@ def commands_in(step):
             elif not operands and len(head) < 2 and _SUBCOMMAND.match(word) and word not in _PROSE:
                 take = True
                 head.append(word)
-            elif is_fill_in(word) or word.startswith("'") or '/' in word:
+            elif is_fill_in(word) or quoted.startswith("'") or '/' in word:
                 take = True
                 operands.append(word)
             else:
                 break
-            end = words[index].start() + len(word)
+            end = words[index].start() + word_end
             index += 1
-            if word != raw:
+            if quoted != raw:
                 break                                    # the sentence ends with this word
         found.append((begin, end, head, operands))
     return found

@@ -112,11 +112,7 @@ def stand_in_operands(lines):
     command is a row that starts with the program name, or the program name inside a sentence up to the sentence's end; the
     workspace's own :repository-entry command is read the same way."""
     found = []
-    goal = False
     for row in logical_rows(lines):
-        # the goal block prints readiness.py's recorded steps, whose own placeholders (TENANT_ID, POLICY, NEW_DIR ...) are a separate
-        # package: there the reader looks for the four stand-ins for a path only
-        goal = goal or row.startswith('GOAL READINESS')
         commands = [row] if row.startswith('intune-iac ') else row.split('intune-iac ')[1:]
         commands += re.findall(r':repository-entry\s+(.*)', row)
         for command in commands:
@@ -125,7 +121,7 @@ def stand_in_operands(lines):
                 tokens = shlex.split(command)
             except ValueError:
                 tokens = command.split()
-            found += [token for token in tokens if (is_path_stand_in(token) if goal else is_stand_in(token))]
+            found += [token for token in tokens if is_stand_in(token)]
     return found
 
 
@@ -541,10 +537,7 @@ class PlaceholderCommandTests(unittest.TestCase):
                         for goal in (None, 'discover'):
                             with self.subTest(kind=kind, name=label, route=route, width=width, goal=goal):
                                 lines = render(route, self.parents[kind], name, width, goal)
-                                # the next steps and what precedes them; the goal block's recorded readiness steps (the capture
-                                # command and its placeholders) are readiness.py's, a separate package
-                                stop = next((i for i, row in enumerate(lines) if row.startswith('GOAL READINESS')), len(lines))
-                                self.assertEqual(unresolved_operands(lines[:stop]), [], flat(lines))
+                                self.assertEqual(unresolved_operands(lines), [], flat(lines))
 
     def test_the_fallback_steps_and_the_store_first_step_are_said_in_words(self):
         for label, name in self.NAMES.items():
@@ -602,8 +595,7 @@ class CheckerTests(unittest.TestCase):
                         steps = [row for row in lines if re.match(r'  \d\. ', row)]
                         self.assertEqual(len(steps), 3, lines)                   # the three fallback steps are there ...
                         self.assertIn('naming its folder and your tenant id', text)  # ... in words
-                        self.assertEqual(stand_in_operands(lines[:next((i for i, r in enumerate(lines)
-                                                                       if r.startswith('GOAL READINESS')), len(lines))]), [])
+                        self.assertEqual(stand_in_operands(lines), [])
                         # the reader does see the templates of the old step, so [] above is not blindness
                         old = 'intune-iac workbench init --root STORE --tenant TENANT_ID'
                         self.assertEqual(stand_in_operands([old]), ['STORE', 'TENANT_ID'])
@@ -877,3 +869,55 @@ class JsonFormsUnchangedTests(unittest.TestCase):
             cli.main(['catalog', str(F.get()['repository']), '--json', '--goal', 'discover'])
         self.assertIn('intune-iac start DIRECTORY', out.getvalue())
         self.assertNotIn('the start command, naming', out.getvalue())
+
+
+class FullSetEverywhereTests(unittest.TestCase):
+    """Round 3, item 4: the reader checks the whole shared set on the whole screen, goal block and catalog rows included: every
+    fixture, directory name, goal and width, through the builders, the plain data and the command line, for start and the catalog."""
+    KINDS = ('empty', 'repository', 'export', 'emptystore', 'full', 'context')
+    NAMES = {'credential': CREDENTIAL, 'control': 'bad' + chr(27) + 'name', 'ordinary': ORDINARY}
+
+    @classmethod
+    def setUpClass(cls):
+        cls.temp = tempfile.TemporaryDirectory()
+        cls.parents = {}
+        for kind in cls.KINDS:
+            parent = Path(cls.temp.name) / kind
+            parent.mkdir()
+            for name in cls.NAMES.values():
+                if kind == 'full':
+                    estate(parent, name)
+                elif kind == 'context':
+                    shutil.copytree(Fixtures.get()['context'], parent / name)
+                else:
+                    variant_estate(parent, name, kind)
+            cls.parents[kind] = str(parent)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.temp.cleanup()
+
+    def sweep(self, draw):
+        count = 0
+        for kind in self.KINDS:
+            for label, name in self.NAMES.items():
+                for route in ('built', 'plain', 'cli'):
+                    for width in (120, 60):
+                        for goal in GOALS:
+                            with self.subTest(kind=kind, name=label, route=route, width=width, goal=goal):
+                                lines = draw(route, self.parents[kind], name, width, goal)
+                                count += 1
+                                self.assertEqual(stand_in_operands(lines), [], flat(lines))
+        self.assertEqual(count, len(self.KINDS) * len(self.NAMES) * 3 * 2 * len(GOALS))
+
+    def test_no_row_of_the_start_screen_has_a_template_as_an_operand(self):
+        self.sweep(render)
+
+    def test_no_row_of_the_catalog_has_a_template_as_an_operand(self):
+        self.sweep(render_catalog)
+
+    def test_the_reader_does_read_the_goal_block(self):
+        goal_block = ['GOAL READINESS: discover (status: unknown)',
+                      '    intune-iac capture --tenant TENANT_ID --policy POLICY --output \\',
+                      '        NEW_DIR --token-env TOKEN_VARIABLE_NAME']
+        self.assertEqual(stand_in_operands(goal_block), ['TENANT_ID', 'POLICY', 'NEW_DIR', 'TOKEN_VARIABLE_NAME'])

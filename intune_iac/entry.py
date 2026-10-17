@@ -922,7 +922,7 @@ def goal_summary(view):
 def _goal_lines(view, width, operand=None):
     """The goal's readiness: its status, the selected directory, host and tenant, the needed rows and what is not checked.
     operand is the surveyed directory as a command argument, as the path writer wrote it for this screen."""
-    from .readiness import capture_contact, directory_hidden, screen_note, without_stand_in
+    from .readiness import capture_contact, directory_hidden, placeholders_in_words, screen_note, without_stand_in
     from .workbench_screens import word_wrap
     host = view['host']
     hidden = directory_hidden(view['directory'])
@@ -972,7 +972,8 @@ def _goal_lines(view, width, operand=None):
     if view['goal'] != 'inspect':
         lines.append('NOT CHECKED HERE')
         for note in list(view['not_established']) + list(view['omitted_facts']):
-            for index, part in enumerate(word_wrap(without_stand_in(note) if hidden else note, width - 4)):
+            note = placeholders_in_words(without_stand_in(note) if hidden else note)
+            for index, part in enumerate(word_wrap(note, width - 4)):
                 lines.append(('  - ' if index == 0 else '    ') + part)
     return lines
 
