@@ -4908,6 +4908,16 @@ class ReachTests(unittest.TestCase):
                 self.assertEqual({target for target, _, exact in edges if exact}, expected_exact)
                 self.assertEqual({target for target, _, exact in edges if not exact}, expected_name)
 
+    def test_no_base_class_of_the_product_is_found_by_its_name_alone(self):
+        """Sol V5, condition 1 of the C1 review: a fallback by simple name is never an exact edge (the cases on small modules above), and the
+        product has none to begin with: each of its base classes is a class that the file naming it defines or imports, or one from outside
+        the product. A class with a base that nothing resolves would be an edge by name, and this test would name it."""
+        graph = ReachGraph()
+        unresolved = [(key, base) for classes in graph.classes.values() for key, (bases, _) in classes.items() for base in bases
+                      if graph.base_classes(key[0], base)[1]]
+        self.assertEqual(unresolved, [])
+        self.assertGreater(sum(len(bases) for classes in graph.classes.values() for bases, _ in classes.values()), 100)
+
     def test_the_storage_classes_do_not_inherit_the_loader_of_the_console(self):
         """windows_storage._Win32Storage, windows_observer_credentials._Win32Credentials and what derives from them inherit windows_directory's
         _Win32, which loads kernel32 for directory and file calls. windows_terminal._Win32 is the console's, and nothing but NativeConsole
@@ -5077,6 +5087,33 @@ class ConsoleWriteTests(unittest.TestCase):
          ['unlisted console site'], None),
         ('msvcrt.putwch', 'import msvcrt\nmsvcrt.putwch("R")', ['unlisted import msvcrt site', 'unlisted msvcrt site'], None),
     )
+
+    TYPED = ('import ctypes as C\ntext = "Run: kubectl apply PLAN_FILE"\nbuffer = C.create_unicode_buffer(text)\nwritten = C.c_uint32()\n'
+             'api.k.WriteConsoleW(%s, C.cast(buffer, C.c_void_p), len(text), C.byref(written), None)')
+
+    def test_the_inputs_in_sols_type_correct_form_are_caught(self):
+        """Sol V5, condition 3: the same writes with the arguments WriteConsoleW takes (a unicode buffer cast to a void pointer, its length, a
+        DWORD for the count), so that the call would run. The names of ctypes that build them are not sites; the console names are."""
+        loader = ('windows_terminal.py', '_Win32.__init__')
+        for label, header, call, reach in (
+                ('C1a, type-correct', 'from .windows_terminal import _Win32\napi = _Win32()\n', 'api.handles()[1]', 'exact'),
+                ('C1b, type-correct', 'from .windows_terminal import NativeConsole\napi = NativeConsole().api\n', 'api.handles()[1]', 'exact'),
+                ('C1c, type-correct', 'from .windows_directory import _Win32 as D\napi = D()\n', 'api.k.GetStdHandle(-11)', None)):
+            with self.subTest(label):
+                sources = ReachTests.mutated(header + self.TYPED % call)
+                problems = output_site_problems(sources)
+                self.assertTrue(any('unlisted console site' in problem for problem in problems), problems)
+                self.assertEqual(ReachTests.new_reaches(sources, 'doctor').get(loader), reach)
+
+    def test_a_console_name_is_a_site_whatever_the_receiver_is(self):
+        """Sol V5, condition 2: the rule is about the attribute, not about what it is read from."""
+        for label, receiver in (('a name', 'api.k'), ('a call', 'make().k'), ('a subscript', 'apis[0].k'), ('a conditional expression', '(a if flag else b).k'),
+                                ('a call of a call', 'make()().k'), ('a method result', 'text.join(parts).k'), ('self', 'self.k'),
+                                ('a lambda call', '(lambda: api)().k'), ('the module', 'ctypes.windll.kernel32'), ('a string', '"x".k')):
+            for name in ('WriteConsoleW', 'GetStdHandle'):
+                with self.subTest(label + ' ' + name):
+                    problems = output_site_problems(ReachTests.mutated('%s.%s(h, "x", 1, None, None)' % (receiver, name)))
+                    self.assertTrue(any('unlisted console site' in problem for problem in problems), problems)
 
     def test_each_input_of_the_review_is_caught(self):
         loader = ('windows_terminal.py', '_Win32.__init__')
