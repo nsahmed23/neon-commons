@@ -14,7 +14,9 @@ What it covers
   * The command line's text routes, in process with stdout and stderr captured: start and the catalog (every fixture, goal and
     width), sign-in status and collect with the collector stubbed (every golden case, with and without --account), the workflow map
     text, the engineering view, the interrupted-session sentences, and the --help and the usage error of every route found in
-    cli.parser(). A test counts the text branches of cli.main, so a route that prints text and is not driven here fails.
+    cli.parser(). Every parser leaf is classified as text (cli.main prints it through _write_text; read from main's source), a
+    session (the wizard, the workspace, the line terminal) or a machine form (the JSON document); cli._write_text is wrapped to record
+    the leaf each call ran for, and a text leaf that no sweep drove through cli.main fails the test.
   * The wizard, the guided workflow and the journey: every prompt handed to the person and every line printed, scripted through
     the answers a person types, with and without a repository-owned edit of the generated output.
   * simulate --format text, with the snapshot and revision documents test_sim_render_cli builds. start and catalog with
@@ -60,6 +62,7 @@ import collections
 import contextlib
 import copy
 import functools
+import inspect
 import io
 import json
 import os
@@ -990,12 +993,76 @@ def sweep_state(name):
 
 # -- the command line's text routes --------------------------------------------------------------------------------------------------
 
-def run_cli(argv, width=100):
-    """(exit code, stdout, stderr) of cli.main(argv) in process, as a terminal `width` columns wide would show it."""
+WRITTEN = collections.Counter()      # parser leaf (a tuple of words) -> times cli.main printed text for it, through cli._write_text
+
+
+def leaf_of(parser, namespace):
+    """The parser leaf an argparse namespace selected, as the tuple of words that name it: each subparsers action stores the word it
+    took in the attribute it was given as dest."""
+    path = []
+    while True:
+        action = next((item for item in parser._actions if isinstance(item, argparse._SubParsersAction)), None)
+        name = getattr(namespace, action.dest, None) if action is not None else None
+        if name not in (action.choices if action is not None else ()):
+            return tuple(path)
+        path.append(name)
+        parser = action.choices[name]
+
+
+@contextlib.contextmanager
+def recording_routes():
+    """Record, whenever cli.main prints text (cli._write_text), the parser leaf it was run for, in WRITTEN. The parser's parse_args is
+    wrapped to keep the namespace it returns, and _write_text to read it: no sweep says which route it drove, cli.main does."""
     from intune_iac import cli
-    out, err = io.StringIO(), io.StringIO()
-    with patch('shutil.get_terminal_size', return_value=os.terminal_size((width, 40))), \
-            contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+    if getattr(cli._write_text, 'records_routes', False):
+        yield
+        return
+    seen = {}
+    real_parser, real_write = cli.parser, cli._write_text
+
+    def parser():
+        built = real_parser()
+        parse = built.parse_args
+
+        def parse_args(*args, **kwargs):
+            seen['namespace'], seen['parser'] = parse(*args, **kwargs), built
+            return seen['namespace']
+        built.parse_args = parse_args
+        return built
+
+    def write(rows):
+        if 'namespace' in seen:
+            WRITTEN[leaf_of(seen['parser'], seen['namespace'])] += 1
+        return real_write(rows)
+    write.records_routes = True
+    with patch.object(cli, 'parser', parser), patch.object(cli, '_write_text', write):
+        yield
+
+
+def records_routes(function):
+    """A sweep that reaches cli.main through a helper of another test module records the routes it drives."""
+    @functools.wraps(function)
+    def wrapper(*args, **kwargs):
+        with recording_routes():
+            return function(*args, **kwargs)
+    return wrapper
+
+
+class Tty(io.StringIO):
+    """Standard output that is a terminal (cli.main prints some sentences only to one)."""
+
+    def isatty(self):
+        return True
+
+
+def run_cli(argv, width=100, tty=False, execute=None):
+    """(exit code, stdout, stderr) of cli.main(argv) in process, as a terminal `width` columns wide would show it. tty: standard
+    output is a terminal. execute: the result cli.execute gives instead of running the command (for a route that needs a session)."""
+    from intune_iac import cli
+    out, err = (Tty() if tty else io.StringIO()), io.StringIO()
+    with recording_routes(), patch('shutil.get_terminal_size', return_value=os.terminal_size((width, 40))), \
+            contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), \
+            (patch.object(cli, 'execute', return_value=execute) if execute is not None else contextlib.nullcontext()):
         try:
             code = cli.main(list(argv))
         except SystemExit as stop:
@@ -1017,10 +1084,101 @@ def routes(parser, path=()):
     return found
 
 
+# -- every parser leaf, classified: text a person reads, a session, or a machine form ----------------------------------------------
+#
+# A leaf of cli.parser() shows itself to a person in one of three ways. 'text': cli.main prints its screen through cli._write_text
+# (the leaves that satisfy the conditions that enclose a _write_text call, read from cli.main's source by text_leaves_by_code, never
+# listed here). 'session': a terminal session or prompt flow with its own input and output (SESSION_LEAVES, declared). 'machine': every
+# other leaf, which prints the JSON document of cli.main. The sweeps must drive each text leaf through cli.main, which recording_routes
+# observes; a leaf that prints text and is not driven fails the test until it is.
+
+SESSION_LEAVES = {('wizard',): 'sweep_wizards (the plain wizard, the guided workflow and the journey, scripted)',
+                  ('workbench', 'workspace'): 'sweep_state (the workspace, in thirteen states)',
+                  ('workbench', 'terminal'): 'sweep_state (the engine under the workspace is the line terminal)'}
+
+
+def leaf_paths(parser):
+    return [path for path, has_subroutes, _ in routes(parser) if not has_subroutes]
+
+
+def parser_dests(parser):
+    """The namespace attributes the subparsers actions of a parser tree set: {'command', 'workbench_command', 'signin_command', ...}."""
+    found = set()
+    for action in parser._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            found.add(action.dest)
+            for sub in action.choices.values():
+                found |= parser_dests(sub)
+    return found
+
+
+def route_dests(parser, path):
+    """{attribute: word} that parsing a leaf sets: ('signin', 'status') -> {'command': 'signin', 'signin_command': 'status'}."""
+    found = {}
+    for name in path:
+        action = next(item for item in parser._actions if isinstance(item, argparse._SubParsersAction))
+        found[action.dest] = name
+        parser = action.choices[name]
+    return found
+
+
+def route_constraints(test):
+    """[(attribute, {words})] the route conditions of an `if` test: its `and` clauses that compare args.<attribute>, or
+    getattr(args, '<attribute>', None), with a word or a tuple of words (== and in). Any other clause says nothing about the route."""
+    found = []
+    for clause in (test.values if isinstance(test, ast.BoolOp) and isinstance(test.op, ast.And) else [test]):
+        if not (isinstance(clause, ast.Compare) and len(clause.ops) == 1 and isinstance(clause.ops[0], (ast.Eq, ast.In))):
+            continue
+        left, right = clause.left, clause.comparators[0]
+        if isinstance(left, ast.Attribute) and isinstance(left.value, ast.Name) and left.value.id == 'args':
+            dest = left.attr
+        elif (isinstance(left, ast.Call) and getattr(left.func, 'id', '') == 'getattr' and len(left.args) >= 2
+              and isinstance(left.args[0], ast.Name) and left.args[0].id == 'args' and isinstance(left.args[1], ast.Constant)):
+            dest = left.args[1].value
+        else:
+            continue
+        words = {item.value for item in (right.elts if isinstance(right, (ast.Tuple, ast.List, ast.Set)) else [right])
+                 if isinstance(item, ast.Constant) and isinstance(item.value, str)}
+        if words:
+            found.append((dest, words))
+    return found
+
+
+def main_text_branches(source=None):
+    """One list of route constraints for each `_write_text(...)` call in cli.main (or in the source of a function like it): what the
+    conditions that enclose the call say about the route."""
+    from intune_iac import cli
+    tree = ast.parse(textwrap.dedent(source if source is not None else inspect.getsource(cli.main)))
+    branches = []
+
+    def visit(node, tests):
+        if isinstance(node, ast.Call) and getattr(node.func, 'id', None) == '_write_text':
+            branches.append([constraint for test in tests for constraint in route_constraints(test)])
+        for child in ast.iter_child_nodes(node):
+            visit(child, tests + [node.test] if isinstance(node, ast.If) and child in node.body else tests)
+    visit(tree, [])
+    return branches
+
+
+def text_leaves_by_code(parser, source=None):
+    """The leaves of a parser for which some `_write_text` call of cli.main can run: those that satisfy every route condition that
+    encloses the call. A condition on anything but the route (--json, --format, the result) is not read, so a leaf stays admitted
+    when only such a condition would turn the text off."""
+    dests = parser_dests(parser)
+    found = set()
+    for constraints in main_text_branches(source):
+        for path in leaf_paths(parser):
+            chosen = route_dests(parser, path)
+            if all(chosen.get(dest) in words for dest, words in constraints if dest in dests):
+                found.add(path)
+    return found
+
+
 KINDS = ('empty', 'repository', 'export', 'emptystore', 'full', 'context')
 
 
 @functools.lru_cache(maxsize=1)
+@records_routes
 def sweep_start_and_catalog():
     """start and catalog for every fixture directory, with no goal and with each goal, at each width, for an ordinary directory
     name and for one the screen may not show (a credential shape)."""
@@ -1053,6 +1211,7 @@ def sweep_start_and_catalog():
 
 
 @functools.lru_cache(maxsize=1)
+@records_routes
 def sweep_signin():
     """signin status and signin collect, the CLIs and the collecting child stubbed as the sign-in tests do: every golden case
     (partial, failed, withheld, blocked, collected ...), each with and without --account, at two widths."""
@@ -1074,7 +1233,6 @@ def sweep_signin():
 def sweep_workflow_and_engineering():
     """workbench workflow in its text form (a prepared change, an unknown outcome, nothing observed to propose from), the
     engineering view with no records, and the sentences that follow an interrupt, for each kind of interrupt."""
-    from intune_iac import workbench
     sweep = Sweep()
     for name, builder in (('selected policy', build_observed), ('proposal awaiting review', build_proposal),
                           ('lost response, outcome unknown', build_lost), ('repository intent stale', build_stale)):
@@ -1097,10 +1255,13 @@ def sweep_workflow_and_engineering():
                        {'command': 'collect', 'service_root': '/svc'}, {'command': 'collect', 'service_root': None},
                        {'command': 'diagnostics'}, {'command': 'review'}):
             result = {'status': 'interrupted', 'store_root': '/stores/one', 'interrupted_during': during}
-            sweep.text('interrupted during %s%s' % ((during or {}).get('command', 'nothing'),
-                                                      ' with no service root' if during and during.get('command') == 'collect'
-                                                      and not during.get('service_root') else ''),
-                       'workbench workspace (after Ctrl-C)', (width, 0), '\n'.join(workbench.interrupted_text(result, width)))
+            # through cli.main on a terminal, with the session's result handed back (the route prints these sentences only then)
+            code, text, err = run_cli(['workbench', 'workspace', '--root', '/stores/one'], width, tty=True, execute=result)
+            state = 'interrupted during %s%s' % ((during or {}).get('command', 'nothing'),
+                                                 ' with no service root' if during and during.get('command') == 'collect'
+                                                 and not during.get('service_root') else '')
+            sweep.text(state, 'workbench workspace (after Ctrl-C)', (width, 0), text)
+            sweep.text(state, 'workbench workspace (after Ctrl-C) (stderr)', (width, 0), err)
     return sweep
 
 
@@ -1907,22 +2068,68 @@ class CommandLineSweepTests(unittest.TestCase):
         from intune_iac import cli
         self.assertGreaterEqual(sweep.routes_read, len(routes(cli.parser())))
 
-    def test_every_text_branch_of_main_is_one_this_sweep_drives(self):
-        """cli.main writes a person's text from a few branches (_write_text). A new one is a new human route: drive it above."""
-        import inspect
-        from intune_iac import cli
-        source = inspect.getsource(cli.main)
-        self.assertEqual(source.count('_write_text('), 7,
-                         'cli.main has a text route the sweep does not drive: add it to sweep_*, then raise this count')
+    @staticmethod
+    def drive_every_text_route():
+        for sweep in (sweep_start_and_catalog, sweep_signin, sweep_workflow_and_engineering, sweep_simulate, sweep_check_signin):
+            sweep()
 
-    def test_every_route_of_the_parser_is_in_one_of_the_sweeps(self):
+    def test_every_leaf_that_prints_text_is_driven_through_cli_main(self):
+        """cli.main prints a person's text through _write_text for the leaves that satisfy the conditions around each call. The
+        leaves are read from its source, and what the sweeps drove is recorded whenever _write_text runs (recording_routes), so a
+        route the sweeps did not reach, however it got its text, is a failure and not a count that still adds up."""
         from intune_iac import cli
-        found = {path for path, has_subroutes, _ in routes(cli.parser()) if not has_subroutes}
-        text_routes = {('start',), ('catalog',), ('engineering',), ('signin', 'status'), ('signin', 'collect'),
-                       ('workbench', 'workflow'), ('workbench', 'workspace'), ('simulate',)}
-        self.assertTrue(text_routes <= found, sorted(text_routes - found))
-        # the other routes print the JSON document of cli.main (a machine form); their --help and usage errors are read above
-        self.assertGreater(len(found - text_routes), 100)
+        self.drive_every_text_route()
+        by_code = text_leaves_by_code(cli.parser())
+        driven = {leaf for leaf, count in WRITTEN.items() if count}
+        self.assertTrue({('start',), ('catalog',), ('engineering',), ('signin', 'status'), ('signin', 'collect'), ('simulate',),
+                         ('workbench', 'workflow'), ('workbench', 'workspace')} <= by_code, sorted(by_code))       # not a vacuous read
+        self.assertEqual(sorted(by_code - driven), [],
+                         'a leaf prints text through cli._write_text and no sweep drove it through cli.main: drive it')
+        self.assertEqual(sorted(driven - by_code), [], 'cli.main printed text for a leaf the analysis of its source did not admit')
+
+    def test_every_parser_leaf_is_text_a_session_or_a_machine_form_and_the_sessions_are_driven(self):
+        from intune_iac import cli
+        parser = cli.parser()
+        leaves = set(leaf_paths(parser))
+        text, session = text_leaves_by_code(parser), set(SESSION_LEAVES)
+        self.assertTrue(session <= leaves, sorted(session - leaves))
+        machine = leaves - text - session
+        self.assertEqual(len(text | session | machine), len(leaves))
+        self.assertGreater(len(machine), 100)                    # the rest print the JSON document of cli.main; their --help is read above
+        self.assertTrue({('doctor',), ('inspect',), ('workbench', 'init'), ('workbench', 'collect')} <= machine)
+        self.assertIn('wizard, first run', {state for (state, *_) in sweep_wizards().coverage})
+        self.assertTrue(sweep_state('empty store').coverage)
+
+    def test_a_new_leaf_that_prints_text_fails_until_it_is_driven(self):
+        """The count of _write_text calls did not move when a leaf was added to a branch that already printed text; the leaves read
+        from the source do. A new branch of cli.main that prints text for a leaf of its own is found the same way."""
+        from intune_iac import cli
+        self.drive_every_text_route()
+        parser = cli.parser()
+        top = next(item for item in parser._actions if isinstance(item, argparse._SubParsersAction))
+        group = next(item for item in top.choices['signin']._actions if isinstance(item, argparse._SubParsersAction))
+        group.add_parser('whoami')                               # under the signin branch, which prints text for every signin leaf
+        top.add_parser('kube')                                   # a leaf of its own, for a branch that main gains
+        source = inspect.getsource(cli.main)
+        branch = "        if args.command=='mcp':"
+        self.assertIn(branch, source)
+        source = source.replace(branch, "        if args.command=='kube':\n            _write_text(['Run: kubectl apply -f MANIFEST_FILE'])\n"
+                                        "            return 0\n" + branch, 1)
+        by_code = text_leaves_by_code(parser, source)
+        driven = {leaf for leaf, count in WRITTEN.items() if count}
+        self.assertEqual(sorted(by_code - driven), [('kube',), ('signin', 'whoami')])
+        self.assertEqual(inspect.getsource(cli.main).count('_write_text('), source.count('_write_text(') - 1)
+        self.assertNotIn(('kube',), text_leaves_by_code(parser))                     # the real main names no such branch
+
+    def test_the_recorder_reads_the_leaf_cli_main_ran_for(self):
+        before = WRITTEN[('engineering',)]
+        run_cli(['engineering'], 80)
+        self.assertEqual(WRITTEN[('engineering',)], before + 1)
+        run_cli(['engineering', '--json'], 80)                                         # the machine form prints no text
+        run_cli(['engineering', '--help'], 80)
+        self.assertEqual(WRITTEN[('engineering',)], before + 1)
+        run_cli(['workbench', 'workspace', '--root', '/stores/one'], 80, tty=True, execute={'status': 'interrupted'})
+        self.assertGreater(WRITTEN[('workbench', 'workspace')], 0)
 
 
 class RemainingRouteSweepTests(unittest.TestCase):
