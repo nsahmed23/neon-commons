@@ -526,7 +526,7 @@ class CaptureContactTests(Base):
     TENANT = '11111111-1111-4111-8111-111111111111'
     POLICY = '22222222-2222-4222-8222-222222222222'
     SENTENCE = ('The capture command sends the token to graph.microsoft.com in GET requests only (it reads, and changes nothing '
-                'in the tenant) and writes what it reads into NEW_DIR.')
+                'in the tenant) and writes what it reads into the new folder for the output.')
 
     @unittest.skipUnless(os.name == 'posix', 'capture persists through directory descriptors (POSIX)')
     def test_what_the_screen_says_is_what_capture_does(self):

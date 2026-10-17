@@ -81,7 +81,7 @@ def with_legend(command, note=''):
 # and writes what it read into the one new folder it is given. The legend a step records says only that it reads the named variable
 # (that wording is part of the JSON forms and stays); a screen adds this sentence after the step.
 CAPTURE_CONTACT = ('The capture command sends the token to %s in GET requests only (it reads, and changes nothing in the tenant) '
-                   'and writes what it reads into NEW_DIR.')
+                   'and writes what it reads into the new folder for the output.')
 
 
 # A word as the shell reads it: a run of characters, or a quoted run (a path with a space in it is one word).

@@ -317,21 +317,23 @@ class ProducerStringTests(Estates):
 # block's recorded commands.
 # key: route|width|goal. The temporary parent and fixture directories are written PARENT and FIXTURES first, and the
 # readiness view is host-free (host_free). Linux with a temporary directory of /tmp only: a longer path wraps differently.
+# PKG-TEMPLATE-WORDS round 7: the 6 digests of the goal discover (built and plain, three widths) changed because the sentence about where capture writes
+# says "the new folder for the output" instead of the placeholder NEW_DIR.
 GOLDEN = {
     'built|120|-': '95155f2d5bf7568c',
     'built|120|adopt': '082654dc2724a485',
     'built|120|change': 'e43ecabeda39cc48',
-    'built|120|discover': '17c10e5d3eaa930d',
+    'built|120|discover': '95b7e3ea33188a11',
     'built|120|inspect': 'e938f7aabceed04f',
     'built|60|-': 'b39f23b98d57b32d',
     'built|60|adopt': '2c4e6fd32eea5ad8',
     'built|60|change': '2031ceaff6e596d2',
-    'built|60|discover': '641775d660b95b0f',
+    'built|60|discover': 'b95c623a96bc7cd5',
     'built|60|inspect': '7e5cb4ee200b9c71',
     'built|80|-': '8c94954e01ee204e',
     'built|80|adopt': '651c05589b5bd3a8',
     'built|80|change': 'd984abbdce38b0b7',
-    'built|80|discover': 'e9077c77655222a7',
+    'built|80|discover': '6e6e0b5f288f4569',
     'built|80|inspect': '40c4b2b76f244991',
     'cli|120|-': '369b3bbe29270e5b',
     'cli|60|-': '5ec59d0b35e960cb',
@@ -339,17 +341,17 @@ GOLDEN = {
     'plain|120|-': '242db18740245f43',
     'plain|120|adopt': '88ae24b05f58636e',
     'plain|120|change': '22499772a231d192',
-    'plain|120|discover': 'e8198e0e65096b6d',
+    'plain|120|discover': 'b4ff14bac6098367',
     'plain|120|inspect': 'a6f2a58ffef31a8c',
     'plain|60|-': '6799749a0b17b71d',
     'plain|60|adopt': '05880222223128bc',
     'plain|60|change': '15144634d06607b2',
-    'plain|60|discover': 'c2f9646c5dc9b844',
+    'plain|60|discover': '13a91de48b3fad9c',
     'plain|60|inspect': '8dd961c2b16c7247',
     'plain|80|-': '844eedc257078244',
     'plain|80|adopt': 'f6290706a6f876df',
     'plain|80|change': '6bb5e5ceafa53eae',
-    'plain|80|discover': '67b7f936db261c29',
+    'plain|80|discover': 'f9cc100411c9f843',
     'plain|80|inspect': '484d96f4a962f307',
 }
 
