@@ -1476,7 +1476,9 @@ def leaf_table_problems(parser, table=None, drivers=None):
 # chain on a name or a choice between such), and a load is a site if any one of them makes it one: `import os as channel` is not undone
 # by `import json as channel` elsewhere in the file, and a builtin keeps its meaning whatever else its name is bound to. A name of the
 # product's own that is a scan name (the text sink _write_text) is a site however it is reached: from .cli import _write_text as emit,
-# cli._write_text, intune_iac.cli._write_text, or the string "_write_text", and so is the relative import that brings it.
+# cli._write_text, intune_iac.cli._write_text, or the string "_write_text", and so is the relative import that brings it. The native
+# routes that can reach a terminal or run code by a road of their own (fcntl, termios, signal, pickle, marshal, shelve, readline, tty,
+# code, pdb, curses and the rest of SCAN_MODULES) are sites at the import and at every use; the product uses fcntl, termios and signal.
 # The kinds, one per reference:
 #   print, input, exec, eval, compile, __import__, globals, locals, __builtins__, breakpoint, _write_text    the name, in load context
 #   sys.stdout, sys.stderr, sys.stdin, sys.__stdout__, sys.__stderr__, sys.__stdin__, sys.modules          the attribute (aliases resolved)
@@ -1507,6 +1509,12 @@ REASON_MAINOUT = 'asks its encoding and whether it is a terminal; flushes it aft
 REASON_PROVIDERCRED = 'duplicates the credential descriptor its caller passes in, to read the credential from it'
 REASON_IMPORTLIB = 'asks which modules are installed or loaded (see its importlib sites)'
 REASON_CHILDMODULE = 'the child process this module starts (see its subprocess sites)'
+REASON_FLOCK = 'fcntl.flock: an advisory lock on a lock or store file, with its LOCK_ constants; writes nothing'
+REASON_LOCALSIGNAL = 'a local variable named signal (a loop target over attention signals), not the module: every load of the name counts'
+REASON_SELFINT = 'sends SIGINT to its own process when the worker it monitors has stopped'
+REASON_KILLGROUP = 'SIGKILL to the process group of a child it started'
+REASON_IMPORTFCNTL = 'imports fcntl for the advisory locks of this module (see its fcntl sites)'
+REASON_IMPORTSIGNAL = 'imports signal for the process control of this module (see its signal sites)'
 OUTPUT_SITES = {
     ('cli.py', '_Parser.error', 'exit-text'): (1, None),
     ('cli.py', '_Parser.error', 'parser-output'): (1, None),
@@ -1542,16 +1550,20 @@ OUTPUT_SITES = {
     ('workbench_tui.py', 'run_workspace.read_line', 'write'): (1, 'workbench workspace'),
     ('workbench_tui.py', 'run_workspace.write_line', 'print'): (1, 'workbench workspace'),
     ('workbench_tui.py', 'run_workspace.write_line', 'sys.stdout'): (1, 'workbench workspace'),
+    ('workbench_tui.py', 'terminal_session', 'import termios'): (1, 'workbench workspace'),
     ('workbench_tui.py', 'terminal_session', 'sys.stdin'): (1, 'workbench workspace'),
     ('workbench_tui.py', 'terminal_session', 'sys.stdout'): (4, 'workbench workspace'),
+    ('workbench_tui.py', 'terminal_session', 'termios'): (10, 'workbench workspace'),
     ('workbench_tui.py', 'terminal_session', 'write'): (2, 'workbench workspace'),
     ('workflow.py', 'run_guided_workflow', 'input'): (1, 'wizard'),
     ('workflow.py', 'run_guided_workflow', 'print'): (1, 'wizard'),
 }
 NOT_A_TERMINAL = {
+    ('approval_authority.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL),
     ('approval_authority.py', 'ApprovalAuthority._verify', 'os.dup'): (1, REASON_DUP),
     ('approval_authority.py', 'ApprovalAuthority._verify', 'os.fdopen'): (2, REASON_FDOPEN),
     ('approval_authority.py', 'ApprovalAuthority._verify', 'write'): (1, REASON_FDWRITE),
+    ('approval_authority.py', 'ApprovedExecution.__enter__', 'fcntl'): (3, REASON_FLOCK),
     ('approval_authority.py', '_validator', 'ctypes.CDLL'): (1, 'loads the copy of the approved native validator library'),
     ('approval_authority.py', '_validator', 'os.fdopen'): (2, REASON_FDOPEN),
     ('approval_authority.py', '_validator', 'write'): (1, REASON_FDWRITE),
@@ -1575,6 +1587,8 @@ NOT_A_TERMINAL = {
     ('cli.py', 'main', 'print'): (3, REASON_JSONERR),
     ('cli.py', 'main', 'sys.stderr'): (3, REASON_JSONERR),
     ('cli.py', 'main', 'sys.stdout'): (4, REASON_MAINOUT),
+    ('clock.py', 'Floor.locked', 'fcntl'): (2, REASON_FLOCK),
+    ('clock.py', 'Floor.locked', 'import fcntl'): (1, REASON_IMPORTFCNTL),
     ('companion.py', 'write_static', 'os.fdopen'): (1, REASON_FDOPEN),
     ('companion.py', 'write_static', 'write'): (1, REASON_FDWRITE),
     ('companion_live.py', 'Handler._send', 'write'): (1, 'the HTTP response of the companion page, to a socket'),
@@ -1590,18 +1604,26 @@ NOT_A_TERMINAL = {
     ('journey.py', 'run_journey', 'os.fdopen'): (1, REASON_FDOPEN),
     ('journey.py', 'run_journey', 'write'): (1, REASON_FDWRITE),
     ('journey_native_atmos.py', '_tool', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('maintenance.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL),
+    ('maintenance.py', '_lock', 'fcntl'): (3, REASON_FLOCK),
     ('mcp.py', 'serve', 'sys.stdin'): (2, 'the MCP server input stream (JSON-RPC lines), a protocol'),
     ('mcp.py', 'serve', 'sys.stdout'): (1, 'the MCP server output stream (JSON-RPC lines), a protocol'),
     ('mcp.py', 'serve.send', 'sys.stdout'): (2, 'the MCP server output stream (JSON-RPC lines), a protocol'),
     ('mcp.py', 'serve.send', 'write'): (1, 'the MCP protocol: one JSON message per line on the server stream'),
+    ('modeled_service.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL),
+    ('modeled_service.py', 'ModeledService.request', 'fcntl'): (3, REASON_FLOCK),
     ('native_atmos.py', 'resolve_native_atmos', 'write'): (1, 'writes a file of the native snapshot at a path under its directory (Path.write_bytes)'),
     ('orchestration_export.py', '<module>', 'os as a value'): (1, 'hasattr(os, name) over a fixed tuple of constants: a capability probe'),
     ('orchestration_export.py', '_open_checked', 'os.fdopen'): (1, REASON_FDOPEN),
     ('output_edit.py', 'classify', 'write'): (1, 'writes the stack file of the generated output that it was asked to edit (Path.write_bytes)'),
+    ('protected.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL),
     ('protected.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE),
+    ('protected.py', '_cleanup_process_group', 'signal'): (3, REASON_KILLGROUP),
     ('protected.py', '_cleanup_process_group', 'subprocess'): (1, 'names subprocess.TimeoutExpired in a test of an exception; starts nothing'),
     ('protected.py', '_create', 'os.fdopen'): (1, REASON_FDOPEN),
     ('protected.py', '_create', 'write'): (1, REASON_FDWRITE),
+    ('protected.py', '_defer_spawn_interrupt', 'signal'): (13, 'defers SIGINT while a child is spawned, then restores the handler and the mask'),
+    ('protected.py', '_defer_spawn_interrupt.child_guard', 'signal'): (4, 'defers SIGINT while a child is spawned, then restores the handler and the mask'),
     ('protected.py', '_exclusive', 'os.fdopen'): (1, REASON_FDOPEN),
     ('protected.py', '_exclusive', 'write'): (1, REASON_FDWRITE),
     ('protected.py', '_network_filter', 'ctypes.CDLL'): (1, 'loads libseccomp, to install a network filter'),
@@ -1611,7 +1633,10 @@ NOT_A_TERMINAL = {
     ('protected.py', '_supervise', 'subprocess'): (4, REASON_CHILD),
     ('protected_worker.py', 'WorkerJob._apply', 'os.dup'): (2, REASON_DUP),
     ('protected_worker.py', 'WorkerJob._apply', 'os.fdopen'): (2, REASON_FDOPEN),
+    ('provider_execution.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL),
+    ('provider_execution.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL),
     ('provider_execution.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE),
+    ('provider_execution.py', 'ProviderExecutor._lock', 'fcntl'): (3, REASON_FLOCK),
     ('provider_execution.py', 'ProviderExecutor._run', 'os.dup'): (1, REASON_DUP),
     ('provider_execution.py', 'ProviderExecutor._run', 'os.fdopen'): (1, REASON_FDOPEN),
     ('provider_execution.py', 'ProviderExecutor.prepare', 'write'): (1, 'writes lock.sha256 under the executor root (Path.write_text)'),
@@ -1619,24 +1644,31 @@ NOT_A_TERMINAL = {
     ('provider_execution.py', '_copy_pin', 'write'): (1, REASON_FDWRITE),
     ('provider_execution.py', '_create', 'write'): (1, 'writes the tofu.rc file of the executor root (Path.write_text)'),
     ('provider_execution.py', '_network_guard', 'ctypes.CDLL'): (1, 'loads libseccomp, to install a network filter'),
+    ('provider_execution.py', '_sealed_plan', 'fcntl'): (2, 'seals the memfd that holds the sealed plan (F_ADD_SEALS, F_GET_SEALS)'),
     ('provider_execution.py', '_sealed_plan', 'os.dup'): (1, 'duplicates the memfd that holds the sealed plan, so it can be read again'),
     ('provider_execution.py', '_sealed_plan', 'os.fdopen'): (2, REASON_FDOPEN),
     ('provider_execution.py', '_sealed_plan', 'write'): (1, REASON_FDWRITE),
     ('provider_execution.py', '_sha', 'os.fdopen'): (1, REASON_FDOPEN),
     ('provider_execution.py', '_supervise', 'subprocess'): (4, REASON_CHILD),
+    ('provider_journey.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL),
     ('provider_journey.py', '_bounded_private_json', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('provider_journey.py', 'read_credential_fd', 'fcntl'): (6, 'sets the credential descriptor non-blocking while it is read, then restores its flags'),
     ('provider_journey.py', 'read_credential_fd', 'os.dup'): (1, REASON_PROVIDERCRED),
     ('repository.py', '_Repository._read', 'os.fdopen'): (1, REASON_FDOPEN),
     ('runner.py', '_dispatch', 'os.fdopen'): (1, REASON_FDOPEN),
     ('runner.py', '_dispatch', 'write'): (1, REASON_FDWRITE),
     ('runner.py', 'run', 'os.fdopen'): (1, REASON_FDOPEN),
     ('runner.py', 'run', 'write'): (1, REASON_FDWRITE),
+    ('signin.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL),
     ('signin.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE),
     ('signin.py', '_bounded', 'subprocess'): (5, REASON_CHILD),
+    ('signin.py', '_kill', 'signal'): (1, REASON_KILLGROUP),
     ('signin.py', 'collect', 'os.write'): (1, 'the token, written to the pipe of the collecting child'),
     ('sim_cli.py', 'text_lines', 'sys.stdout'): (1, REASON_PROBE),
     ('sim_fixture.py', '<module>', 'exit-text'): (1, 'raise SystemExit(main()): the status main returns, when the module runs as a script'),
     ('synthetic.py', 'write_estate', 'write'): (1, 'writes a synthetic estate file (Path.write_text)'),
+    ('validity.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL),
+    ('validity.py', 'critical', 'fcntl'): (2, REASON_FLOCK),
     ('windows_directory.py', '_Win32.__init__', 'ctypes.WinDLL'): (2, 'kernel32 and advapi32, for directory and file calls'),
     ('windows_observation_jobs.py', '_IO.publish', 'write'): (1, 'a file of the observer store, through its Windows file API'),
     ('windows_observation_jobs.py', '_create_job', 'write'): (2, 'files of the observer store, through its Windows file API'),
@@ -1646,9 +1678,23 @@ NOT_A_TERMINAL = {
     ('windows_storage.py', '_create_file', 'write'): (1, 'the Windows file API: a handle the function created'),
     ('wizard.py', 'run_wizard', 'os.fdopen'): (1, REASON_FDOPEN),
     ('wizard.py', 'run_wizard', 'write'): (1, REASON_FDWRITE),
+    ('workbench.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL),
+    ('workbench.py', '_actions', 'signal'): (7, REASON_LOCALSIGNAL),
+    ('workbench.py', '_attention', 'signal'): (4, REASON_LOCALSIGNAL),
+    ('workbench.py', '_intent_blocker', 'signal'): (3, REASON_LOCALSIGNAL),
+    ('workbench.py', '_next_actions', 'signal'): (3, REASON_LOCALSIGNAL),
+    ('workbench.py', '_referenced_operations', 'signal'): (4, REASON_LOCALSIGNAL),
+    ('workbench.py', '_states', 'signal'): (3, REASON_LOCALSIGNAL),
+    ('workbench.py', '_with_collect_cures', 'signal'): (5, REASON_LOCALSIGNAL),
     ('workbench.py', 'interrupted_lines', '__import__'): (2, REASON_READINESS),
+    ('workbench.py', 'run_terminal', 'signal'): (6, 'installs a SIGINT handler for the line terminal so that Ctrl-C ends the session cleanly; writes nothing'),
+    ('workbench.py', 'run_terminal.receive_interrupt', 'signal'): (1, 'installs a SIGINT handler for the line terminal so that Ctrl-C ends the session cleanly; writes nothing'),
+    ('workbench_adoption.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL),
+    ('workbench_adoption.py', '_lock', 'fcntl'): (3, REASON_FLOCK),
     ('workbench_revision.py', 'verify_revision', 'os.dup'): (1, REASON_DUP),
     ('workbench_revision.py', 'verify_revision', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('workbench_scheduler.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL),
+    ('workbench_scheduler.py', '_lock', 'fcntl'): (3, REASON_FLOCK),
     ('workbench_scheduler.py', '_open_pinned', 'os.dup'): (1, REASON_DUP),
     ('workbench_scheduler.py', '_open_pinned', 'os.fdopen'): (1, REASON_FDOPEN),
     ('workbench_scheduler.py', '_save_bytes', 'os.fdopen'): (1, REASON_FDOPEN),
@@ -1661,14 +1707,20 @@ NOT_A_TERMINAL = {
     ('workbench_tui.py', 'Workspace._plan_record', 'dynamic access'): (1, 'the instance dictionary as a cache: setdefault of a private key'),
     ('workbench_tui.py', 'Workspace._strip_note', 'dynamic access'): (1, 'the instance dictionary as a cache: setdefault of a private key'),
     ('workbench_tui.py', 'Workspace.input', '__import__'): (1, REASON_READINESS),
+    ('workbench_tui.py', 'visual_supported', 'import termios'): (1, 'asks whether stdin is a terminal that can be put in raw mode; writes nothing'),
     ('workbench_tui.py', 'visual_supported', 'sys.stdin'): (2, 'asks whether stdin and stdout are terminals that can be put in raw mode; writes nothing'),
     ('workbench_tui.py', 'visual_supported', 'sys.stdout'): (1, 'asks whether stdin and stdout are terminals that can be put in raw mode; writes nothing'),
+    ('workbench_tui.py', 'visual_supported', 'termios'): (1, 'asks whether stdin is a terminal that can be put in raw mode; writes nothing'),
     ('workbench_views.py', 'propose_source_acceptance', 'os.fdopen'): (1, REASON_FDOPEN),
     ('workbench_views.py', 'propose_source_acceptance', 'write'): (1, REASON_FDWRITE),
+    ('worker_adoption.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL),
+    ('worker_adoption.py', 'AdoptionJob._dispatch.monitor', 'signal'): (1, REASON_SELFINT),
     ('worker_adoption.py', '_authenticate', 'os.dup'): (1, REASON_DUP),
     ('worker_adoption.py', '_authenticate', 'os.fdopen'): (1, REASON_FDOPEN),
     ('worker_adoption_plan_recovery.py', 'AdoptionPlanRecoveryPolicy._verified', 'os.dup'): (1, REASON_DUP),
     ('worker_adoption_plan_recovery.py', 'AdoptionPlanRecoveryPolicy._verified', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_adoption_reconcile.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL),
+    ('worker_adoption_reconcile.py', 'RecoveryPlanJob._dispatch.monitor', 'signal'): (1, REASON_SELFINT),
     ('worker_adoption_reconcile.py', '_authenticate', 'os.dup'): (1, REASON_DUP),
     ('worker_adoption_reconcile.py', '_authenticate', 'os.fdopen'): (1, REASON_FDOPEN),
     ('worker_adoption_recovery.py', 'AdoptionRecoveryPolicy._verified', 'os.dup'): (1, REASON_DUP),
@@ -1682,7 +1734,10 @@ NOT_A_TERMINAL = {
     ('worker_evidence_posix.py', 'DetachedVerifier.__call__', 'os.dup'): (1, REASON_DUP),
     ('worker_evidence_posix.py', 'DetachedVerifier.__call__', 'os.fdopen'): (1, REASON_FDOPEN),
     ('worker_evidence_posix.py', '_capture', '__import__'): (1, 'imports re by a literal name, to match a file name'),
+    ('worker_evidence_posix.py', '_locked_now', 'fcntl'): (2, REASON_FLOCK),
+    ('worker_evidence_posix.py', '_locked_now', 'import fcntl'): (1, REASON_IMPORTFCNTL),
     ('worker_evidence_posix.py', 'reopen', '__import__'): (1, 'imports re by a literal name, to match a file name'),
+    ('worker_host.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL),
     ('worker_host.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE),
     ('worker_host.py', '_Docker.run', 'os.dup'): (1, REASON_DUP),
     ('worker_host.py', '_Docker.run', 'os.fdopen'): (1, REASON_FDOPEN),
@@ -1690,6 +1745,7 @@ NOT_A_TERMINAL = {
     ('worker_host.py', '_bytes', 'os.fdopen'): (1, REASON_FDOPEN),
     ('worker_host.py', '_bytes', 'write'): (1, REASON_FDWRITE),
     ('worker_host.py', '_hash_file', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_host.py', 'launch', 'signal'): (7, 'ignores SIGINT around the launch of the container child, then restores the handler'),
     ('worker_lease_recovery.py', 'RecoveryPolicy._verified', 'os.dup'): (1, REASON_DUP),
     ('worker_lease_recovery.py', 'RecoveryPolicy._verified', 'os.fdopen'): (1, REASON_FDOPEN),
     ('worker_provider.py', 'publish_files', 'os.fdopen'): (1, REASON_FDOPEN),
@@ -1701,6 +1757,8 @@ NOT_A_TERMINAL = {
     ('worker_runtime_identity.py', 'inventory', 'ctypes.CDLL'): (1, 'loads libseccomp for the runtime inventory'),
     ('worker_runtime_identity.py', 'inventory', 'importlib'): (1, 'importlib.util.source_from_cache: the path of a loaded module, for the inventory'),
     ('worker_runtime_identity.py', 'inventory', 'sys.modules'): (1, 'lists the loaded modules for the runtime inventory'),
+    ('worker_service.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL),
+    ('worker_service.py', 'ServiceJob.run.monitor', 'signal'): (1, REASON_SELFINT),
     ('worker_service.py', 'ServicePolicy._authenticate', 'os.dup'): (1, REASON_DUP),
     ('worker_service.py', 'ServicePolicy._authenticate', 'os.fdopen'): (1, REASON_FDOPEN),
     ('worker_service.py', '_bounded_private_json', 'os.fdopen'): (1, REASON_FDOPEN),
@@ -1717,7 +1775,8 @@ SCAN_OS = re.compile(r'(?:write|writev|pwrite|pwritev|sendfile|copy_file_range|s
                      r'|spawn\w*|posix_spawn\w*)\Z')
 SCAN_MODULES = frozenset(('builtins', 'subprocess', 'pty', 'importlib', 'logging', 'warnings', 'traceback', 'getpass', 'curses', 'cmd',
                           'code', 'pdb', 'pprint', 'rich', 'click', 'typer', 'tqdm', 'colorama', 'webbrowser', 'asyncio',
-                          'multiprocessing', 'concurrent', 'runpy', 'imp'))
+                          'multiprocessing', 'concurrent', 'runpy', 'imp', 'fcntl', 'termios', 'signal', 'pickle', 'marshal',
+                          'shelve', 'readline', 'tty'))
 SCAN_LOADERS = frozenset(('CDLL', 'cdll', 'PyDLL', 'pythonapi', 'windll', 'WinDLL', 'oledll', 'OleDLL'))      # ctypes: loads a native library
 SCAN_DUNDERS = frozenset(('__dict__', '__globals__', '__builtins__', '__subclasses__', '__getattribute__', '__loader__', '__code__',
                           '__closure__', '__mro__', '__bases__', '__base__'))
@@ -3341,7 +3400,7 @@ class LeafClassificationTests(unittest.TestCase):
         self.assertEqual(output_site_problems(), [])
         found = output_sites()
         self.assertEqual(dict(found), {site: value[0] for site, value in list(OUTPUT_SITES.items()) + list(NOT_A_TERMINAL.items())})
-        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (39, 159, 198, 276))
+        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (41, 207, 248, 406))
         self.assertIn(('cli.py', '_write_text', 'print'), found)                                   # the scan reads the product
         self.assertTrue(all(isinstance(reason, str) and reason for _, reason in NOT_A_TERMINAL.values()))      # each has its reason
 
@@ -3619,6 +3678,36 @@ class ReferenceScanTests(unittest.TestCase):
                                ('an assignment to a module that is no route', 'channel = json\nchannel.dumps({})')):
             with self.subTest(label):
                 self.inside(snippet)
+
+    def test_the_native_routes_are_a_fail_closed_module_set(self):
+        """Sol V4 limit 4: fcntl, termios, signal, pickle, marshal, shelve, code, pdb, readline, curses and tty can reach a terminal or run
+        code by a road of their own (TIOCSTI, raw mode, a handler, a pickle that runs on load, an interactive console). Each is a module of
+        SCAN_MODULES, at the import and at every use; the product uses fcntl, termios and signal, and the rest not at all. The snippets
+        are parsed, never run: nothing here unpickles, loads or starts anything."""
+        for module, use in (('fcntl', 'fcntl.ioctl(1, 0x5412, b"x")'), ('termios', 'termios.tcsetattr(1, 0, [])'),
+                            ('signal', 'signal.raise_signal(2)'), ('pickle', 'pickle.loads(b"x")'), ('marshal', 'marshal.loads(b"x")'),
+                            ('shelve', 'shelve.open("x")'), ('pdb', 'pdb.set_trace()'),
+                            ('readline', 'readline.parse_and_bind("tab: complete")'), ('curses', 'curses.initscr()'),
+                            ('tty', 'tty.setraw(0)')):
+            with self.subTest(module):
+                self.inside('import %s\n%s' % (module, use), **{'import ' + module: 1, module: 1})
+        for label, snippet, expected in (
+                ('code, under an alias (code is a name cli.main uses for a status)', 'import code as via_code\nvia_code.interact()',
+                 {'import code': 1, 'code': 1}),
+                ('fcntl imported from', 'from fcntl import ioctl as poke\npoke(1, 0x5412, b"x")', {'import fcntl': 1, 'fcntl': 1}),
+                ('signal under an alias', 'import signal as via_signal\nvia_signal.signal(via_signal.SIGINT, via_signal.SIG_IGN)',
+                 {'import signal': 1, 'signal': 3}),
+                ('pickle by a nested import', 'def later():\n    import pickle\n    return pickle.loads(b"x")', None)):
+            with self.subTest(label):
+                if expected is None:
+                    self.assertEqual(self.delta(self.mutated(snippet)),
+                                     {('cli.py', 'doctor.later', 'import pickle'): 1, ('cli.py', 'doctor.later', 'pickle'): 1})
+                else:
+                    self.inside(snippet, **expected)
+        kinds = {site[2] for site in output_sites()}
+        used = {kind.replace('import ', '') for kind in kinds} & {'fcntl', 'termios', 'signal', 'pickle', 'marshal', 'shelve', 'code', 'pdb',
+                                                                    'readline', 'curses', 'tty'}
+        self.assertEqual(used, {'fcntl', 'termios', 'signal'})
 
     def test_a_name_of_the_product_is_a_site_however_it_is_reached(self):
         """Sol V4 finding 2: `from .cli import _write_text as emit` resolved to .cli._write_text, which the bare-name branch skipped and
