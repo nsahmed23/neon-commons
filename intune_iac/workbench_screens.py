@@ -1873,7 +1873,7 @@ HELP_KEYS = (
     ('Ctrl-C', 'stop a running call; the session ends'),
 )
 # The one sentence that licenses a usage synopsis: where a screen shows command syntax with words in capitals, it says what they are.
-SYNOPSIS_CONVENTION = 'In command syntax, words in capitals stand for values you supply.'
+from .readiness import SYNOPSIS_CONVENTION
 # The words the screens use, then how changes and the session work.
 HELP_WORDS = (
     ('Mode', 'The first word of the line under the tabs says where the evidence comes from: SYNTHETIC (a modeled '

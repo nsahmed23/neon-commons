@@ -792,5 +792,52 @@ class CapitalisationContractTests(unittest.TestCase):
             self.assertNotIn("'apture command", text, name)       # "rupture command" would satisfy it
 
 
+
+# -- round 6, item 5: the convention sentence on every help output ---------------------------------------------------------------
+
+class HelpConventionTests(unittest.TestCase):
+    @staticmethod
+    def parsers():
+        import argparse
+        from intune_iac import cli
+        found, pending = [], [(cli.parser(), ())]
+        while pending:
+            parser, path = pending.pop()
+            found.append((path, parser))
+            for action in parser._actions:
+                if isinstance(action, argparse._SubParsersAction):
+                    pending += [(sub, path + (name,)) for name, sub in action.choices.items()]
+        return found
+
+    def test_every_help_output_says_what_capitals_mean(self):
+        from intune_iac import readiness
+        sentence = readiness.SYNOPSIS_CONVENTION if hasattr(readiness, 'SYNOPSIS_CONVENTION') else 'In command syntax, words in capitals stand for values you supply.'
+        found = self.parsers()
+        self.assertGreater(len(found), 100)                       # every parser and subparser of the command line
+        for path, parser in found:
+            with self.subTest(path=path):
+                self.assertIn(sentence, ' '.join(parser.format_help().split()))
+
+    def test_a_usage_error_prints_the_sentence_right_after_the_usage_block(self):
+        import contextlib
+        import io
+        from intune_iac import workbench_screens
+        sentence = workbench_screens.SYNOPSIS_CONVENTION
+        for path, parser in self.parsers():
+            err = io.StringIO()
+            with contextlib.redirect_stderr(err), self.assertRaises(SystemExit) as caught:
+                parser.error('expected one argument')
+            self.assertEqual(caught.exception.code, 2)
+            text = ' '.join(err.getvalue().split())
+            with self.subTest(path=path):
+                self.assertIn(sentence, text)
+                self.assertLess(text.index('usage:'), text.index(sentence))
+                self.assertLess(text.index(sentence), text.index('error: invalid arguments'))   # the parser never echoes a value, so its message is this one
+
+    def test_the_sentence_is_built_once(self):
+        from intune_iac import readiness, workbench_screens
+        self.assertIs(workbench_screens.SYNOPSIS_CONVENTION, getattr(readiness, 'SYNOPSIS_CONVENTION', None))
+
+
 if __name__ == '__main__':
     unittest.main()

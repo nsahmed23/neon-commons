@@ -27,11 +27,16 @@ class _Parser(argparse.ArgumentParser):
 
     def __init__(self,*args,**kwargs):
         kwargs.setdefault('allow_abbrev',False)
+        # Every help output says what the capitals in its usage line mean (readiness.SYNOPSIS_CONVENTION); as the subparsers' class,
+        # this gives every parser and subparser the sentence, so a new one has it without anything added to it.
+        from .readiness import SYNOPSIS_CONVENTION
+        kwargs['epilog']=(kwargs['epilog']+'\n\n'+SYNOPSIS_CONVENTION) if kwargs.get('epilog') else SYNOPSIS_CONVENTION
         super().__init__(*args,**kwargs)
 
     def error(self,message):
+        from .readiness import SYNOPSIS_CONVENTION
         self.print_usage(sys.stderr)
-        self.exit(2,'%s: error: %s\n'%(self.prog,_parser_message(message)))
+        self.exit(2,'%s\n%s: error: %s\n'%(SYNOPSIS_CONVENTION,self.prog,_parser_message(message)))
 
 
 _SAFE_PARSER_TEXT=(re.compile(r'expected (?:one|at least one) argument'),re.compile(r'expected \d+ arguments?'),

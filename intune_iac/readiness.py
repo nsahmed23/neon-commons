@@ -97,6 +97,11 @@ def command_names(text):
             if word == PROGRAM and (index == 0 or words[index - 1].endswith(':'))]
 
 
+# The one sentence that licenses a usage synopsis: where a screen or a help output shows command syntax with words in capitals, it says
+# what they are. Built once, here; the workspace help and every help output of the command line show it.
+SYNOPSIS_CONVENTION = 'In command syntax, words in capitals stand for values you supply.'
+
+
 # Words that end a command: a lowercase word that is prose, not a subcommand or a value.
 _PROSE = frozenset(('and', 'or', 'then', 'from', 'with', 'to', 'for', 'in', 'as', 'the', 'a', 'is', 'it', 'its', 'pass', 'shows',
                     'see', 'run', 'of', 'on', 'by', 'when', 'that', 'this', 'at', 'prepares', 'never', 'where', 'where'))
