@@ -48,7 +48,9 @@ sentence, a blank row, a list item and a list's heading end it), a token that is
 like a placeholder (capitals and digits with an underscore, or a bare FILE, PATH, ROOT, ID, NAME, VALUE, STAGE, FIELD, SERVICE,
 REVISION, COMMIT, REPO, DIGEST, STORE, POLICY, DIRECTORY, SUBSCRIPTION, USER or ACCOUNT), after a word the product's own tables name
 as a command, is a hit. The command words are the product's tables and the external programs it prints commands for (az, gh, tofu
-and git today), which external_programs derives from the product's source, never from a list here. On the help surfaces a hit is
+and git today), which external_programs derives from the product's source, never from a list here. Two readings need no table, so a
+program the product only prints is found too: a placeholder after a lead (run, type, use, try: `Run: kubectl apply -f MANIFEST_FILE`)
+and a placeholder right after an option (`-f MANIFEST_FILE`, `--root STORE`). On the help surfaces a hit is
 excused only inside a synopsis the product writes verbatim, on a surface that shows the convention sentence. Its other false
 positives are the entries of NET_ALLOWED, each with its reason. Both checks are reported.
 """
@@ -265,6 +267,11 @@ def placeholder_like(word):
 
 
 Hit = collections.namedtuple('Hit', 'index word token previous shown exact')
+# Two readings of a row that need no table of the product's: what introduces a command in a sentence (`Run: kubectl apply -f FILE`,
+# `type FILE`, `Use PATH`), and an option followed by a placeholder (`--root STORE`, `-f MANIFEST_FILE`). Neither knows a program, so a
+# program the product only prints (kubectl) is still found.
+LEADS = frozenset(('run', 'type', 'use', 'try'))
+OPTION = re.compile(r'-{1,2}[A-Za-z][\w-]*\Z')
 BREAKS = re.compile(r'[\w)\]"\'][.!?]+[)\]"\']*(?=\s|\Z)')    # where a sentence ends: its last word, the full stop, the closers
 PATHS = re.compile(r'(?<![\w.\-/])/[^\s()\[\]{}<>"\'`,;]+')   # an absolute path: its segments are names, not words of a command
 
@@ -308,25 +315,26 @@ def net_scan(rows, synopses=False):
             text += (' ' if text else '') + part
             bases.append(len(text) - len(part))
         spans = exact_spans(text) if synopses else ()
-        last = before = origin = None
+        last = before = origin = where = None
         for number, part in enumerate(parts):
             breaks = [found.end() for found in BREAKS.finditer(part)]
             for found in WORDS.finditer(PATHS.sub(lambda path: ' ' * len(path.group()), part)):
                 while breaks and found.start() >= breaks[0]:
                     breaks.pop(0)
-                    last = before = origin = None
+                    last = before = origin = where = None
                 word = found.group().strip('.:!?*')
                 if not word:
                     continue
-                if last is not None and placeholder_like(word):
+                if placeholder_like(word) and (last is not None or OPTION.match(before or '')):
                     offset = bases[number] + found.start()
-                    hits.append(Hit(indexes[number], last, word, before, ' '.join(parts[origin:number + 1]),
+                    anchor, first = (last, origin) if last is not None else (before, where)
+                    hits.append(Hit(indexes[number], anchor, word, before, ' '.join(parts[first:number + 1]),
                                     any(begin <= offset < end for begin, end in spans)))
-                elif word in commands:
+                elif word in commands or word.lower() in LEADS:
                     last, origin = word, number
-                before = word
+                before, where = word, number
             if breaks:
-                last = before = origin = None
+                last = before = origin = where = None
     return hits
 
 
@@ -360,10 +368,34 @@ def shows_convention(rows):
     return SYNOPSIS_CONVENTION in ' '.join(' '.join(rows).split())
 
 
-def in_usage_block(state, rows, index, previous, token):
-    """A row of an argparse usage block, in an output that also shows the convention sentence (the sentence is what turns the
-    metavariables of the block into a stated notation; without it they are unresolved operands like any other)."""
-    return shows_convention(rows) and index in usage_rows(rows)
+def section_rows(rows):
+    """The indexes of the indented rows of each section argparse prints under a title that ends in a colon (`options:`, `positional
+    arguments:`), up to the blank row that ends it."""
+    found, inside = set(), False
+    for index, row in enumerate(rows):
+        stripped = row.strip()
+        if not stripped:
+            inside = False
+        elif not row[:1].isspace():
+            inside = stripped.endswith(':') and len(stripped.split()) <= 3 and not stripped.startswith('usage:')
+        elif inside:
+            found.add(index)
+    return found
+
+
+def first_column(row):
+    """The words of the first column of an argparse option row: the option and its metavariable, before the gap that precedes the
+    help text."""
+    return re.match(r'\s*(.*?)(?:\s{2,}|\Z)', row).group(1).split()
+
+
+def in_argparse_layout(state, rows, index, previous, token):
+    """A row of an argparse usage block, or the option and metavariable of a row of one of its sections (not the help text beside
+    it), in an output that also shows the convention sentence. The sentence is what turns the metavariables into a stated notation;
+    without it they are unresolved operands like any other."""
+    if not shows_convention(rows):
+        return False
+    return index in usage_rows(rows) or (index in section_rows(rows) and token in first_column(rows[index]))
 
 
 def id_after_a_noun(state, rows, index, previous, token):
@@ -396,12 +428,13 @@ def strip_label(state, rows, index, previous, token):
 # defect). What an entry excuses is a function of the screen's rows, the row's index, the word before the token and the token, so an
 # entry excuses only what it names and the rest of the screen is still read. There is no other allowance.
 NET_ALLOWED = (
-    ('argparse usage block', ('help', 'usage error'), in_usage_block,
-     "argparse writes the parser's own synopsis with each option's metavariable (--root ROOT, --service-root SERVICE_ROOT): the "
-     "standard notation of a command line, generated from the parser, printed by --help or after a usage error and never as a "
-     "step to copy. Its choices can even be command words ({simulation,live}). It is excused only in an output that also shows "
-     "the convention sentence (SYNOPSIS_CONVENTION), as a synopsis is on the help page: without the sentence a reader cannot "
-     "tell a metavariable from an operand left unresolved. The description and the option list below it are still read."),
+    ('argparse usage and option rows', ('help', 'usage error'), in_argparse_layout,
+     "argparse writes the parser's own synopsis with each option's metavariable (--root ROOT, --service-root SERVICE_ROOT), and "
+     "lists each option with its metavariable in its first column: the standard notation of a command line, generated from the "
+     "parser, printed by --help or after a usage error and never as a step to copy. Its choices can even be command words "
+     "({simulation,live}). It is excused only in an output that also shows the convention sentence (SYNOPSIS_CONVENTION), as a "
+     "synopsis is on the help page: without the sentence a reader cannot tell a metavariable from an operand left unresolved. The "
+     "description and the help text beside each option are still read."),
     ('ID after a noun', None, id_after_a_noun,
      "ID right after a plain noun is the abbreviation of identifier in a sentence ('the Intune object ID it manages', 'tenant ID'), "
      "not a placeholder. An ID that is an operand follows an option (--object ID) or a command word (select ID), and stays a hit."),
@@ -544,7 +577,8 @@ class Sweep:
         """The net's failure lines: one per (command word, token), with the longest row it was seen in and where."""
         lines = []
         for (word, token), held in self.net.items():
-            lines.append('independent net: %r after the command word %r, in the row %r' % (token, word, max(held['rows'], key=len)))
+            lines.append('independent net: %r after the %s %r, in the row %r' % (
+                token, 'option' if OPTION.match(word) else 'command word', word, max(held['rows'], key=len)))
             places = collections.OrderedDict()
             for state, surface, size in sorted(held['where']):
                 places.setdefault((surface, state), []).append(size)
@@ -1713,14 +1747,20 @@ class NetTests(unittest.TestCase):
         sweep = Sweep()
         sweep.text('help', 'intune-iac workbench init --help', (100, 0), '\n'.join(usage))
         self.assertEqual(sorted(sweep.net), [('init', 'ROOT')])                        # only the description row is a hit
-        self.assertEqual(sweep.excused['argparse usage block'], 2)                     # ROOT and ATMOS_EXECUTABLE (TENANT is neither)
+        # ROOT and ATMOS_EXECUTABLE of the usage block (TENANT is neither), and ROOT in the first column of the option row
+        self.assertEqual(sweep.excused['argparse usage and option rows'], 3)
         error = Sweep()                                                                # a usage error: no blank row after the block
         error.text('usage error', 'intune-iac workbench init', (100, 0), 'usage: intune-iac workbench init [-h] --root ROOT\n'
                    'intune-iac workbench init: error: the following arguments are required: --root, --tenant\n' + '\n'.join(sentence))
         self.assertEqual(error.net_failures(), [])
         other = Sweep()                                                                # the same rows anywhere else are hits
         other.text('selected policy', 'm Queue', (100, 0), '\n'.join(usage))
-        self.assertEqual(sorted(other.net), [('init', 'ROOT'), ('simulation', 'ATMOS_EXECUTABLE')])
+        self.assertEqual(sorted(other.net), [('--root', 'ROOT'), ('init', 'ROOT'), ('simulation', 'ATMOS_EXECUTABLE')])
+        # the help text beside an option is read: only the first column (the option and its metavariable) is the notation
+        beside = Sweep()
+        beside.text('help', 'intune-iac workbench init --help', (100, 0), 'usage: intune-iac workbench init [-h]\n\noptions:\n'
+                    '  --root ROOT  Run: collect --root STORE\n\n' + '\n'.join(sentence))
+        self.assertEqual(sorted(beside.net), [('collect', 'STORE')])
 
     def test_a_usage_block_is_excused_only_where_the_same_output_shows_the_convention_sentence(self):
         """The same usage block, with and without the sentence: a help page and a usage error without it fail, with it pass."""
@@ -1737,9 +1777,9 @@ class NetTests(unittest.TestCase):
                 sweep = Sweep()
                 sweep.text(state, route, (100, 0), text)
                 if shown:
-                    self.assertEqual((sweep.net_failures(), sweep.excused['argparse usage block']), ([], 2))
+                    self.assertEqual((sweep.net_failures(), sweep.excused['argparse usage and option rows']), ([], 2))
                 else:
-                    self.assertEqual((sorted(sweep.net), sweep.excused['argparse usage block']),
+                    self.assertEqual((sorted(sweep.net), sweep.excused['argparse usage and option rows']),
                                      ([('init', 'ROOT'), ('init', 'SERVICE_ROOT')], 0))
         # a sentence on another surface does not excuse a block: the sentence must be in the output that holds the block
         sweep = Sweep()
@@ -1757,6 +1797,30 @@ class NetTests(unittest.TestCase):
             other.read('state', '9 Repository', (80, 24), [], rows=[row])
             self.assertTrue(other.net, row)                                              # an operand, or after a command word
 
+    def test_a_command_the_product_only_prints_is_found_by_its_lead_or_its_option_alone(self):
+        """No table of the product's names the program: `kubectl` is neither run nor an option of the parser."""
+        self.assertNotIn('kubectl', command_words())
+        for row, expected in (
+                ('Run: kubectl apply -f MANIFEST_FILE', [('Run', 'MANIFEST_FILE')]),
+                ('run: kubectl apply -f MANIFEST_FILE', [('run', 'MANIFEST_FILE')]),
+                ('then type FILE and press Enter', [('type', 'FILE')]),
+                ('Use PATH_TO_FILE for the page', [('Use', 'PATH_TO_FILE')]),
+                ('kubectl apply -f MANIFEST_FILE', [('-f', 'MANIFEST_FILE')]),                  # no lead: the option and its value
+                ('helm install --values VALUES_FILE', [('--values', 'VALUES_FILE')]),
+                ('helm install --values=VALUES_FILE', [('--values', 'VALUES_FILE')]),
+                ('Try: helm install --values', [])):                                          # the value is on the next row
+            with self.subTest(row=row):
+                self.assertEqual([(hit.word, hit.token) for hit in net_scan([row])], expected)
+        for rows, expected in ((['Try: helm install --values', 'VALUES_FILE'], [('Try', 'VALUES_FILE')]),
+                                (['helm install --values', 'VALUES_FILE'], [('--values', 'VALUES_FILE')])):          # wrapped
+            self.assertEqual([(hit.word, hit.token) for hit in net_scan(rows)], expected)
+        for row in ('kubectl apply -f manifest.yaml', 'Use the file you named', 'type approve', 'the --root option takes a path',
+                    'helm install --output json', 'Run it again. FILE is a word.'):
+            with self.subTest(row=row):
+                self.assertEqual(net_scan([row]), [], row)
+        sweep = Sweep()                                                                       # and the failure names the option
+        sweep.read('state', '2 Inspector', (60, 20), [], rows=['Copy: kubectl apply -f MANIFEST_FILE'])
+        self.assertIn("'MANIFEST_FILE' after the option '-f'", '\n'.join(sweep.net_failures()))
 
     def test_the_directory_stand_in_and_the_strip_label_are_excused_only_at_their_sites(self):
         from intune_iac.readiness import DIRECTORY_NOT_SHOWN_STEM
