@@ -20,7 +20,8 @@ What it covers
   * simulate --format text, with the snapshot and revision documents test_sim_render_cli builds. start and catalog with
     --check-signin, with az and gh stubbed as the sign-in tests stub them (FakeClis; no real tool, no network). The views behind
     the service, adoption and adoption-plan navigation (review, status, attach, cancel, recover), with the hand-authored
-    presentation fixtures of their TUI tests.
+    presentation fixtures of their TUI tests (the service one through plugin_tests/service_presentation_fixtures.py, which holds no
+    docker import).
 
 Not driven, and why: service-link, adoption-link, evidence-link and evidence-history, and the real protected journals behind the
 service views. Their fixtures are test_worker_service_r4.WorkerServiceR4Tests, test_worker_service_readback_r4 and
@@ -38,10 +39,13 @@ there are metavariables, and the sentence says so. Nothing else is allowed. Unti
 A second check, the independent net, does not use the reader's context rules: a form the reader misses is missed by the renderer
 and by the check above alike. In every row of every surface but the help synopsis surfaces, a token that is a member of
 entry.FILL_IN_TEMPLATES, or is shaped like a placeholder (capitals and digits with an underscore, or a bare FILE, PATH, ROOT, ID,
-NAME, VALUE, STAGE, FIELD, SERVICE, REVISION, COMMIT, REPO, DIGEST, STORE, POLICY or DIRECTORY), after a word the product's own tables
-name as a command, is a hit. Its false positives are the entries of NET_ALLOWED, each with its reason. Both checks are reported.
+NAME, VALUE, STAGE, FIELD, SERVICE, REVISION, COMMIT, REPO, DIGEST, STORE, POLICY, DIRECTORY, SUBSCRIPTION, USER or ACCOUNT), after a
+word the product's own tables name as a command, is a hit. The command words are the product's tables and the external programs it
+prints commands for (az, gh, tofu and git today), which external_programs derives from the product's source, never from a list
+here. Its false positives are the entries of NET_ALLOWED, each with its reason. Both checks are reported.
 """
 import argparse
+import ast
 import collections
 import contextlib
 import copy
@@ -57,6 +61,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from plugin_tests.service_presentation_fixtures import ServiceFixtures
 from plugin_tests.test_workflow_map import LayerFixture, OBJECT, TENANT, typed
 
 try:
@@ -158,22 +163,80 @@ def machine_form(text):
 # any token of the same row that is a member of entry.FILL_IN_TEMPLATES, or is shaped like a placeholder, is a hit. No command has
 # to be read: the word and the token only have to share a row. It is run on every surface except the help synopsis surfaces.
 
-# A bare word that is a placeholder whether or not the product has a template for it yet.
+# A bare word that is a placeholder whether or not the product has a template for it yet (the last four stand in the commands it
+# prints for the Azure CLI: az account set --subscription SUBSCRIPTION, az logout --username NAME, az login ... USER).
 BARE_PLACEHOLDERS = frozenset(('FILE', 'PATH', 'ROOT', 'ID', 'NAME', 'VALUE', 'STAGE', 'FIELD', 'SERVICE', 'REVISION', 'COMMIT',
-                               'REPO', 'DIGEST', 'STORE', 'POLICY', 'DIRECTORY'))
+                               'REPO', 'DIGEST', 'STORE', 'POLICY', 'DIRECTORY', 'SUBSCRIPTION', 'USER', 'ACCOUNT', 'SUBSCRIPTION_ID'))
 SHAPED = re.compile(r'[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\Z')              # capitals and digits, with at least one underscore
+PACKAGE = Path(__file__).resolve().parents[1] / 'intune_iac'
+RUNNERS = re.compile(r'run|popen|check_output|check_call|call|spawn|exec', re.I)       # the names of calls that start a process
 # A word of a row. What joins alternatives (a/b, a|b), an option to its value (--root=STORE) or sits around a word does not belong
 # to it, so `back STAGE/edit FIELD VALUE/resume` is the words back, STAGE, edit, FIELD, VALUE and resume.
 WORDS = re.compile(r"[^\s/|=,;()\[\]{}<>\"'`]+")
 
 
+def parser_options(parser):
+    """Every option string of the command line's parser, at every depth."""
+    found = []
+    for action in parser._actions:
+        found += action.option_strings
+        if isinstance(action, argparse._SubParsersAction):
+            for sub in action.choices.values():
+                found += parser_options(sub)
+    return found
+
+
+@functools.lru_cache(maxsize=1)
+def package_strings():
+    """Every string constant of the product's modules, docstrings aside: what a screen or a recorded step can print, and (with the
+    calls) what the product runs."""
+    texts = []
+    for path in sorted(PACKAGE.glob('*.py')):
+        tree = ast.parse(path.read_text(encoding='utf-8'))
+        docs = {id(node.body[0].value) for node in ast.walk(tree)
+                if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+                and node.body and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant)}
+        texts += [node.value for node in ast.walk(tree)
+                  if isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in docs]
+    return tuple(texts)
+
+
+@functools.lru_cache(maxsize=1)
+def external_programs():
+    """The programs other than its own that the product prints commands for, derived from its source and never listed here. A
+    candidate is a program the product runs (the first word of a literal argv list handed to a call that starts a process:
+    signin.py runs az and gh) or that its parser can be pointed at (an option --atmos-executable, --tofu-executable, --git-executable).
+    It is kept when some string the product holds has the program followed by a lowercase word or an option, which is how a printed
+    command reads (az login --tenant ..., az account set ..., tofu state list). A program the parser names and no string prints a
+    command for (atmos, today) is not a command word; it becomes one the day a string prints it."""
+    from intune_iac import cli
+    candidates = set()
+    for path in sorted(PACKAGE.glob('*.py')):
+        for node in ast.walk(ast.parse(path.read_text(encoding='utf-8'))):
+            if not (isinstance(node, ast.Call) and node.args and isinstance(node.args[0], ast.List) and len(node.args[0].elts) >= 2):
+                continue
+            callee = node.func.attr if isinstance(node.func, ast.Attribute) else getattr(node.func, 'id', '')
+            first, second = node.args[0].elts[:2]
+            if (RUNNERS.search(callee) and all(isinstance(item, ast.Constant) and isinstance(item.value, str) for item in (first, second))
+                    and re.fullmatch(r'[a-z][a-z0-9-]*', first.value)):
+                candidates.add(first.value)
+    for option in parser_options(cli.parser()):
+        found = re.fullmatch(r'--([a-z][a-z0-9]*)-executable', option)
+        if found:
+            candidates.add(found.group(1))
+    texts = package_strings()
+    return frozenset(program for program in candidates
+                     if any(re.search(r'(?<![\w./-])%s\s+(?:--?[a-z]|[a-z][a-z-]*)' % re.escape(program), text) for text in texts))
+
+
 @functools.lru_cache(maxsize=1)
 def command_words():
     """Every word the product's own tables name as a command: the program, every route of the command line's parser at every depth,
-    and every word the line terminal and the wizard's prompts accept (readiness.dialects). Matched exactly, in lower case."""
+    every word the line terminal and the wizard's prompts accept (readiness.dialects), and the external programs it prints commands
+    for (external_programs). Matched exactly, in lower case."""
     from intune_iac import readiness
     shell, typed = readiness.dialects()
-    words, pending = {readiness.PROGRAM} | set(typed), [shell]
+    words, pending = {readiness.PROGRAM} | set(typed) | set(external_programs()), [shell]
     while pending:
         for name, sub in pending.pop().items():
             words.add(name)
@@ -1112,51 +1175,41 @@ def sweep_check_signin():
     return sweep
 
 
-@functools.lru_cache(maxsize=1)
-def service_presentation():
-    """ServicePresentationTests of test_workbench_service_tui_r4, the hand-authored responses of the protected service. That module
-    imports test_worker_service_r4 at its top, and that imports the pinned docker and relay of scripts/qualification_tools (and its
-    tests build a TLS probe with /usr/bin/gcc), none of which is on every machine. Only ServiceEntrypointTests uses it, so the import
-    is given a stand-in for the time it takes and nothing of the stand-in stays in sys.modules."""
-    import importlib
-    import sys
-    import types
-    import plugin_tests
-    name = 'plugin_tests.test_workbench_service_tui_r4'
-    stand_in = types.ModuleType('plugin_tests.test_worker_service_r4')
-    with patch.dict(sys.modules, {'plugin_tests.test_worker_service_r4': stand_in}):
-        sys.modules.pop(name, None)
-        module = importlib.import_module(name)
-    if hasattr(plugin_tests, 'test_workbench_service_tui_r4'):
-        delattr(plugin_tests, 'test_workbench_service_tui_r4')
-    return module.ServicePresentationTests
+class ServiceView(ServiceFixtures, unittest.TestCase):
+    """The hand-authored fixtures of the protected service views (plugin_tests/service_presentation_fixtures.py, which
+    test_workbench_service_tui_r4 shares) as an object a sweep builds and cleans up by hand. It has no test method, so it is not
+    collected."""
+
+    def __init__(self):
+        super().__init__('setUp')
 
 
 @functools.lru_cache(maxsize=1)
 def sweep_protected_views():
     """The views behind the service, adoption and adoption-plan navigation, as the workspace shows them: for each of review, status,
     attach, cancel and recover, the command sent and the response received, with the hand-authored responses (presentation
-    fixtures) of ServicePresentationTests, AdoptionPresentationTests and RecoveryPlanPresentation, in the summary and in the typed
-    details, plus an error response and the adoption history. The real protected journals need the pinned docker and a TLS probe
-    built with gcc (test_worker_service_r4.WorkerServiceR4Tests, test_worker_service_readback_r4, test_worker_evidence_r4), which this
-    machine does not have, so service-link, adoption-link and evidence-link/-history are not driven (see the module docstring)."""
+    fixtures) of ServicePresentationTests (through service_presentation_fixtures), AdoptionPresentationTests and
+    RecoveryPlanPresentation, in the summary and in the typed details, plus an error response and the adoption history. The real
+    protected journals need the pinned docker and a TLS probe built with gcc (test_worker_service_r4.WorkerServiceR4Tests,
+    test_worker_service_readback_r4, test_worker_evidence_r4), which this machine does not have, so service-link, adoption-link and
+    evidence-link/-history are not driven (see the module docstring)."""
     from plugin_tests.test_workbench_adoption_recovery_tui_r4 import RecoveryPlanPresentation
     from plugin_tests.test_workbench_adoption_tui_r4 import AdoptionPresentationTests
     sweep = Sweep()
     outcome = {'operation_outcome': 'host_completed_service_unverified', 'independent_service_readback': 'required', 'primary_error': None}
     error = {'status': 'error', 'error': {'code': 'service_workspace_target_mismatch'}}
     domains = (
-        ('protected service', service_presentation(), 'test_service_review_presents_manifest_and_approval_scope',
+        ('protected service', ServiceView,
          lambda case, action: case.response(action, **({'cancel_requested': True} if action in ('status', 'cancel', 'recover') else
                                                        {'outcome': outcome} if action == 'attach' else {}))),
-        ('protected adoption', AdoptionPresentationTests, 'test_state_only_presentation_preserves_uncertainty',
+        ('protected adoption', lambda: AdoptionPresentationTests('test_state_only_presentation_preserves_uncertainty'),
          lambda case, action: case.result(action)),
-        ('adoption recovery plan', RecoveryPlanPresentation, 'test_unknown_original_and_planonly_restriction_displayed',
+        ('adoption recovery plan', lambda: RecoveryPlanPresentation('test_unknown_original_and_planonly_restriction_displayed'),
          lambda case, action: case.result(action)),
     )
-    for domain, cls, method, reply in domains:
+    for domain, make, reply in domains:
         prefix = {'protected service': 'service', 'protected adoption': 'adoption', 'adoption recovery plan': 'adoption-plan'}[domain]
-        case = cls(method)
+        case = make()
         case.setUp()
         try:
             case.ui.rules = 'unicode'
@@ -1306,6 +1359,11 @@ class NetTests(unittest.TestCase):
         ('wizard --session=SESSION', [('wizard', 'SESSION')]),                       # an option joined to its value by =
         ('intune-iac capture --token-env TOKEN_VARIABLE_NAME', [('capture', 'TOKEN_VARIABLE_NAME')]),
         ('inspect (the policy DIGEST)', [('inspect', 'DIGEST')]),                   # no punctuation hides a token
+        # the commands the product prints for the programs it runs (external_programs), not its own
+        ('az account set --subscription SUBSCRIPTION (the subscription id or name)', [('az', 'SUBSCRIPTION')]),
+        ('az logout --username NAME (the account name to sign out)', [('az', 'NAME')]),
+        ('sign in again: az login --tenant TENANT_ID --user USER', [('az', 'TENANT_ID'), ('az', 'USER')]),
+        ('az account show --subscription SUBSCRIPTION_ID --account ACCOUNT', [('az', 'SUBSCRIPTION_ID'), ('az', 'ACCOUNT')]),
     )
     CLEAN = (
         'Select a policy first: 1 (Estate), then Enter.',                           # a capital S is not the command word select
@@ -1314,6 +1372,8 @@ class NetTests(unittest.TestCase):
         'FILE is the file to write; then run companion with it',                    # the token stands before the command word
         'SYNTHETIC | TENANT 11111111 | POLICY none selected',                       # no command word in the row
         'review the OBS and OP states',                                             # capitals that are not placeholder-shaped
+        'az account list --output json',                                            # a resolved command of an external program
+        'sign in again: az login --tenant 11111111-1111-4111-8111-111111111111; then run gh auth status --json hosts',
     )
 
     def test_a_token_after_a_command_word_is_a_hit_whether_or_not_a_command_can_be_read(self):
@@ -1332,13 +1392,26 @@ class NetTests(unittest.TestCase):
         for row in ('collect --root STORE --service-root SERVICE', ':queue-review-template ownership_unknown NEW_JSON'):
             self.assertTrue(net_hits(row), row)
 
+    def test_the_external_programs_are_derived_from_the_products_own_source_and_are_command_words(self):
+        from intune_iac import readiness
+        programs = external_programs()
+        self.assertTrue({'az', 'gh'} <= programs, programs)                          # signin.py runs both with a literal argv
+        shell, typed = readiness.dialects()
+        self.assertFalse(programs & (set(shell) | set(typed) | {readiness.PROGRAM}))   # none is the product's own
+        self.assertTrue(programs <= command_words())
+        for program in programs:                                                     # each is printed as a command somewhere
+            self.assertTrue(any(re.search(r'(?<![\w./-])%s\s+(?:--?[a-z]|[a-z])' % re.escape(program), text)
+                                for text in package_strings()), program)
+        self.assertNotIn('docker', programs)                                         # a program nothing prints a command for
+
     def test_the_command_words_are_the_product_tables_and_the_placeholder_words_are_the_briefs(self):
         words = command_words()
         for word in ('intune-iac', 'workbench', 'companion', 'queue-amend', 'back', 'edit', 'collect', 'init', 'start'):
             self.assertIn(word, words)
         for word in ('Select', 'the', 'STORE'):
             self.assertNotIn(word, words)
-        for word in ('NEW_JSON', 'TOKEN_VARIABLE_NAME', 'SERVICE_ROOT', 'FILE', 'ID', 'NEW_SESSION.json', 'DIRECTORY'):
+        for word in ('NEW_JSON', 'TOKEN_VARIABLE_NAME', 'SERVICE_ROOT', 'FILE', 'ID', 'NEW_SESSION.json', 'DIRECTORY',
+                     'SUBSCRIPTION', 'USER', 'ACCOUNT', 'SUBSCRIPTION_ID'):
             self.assertTrue(placeholder_like(word), word)
         for word in ('OBS', 'REPO_', 'file', 'Enter', 'UUIDs', 'KEY', '1_2'):
             self.assertFalse(placeholder_like(word), word)

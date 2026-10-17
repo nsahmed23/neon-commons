@@ -10,51 +10,22 @@ from pathlib import Path
 import shlex
 import subprocess
 import sys
-import tempfile
 import unittest
 
 from intune_iac.io import AppError
 from intune_iac.workbench_store import WorkbenchStore
 from intune_iac.workbench_tui import CONTEXT_VERSION, SERVICE_NAVIGATION_VERSION, Workspace
 from plugin_tests import test_worker_service_r4 as service_tests
+from plugin_tests.service_presentation_fixtures import OBJECT, TENANT, ServiceFixtures
 
 PROJECT=Path(__file__).resolve().parents[1]
 CLI=PROJECT/'scripts/intune-iac.py'
 
-TENANT='11111111-1111-4111-8111-111111111111'
-OBJECT='22222222-2222-4222-8222-222222222222'
 OTHER='33333333-3333-4333-8333-333333333333'
 
 
-class ServicePresentationTests(unittest.TestCase):
-    def setUp(self):
-        self.temporary=tempfile.TemporaryDirectory();self.addCleanup(self.temporary.cleanup)
-        self.root=Path(self.temporary.name)
-        self.store=WorkbenchStore.create(self.root/'store',TENANT)
-        self.ui=Workspace(self.store.root,stdin=io.StringIO(),stdout=io.StringIO())
-        self.job=str(self.root/'service job 界')
-        self.policy=str(self.root/"policy ' reviewed.json")
-
-    def response(self,action='review',**changes):
-        manifest={'operation_id':'service-op-12071','tenant_id':TENANT,'object_ids':[OBJECT],
-                  'profile':'native_docker_laboratory_tls','action':'apply_saved_plan',
-                  'saved_plan_sha256':'c'*64,'backend_scope_sha256':'d'*64,
-                  'execution_binding_sha256':'e'*64,'run_binding_sha256':'f'*64,
-                  'expires_at':1791500000}
-        value={'manifest':manifest,'manifest_sha256':'a'*64,'signature_domain_hex':'73636f706500',
-               'authority':'independent_external_signer_required','execution_authorized':False,
-               'production_authorized':False,'operation_id':manifest['operation_id'],'tenant_id':TENANT,
-               'object_ids':[OBJECT],'profile':manifest['profile'],'saved_plan_sha256':'c'*64,
-               'expires_at':manifest['expires_at'],'service_job_root':self.job,'service_policy':self.policy,
-               'evidence_class':'protected_service_journal','interface_action':action,
-               'terminal_dispatches_mutation':False,'platform_qualified':False}
-        if action!='review':
-            value.pop('manifest');value.update(status='running',cancel_requested=False,dispatches=1,outcome=None,
-                events=[{'sequence':1,'kind':'prepared','payload':{'manifest_sha256':'a'*64},'created_at':1791400000}],
-                ci_attestation='unestablished_host_policy_contract_only')
-        value.update(changes);return value
-
-    def command(self,action):return 'service-'+action+' '+shlex.quote(self.job)+' '+shlex.quote(self.policy)
+class ServicePresentationTests(ServiceFixtures,unittest.TestCase):
+    # setUp, response and command moved, unchanged, to plugin_tests/service_presentation_fixtures.py (no docker import there)
 
     def test_service_review_presents_manifest_and_approval_scope(self):
         self.ui._send(self.command('review'));self.ui.receive(self.response())
