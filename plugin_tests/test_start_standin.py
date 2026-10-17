@@ -211,3 +211,91 @@ class HiddenPathCommandTests(Estates):
         text = flat(render('built', self.parent, ORDINARY, 100, None))
         self.assertIn("intune-iac workbench workspace --root 'estate dir/store' --service-root 'estate dir/service'", text)
         self.assertIn('Resume with the wizard command using this saved session; its path cannot be shown here.', text)
+
+
+class ProducerStringTests(Estates):
+    """Item 2: every string constant in entry.py that holds a stand-in token (an ast walk, not a list), and every string in
+    readiness.py and catalog.py that holds DIRECTORY (what the goal rows record), is shown to lose the token under a hidden
+    directory: planted as the recorded step and note of a goal row, and as a recorded note of the survey, in the quoting variants
+    of the CATALOG-6 producer test."""
+    names = {'credential': CREDENTIAL}
+    # a stand-in word: DIRECTORY, ROOT, ID or PATH, alone or as a piece of a placeholder such as SERVICE_ROOT or TENANT_ID
+    TOKEN = re.compile(r'(?<![A-Za-z0-9])(?:DIRECTORY|ROOT|ID|PATH)(?![A-Za-z0-9])')
+    DIRECTORY_TOKEN = re.compile(r'(?<![A-Za-z0-9_])DIRECTORY(?![A-Za-z0-9_])')
+    counts = {}
+
+    @staticmethod
+    def strings(modules, token):
+        """Every string constant of the modules (docstrings aside) that holds the token, whitespace made single, the program name
+        written in for %s."""
+        import ast
+        found = set()
+        for name in modules:
+            path = Path(__file__).resolve().parents[1] / 'intune_iac' / name
+            tree = ast.parse(path.read_text(encoding='utf-8'))
+            # a docstring is documentation, not a string the product can print
+            docs = {id(node.body[0].value) for node in ast.walk(tree)
+                    if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+                    and node.body and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant)}
+            for node in ast.walk(tree):
+                if (isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in docs
+                        and token.search(node.value)):
+                    found.add(' '.join(node.value.replace('%s', 'intune-iac').split()))
+        return sorted(found)
+
+    def screen(self, text):
+        """The start screen of the hidden directory, with text planted as the recorded step and note of every needed goal row and
+        as a recorded note of the survey (plain data), at a width that wraps nothing."""
+        from intune_iac import entry
+
+        def run():
+            survey = entry.survey(CREDENTIAL, relative_to=os.getcwd())
+            view = host_free(entry.goal_readiness(survey, 'discover'))
+            for row in view['rows']:
+                if row['needed']:
+                    row['state'], row['missing'], row['next_action'] = 'missing', [text], text
+            view['not_established'] = [text]
+            plain = json.loads(json.dumps(survey))
+            plain['missing'] = [text]
+            return entry.start_lines(plain, 400, view)
+        return in_directory(self.parent, run)
+
+    def shown(self, lines):
+        """The rows without the three the screen is allowed to say DIRECTORY on: the header, the statement under it, and the
+        Directory: line of the goal block."""
+        from intune_iac import readiness
+        allowed = ('DIRECTORY | offline', readiness.DIRECTORY_NOT_SHOWN_SENTENCE, 'Directory: DIRECTORY')
+        return [line for line in lines if not line.startswith(allowed)]
+
+    def check(self, variant):
+        lines = self.screen(variant)
+        rows = self.shown(lines)
+        self.assertEqual(stand_in_operands(lines), [], variant)
+        self.assertIsNone(self.DIRECTORY_TOKEN.search('\n'.join(rows).replace("'", '')), variant)
+
+    def test_every_stand_in_string_of_entry_py_and_every_quoting_variant_loses_the_token_on_a_hidden_screen(self):
+        from plugin_tests import test_catalog_commands as commands
+        strings = self.strings(('entry.py',), self.TOKEN)
+        # the walk found the producers: the two placeholders, the fill-in placeholder SERVICE_ROOT and the two init templates
+        for expected in ('DIRECTORY', 'PATH', 'SERVICE_ROOT'):
+            self.assertIn(expected, strings)
+        self.assertGreaterEqual(len(strings), 5, strings)
+        count = 0
+        for text in strings:
+            for variant in [text] + commands.StandInRuleTests.variants(text):
+                count += 1
+                with self.subTest(variant=variant[:120]):
+                    self.check(variant)
+        type(self).counts['entry.py'] = (len(strings), count)
+
+    def test_every_recorded_step_of_readiness_and_the_catalog_loses_the_token_on_a_hidden_screen(self):
+        from plugin_tests import test_catalog_commands as commands
+        strings = [text for text in self.strings(('readiness.py', 'catalog.py'), self.DIRECTORY_TOKEN) if len(text) < 400]
+        self.assertGreater(len(strings), 8)
+        count = 0
+        for text in strings:
+            for variant in [text] + commands.StandInRuleTests.variants(text)[:12]:
+                count += 1
+                with self.subTest(variant=variant[:120]):
+                    self.check(variant)
+        type(self).counts['readiness.py and catalog.py'] = (len(strings), count)

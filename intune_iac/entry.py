@@ -769,6 +769,16 @@ def shown_step(text, hidden=False):
     return (recorded_step_for_screen(text, hidden) or UNSHOWN_STEP) if text else text
 
 
+def recorded_text(text, hidden):
+    """A recorded step or note as a screen prints it: shown_step (as recorded, or the fixed explanation when it names a path the
+    screen may not show) and, where the directory may not be shown (hidden), readiness.without_stand_in on top, the CATALOG-6 rule
+    the catalog applies to the same strings: a part of it that could name the directory (DIRECTORY would be a real folder to a
+    shell) is said in words. The rule is that function's; this module writes no second one."""
+    from .readiness import without_stand_in
+    step = shown_step(text)
+    return without_stand_in(step) if hidden else step
+
+
 def guard_rows(rows):
     """Every row that leaves a text form passes the product's own escape for control characters (workbench_tui.safe_text, which
     the workspace and word_wrap use): no C0 character other than the newline that ends a row, no DEL and no C1 character reaches
@@ -832,7 +842,7 @@ def goal_summary(view):
 def _goal_lines(view, width, operand=None):
     """The goal's readiness: its status, the selected directory, host and tenant, the needed rows and what is not checked.
     operand is the surveyed directory as a command argument, as the path writer wrote it for this screen."""
-    from .readiness import capture_contact, directory_hidden, screen_note
+    from .readiness import capture_contact, directory_hidden, screen_note, without_stand_in
     from .workbench_screens import word_wrap
     host = view['host']
     hidden = directory_hidden(view['directory'])
@@ -869,9 +879,9 @@ def _goal_lines(view, width, operand=None):
             for note in row['missing']:
                 said = screen_note(note, operand, hidden=hidden)
                 # a recorded note (one screen_note did not write) is printed only when no word in it is refused
-                lines += _flow(said if said != note else shown_step(note), width, '      - ', '        ', commands=True)
+                lines += _flow(said if said != note else recorded_text(note, hidden), width, '      - ', '        ', commands=True)
         lines.append('    Next action (%s):' % row['owner_role'])
-        step = shown_step(row['next_action'])
+        step = recorded_text(row['next_action'], hidden)
         lines += _flow(step, width, '      ', '      ', commands=True)
         contact = capture_contact(step)
         if contact:
@@ -882,7 +892,7 @@ def _goal_lines(view, width, operand=None):
     if view['goal'] != 'inspect':
         lines.append('NOT CHECKED HERE')
         for note in list(view['not_established']) + list(view['omitted_facts']):
-            for index, part in enumerate(word_wrap(note, width - 4)):
+            for index, part in enumerate(word_wrap(without_stand_in(note) if hidden else note, width - 4)):
                 lines.append(('  - ' if index == 0 else '    ') + part)
     return lines
 
@@ -893,7 +903,7 @@ def start_lines(value, width, goal=None, goal_hint=False):
     goal is the result of goal_readiness and adds that goal's readiness after the survey; goal_hint adds the one closing line
     that names the goals and the flag. The workspace screen passes neither.
     """
-    from .readiness import DIRECTORY_NOT_SHOWN_SENTENCE, IN_WORDS
+    from .readiness import DIRECTORY_NOT_SHOWN_SENTENCE, IN_WORDS, without_stand_in
     from .workbench_screens import word_wrap
     lines = ['INTUNE WORKBENCH: START']
     # The directory is user input: a name the output-path rule of signin collect refuses prints as DIRECTORY, here, in the
@@ -940,7 +950,7 @@ def start_lines(value, width, goal=None, goal_hint=False):
         lines += _flow(action, width, prefix, ' ' * len(prefix), commands=True)
     lines.append('MISSING')
     for note in value['missing']:
-        for index, part in enumerate(word_wrap(note, width - 4)):
+        for index, part in enumerate(word_wrap(without_stand_in(note) if hidden else note, width - 4)):
             lines.append(('  - ' if index == 0 else '    ') + part)
     if value.get('skipped_links'):
         lines += word_wrap('Symbolic links not followed: ' + ', '.join(value['skipped_links']), width)
