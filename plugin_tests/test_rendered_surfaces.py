@@ -39,12 +39,14 @@ An argparse usage block (the `usage:` rows of --help and of a usage error) is al
 itself shows the sentence. The sweep of every route's --help and usage error fails for each output that prints a block without it.
 
 A second check, the independent net, does not use the reader's context rules: a form the reader misses is missed by the renderer
-and by the check above alike. In every row of every surface but the help synopsis surfaces, a token that is a member of
-entry.FILL_IN_TEMPLATES, or is shaped like a placeholder (capitals and digits with an underscore, or a bare FILE, PATH, ROOT, ID,
-NAME, VALUE, STAGE, FIELD, SERVICE, REVISION, COMMIT, REPO, DIGEST, STORE, POLICY, DIRECTORY, SUBSCRIPTION, USER or ACCOUNT), after a
-word the product's own tables name as a command, is a hit. The command words are the product's tables and the external programs it
-prints commands for (az, gh, tofu and git today), which external_programs derives from the product's source, never from a list
-here. Its false positives are the entries of NET_ALLOWED, each with its reason. Both checks are reported.
+and by the check above alike. In every visual block of every surface, help included (a command wrapped over rows is one command; a
+sentence, a blank row, a list item and a list's heading end it), a token that is a member of entry.FILL_IN_TEMPLATES, or is shaped
+like a placeholder (capitals and digits with an underscore, or a bare FILE, PATH, ROOT, ID, NAME, VALUE, STAGE, FIELD, SERVICE,
+REVISION, COMMIT, REPO, DIGEST, STORE, POLICY, DIRECTORY, SUBSCRIPTION, USER or ACCOUNT), after a word the product's own tables name
+as a command, is a hit. The command words are the product's tables and the external programs it prints commands for (az, gh, tofu
+and git today), which external_programs derives from the product's source, never from a list here. On the help surfaces a hit is
+excused only inside a synopsis the product writes verbatim, on a surface that shows the convention sentence. Its other false
+positives are the entries of NET_ALLOWED, each with its reason. Both checks are reported.
 """
 import argparse
 import ast
@@ -59,6 +61,7 @@ import re
 import shlex
 import shutil
 import tempfile
+import textwrap
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -119,12 +122,18 @@ def unresolved(text):
 
 
 ITEM = re.compile(r'(?:\d+[.)]|[-*])\s')                      # a numbered or bulleted row starts its own item
+HEADING = re.compile(r'[A-Za-z][\w -]*  \(\d+\)\Z')           # a list's heading in the typed details: its name, two spaces, its size
+
+
+def starts_block(text):
+    """Whether a row (stripped, not blank) begins a block of its own: a numbered or bulleted item, or the heading of a list."""
+    return bool(ITEM.match(text) or HEADING.match(text))
 
 
 def paragraphs(rows):
     """The rows as a person reads them: a row that ends in a backslash continues on the next, and the rows of one block are one
-    line (a wrapped command is one command); a blank row, and a numbered or bulleted row, begins a block. The wrapping is undone
-    and nothing else is changed."""
+    line (a wrapped command is one command); a blank row, a numbered or bulleted row and a list's heading begin a block. The wrapping
+    is undone and nothing else is changed."""
     blocks, held = [], []
     for row in rows:
         text = row.strip()
@@ -133,7 +142,7 @@ def paragraphs(rows):
                 blocks.append(' '.join(held))
                 held = []
             continue
-        if held and ITEM.match(text):
+        if held and starts_block(text):
             blocks.append(' '.join(held))
             held = []
         held.append(text[:-1].rstrip() if text.endswith('\\') else text)
@@ -251,19 +260,76 @@ def placeholder_like(word):
     return word in BARE_PLACEHOLDERS or bool(SHAPED.match(word)) or entry.is_fill_in(word)
 
 
+Hit = collections.namedtuple('Hit', 'index word token previous shown exact')
+BREAKS = re.compile(r'[\w)\]"\'][.!?]+[)\]"\']*(?=\s|\Z)')    # where a sentence ends: its last word, the full stop, the closers
+PATHS = re.compile(r'(?<![\w.\-/])/[^\s()\[\]{}<>"\'`,;]+')   # an absolute path: its segments are names, not words of a command
+
+
+def visual_blocks(rows):
+    """The rows grouped as a person reads them, as indexes: [[index, ...], ...]. The groups are the ones `paragraphs` joins: a
+    blank row, a numbered or bulleted row and a list's heading begin a block; a row that ends in a backslash continues on the next."""
+    blocks, held = [], []
+    for index, row in enumerate(rows):
+        text = row.strip()
+        if not text:
+            if held:
+                blocks.append(held)
+                held = []
+            continue
+        if held and starts_block(text):
+            blocks.append(held)
+            held = []
+        held.append(index)
+    if held:
+        blocks.append(held)
+    return blocks
+
+
+def net_scan(rows, synopses=False):
+    """[Hit] for the rows of one rendered output: each placeholder-like token that has a command word before it.
+
+    The word is carried over the rows of a visual block, so a command wrapped over rows (`Run: collect --root` and then
+    `STORE --service-root SERVICE`) or continued with a backslash is one command, and a token is judged against the nearest command
+    word before it wherever the wrap put that word. A sentence ends the command, wherever in a row it ends, so prose that follows it
+    is not read as the command's operands; the segments of an absolute path are not words. A hit carries the row of its token
+    (index), the word right before it (previous), the rows the command spans as one text (shown) and whether it lies inside a
+    synopsis the product writes verbatim (exact; only looked for when `synopses` is true, which is the help surfaces that show the
+    convention sentence)."""
+    commands, hits = command_words(), []
+    for indexes in visual_blocks(rows):
+        parts = [' '.join(rows[index].split()) for index in indexes]
+        parts = [part[:-1].rstrip() if part.endswith('\\') else part for part in parts]
+        text, bases = '', []
+        for part in parts:
+            text += (' ' if text else '') + part
+            bases.append(len(text) - len(part))
+        spans = exact_spans(text) if synopses else ()
+        last = before = origin = None
+        for number, part in enumerate(parts):
+            breaks = [found.end() for found in BREAKS.finditer(part)]
+            for found in WORDS.finditer(PATHS.sub(lambda path: ' ' * len(path.group()), part)):
+                while breaks and found.start() >= breaks[0]:
+                    breaks.pop(0)
+                    last = before = origin = None
+                word = found.group().strip('.:!?*')
+                if not word:
+                    continue
+                if last is not None and placeholder_like(word):
+                    offset = bases[number] + found.start()
+                    hits.append(Hit(indexes[number], last, word, before, ' '.join(parts[origin:number + 1]),
+                                    any(begin <= offset < end for begin, end in spans)))
+                elif word in commands:
+                    last, origin = word, number
+                before = word
+            if breaks:
+                last = before = origin = None
+    return hits
+
+
 def scan(row):
     """[(nearest command word before it, token, the word right before the token)] for a row: each placeholder-like token that has
     a command word before it."""
-    commands, last, before, hits = command_words(), None, None, []
-    for word in (found.strip('.:!?*') for found in WORDS.findall(row)):
-        if not word:
-            continue
-        if last is not None and placeholder_like(word):
-            hits.append((last, word, before))
-        elif word in commands:
-            last = word
-        before = word
-    return hits
+    return [(hit.word, hit.token, hit.previous) for hit in net_scan([row])]
 
 
 def net_hits(row):
@@ -301,6 +367,27 @@ def id_after_a_noun(state, rows, index, previous, token):
     return token == 'ID' and bool(previous) and previous.isalpha() and previous.islower() and previous not in command_words()
 
 
+def directory_stand_in(state, rows, index, previous, token):
+    """DIRECTORY printed in the place of a directory name the screen does not show, on a screen that says what it stands for: the
+    sentence that defines it (readiness.DIRECTORY_NOT_SHOWN_STEM) starts with it, or the row is the label `Directory: DIRECTORY`."""
+    from intune_iac.readiness import DIRECTORY_NOT_SHOWN_STEM
+    row = ' '.join(rows[index].split())
+    return (token == 'DIRECTORY' and DIRECTORY_NOT_SHOWN_STEM in ' '.join(' '.join(rows).split())
+            and (previous == 'Directory' or bool(re.search(r'\bDIRECTORY(?: is\b|\Z)', row))))
+
+
+def block_text(rows, index):
+    """The text of the visual block that holds the row, its rows joined as a person reads them."""
+    block = next(block for block in visual_blocks(rows) if index in block)
+    return ' '.join(' '.join(rows[number].split()) for number in block)
+
+
+def strip_label(state, rows, index, previous, token):
+    """REPO as the strip's own label for the state of the repository (`MODE | TENANT x | POLICY y | OBS fresh | REPO current | OP`)."""
+    text = block_text(rows, index)
+    return token == 'REPO' and '| REPO ' in text and '| TENANT ' in text
+
+
 # The net's false positives: one entry each, (name, the states it applies to or None for any, what it excuses, the reason that is not a
 # defect). What an entry excuses is a function of the screen's rows, the row's index, the word before the token and the token, so an
 # entry excuses only what it names and the rest of the screen is still read. There is no other allowance.
@@ -314,6 +401,14 @@ NET_ALLOWED = (
     ('ID after a noun', None, id_after_a_noun,
      "ID right after a plain noun is the abbreviation of identifier in a sentence ('the Intune object ID it manages', 'tenant ID'), "
      "not a placeholder. An ID that is an operand follows an option (--object ID) or a command word (select ID), and stays a hit."),
+    ('directory stand-in', None, directory_stand_in,
+     "A directory whose name the screen must not print (a credential shape, a control character) is named DIRECTORY, and the "
+     "screen says so in a sentence that starts with the word (readiness.DIRECTORY_NOT_SHOWN_STEM) or in the label `Directory:`. The "
+     "word is defined where it is shown; a command that carries it as an operand is not excused, and stays a hit."),
+    ('strip label', None, strip_label,
+     "The strip under the tabs names the repository state REPO (`| OBS stale (later collection incomplete) | REPO stale |`), and the "
+     "help legend prints the strip as it reads now. REPO there is the label of a state, not the operand of the word collection "
+     "before it, which is ordinary English there."),
 )
 
 
@@ -341,6 +436,41 @@ def is_synopsis(command):
     return ' '.join(command.split()) in synopsis_corpus()
 
 
+@functools.lru_cache(maxsize=1)
+def synopsis_sources():
+    """The two tables of synopses the product prints on its help surfaces, each entry whole and with its whitespace collapsed:
+    (the entries of the :help listing, the (label, text) rows of the help legend that give command syntax)."""
+    from intune_iac import workbench, workbench_screens
+    listing = frozenset(' '.join(entry.split()) for value in workbench.HELP.values() if isinstance(value, list) for entry in value)
+    legend = tuple((name, ' '.join(text.split())) for name, text in workbench_screens.HELP_WORDS if name in ('Changes', 'Workflow map'))
+    keys = tuple(str(key).replace('_', ' ') for key, value in workbench.HELP.items() if not isinstance(value, list))
+    return listing, legend, keys
+
+
+LISTING_ITEM = re.compile(r'\d+\.\s+')
+
+
+def exact_spans(text):
+    """The character spans of the text of one visual block that are exactly a synopsis the product writes: the whole block being a
+    numbered entry of the :help listing (the numbering aside; the label of the table's next key, a row that is not a list, may follow
+    the last entry because the listing prints no blank row between them), or a row of the help legend (its label and its text)
+    verbatim. Whatever else the block holds, however close to an entry (a word added to it, a sentence after it), lies outside every
+    span, so `review OPERATION_DIR immediately` is not the entry `review OPERATION_DIR`."""
+    listing, legend, keys = synopsis_sources()
+    spans = []
+    numbered = LISTING_ITEM.match(text)
+    if numbered:
+        rest = text[numbered.end():]
+        ends = [len(rest)] + [rest.find(' %s ' % key) for key in keys]
+        for end in ends:
+            if end > 0 and rest[:end] in listing:
+                spans.append((0, numbered.end() + end))
+                break
+    for name, words in legend:
+        spans += [found.span() for found in re.finditer(re.escape(name) + ' ?' + re.escape(words), text)]
+    return spans
+
+
 # The only surfaces that may hold a synopsis: the help page (8, ?) and its typed listing (e). The same words on any other surface
 # (the actions layer's command row, the Inspector, the Repository surface, a prompt) are an instruction, not a synopsis.
 HELP_SURFACES = ('8 Help', '? Help', '? Help, typed details (e)')
@@ -364,29 +494,27 @@ class Sweep:
         self.printed = collections.Counter()                   # (state, route) -> rows a route printed (a route that prints nothing
                                                                # is not a sweep)
 
-    def cast(self, state, surface, size, rows):
-        """The independent net over the rows of one screen (not on the help synopsis surfaces)."""
-        if surface in HELP_SURFACES:
-            return
+    def cast(self, state, surface, size, rows, convention=False):
+        """The independent net over the rows of one screen, on every surface. On a help surface that shows the convention sentence
+        the synopses the product writes verbatim are excused (exact_spans); nothing else on it is."""
         seen = set()
-        for index, row in enumerate(rows):
-            for word, token, previous in scan(row):
-                if (word, token, row) in seen:
-                    continue
-                seen.add((word, token, row))
-                reason = net_excuse(state, rows, index, previous, token)
-                if reason:
-                    self.excused[reason] += 1
-                    continue
-                held = self.net.setdefault((word, token), {'where': set(), 'rows': set()})
-                held['where'].add((state, surface, size))
-                held['rows'].add(scrubbed(row))
+        for hit in net_scan(rows, synopses=convention and surface in HELP_SURFACES):
+            if (hit.word, hit.token, hit.shown) in seen:
+                continue
+            seen.add((hit.word, hit.token, hit.shown))
+            reason = 'exact synopsis' if hit.exact else net_excuse(state, rows, hit.index, hit.previous, hit.token)
+            if reason:
+                self.excused[reason] += 1
+                continue
+            held = self.net.setdefault((hit.word, hit.token), {'where': set(), 'rows': set()})
+            held['where'].add((state, surface, size))
+            held['rows'].add(scrubbed(hit.shown))
 
     def read(self, state, surface, size, texts, convention=False, rows=()):
         """Judge the texts of one screen. convention: the surface shows SYNOPSIS_CONVENTION (all its pages). rows: the rows as
         printed, for the net."""
         self.coverage[(state, surface, size)] += 1
-        self.cast(state, surface, size, rows)
+        self.cast(state, surface, size, rows, convention)
         seen = set()
         for text in texts:
             for command, operands in unresolved(text):
@@ -459,6 +587,9 @@ def frame_rows(ws):
     return [ANSI.sub('', row) for row in ws.stdout.getvalue().split('\x1b[H')[-1].replace('\x1b[J', '').split('\r\n')]
 
 
+Page = collections.namedtuple('Page', 'above body below more offset')
+
+
 def split_frame(rows):
     """(above the box, inside it with the side rules off, below it, whether the box says more is below it)."""
     above, body, below, phase, more = [], [], [], 0, False
@@ -490,29 +621,55 @@ def surface_pages(ws, size, rules):
         rows = frame_rows(clone)
         if rows == previous:
             break
-        pages.append(split_frame(rows))
+        pages.append(Page(*split_frame(rows), clone.scroll))        # the offset is read after the draw has clamped the scroll
         previous = rows
-        if not pages[-1][3]:
+        if not pages[-1].more:
             break
         if clone.layer in ('catalog', 'workflow'):
             clone.page_move = 1                       # their paging keeps a command whole
         else:
-            clone.scroll += max(1, len(pages[-1][1]))
+            clone.scroll += max(1, len(pages[-1].body))
     return pages, clone.layer
+
+
+def whole_body(pages):
+    """The body rows of all the pages of a surface as one list, each row once. The last page of a scroll is drawn from the row
+    that fills it, so it repeats the rows it shares with the page before it; the offset of each page says how many."""
+    rows, end = [], 0
+    for page in pages:
+        rows += page.body[max(0, end - page.offset):]
+        end = max(end, page.offset + len(page.body))
+    return rows
 
 
 def screen_texts(pages, layer):
     """The texts to read on a surface: the chrome of each page, and the body of all its pages (a command may run over a page
     boundary where the surface does not keep it whole, so the pages join; a layer that pages by commands is not joined)."""
     texts = []
-    for above, body, below, _ in pages:
-        texts += readable(above) + readable(below)
+    for page in pages:
+        texts += readable(page.above) + readable(page.below)
     if layer in ('catalog', 'workflow'):
-        for _, body, _, _ in pages:
-            texts += readable(body)
+        for page in pages:
+            texts += readable(page.body)
     else:
-        texts += readable([row for _, body, _, _ in pages for row in body])
+        texts += readable([row for page in pages for row in page.body])
     return texts
+
+
+def net_rows(pages, layer):
+    """The rows the net reads, in the groups screen_texts reads: the chrome above and below the box of each page, and the body (its
+    pages joined, each row once, unless the layer pages by commands). A blank row ends each group, so no visual block runs over
+    from one group into the next."""
+    rows = []
+    for page in pages:
+        for row in page.above + page.below:                  # the chrome (title, tabs, strip, band, status, keys): each row is a line
+            rows += [row, '']                                # of its own, so a blank row after it keeps the next from joining it
+    if layer in ('catalog', 'workflow'):
+        for page in pages:
+            rows += page.body + ['']
+    else:
+        rows += whole_body(pages) + ['']
+    return rows
 
 
 class Look:
@@ -548,9 +705,8 @@ def read_screen(sweep, ws, state, label, schedule=SCHEDULE):
     """Read the surface the workspace shows now, at every size of the schedule (in its rule style), with both checks."""
     for size, style in schedule:
         pages, layer = surface_pages(ws, size, style)
-        body = ' '.join(' '.join(row for _, part, _, _ in pages for row in part).split())
-        rows = [row for page in pages for part in page[:3] for row in part]
-        sweep.read(state, label, size, screen_texts(pages, layer), SYNOPSIS_CONVENTION in body, rows)
+        body = ' '.join(' '.join(row for page in pages for row in page.body).split())
+        sweep.read(state, label, size, screen_texts(pages, layer), SYNOPSIS_CONVENTION in body, net_rows(pages, layer))
 
 
 def drive(root, service_root, plan, state, sweep, schedule=SCHEDULE):
@@ -1427,12 +1583,77 @@ class NetTests(unittest.TestCase):
         for word in ('OBS', 'REPO_', 'file', 'Enter', 'UUIDs', 'KEY', '1_2'):
             self.assertFalse(placeholder_like(word), word)
 
-    def test_the_net_is_not_run_on_the_help_synopsis_surfaces(self):
+    def test_a_command_wrapped_over_rows_or_continued_with_a_backslash_is_one_command_for_the_net(self):
+        for rows, expected in (
+                (['Run: collect --root', 'STORE --service-root SERVICE'], [('collect', 'STORE'), ('collect', 'SERVICE')]),
+                (['  intune-iac workbench init --root \\', '      STORE --tenant \\', '      TENANT_ID'],
+                 [('init', 'STORE'), ('init', 'TENANT_ID')]),
+                (['Run:', 'collect', '--root STORE'], [('collect', 'STORE')]),
+                (['select the policy:', 'review', 'OPERATION_DIR'], [('review', 'OPERATION_DIR')])):
+            with self.subTest(rows=rows):
+                self.assertEqual([(hit.word, hit.token) for hit in net_scan(rows)], expected)
+                sweep = Sweep()
+                sweep.read('state', '2 Inspector', (80, 24), [], rows=rows)
+                self.assertEqual(sorted(sweep.net), sorted(expected))
         sweep = Sweep()
-        sweep.read('state', '8 Help', (80, 24), [], True, rows=['propose DESIRED_JSON NEW_OPERATION_DIR'])
-        self.assertEqual(sweep.net_failures(), [])
-        sweep.read('state', '2 Inspector', (80, 24), [], True, rows=['propose DESIRED_JSON NEW_OPERATION_DIR'])
-        self.assertEqual(sorted(sweep.net), [('propose', 'DESIRED_JSON'), ('propose', 'NEW_OPERATION_DIR')])
+        sweep.read('state', '2 Inspector', (60, 20), [], rows=['Run: collect --root', 'STORE --service-root SERVICE'])
+        text = '\n'.join(sweep.net_failures())
+        self.assertIn('Run: collect --root STORE --service-root SERVICE', text)                 # the failure shows the whole command
+        self.assertIn("'2 Inspector'", text)
+
+    def test_the_net_does_not_carry_a_command_over_a_sentence_a_blank_row_or_a_list_item(self):
+        for rows in (['Run collect.', 'FILE is the file to write'], ['Run collect', '', 'FILE is the file'],
+                     ['review the plan', '1. FILE is a number'], ['review the plan', '- FILE is a number']):
+            with self.subTest(rows=rows):
+                self.assertEqual(net_scan(rows), [])
+        blocks = [['Run: a \\', '  b', '', '1. c', 'd', '2. e'], ['x', '* y', 'z']]
+        for rows in blocks:                                                                       # the same blocks the reader reads
+            joined = [' '.join(part[:-1].rstrip() if part.endswith('\\') else part
+                               for part in (' '.join(rows[index].split()) for index in block)) for block in visual_blocks(rows)]
+            self.assertEqual(joined, paragraphs(rows))
+
+    def test_the_pages_of_a_scroll_are_joined_once_and_the_net_reads_them_in_groups(self):
+        pages = [Page(['A1'], ['a', 'b', 'c'], ['C1'], True, 0), Page(['A1'], ['d', 'e', 'f'], ['C1'], True, 3),
+                 Page(['A1'], ['e', 'f', 'g'], ['C1'], False, 4)]                   # the last page is drawn from the row that fills it
+        self.assertEqual(whole_body(pages), ['a', 'b', 'c', 'd', 'e', 'f', 'g'])
+        self.assertEqual(net_rows(pages[:1], 'summary'), ['A1', '', 'C1', '', 'a', 'b', 'c', ''])
+        self.assertEqual(net_rows(pages[:2], 'catalog'), ['A1', '', 'C1', '', 'A1', '', 'C1', '', 'a', 'b', 'c', '', 'd', 'e', 'f', ''])
+
+    def test_help_surfaces_are_read_and_only_the_exact_synopses_are_excused(self):
+        listing, legend, keys = synopsis_sources()
+        entry = next(entry for entry in sorted(listing) if len(entry.split()) >= 3 and net_scan(['1. ' + entry]))
+        heading = '8 Help'
+
+        def failures(rows, convention=True, surface='? Help, typed details (e)'):
+            sweep = Sweep()
+            sweep.read('state', surface, (80, 24), [], convention, rows)
+            return sweep
+        words = entry.split()
+        numbered = ['12. ' + ' '.join(words[:2]), ' '.join(words[2:])]                    # an entry as the page prints it: wrapped
+        sweep = failures(numbered)
+        self.assertEqual((sweep.net_failures(), sweep.excused['exact synopsis'] > 0), ([], True))
+        self.assertEqual(failures(numbered + ['%s Terminal estate views default to 10 per page.' % keys[0]]).net_failures(), [])
+        self.assertTrue(failures(numbered + ['also %s' % keys[0]]).net)                   # only the label of the table's next key may follow
+        self.assertTrue(failures(numbered, convention=False).net)                         # no sentence on the surface: not excused
+        self.assertTrue(failures(numbered, surface='2 Inspector').net)                    # not a help surface: not excused
+        for rows in (['12. ' + entry + ' immediately'],                                   # an entry with a word after it
+                     ['12. immediately ' + entry],                                        # and with a word before it
+                     [entry],                                                             # not an item of the listing
+                     ['12. ' + entry, 'Run: collect --root', 'STORE --service-root SERVICE'],        # a wrapped command on the page
+                     ['Run: collect --root', 'STORE --service-root SERVICE']):
+            with self.subTest(rows=rows):
+                self.assertTrue(failures(rows).net, rows)
+        self.assertTrue(failures(['Run: collect --root', 'STORE --service-root SERVICE'], surface=heading).net)
+        def wrapped(text):
+            return textwrap.wrap(text, 40, break_on_hyphens=False, break_long_words=False)
+        for name, text in legend:                                                         # a legend row, verbatim, as the page wraps it
+            rows = wrapped(name.ljust(12) + text)
+            with self.subTest(legend=name):
+                self.assertTrue(net_scan(rows), 'the legend row has an operand the net would read')
+                self.assertEqual(failures(rows, surface=heading).net_failures(), [])
+                self.assertTrue(failures(rows + ['Run: tofu apply PLAN_FILE'], surface=heading).net)      # a sentence added after it
+                self.assertTrue(failures(wrapped(name.ljust(12) + text + ' Run: tofu apply PLAN_FILE'), surface=heading).net)
+                self.assertTrue(failures(rows, convention=False, surface=heading).net)
 
     def test_a_net_failure_names_the_token_the_command_word_the_row_the_surface_the_state_and_the_size(self):
         sweep = Sweep()
@@ -1493,12 +1714,36 @@ class NetTests(unittest.TestCase):
     def test_id_is_excused_only_as_the_abbreviation_in_a_sentence(self):
         sweep = Sweep()
         sweep.read('state', '9 Repository', (80, 24), [], rows=['select the object ID you want',
-                                                                 'It cannot be read from the repository. Supply the Intune object ID.'])
+                                                                 'It cannot be read from the repository: supply the Intune object ID.'])
         self.assertEqual((sweep.net_failures(), sweep.excused['ID after a noun']), ([], 2))
         for row in ('select ID', 'inspect --object ID', 'workbench workflow --root ROOT --policy ID', 'review the run ID'):
             other = Sweep()
             other.read('state', '9 Repository', (80, 24), [], rows=[row])
             self.assertTrue(other.net, row)                                              # an operand, or after a command word
+
+
+    def test_the_directory_stand_in_and_the_strip_label_are_excused_only_at_their_sites(self):
+        from intune_iac.readiness import DIRECTORY_NOT_SHOWN_STEM
+        sentence = DIRECTORY_NOT_SHOWN_STEM + '.'
+
+        def net(rows):
+            sweep = Sweep()
+            sweep.read('state', 'start', (80, 0), [], False, rows)
+            return sweep.net
+        for rows in (['DIRECTORY | offline | this lists only what this build holds ' + sentence],
+                     ['GOAL READINESS: discover (status: unknown) Directory: DIRECTORY', sentence],
+                     ['this build holds DIRECTORY', 'is the directory this screen is about; its name is not shown here.']):
+            with self.subTest(rows=rows):
+                self.assertFalse(net(rows))
+        for rows in (['Run: intune-iac catalog DIRECTORY'],                                         # nothing defines the word
+                     ['intune-iac catalog DIRECTORY --check-signin azure', sentence],              # a command that carries it
+                     ['status: unknown', 'Directory is DIRECTORY']):                               # no sentence on the screen
+            with self.subTest(rows=rows):
+                self.assertTrue(net(rows), rows)
+        strip = 'Line now SYNTHETIC | TENANT 11111111 | POLICY Windows Privacy Pilot (22222222) | OBS stale (later collection incomplete) | REPO stale | OP outcome unknown'
+        self.assertTrue(net_scan([strip]))                                                          # a hit, but for the strip's label
+        self.assertFalse(net([strip]))
+        self.assertEqual(sorted(net(['Collect again: collection REPO'])), [('collection', 'REPO')])
 
 
 class WorkspaceSweepTests(unittest.TestCase):
