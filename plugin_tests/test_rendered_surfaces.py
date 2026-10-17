@@ -428,9 +428,11 @@ def directory_stand_in(state, rows, index, previous, token):
 
 
 def strip_label(state, rows, index, previous, token):
-    """REPO as the strip's own label for the state of the repository (`MODE | TENANT x | POLICY y | OBS fresh | REPO current | OP`)."""
+    """REPO as the strip's own label for the state of the repository (`MODE | TENANT x | POLICY y | OBS fresh | REPO current | OP`),
+    in the strip the help legend prints, or in the line of the states the strip left out at a small size ("Hidden in the strip at
+    this size (+2 more):", then `OBS stale (later collection incomplete) | REPO stale`)."""
     text = block_text(rows, index)
-    return token == 'REPO' and '| REPO ' in text and '| TENANT ' in text
+    return token == 'REPO' and '| REPO ' in text and ('| TENANT ' in text or 'Hidden in the strip at this size' in text)
 
 
 Allowed = collections.namedtuple('Allowed', 'name states surfaces excuses reason')
@@ -2099,6 +2101,10 @@ class NetTests(unittest.TestCase):
         strip = 'Line now SYNTHETIC | TENANT 11111111 | POLICY Windows Privacy Pilot (22222222) | OBS stale (later collection incomplete) | REPO stale | OP outcome unknown'
         self.assertTrue(net_scan([strip]))                                                          # a hit, but for the strip's label
         self.assertFalse(net([strip]))
+        hidden = ['Hidden in the strip at this size (+2 more):', 'OBS stale (later collection incomplete) | REPO stale']
+        self.assertTrue(net_scan(hidden))                                                           # the states the strip left out
+        self.assertFalse(net(hidden))
+        self.assertEqual(sorted(net(hidden[1:])), [('collection', 'REPO')])                         # the same row off that page
         self.assertEqual(sorted(net(['Collect again: collection REPO'])), [('collection', 'REPO')])
 
 
