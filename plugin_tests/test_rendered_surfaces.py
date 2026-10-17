@@ -2483,7 +2483,14 @@ def output_site_problems(sources=None, listed=None, table=None, others=None):
 # a function reached reaches the functions it names. The if-chains of cli.main, of cli.execute and of every function that dispatches on
 # args.<route> (or on a name that holds it) are read as route conditions: a route expression is true, false or unknown for the leaf (only a
 # comparison of a route attribute with words is known; and, or and not follow Kleene's rules), and a branch is skipped only when the known
-# comparisons decide the whole expression against it, so an operand that is not a route comparison keeps both branches. A reach
+# comparisons decide the whole expression against it, so an operand that is not a route comparison keeps both branches. A route condition
+# prunes only where the tested object is the namespace that cli.main parsed: `args` in cli.main, a parameter named args that a caller holding
+# the namespace hands its own `args` (or a name bound only from it) to, and nothing else; a dispatcher called with an object of its own (a
+# class with class attributes, a namedtuple, type(...), a dict-backed object) is entered with every branch open. A dispatcher called by an
+# attribute name without the namespace is an entry of its own ('f opens file: dispatcher'), listed and not followed: it is what a connection's
+# execute(statement) is, to cli.execute. A call that could not run a dispatcher (more arguments than it takes, a keyword it does not have,
+# nothing but plain values for the namespace) is no call of it. A name that a function binds itself, as a parameter or an assignment, is not
+# the module's function of that name. A reach
 # that follows direct names only is exact; every other reach needs an attribute name, which is how a function that shares its name with an
 # attribute some reached function uses is reached though nothing calls it. Both are listed (EXACT_REACHES, NAME_REACHES), by leaf and holder.
 # Those conditions are the command line's own, so whatever makes another command line has to be seen: a namespace or a parse of an argv of its
@@ -2492,7 +2499,7 @@ def output_site_problems(sources=None, listed=None, table=None, others=None):
 
 ESCAPES_NOT = (ast.Compare, ast.UnaryOp, ast.BinOp, ast.FormattedValue, ast.JoinedStr, ast.Expr, ast.Assert, ast.AugAssign)
 INIT_METHODS = ('__init__', '__new__', '__post_init__', '__call__')
-Ref = collections.namedtuple('Ref', 'kind name guards')
+Ref = collections.namedtuple('Ref', 'kind name guards call', defaults=(None,))
 REENTRY = ('cli.py', 'main again')                                   # not a function: the command line run again, from a function other than the entry
 FileReach = collections.namedtuple('FileReach', 'definitions classes refs imports guards')
 
@@ -2547,6 +2554,79 @@ def route_expression(test, aliases):
             if items and all(isinstance(item, ast.Constant) and isinstance(item.value, str) for item in items):
                 return ('eq', dest, tuple(sorted({item.value for item in items})))
     return ('unknown',)
+
+
+LITERALS = (ast.Constant, ast.JoinedStr, ast.Dict, ast.List, ast.Tuple, ast.Set, ast.ListComp, ast.DictComp, ast.SetComp, ast.GeneratorExp)
+
+
+def plain_value(expression, names):
+    """The expression can only be a builtin value (a string, a number, a container), never an object that has route attributes: a literal or a
+    display, an operator on plain values, a choice between plain values, or a name in `names` (bound once, to a plain value)."""
+    if isinstance(expression, LITERALS):
+        return True
+    if isinstance(expression, ast.Name):
+        return expression.id in names
+    if isinstance(expression, ast.BinOp):
+        return plain_value(expression.left, names) and plain_value(expression.right, names)
+    if isinstance(expression, ast.UnaryOp):
+        return plain_value(expression.operand, names)
+    if isinstance(expression, ast.BoolOp):
+        return all(plain_value(item, names) for item in expression.values)
+    if isinstance(expression, ast.Compare):
+        return plain_value(expression.left, names) and all(plain_value(item, names) for item in expression.comparators)
+    if isinstance(expression, ast.IfExp):
+        return plain_value(expression.body, names) and plain_value(expression.orelse, names)
+    return False
+
+
+def plain_names(statements, parameters, known):
+    """The names that the statements bind once, by a plain assignment of a plain value, and that no parameter also binds."""
+    stores = collections.Counter(node.id for statement in statements for node in ast.walk(statement)
+                                 if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store))
+    values = {node.targets[0].id: node.value for statement in statements for node in ast.walk(statement)
+              if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)}
+    found = set(known)
+    for _ in range(4):
+        found |= {name for name, value in values.items() if stores[name] == 1 and name not in parameters and plain_value(value, found)}
+    return found
+
+
+def namespace_names(body, entry=False, parameters=()):
+    """The names that hold the namespace of the command line in a function that has it as `args` (or, for the entry cli.main, binds it once):
+    `args`, and every name that nothing but a plain assignment from one of them binds, a parameter not among them. None of them where the
+    function binds `args` again."""
+    stores = collections.Counter(node.id for statement in body for node in ast.walk(statement)
+                                 if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store))
+    if stores['args'] > (1 if entry else 0):
+        return frozenset()
+    found = {'args'}
+    for _ in range(4):
+        for statement in body:
+            for node in ast.walk(statement):
+                if (isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)
+                        and isinstance(node.value, ast.Name) and node.value.id in found and stores[node.targets[0].id] == 1
+                        and node.targets[0].id not in parameters):
+                    found.add(node.targets[0].id)
+    return frozenset(found)
+
+
+def bound_names(function):
+    """The names a function binds as a parameter or by an assignment, a loop or with target, a handler: inside it they are its own, not the
+    module's functions of that name (an import or a def is a binding of the module's function, and stays one)."""
+    names, declared, pending = {item.arg for item in ast.walk(function.args) if isinstance(item, ast.arg)}, set(), list(function.body)
+    while pending:
+        node = pending.pop()
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda, ast.ListComp, ast.SetComp, ast.DictComp,
+                             ast.GeneratorExp)):
+            continue
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+            names.add(node.id)
+        elif isinstance(node, ast.ExceptHandler) and node.name:
+            names.add(node.name)
+        elif isinstance(node, (ast.Global, ast.Nonlocal)):
+            declared.update(node.names)
+        pending.extend(ast.iter_child_nodes(node))
+    return names - declared
 
 
 def route_value(tree, chosen, dests):
@@ -2633,15 +2713,51 @@ def file_reach(source, filename):
             is_property = any((isinstance(item, ast.Name) and item.id in ('property', 'cached_property'))
                               or (isinstance(item, ast.Attribute) and item.attr in ('setter', 'getter', 'deleter'))
                               for item in node.decorator_list)
-            definitions.append((qualified(node), node.name, is_property))
+            arguments = node.args
+            positional = tuple(item.arg for item in arguments.posonlyargs + arguments.args)
+            method = isinstance(parents.get(node), ast.ClassDef) and not any(
+                isinstance(item, ast.Name) and item.id == 'staticmethod' for item in node.decorator_list)
+            rebinds = any(isinstance(inner, ast.Name) and isinstance(inner.ctx, ast.Store) and inner.id == 'args'
+                          for statement in node.body for inner in ast.walk(statement))
+            definitions.append((qualified(node), node.name, is_property, (
+                positional, tuple(item.arg for item in arguments.kwonlyargs), len(positional) - len(arguments.defaults),
+                arguments.vararg is not None, arguments.kwarg is not None, method, rebinds)))
         elif isinstance(node, ast.ClassDef):
             bases = tuple(ref for ref in (base_ref(item) for item in node.bases) if ref)
             classes.append((qualified(node), node.name, bases, tuple(
                 (member.name, qualified(member)) for member in node.body if isinstance(member, (ast.FunctionDef, ast.AsyncFunctionDef)))))
     guards_by_position, refs = {}, {}
 
-    def scan_scope(body, key):
+    def enclosing_bound(function):
+        names = set()
+        while function in parents:
+            function = parents[function]
+            if isinstance(function, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                names |= bound_names(function)
+        return names
+
+    def scan_scope(body, key, function=None):
         aliases, found = route_aliases(body), []
+        parameters = {item.arg for item in ast.walk(function.args) if isinstance(item, ast.arg)} if function is not None else set()
+        trusted = namespace_names(body, filename == 'cli.py' and key == 'main', parameters)
+        skipped = (bound_names(function) | enclosing_bound(function)) if function is not None else frozenset()
+        plain_here = plain_names(body, parameters, ())                  # a name of the module is no plain value inside a function: another
+                                                                         # module can rebind it with an attribute store
+
+        def call_of(node):
+            """What the call whose function is this node hands to its callee: (the slots that hold the namespace, the shape of the arguments), or
+            None when the node is not called."""
+            call = parents.get(node)
+            if not (isinstance(call, ast.Call) and call.func is node):
+                return None
+            starred = any(isinstance(item, ast.Starred) for item in call.args)
+            first_star = next((index for index, item in enumerate(call.args) if isinstance(item, ast.Starred)), len(call.args))
+            slots = frozenset([('pos', index) for index, item in enumerate(call.args[:first_star]) if isinstance(item, ast.Name) and item.id in trusted]
+                              + [('kw', item.arg) for item in call.keywords
+                                 if item.arg and isinstance(item.value, ast.Name) and item.value.id in trusted])
+            plain = all(plain_value(item, plain_here) for item in call.args + [item.value for item in call.keywords])
+            return slots, (len(call.args), tuple(sorted(item.arg for item in call.keywords if item.arg)), starred,
+                           any(item.arg is None for item in call.keywords), plain)
 
         def visit(root, guards):
             for node in ast.walk(root):
@@ -2649,8 +2765,8 @@ def file_reach(source, filename):
                     guards_by_position[(node.lineno, node.col_offset)] = guards
                 parent = parents.get(node)
                 if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
-                    if (isinstance(parent, ast.Call) and parent.func is node) or value_escapes(node, parents):
-                        found.append(Ref('name', node.id, guards))
+                    if node.id not in skipped and ((isinstance(parent, ast.Call) and parent.func is node) or value_escapes(node, parents)):
+                        found.append(Ref('name', node.id, guards, call_of(node)))
                 elif isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Load):
                     chain, base = [], node
                     while isinstance(base, ast.Attribute):
@@ -2666,14 +2782,14 @@ def file_reach(source, filename):
                         owner = node
                         while owner in parents and not isinstance(owner, ast.ClassDef):
                             owner = parents[owner]
-                        found.append(Ref('super', (node.attr, qualified(owner) if isinstance(owner, ast.ClassDef) else None), guards))
+                        found.append(Ref('super', (node.attr, qualified(owner) if isinstance(owner, ast.ClassDef) else None), guards, call_of(node)))
                     elif isinstance(base, ast.Name) and base.id in imports:
-                        found.append(Ref('module', (base.id, tuple(reversed(chain))), guards))
+                        found.append(Ref('module', (base.id, tuple(reversed(chain))), guards, call_of(node)))
                     else:
-                        found.append(Ref('call' if is_call else 'value', node.attr, guards))
+                        found.append(Ref('call' if is_call else 'value', node.attr, guards, call_of(node)))
                 elif (isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == 'getattr' and len(node.args) >= 2
                       and isinstance(node.args[1], ast.Constant) and isinstance(node.args[1].value, str)):
-                    found.append(Ref('call', node.args[1].value, guards))
+                    found.append(Ref('call', node.args[1].value, guards, call_of(node)))
 
         def walk(statements, guards):
             for statement in statements:
@@ -2726,7 +2842,7 @@ def file_reach(source, filename):
     scan_scope(tree.body, '<module>')
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            scan_scope(node.body, qualified(node))
+            scan_scope(node.body, qualified(node), node)
     return FileReach(tuple(definitions), tuple(classes), refs, dict(imports), guards_by_position)
 
 
@@ -2740,9 +2856,10 @@ class ReachGraph:
         self.modules = {dotted_module(name): name for name in sources}
         self.functions = {(name, '<module>') for name in sources}
         self.by_name, self.properties = collections.defaultdict(set), collections.defaultdict(set)
-        self.classes = collections.defaultdict(dict)
+        self.classes, self.signatures = collections.defaultdict(dict), {}
         for name, reach in self.files.items():
-            for qualname, simple, is_property in reach.definitions:
+            for qualname, simple, is_property, signature in reach.definitions:
+                self.signatures[(name, qualname)] = signature
                 self.functions.add((name, qualname))
                 self.by_name[simple].add((name, qualname))
                 if is_property:
@@ -2750,6 +2867,11 @@ class ReachGraph:
             for qualname, simple, bases, methods in reach.classes:
                 self.classes[simple][(name, qualname)] = (bases, dict(methods))
         self.cache, self.edge_cache, self.base_cache, self.ancestor_cache = {}, {}, {}, {}
+
+        def has_route(tree):
+            return tree[0] == 'eq' or (tree[0] in ('and', 'or') and any(has_route(item) for item in tree[1])) or (tree[0] == 'not' and has_route(tree[1]))
+        self.guarded = {(name, scope) for name, reach in self.files.items() for scope, refs in reach.refs.items()
+                        if any(has_route(tree) for ref in refs for tree, _ in ref.guards)}          # the dispatchers: functions with a route guard
 
     def named_classes(self, file, name, trail=()):
         """(keys, known): the classes of the product that a plain name stands for in a file, by the classes the file defines and the names it
@@ -2888,16 +3010,49 @@ class ReachGraph:
         self.cache[key] = (exact & self.functions, loose & self.functions)
         return self.cache[key]
 
-    def edges(self, key):
-        """[(target, guards, exact)] from a function (file, qualified name) or from a module body (file, '<module>')."""
+    def call_edges(self, key):
+        """[(target, guards, exact, call)] from a function (file, qualified name) or from a module body (file, '<module>'): call is what the
+        reference hands its callee (see call_of), or None."""
         if key not in self.edge_cache:
             found = []
             for ref in self.files[key[0]].refs.get(key[1], ()):
                 exact, loose = self.resolve(key[0], ref)
-                found += [(target, ref.guards, True) for target in sorted(exact) if target != key]
-                found += [(target, ref.guards, False) for target in sorted(loose - exact) if target != key]
+                found += [(target, ref.guards, True, ref.call) for target in sorted(exact) if target != key]
+                found += [(target, ref.guards, False, ref.call) for target in sorted(loose - exact) if target != key]
             self.edge_cache[key] = found
         return self.edge_cache[key]
+
+    def edges(self, key):
+        """[(target, guards, exact)] from a function (file, qualified name) or from a module body (file, '<module>')."""
+        return [edge[:3] for edge in self.call_edges(key)]
+
+    def callable_with(self, target, call):
+        """A call that cannot run a dispatcher (a function with a route guard) is no edge to it: more arguments than it takes, a keyword it does
+        not have, a parameter nothing fills, or arguments that are all plain values (a string, a number or a container has no route attribute, so
+        the first guard of the dispatcher raises: a SQL statement handed to a connection's execute is one)."""
+        if call is None or target not in self.guarded or target not in self.signatures:
+            return True
+        _, (count, keywords, starred, double_starred, plain) = call
+        positional, kwonly, required, vararg, varkw, method, _ = self.signatures[target]
+        if 'args' not in positional + kwonly:
+            return True                                                   # cli.main takes an argv and parses it: any argument may run it
+        shift = 1 if method else 0
+        if plain and (count or keywords):
+            return False
+        if starred or double_starred:
+            return True
+        if (count > len(positional) - shift and not vararg) or (not varkw and any(name not in positional[shift:] + kwonly for name in keywords)):
+            return False
+        return all(name in keywords for name in positional[shift + count:required])
+
+    def binds_namespace(self, target, call):
+        """The call hands the namespace of the caller to the parameter `args` of the target, which does not bind `args` again."""
+        if call is None or target not in self.signatures:
+            return False
+        positional, kwonly, _, _, _, method, rebinds = self.signatures[target]
+        shift = 1 if method else 0
+        return not rebinds and any((kind == 'pos' and value + shift < len(positional) and positional[value + shift] == 'args')
+                                   or (kind == 'kw' and value == 'args' and 'args' in positional[shift:] + kwonly) for kind, value in call[0])
 
 
 def passes(guards, chosen, dests):
@@ -2916,20 +3071,21 @@ def terminal_positions(source):
     return {site: tuple(positions) for site, positions in found.items()}
 
 
-def trail(parent, key):
-    """The functions from a root to key, along the parents that the walk recorded."""
+def trail(parent, state):
+    """The functions from a root to a state (a function and whether it holds the namespace), along the parents that the walk recorded."""
     path = []
-    while key is not None:
-        path.append(key)
-        key = parent[key]
+    while state is not None:
+        path.append(state[0])
+        state = parent[state]
     return tuple(reversed(path))
 
 
 def machine_reaches(sources=None, listed=None, table=None, leaves=None, graph=None):
     """{(leaf, (file, function)): ('exact' | 'name', path)} for every machine leaf and every function that holds a terminal site (a site of
     the listing, but cli._Parser.error) that the leaf can run: 'exact' along direct names only, 'name' when an attribute name is needed;
-    the path is the functions from cli.main. A call of cli.main from a function other than the entry is a reach to REENTRY. leaves: the
-    names of the leaves to judge, all the machine leaves by default."""
+    the path is the functions from cli.main. A call of cli.main from a function other than the entry is a reach to REENTRY. A call of a
+    dispatcher by an attribute name that does not hand it the namespace is a reach to the pair ('file', 'function opens file: dispatcher'),
+    which is not followed. leaves: the names of the leaves to judge, all the machine leaves by default."""
     from intune_iac import cli
     sources = package_sources() if sources is None else sources
     listed = OUTPUT_SITES if listed is None else listed
@@ -2946,21 +3102,30 @@ def machine_reaches(sources=None, listed=None, table=None, leaves=None, graph=No
             continue
         chosen = route_dests(parser, tuple(leaf.split()))
         for exact_only in (True, False):
-            parent, queue = {root: None for root in roots}, collections.deque(roots)
+            parent = {(root, root == ('cli.py', 'main')): None for root in roots}      # (function, whether `args` in it is the parsed namespace)
+            queue = collections.deque(parent)
             while queue:
-                key = queue.popleft()
-                for target, guards, exact in graph.edges(key):
-                    if not ((exact or not exact_only) and passes(guards, chosen, dests)):
+                state = queue.popleft()
+                key, trusted = state
+                for target, guards, exact, call in graph.call_edges(key):
+                    if not (exact or not exact_only) or (trusted and not passes(guards, chosen, dests)) or not graph.callable_with(target, call):
                         continue
                     if target == ('cli.py', 'main') and key not in roots and (leaf, REENTRY) not in found:
-                        found[(leaf, REENTRY)] = ('exact' if exact_only else 'name', trail(parent, key) + (REENTRY,))
-                    if target not in parent:
-                        parent[target] = key
-                        queue.append(target)
+                        found[(leaf, REENTRY)] = ('exact' if exact_only else 'name', trail(parent, state) + (REENTRY,))
+                    if not exact and target in graph.guarded and not (trusted and graph.binds_namespace(target, call)):
+                        opened = (key[0], '%s opens %s: %s' % (key[1], target[0], target[1]))        # a dispatcher called by an attribute name
+                        if (leaf, opened) not in found:                                                # with an argument that may be an object of its own
+                            found[(leaf, opened)] = ('name', trail(parent, state) + (target,))
+                        continue
+                    child = (target, trusted and graph.binds_namespace(target, call))
+                    if child not in parent:
+                        parent[child] = state
+                        queue.append(child)
             for holder, positions in holders.items():
-                if holder in parent and (leaf, holder) not in found and any(
-                        passes(graph.files[holder[0]].guards.get(position, ()), chosen, dests) for position in positions):
-                    found[(leaf, holder)] = ('exact' if exact_only else 'name', trail(parent, holder))
+                for trusted in (True, False):
+                    if (holder, trusted) in parent and (leaf, holder) not in found and (not trusted or any(
+                            passes(graph.files[holder[0]].guards.get(position, ()), chosen, dests) for position in positions)):
+                        found[(leaf, holder)] = ('exact' if exact_only else 'name', trail(parent, (holder, trusted)))
     return found
 
 
@@ -3024,6 +3189,10 @@ NOT_REACHING_DRAW = (
     'simulation run',
 )
 EXACT_REACHES = {}
+REASON_OPENS_EXECUTE = ("an attribute call named execute, here a sqlite connection's execute(statement) with a statement that is not a literal in "
+                        'the call (built, named by a constant of the module, or passed in), reaches cli.execute by name; cli.execute is the dispatcher '
+                        'of the command line, which only cli.main calls, with the namespace it parsed, so the entry is not followed and is listed here '
+                        'instead')
 NAME_REACHES = {
     ('windows_terminal.py', 'NativeConsole.session'): (
         'an attribute named session that provider_journey.ProviderJourney._save passes on is a function value'
@@ -3051,6 +3220,20 @@ NAME_REACHES = {
         'self.draw() is an attribute call named draw; Workspace is made only by run_workspace and by '
         'windows_workspace_binding, and no machine leaf reaches either along direct names',
         tuple(leaf for leaf in NAME_REACH_LEAVES if leaf not in NOT_REACHING_DRAW)),
+    ('approval_authority.py', 'ApprovalAuthority.__init__ opens cli.py: execute'): (REASON_OPENS_EXECUTE, tuple(leaf for leaf in NAME_REACH_LEAVES if leaf not in ('action', 'capture', 'doctor', 'generate', 'graph build', 'graph query', 'inspect', 'judge', 'mcp', 'plan review', 'repository inspect', 'repository native', 'repository resolve', 'simulation create', 'simulation prepare', 'simulation reconcile', 'simulation run', 'synthetic generate', 'synthetic inspect', 'target authenticate', 'target collect', 'target compare', 'target inspect', 'verify',))),
+    ('validity.py', '_ensure_cutoff opens cli.py: execute'): (REASON_OPENS_EXECUTE, NAME_REACH_LEAVES),
+    ('validity.py', '_first_cutoff opens cli.py: execute'): (REASON_OPENS_EXECUTE, NAME_REACH_LEAVES),
+    ('validity.py', '_freeze_cutoff opens cli.py: execute'): (REASON_OPENS_EXECUTE, NAME_REACH_LEAVES),
+    ('validity.py', '_judged opens cli.py: execute'): (REASON_OPENS_EXECUTE, NAME_REACH_LEAVES),
+    ('validity.py', '_read_cutoff opens cli.py: execute'): (REASON_OPENS_EXECUTE, NAME_REACH_LEAVES),
+    ('validity.py', '_recorded opens cli.py: execute'): (REASON_OPENS_EXECUTE, NAME_REACH_LEAVES),
+    ('workbench_store.py', '_migrate_v1_to_v2 opens cli.py: execute'): (REASON_OPENS_EXECUTE, ('workbench migrate',)),
+    ('worker_adoption.py', '_mark_authorized opens cli.py: execute'): (REASON_OPENS_EXECUTE, NAME_REACH_LEAVES),
+    ('worker_adoption.py', '_tables opens cli.py: execute'): (REASON_OPENS_EXECUTE, ('adoption prepare',)),
+    ('worker_adoption_plan_observation.py', 'observe opens cli.py: execute'): (REASON_OPENS_EXECUTE, NAME_REACH_LEAVES),
+    ('worker_evidence_posix.py', '_columns opens cli.py: execute'): (REASON_OPENS_EXECUTE, NAME_REACH_LEAVES),
+    ('worker_service.py', 'ServicePolicy._validate_existing_store opens cli.py: execute'): (REASON_OPENS_EXECUTE, NAME_REACH_LEAVES),
+    ('worker_service.py', '_mark_authorized opens cli.py: execute'): (REASON_OPENS_EXECUTE, NAME_REACH_LEAVES),
 }
 
 
@@ -5013,20 +5196,25 @@ class ReachTests(unittest.TestCase):
         return sources
 
     @staticmethod
-    def new_reaches(sources, leaf):
-        """{holder: 'exact' | 'name'} the leaf reaches in these sources and the listing does not allow."""
+    def new_reaches(sources, leaf, opens=False):
+        """{holder: 'exact' | 'name'} the leaf reaches in these sources and the listing does not allow; the entries where it calls a dispatcher by
+        an attribute name without the namespace (holders named 'f opens file: dispatcher') only when opens is true."""
         return {holder: kind for (name, holder), (kind, _) in machine_reaches(sources, leaves=(leaf,)).items()
-                if name == leaf and (leaf, holder) not in EXACT_REACHES and not (kind == 'name' and leaf in NAME_REACHES.get(holder, ('', ()))[1])}
+                if name == leaf and (leaf, holder) not in EXACT_REACHES and not (kind == 'name' and leaf in NAME_REACHES.get(holder, ('', ()))[1])
+                and (opens or ' opens ' not in holder[1])}
 
     def test_no_machine_leaf_reaches_a_terminal_site_along_direct_names_and_the_rest_is_listed(self):
         found = machine_reaches()
         self.assertEqual({key for key, (kind, _) in found.items() if kind == 'exact'}, set())
         self.assertEqual(reach_problems(), [])
-        by_holder = collections.Counter(holder for (_, holder) in found)
+        by_holder = collections.Counter(holder for (_, holder) in found if ' opens ' not in holder[1])
         self.assertEqual(by_holder, {('windows_terminal.py', 'NativeConsole.session'): 127, ('windows_terminal.py', 'NativeConsole.write'): 127,
                                      ('windows_terminal.py', '_Win32.handles'): 127, ('windows_terminal.py', '_Win32.write'): 127,
                                      ('workbench_tui.py', 'Workspace.draw'): 111})
-        self.assertEqual(len(found), 619)
+        opened = collections.Counter(holder for (_, holder) in found if ' opens ' in holder[1])      # a dispatcher called by an attribute name
+        self.assertEqual((len(opened), sum(opened.values())), (14, 1502))
+        self.assertEqual({holder[1].split(' opens ')[1] for holder in opened}, {'cli.py: execute'})
+        self.assertEqual(len(found), 619 + 1502)
         self.assertEqual(set(NAME_REACH_LEAVES), {' '.join(path) for path, kind in leaf_table().items() if kind == 'machine'})
         for holder, (reason, leaves) in NAME_REACHES.items():
             self.assertTrue(reason and leaves and set(leaves) <= set(NAME_REACH_LEAVES), holder)
@@ -5184,7 +5372,7 @@ class ReachTests(unittest.TestCase):
                                                                 '    run_terminal("x")'),
                                ('the usage error of every route', 'parser.error("x")')):
             with self.subTest(label):
-                self.assertEqual(self.new_reaches(self.mutated(snippet), 'doctor'), {})
+                self.assertEqual(self.new_reaches(self.mutated(snippet, function='execute'), 'doctor'), {})
 
     def test_when_the_route_is_not_read_every_branch_is_run(self):
         """Take away what lets the dispatcher of the workbench commands be read, and the leaves of the group reach what they should not."""
@@ -5207,9 +5395,10 @@ class ReachTests(unittest.TestCase):
                 self.assertTrue(self.TERMINAL <= set(found), found)
                 self.assertEqual({found[holder] for holder in self.TERMINAL}, {'exact'})
 
-    def test_a_handler_that_calls_a_dispatcher_as_another_route_is_caught_by_the_scan_not_by_the_reach(self):
-        """The route conditions of the dispatchers are the leaf's own. A handler that hands one a namespace of its own, or a parse of an argv
-        of its own, is not seen as another route by the reach check, and is a site of the scan (a namespace), so the listing stops it."""
+    def test_a_handler_that_calls_a_dispatcher_as_another_route_is_caught_by_the_scan_and_by_the_reach(self):
+        """The route conditions of the dispatchers are the leaf's own only where the dispatcher holds the namespace that cli.main parsed. A
+        handler that hands one a namespace of its own, or a parse of an argv of its own, is a site of the scan (a namespace), and the
+        dispatcher it calls runs with every branch open, so the reach sees it too."""
         for label, snippet in (
                 ('a namespace made', 'from argparse import Namespace\nfrom . import workbench\n'
                                      'workbench.command(Namespace(workbench_command="terminal", root="x", service_root=None))'),
@@ -5218,7 +5407,7 @@ class ReachTests(unittest.TestCase):
                 ('a parse handed to execute', 'from . import cli\ncli.execute(cli.parser().parse_args(["workbench", "terminal"]))')):
             with self.subTest(label):
                 sources = self.mutated(snippet)
-                self.assertEqual(self.new_reaches(sources, 'doctor'), {})
+                self.assertTrue(self.TERMINAL <= set(self.new_reaches(sources, 'doctor')))
                 self.assertEqual(output_site_problems(sources), ['cli.py: doctor has 1 unlisted namespace site(s)'])
 
     def test_a_machine_leaf_that_runs_the_command_line_again_fails(self):
@@ -5239,6 +5428,89 @@ class ReachTests(unittest.TestCase):
         self.assertTrue(any(problem.startswith("the machine leaf 'doctor' runs the command line again (cli.py: main) by direct names, so the route "
                                                "conditions no longer describe what it runs, along ") and 'cli.py:main again' in problem
                             for problem in problems), problems)
+
+    def test_a_dispatcher_called_with_an_object_of_its_own_runs_every_branch(self):
+        """Sol V5, the route carriers: a route condition prunes only where the tested object is the namespace that cli.main parsed. A handler
+        that hands one of the product's dispatchers (workbench.command) an object of its own, with a route value in it that selects the terminal
+        branch, runs that dispatcher with every branch open. None of these objects is a site of the scan."""
+        for label, snippet in (
+                ('a class with class attributes', 'from .workbench import command\nclass Carrier:\n    workbench_command = "terminal"\n'
+                                                  '    root = "x"\ncommand(Carrier())'),
+                ('the class itself', 'from .workbench import command\nclass Carrier:\n    workbench_command = "terminal"\n    root = "x"\n'
+                                     'command(Carrier)'),
+                ('a namedtuple', 'import collections\nfrom .workbench import command\n'
+                                 'Carrier = collections.namedtuple("Carrier", "workbench_command root")\ncommand(Carrier("terminal", "x"))'),
+                ('an object built with type', 'from .workbench import command\n'
+                                              'command(type("Carrier", (), {"workbench_command": "terminal", "root": "x"})())'),
+                ('an object built from a dict', 'from .workbench import command\nclass Bag(dict):\n    __getattr__ = dict.__getitem__\n'
+                                                'command(Bag({"workbench_command": "terminal", "root": "x"}))'),
+                ('the module attribute', 'from . import workbench\nclass Carrier:\n    workbench_command = "terminal"\n'
+                                         'workbench.command(Carrier())'),
+                ('the name args in a function that has no such parameter', 'from .workbench import command\ncommand(args)'),
+                ('the namespace bound again to an object of its own', 'from .workbench import command\nclass Carrier:\n'
+                                                                      '    workbench_command = "terminal"\nargs = Carrier()\ncommand(args)')):
+            with self.subTest(label):
+                sources = self.mutated(snippet)
+                self.assertEqual(output_site_problems(sources), [])
+                found = self.new_reaches(sources, 'doctor')
+                self.assertEqual({holder: found.get(holder) for holder in self.TERMINAL}, {holder: 'exact' for holder in self.TERMINAL})
+        with self.subTest('the namespace itself, handed on in execute (control)'):
+            found = self.new_reaches(self.mutated('from .workbench import command\ncommand(args)', function='execute'), 'doctor')
+            self.assertFalse(self.TERMINAL & set(found), found)
+        with self.subTest('a name bound only from the namespace, in execute (control)'):
+            found = self.new_reaches(self.mutated('from .workbench import command\nns = args\ncommand(ns)', function='execute'), 'doctor')
+            self.assertFalse(self.TERMINAL & set(found), found)
+        with self.subTest('the namespace handed on after it is bound again, in execute'):
+            found = self.new_reaches(self.mutated('from .workbench import command\nclass Carrier:\n    workbench_command = "terminal"\n'
+                                                  'args = Carrier()\ncommand(args)', function='execute'), 'doctor')
+            self.assertTrue(self.TERMINAL <= set(found), found)
+
+    def test_a_dispatcher_called_by_an_attribute_name_without_the_namespace_is_an_open_entry(self):
+        """A dispatcher reached by an attribute name (x.command(...), x.execute(...)) that is not handed the namespace is not followed: the
+        call is listed as an entry of its own, which is what the connections' execute(statement) of the product are. An argument that is
+        plainly a string, a number or a container cannot be a carrier, and a call that cannot bind to the dispatcher is no call of it."""
+        for label, snippet in (('command on anything, with an object', 'service.command(Carrier())'),
+                               ('execute on anything, with a name', 'service.execute(statement)'),
+                               ('a call made by getattr', 'getattr(service, "command")(Carrier())'),
+                               ('the name args, which doctor does not hold', 'service.command(args)')):
+            with self.subTest(label):
+                found = self.new_reaches(self.mutated(snippet), 'doctor', opens=True)
+                self.assertTrue({holder for holder in found if holder[0] == 'cli.py' and holder[1].startswith('doctor opens ')}, found)
+        with self.subTest('a name of the module bound to a literal is no plain value inside a function'):
+            sources = self.mutated('from .host_capabilities import run_sql\nrun_sql(db)', extra={
+                'host_capabilities.py': '\n\nSQL = "SELECT 1"\n\n\ndef run_sql(db):\n    db.execute(SQL)\n'})
+            self.assertIn(('host_capabilities.py', 'run_sql opens cli.py: execute'), self.new_reaches(sources, 'doctor', opens=True))
+        for label, snippet in (('a literal statement', 'db.execute("COMMIT")'), ('a statement built from literals', 'db.execute("SELECT " + "1")'),
+                               ('a name bound once to a literal', 'sql = "SELECT 1"\ndb.execute(sql)'),
+                               ('a statement and its parameters', 'db.execute(statement, (1,))'), ('no argument', 'service.command()')):
+            with self.subTest(label):
+                self.assertEqual(self.new_reaches(self.mutated(snippet), 'doctor', opens=True), {})
+
+    def test_the_names_that_hold_the_namespace_are_args_and_what_only_it_binds(self):
+        body = ast.parse('ns = args\ncommand(ns)').body
+        self.assertEqual(namespace_names(body, False, ('args',)), {'args', 'ns'})
+        self.assertEqual(namespace_names(body, False, ('args', 'ns')), {'args'})                     # a parameter binds ns too
+        self.assertEqual(namespace_names(ast.parse('args = other()\ncommand(args)').body), frozenset())
+        self.assertEqual(namespace_names(ast.parse('args = parse(argv)\nnamespace = args').body, True), {'args', 'namespace'})
+        self.assertEqual(namespace_names(ast.parse('ns = args\nns = other\ncommand(ns)').body), {'args'})
+
+    def test_a_dispatcher_that_holds_a_terminal_site_reads_its_namespace_first(self):
+        """A call whose arguments are all plain values is no call of a dispatcher: it raises at the first read of args.<route>. That is only so
+        if nothing that matters comes before the read, so each dispatcher that holds a terminal site reads args in its first statement."""
+        graph, sources = ReachGraph(), package_sources()
+        holders = {(name, chain) for name, chain, _ in OUTPUT_SITES}
+        checked = []
+        for key in sorted(graph.guarded & holders):
+            signature = graph.signatures.get(key)
+            if signature is None or 'args' not in signature[0] + signature[1] or '.' in key[1]:
+                continue
+            function = next(node for node in ast.parse(sources[key[0]]).body if isinstance(node, ast.FunctionDef) and node.name == key[1])
+            first = next(statement for statement in function.body if not (isinstance(statement, ast.Expr) and isinstance(statement.value, ast.Constant)))
+            with self.subTest(key):
+                self.assertTrue(any(isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == 'args'
+                                    for node in ast.walk(first)))
+            checked.append(key)
+        self.assertIn(('workbench.py', 'command'), checked)
 
     def test_a_listed_terminal_site_in_no_known_function_is_a_problem(self):
         listed = {**OUTPUT_SITES, ('cli.py', 'NoSuchFunction', 'print'): (1, None, 'abcdef123456')}
