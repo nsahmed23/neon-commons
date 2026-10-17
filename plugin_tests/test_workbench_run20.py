@@ -333,6 +333,21 @@ class LayerKeyHintTests(LayerFixture):
         self.assertIn('Reconcile it (a: actions)', text)             # the hazard band on the Repository surface
         self.assertNotIn('Esc, then a', text)
 
+    def band_text(self, frame):
+        rows = self.plain(frame)
+        return self.squash(rows[:next(index for index, row in enumerate(rows) if row.startswith('┌'))])
+
+    def test_the_band_above_the_open_layer_names_esc_then_a_and_keeps_a_with_the_layer_closed(self):
+        self.lost_response()
+        _, frames = self.open_layer((120, 40), 'unicode')
+        band = self.band_text(frames[-1])
+        self.assertIn('Reconcile it (Esc, then a: actions)', band)
+        self.assertNotIn('(a: actions)', band)
+        _, frames = self.run_keys(typed('select ' + OBJECT) + [key('q')], (120, 40), 'unicode')
+        band = self.band_text(frames[-1])
+        self.assertIn('Reconcile it (a: actions)', band)
+        self.assertNotIn('Esc, then', band)
+
 
 class ReconciledIsNotProofTests(LayerFixture):
     """Sol review of c679413, finding 1: a reconciliation can find the change NOT applied, so `reconciled` alone gets the
