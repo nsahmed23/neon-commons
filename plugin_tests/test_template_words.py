@@ -213,6 +213,7 @@ RENDERED |= {
     ('workbench_repository.py', 'The repository still matches this intent. propose-from-intent NEW_OPER'),
     ('workbench_repository.py', 'The repository changed since this intent was recorded. Review the diff'),
     ('workbench_screens.py', 'none recorded; repository-entry REPOSITORY finds where this policy is '),
+    ('workbench_delivery.py', 'Review the change (5); the digest is the one on the review'),
     ('workbench_screens.py', ':repository-entry REPOSITORY'), ('workbench_screens.py', '    :queue-review-template %s NEW_JSON'),
     ('workbench_screens.py', '  :queue-review-template %s NEW_JSON'), ('workbench_screens.py', '    :queue-amend FILE %s'),
     ('workbench_tui.py', 'No active operation: review one first (5, or :review OPERATION_DIR).'),
@@ -450,6 +451,72 @@ class JsonPinsTests(unittest.TestCase):
         finally:
             case.doCleanups()
         self.assertEqual(found, JSON_PINS)
+
+
+
+# -- round 3: the layers, read as a person reads them -------------------------------------------------------------------------
+
+class LayerTests(unittest.TestCase):
+    def test_the_typed_details_layer_renders_every_string_it_prints(self):
+        from intune_iac import workbench, workbench_diagnostics, workbench_screens
+        value = {'effects': workbench.ACTION_EFFECTS['companion'], 'recovery': 'Use :reconcile OPERATION_DIR for readback.',
+                 'steps': ['Command:\n  propose-from-intent NEW_OPERATION_DIR', 'propose DESIRED_JSON NEW_OPERATION_DIR'],
+                 'line': workbench_diagnostics.LINE_COMMAND, 'plain': 'nothing to say', 'number': 3}
+        text = '\n'.join(workbench_screens.details_lines(value, 100))
+        self.assertEqual(unresolved(text), [], text)
+        flat = ' '.join(text.split()).lower()
+        self.assertIn('--object as the exact object id of the policy', flat)
+        self.assertIn('the propose command, naming your desired-policy json file and a new folder for the operation', flat)
+        self.assertIn('the repository-refresh command, naming the git revision to record', flat)
+        self.assertIn('nothing to say', flat)
+
+    def test_the_actions_layer_renders_the_command_row_of_an_action(self):
+        from intune_iac import workbench_screens
+        for command, needs, expected in (('companion ', ['FILE: where to write it'], 'companion command, naming the file you name'),
+                                         ('propose  /ops/new', ['DESIRED_JSON: the desired file'], 'the propose command'),
+                                         ('repository-entry ', ['REPOSITORY: the repository'], 'repository-entry command, naming your repository folder')):
+            action = {'label': 'An action', 'available': True, 'command': command, 'cursor': command.index(' ') + 1, 'needs': needs,
+                      'effects': 'It does a thing.', 'summary': 'A thing.'}
+            for focus in (0, 1):
+                text = ' '.join(' '.join(workbench_screens.actions_lines([action], focus, 100, 'P', '1' * 8 + '-1111-4111-8111-' + '1' * 12)).split())
+                self.assertEqual(unresolved(text), [], (command, focus, text))
+                if focus == 0:
+                    self.assertIn(expected, text.lower())
+
+    def test_the_help_typed_details_keep_their_synopses_and_say_what_capitals_mean(self):
+        import inspect
+        from intune_iac import workbench, workbench_screens
+        self.assertIn('synopsis', inspect.signature(workbench_screens.details_lines).parameters)
+        text = ' '.join(' '.join(workbench_screens.details_lines(workbench.HELP, 100, synopsis=True)).split())
+        self.assertIn('execute OPERATION_DIR', text)
+        self.assertIn('companion FILE', text)
+        self.assertIn(workbench_screens.SYNOPSIS_CONVENTION, text)
+        self.assertNotIn('the execute command', text)
+
+    def test_the_interrupted_collection_line_names_the_service_folder_in_words(self):
+        from intune_iac import entry, readiness, workbench
+        self.assertIn('SERVICE', entry.FILL_IN_TEMPLATES)
+        self.assertIn('SERVICE', readiness.TEMPLATE_WORDS)
+        lines = workbench.interrupted_lines({'store_root': '/s', 'interrupted_during': {'command': 'collect'}})
+        text = ' '.join(' '.join(map(str, lines)).split())
+        self.assertEqual(unresolved(text), [], text)
+        self.assertIn('--service-root as your service folder', text)
+
+
+
+class RoundThreeAdditionsTests(unittest.TestCase):
+    def test_the_delivery_next_step_says_the_review_digest_in_words(self):
+        from intune_iac import entry, readiness
+        self.assertIn('EXACT_REVIEW_DIGEST', entry.FILL_IN_TEMPLATES)
+        self.assertIn('EXACT_REVIEW_DIGEST', readiness.TEMPLATE_WORDS)
+        step = 'Review the change (5). Approve before 12:00 with:\n  execute /ops/one EXACT_REVIEW_DIGEST'
+        text = ' '.join(said(step).split())
+        self.assertEqual(unresolved(step) and unresolved(text), [])
+        self.assertIn('the execute command using /ops/one, naming the digest that the review shows', text)
+
+    def test_a_field_name_in_capitals_is_not_left_in_prose_beside_a_command_said_in_words(self):
+        for path in sorted(PACKAGE.glob('*.py')):
+            self.assertNotIn('for the REVISION', path.read_text(encoding='utf-8'), path.name)
 
 
 if __name__ == '__main__':

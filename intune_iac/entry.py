@@ -317,7 +317,7 @@ FILL_IN_TEMPLATES = frozenset((DIRECTORY_PLACEHOLDER, PATH_PLACEHOLDER, 'ROOT', 
                                'STACK', 'COMPONENT',
                                # the shell actions and typed commands of the workbench, the sign-in rerun and the companion
                                'FILE', 'COMMIT', 'NAME', 'OBJECT_ID', 'DIGEST', 'NEW_OPERATION_DIR', 'DESIRED_JSON',
-                               'OPERATION_DIR', 'REVISION', 'RESOLUTION_SHA256', 'STAGE', 'VALUE', 'NEW_JSON'))
+                               'OPERATION_DIR', 'REVISION', 'RESOLUTION_SHA256', 'STAGE', 'VALUE', 'NEW_JSON', 'SERVICE', 'EXACT_REVIEW_DIGEST'))
 _FILL_IN = re.compile(r'(?:%s)(?:[/.].*)?\Z' % '|'.join(sorted(FILL_IN_TEMPLATES, key=len, reverse=True)), re.DOTALL)
 
 

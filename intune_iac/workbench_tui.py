@@ -1561,8 +1561,10 @@ class Workspace:
         from .workbench_screens import details_lines, word_wrap
         layer = getattr(self, 'layer', 'summary')
         if layer == 'details':
+            helping = getattr(self, 'view_command', '') == 'help'
             return (word_wrap('TYPED DETAILS  Every field of this result, names spaced for reading; r shows the raw record '
-                              'exactly as recorded, Esc returns to the summary.', width) + [''] + details_lines(self.value, width))
+                              'exactly as recorded, Esc returns to the summary.', width)
+                    + [''] + details_lines(self.value, width, synopsis=helping))
         if layer == 'actions':
             from .workbench_screens import actions_lines
             facts = self.facts if self.selected and getattr(self, 'facts', {}).get('object_id') == self.selected else {}

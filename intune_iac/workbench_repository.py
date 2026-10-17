@@ -147,7 +147,7 @@ def latest_intent(store, object_id):
 NEXT_ACTIONS = {
     'current': 'The repository still matches this intent. propose-from-intent NEW_OPERATION_DIR prepares a proposal for review.',
     'stale': 'The repository changed since this intent was recorded. Review the difference, then choose Refresh the repository '
-             'intent (a: actions): it asks for the REVISION, pins the difference you reviewed and '
+             'intent (a: actions): it asks for the revision, pins the difference you reviewed and '
              'records the current source as a new intent; earlier reviews of the old intent are no longer current. '
              # The line terminal and the CLI print this text too, and neither has keys 9 and a (review 33).
              'In the line terminal, where 9 and a are not keys, type repository-refresh REVISION RESOLUTION_SHA256 '

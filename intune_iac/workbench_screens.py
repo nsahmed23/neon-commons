@@ -1779,7 +1779,8 @@ def actions_lines(actions, focus, width, name=None, object_id=None, submit='Ente
             names = ' '.join(str(need).split(':')[0] for need in action.get('needs') or [])
             if names and isinstance(cursor, int) and 0 <= cursor <= len(command):
                 command = (command[:cursor] + names + ' ' + command[cursor:].lstrip()).rstrip()
-            lines += _labelled('', 'command  ' + command.rstrip(), width, 5)
+            from .readiness import placeholders_in_words
+            lines += _labelled('', 'command  ' + placeholders_in_words(command.rstrip()), width, 5)
             for need in action.get('needs') or []:
                 lines += _labelled('', 'needs  ' + str(need), width, 5)
         else:
@@ -1792,9 +1793,14 @@ def actions_lines(actions, focus, width, name=None, object_id=None, submit='Ente
     return lines
 
 
-def details_lines(value, width):
-    """Every field of an engine result as a readable outline: words for absent and yes/no values, lists numbered."""
-    lines = []
+def details_lines(value, width, synopsis=False):
+    """Every field of an engine result as a readable outline: words for absent and yes/no values, lists numbered.
+
+    Every string it prints passes through the renderer, so a command with a placeholder operand is said in words here as on every
+    other screen. synopsis is for the help listing, whose lines are usage synopses: they keep their capitals, and the caller shows
+    the sentence that says what capitals mean."""
+    from .readiness import placeholders_in_words
+    lines = word_wrap(SYNOPSIS_CONVENTION, width) + [''] if synopsis else []
 
     def scalar(item):
         if item is None:
@@ -1803,7 +1809,7 @@ def details_lines(value, width):
             return 'yes' if item else 'no'
         if item == '':
             return '"" (empty text)'  # recorded and empty, never read as missing
-        return str(item)
+        return str(item) if synopsis else placeholders_in_words(str(item))
 
     def walk(item, indent):
         if isinstance(item, dict):
@@ -3582,12 +3588,12 @@ REFUSALS = {
         'The repository changed after this proposal cited its intent, or its component no longer consumes exactly '
         'this policy.',
         'Press 9 to see which; fix the component if it no longer consumes the policy, then choose Refresh the repository '
-        'intent (a: actions): it asks for the REVISION and pins the difference you reviewed. Then Prepare a proposal from '
+        'intent (a: actions): it asks for the revision and pins the difference you reviewed. Then Prepare a proposal from '
         'the recorded intent (a: actions).'),
     'workbench_repository_stale': (
         'The repository changed since its recorded intent, or its component no longer consumes exactly this policy.',
         'Press 9 to see which; fix the component if it no longer consumes the policy, then choose Refresh the repository '
-        'intent (a: actions): it asks for the REVISION and pins the difference you reviewed.'),
+        'intent (a: actions): it asks for the revision and pins the difference you reviewed.'),
     'maintenance_observation_stale': (
         'The newest observation of this policy is not fresh, or the service changed after it was collected; a change '
         'is never prepared against it.',
@@ -3841,7 +3847,7 @@ def _names_specifics(message):
 KNOWN_NEXT = {
     'repository_changed': 'Press 9 to review the difference; then Refresh the repository intent (a: actions).',
     'consumer_changed': 'Fix the component so it consumes exactly this policy, then choose Refresh the repository intent '
-                        '(a: actions): it asks for the REVISION and pins the difference you reviewed.',
+                        '(a: actions): it asks for the revision and pins the difference you reviewed.',
     'service_changed': 'Collect again (a lists it), then Prepare a proposal from the recorded intent (a: actions).',
     'policy_changed': 'Collect again (a lists it), then Prepare a proposal from the recorded intent (a: actions).',
     'source_mismatch': 'Collect again from the configured service (a lists it), then Prepare a proposal from the recorded intent (a: actions).',

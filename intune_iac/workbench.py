@@ -1323,8 +1323,9 @@ def interrupted_lines(result):
         return ['Interrupted during a collection.',
                 'That run records no end; the newest complete observation is kept and is labelled as such.',
                 'Next: collect again. Run:',
-                '  intune-iac workbench collect --root %s --service-root %s' % (
-                    store, _shell_arg(during['service_root']) if during.get('service_root') else 'SERVICE'),
+                __import__('intune_iac.readiness', fromlist=['x']).placeholders_in_words(
+                    '  intune-iac workbench collect --root %s --service-root %s' % (
+                        store, _shell_arg(during['service_root']) if during.get('service_root') else 'SERVICE')),
                 'or reopen the workspace and choose Collect again with a.', others]
     if during:
         return ['Interrupted while running %s.' % (_known_command(during.get('command')) or 'a command'),

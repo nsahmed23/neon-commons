@@ -286,6 +286,8 @@ TEMPLATE_WORDS = {
     'COMPONENT': 'the component name',
     'FILE': 'the file you name',
     'NEW_JSON': 'a new JSON file for the review form',
+    'SERVICE': 'your service folder',
+    'EXACT_REVIEW_DIGEST': 'the digest that the review shows',
     'COMMIT': 'the Git commit that holds the edited project',
     'NAME': 'the name of the account you signed in with',
     'OBJECT_ID': 'the exact object id of the policy',

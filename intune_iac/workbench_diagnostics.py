@@ -334,7 +334,7 @@ def _repository(store, object_id):
                                'The repository changed since its recorded intent: %s.' % ', '.join(
                                    '%s %s' % (kind, ', '.join(sources.get(kind) or [])) for kind in ('changed', 'added', 'removed') if sources.get(kind)),
                                'Review the difference on the Repository surface (9), then choose Refresh the repository intent '
-                               '(a: actions): it asks for the REVISION and pins the difference you reviewed.',
+                               '(a: actions): it asks for the revision and pins the difference you reviewed.',
                                dict(evidence, **{kind: sources.get(kind) or [] for kind in ('changed', 'added', 'removed')}),
                                line_command=LINE_COMMAND))
     elif freshness['status'] == 'unavailable':
@@ -350,7 +350,7 @@ def _repository(store, object_id):
                                'The component does not consume exactly this policy: %s.' % ', '.join(reasons or ['reason not recorded']),
                                'Proposals and execution refuse this intent until the component consumes exactly this policy; '
                                'fix the component, then choose Refresh the repository intent (a: actions): it shows the '
-                               'difference first, asks for the REVISION and pins the difference you reviewed.',
+                               'difference first, asks for the revision and pins the difference you reviewed.',
                                dict(evidence, reasons=reasons), line_command=LINE_COMMAND))
     return signals, 'attention' if signals else 'clear'
 
