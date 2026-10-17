@@ -81,6 +81,7 @@ import collections
 import contextlib
 import copy
 import functools
+import hashlib
 import inspect
 import io
 import json
@@ -1516,256 +1517,258 @@ REASON_KILLGROUP = 'SIGKILL to the process group of a child it started'
 REASON_IMPORTFCNTL = 'imports fcntl for the advisory locks of this module (see its fcntl sites)'
 REASON_IMPORTSIGNAL = 'imports signal for the process control of this module (see its signal sites)'
 OUTPUT_SITES = {
-    ('cli.py', '_Parser.error', 'exit-text'): (1, None),
-    ('cli.py', '_Parser.error', 'parser-output'): (1, None),
-    ('cli.py', '_Parser.error', 'sys.stderr'): (1, None),
-    ('cli.py', '_write_text', 'print'): (1, None),
-    ('cli.py', '_write_text', 'sys.stdout'): (1, None),
-    ('cli.py', 'main', '_write_text'): (7, None),
-    ('journey.py', 'run_journey', 'input'): (1, 'wizard'),
-    ('journey.py', 'run_journey', 'print'): (1, 'wizard'),
-    ('provider_journey.py', 'run_provider_wizard', 'input'): (2, 'provider wizard'),
-    ('provider_journey.py', 'run_provider_wizard', 'print'): (2, 'provider wizard'),
-    ('windows_terminal.py', 'NativeConsole.session', 'write'): (2, 'workbench workspace'),
-    ('windows_terminal.py', 'NativeConsole.write', 'write'): (1, 'workbench workspace'),
-    ('windows_terminal.py', '_Win32.__init__', 'ctypes.WinDLL'): (1, 'workbench workspace'),
-    ('wizard.py', '_run_wizard', 'input'): (1, 'wizard'),
-    ('wizard.py', '_run_wizard', 'print'): (1, 'wizard'),
-    ('wizard.py', 'run_wizard', 'input'): (1, 'wizard'),
-    ('wizard.py', 'run_wizard', 'print'): (1, 'wizard'),
-    ('workbench.py', '_render', 'print'): (1, 'workbench terminal'),
-    ('workbench.py', '_run_terminal', 'input'): (4, 'workbench terminal'),
-    ('workbench.py', '_run_terminal', 'print'): (3, 'workbench terminal'),
-    ('workbench.py', '_run_terminal.present', 'print'): (1, 'workbench terminal'),
-    ('workbench.py', 'command', 'print'): (2, 'workbench companion'),
-    ('workbench.py', 'run_terminal', 'input'): (1, 'workbench terminal'),
-    ('workbench.py', 'run_terminal', 'print'): (4, 'workbench terminal'),
-    ('workbench_tui.py', 'Workspace.__init__', 'sys.stdin'): (3, 'workbench workspace'),
-    ('workbench_tui.py', 'Workspace.__init__', 'sys.stdout'): (3, 'workbench workspace'),
-    ('workbench_tui.py', 'Workspace.draw', 'write'): (1, 'workbench workspace'),
-    ('workbench_tui.py', 'run_workspace', 'sys.stdin'): (6, 'workbench workspace'),
-    ('workbench_tui.py', 'run_workspace', 'sys.stdout'): (6, 'workbench workspace'),
-    ('workbench_tui.py', 'run_workspace.read_line', 'sys.stdin'): (2, 'workbench workspace'),
-    ('workbench_tui.py', 'run_workspace.read_line', 'sys.stdout'): (2, 'workbench workspace'),
-    ('workbench_tui.py', 'run_workspace.read_line', 'write'): (1, 'workbench workspace'),
-    ('workbench_tui.py', 'run_workspace.write_line', 'print'): (1, 'workbench workspace'),
-    ('workbench_tui.py', 'run_workspace.write_line', 'sys.stdout'): (1, 'workbench workspace'),
-    ('workbench_tui.py', 'terminal_session', 'import termios'): (1, 'workbench workspace'),
-    ('workbench_tui.py', 'terminal_session', 'sys.stdin'): (1, 'workbench workspace'),
-    ('workbench_tui.py', 'terminal_session', 'sys.stdout'): (4, 'workbench workspace'),
-    ('workbench_tui.py', 'terminal_session', 'termios'): (10, 'workbench workspace'),
-    ('workbench_tui.py', 'terminal_session', 'write'): (2, 'workbench workspace'),
-    ('workflow.py', 'run_guided_workflow', 'input'): (1, 'wizard'),
-    ('workflow.py', 'run_guided_workflow', 'print'): (1, 'wizard'),
+    ('cli.py', '_Parser.error', 'exit-text'): (1, None, '26b92f33aeff'),
+    ('cli.py', '_Parser.error', 'parser-output'): (1, None, '7e52ea8290dd'),
+    ('cli.py', '_Parser.error', 'sys.stderr'): (1, None, '4d69426e4503'),
+    ('cli.py', '_write_text', 'print'): (1, None, '55eea42e8e32'),
+    ('cli.py', '_write_text', 'sys.stdout'): (1, None, 'f52d77748758'),
+    ('cli.py', 'main', '_write_text'): (7, None, '3822dda82db2'),
+    ('journey.py', 'run_journey', 'input'): (1, 'wizard', 'd7c1b9d3194b'),
+    ('journey.py', 'run_journey', 'print'): (1, 'wizard', '9f3fa7bb066f'),
+    ('provider_journey.py', 'run_provider_wizard', 'input'): (2, 'provider wizard', '32c43fe3c8f8'),
+    ('provider_journey.py', 'run_provider_wizard', 'print'): (2, 'provider wizard', 'b6c3bce9b4c4'),
+    ('windows_terminal.py', 'NativeConsole.session', 'write'): (2, 'workbench workspace', 'b9434dce89d5'),
+    ('windows_terminal.py', 'NativeConsole.write', 'write'): (1, 'workbench workspace', 'ca6d6e7eb425'),
+    ('windows_terminal.py', '_Win32.__init__', 'ctypes.WinDLL'): (1, 'workbench workspace', '4a6c32409595'),
+    ('wizard.py', '_run_wizard', 'input'): (1, 'wizard', 'de76bcd7d16d'),
+    ('wizard.py', '_run_wizard', 'print'): (1, 'wizard', 'f8512bed4462'),
+    ('wizard.py', 'run_wizard', 'input'): (1, 'wizard', '51cbdac7e975'),
+    ('wizard.py', 'run_wizard', 'print'): (1, 'wizard', '142e944872cc'),
+    ('workbench.py', '_render', 'print'): (1, 'workbench terminal', 'ffb62bc101c9'),
+    ('workbench.py', '_run_terminal', 'input'): (4, 'workbench terminal', 'c5df38a88916'),
+    ('workbench.py', '_run_terminal', 'print'): (3, 'workbench terminal', 'b5e7443804ae'),
+    ('workbench.py', '_run_terminal.present', 'print'): (1, 'workbench terminal', 'e238186b959b'),
+    ('workbench.py', 'command', 'print'): (2, 'workbench companion', '19935d7de576'),
+    ('workbench.py', 'run_terminal', 'input'): (1, 'workbench terminal', '5911f9c2f2cb'),
+    ('workbench.py', 'run_terminal', 'print'): (4, 'workbench terminal', '6c9161b99549'),
+    ('workbench_tui.py', 'Workspace.__init__', 'sys.stdin'): (3, 'workbench workspace', 'f7da42e33196'),
+    ('workbench_tui.py', 'Workspace.__init__', 'sys.stdout'): (3, 'workbench workspace', '18a2a3e6ec0d'),
+    ('workbench_tui.py', 'Workspace.draw', 'write'): (1, 'workbench workspace', '3af44074b7ab'),
+    ('workbench_tui.py', 'run_workspace', 'sys.stdin'): (6, 'workbench workspace', '946d14cd7847'),
+    ('workbench_tui.py', 'run_workspace', 'sys.stdout'): (6, 'workbench workspace', '31e8a54bddc3'),
+    ('workbench_tui.py', 'run_workspace.read_line', 'sys.stdin'): (2, 'workbench workspace', '34c631c20d57'),
+    ('workbench_tui.py', 'run_workspace.read_line', 'sys.stdout'): (2, 'workbench workspace', '6316137f1bd9'),
+    ('workbench_tui.py', 'run_workspace.read_line', 'write'): (1, 'workbench workspace', 'e692b91120b2'),
+    ('workbench_tui.py', 'run_workspace.write_line', 'print'): (1, 'workbench workspace', '416dcbaa4a22'),
+    ('workbench_tui.py', 'run_workspace.write_line', 'sys.stdout'): (1, 'workbench workspace', '33d06c658ce5'),
+    ('workbench_tui.py', 'terminal_session', 'import termios'): (1, 'workbench workspace', '762ddc5a3bf2'),
+    ('workbench_tui.py', 'terminal_session', 'sys.stdin'): (1, 'workbench workspace', 'c8574cd88bd4'),
+    ('workbench_tui.py', 'terminal_session', 'sys.stdout'): (4, 'workbench workspace', '0965d2cbc568'),
+    ('workbench_tui.py', 'terminal_session', 'termios'): (10, 'workbench workspace', 'f577d8e74fec'),
+    ('workbench_tui.py', 'terminal_session', 'write'): (2, 'workbench workspace', 'f4e0356a7ac0'),
+    ('workflow.py', 'run_guided_workflow', 'input'): (1, 'wizard', 'e0163dc531ee'),
+    ('workflow.py', 'run_guided_workflow', 'print'): (1, 'wizard', '2ea9571341e1'),
 }
 NOT_A_TERMINAL = {
-    ('approval_authority.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL),
-    ('approval_authority.py', 'ApprovalAuthority._verify', 'os.dup'): (1, REASON_DUP),
-    ('approval_authority.py', 'ApprovalAuthority._verify', 'os.fdopen'): (2, REASON_FDOPEN),
-    ('approval_authority.py', 'ApprovalAuthority._verify', 'write'): (1, REASON_FDWRITE),
-    ('approval_authority.py', 'ApprovedExecution.__enter__', 'fcntl'): (3, REASON_FLOCK),
-    ('approval_authority.py', '_validator', 'ctypes.CDLL'): (1, 'loads the copy of the approved native validator library'),
-    ('approval_authority.py', '_validator', 'os.fdopen'): (2, REASON_FDOPEN),
-    ('approval_authority.py', '_validator', 'write'): (1, REASON_FDWRITE),
-    ('artifact_vault.py', '_read', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('artifact_vault.py', '_write_new', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('artifact_vault.py', '_write_new', 'write'): (1, REASON_FDWRITE),
-    ('azure_backend.py', 'AzureBackendAdapter.publish', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('azure_backend.py', 'AzureBackendAdapter.publish', 'write'): (1, REASON_FDWRITE),
-    ('azure_backend.py', 'AzureBackendAdapter.verify_published', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('capture.py', '_capture', 'write'): (3, 'the files of a capture, through its output_factory'),
-    ('capture.py', '_write', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('capture.py', '_write', 'write'): (1, REASON_FDWRITE),
-    ('capture_adapter.py', '_read', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('cli.py', '<module>', 'import importlib'): (2, REASON_IMPORTLIB),
-    ('cli.py', '_lf_only', 'sys.stderr'): (1, 'sets the line ending of the two streams; writes nothing'),
-    ('cli.py', '_lf_only', 'sys.stdout'): (1, 'sets the line ending of the two streams; writes nothing'),
-    ('cli.py', 'doctor', 'importlib'): (3, 'asks whether a dependency is installed and its version; prints nothing itself'),
-    ('cli.py', 'execute.progress', 'print'): (1, REASON_JSONERR),
-    ('cli.py', 'execute.progress', 'sys.stderr'): (1, REASON_JSONERR),
-    ('cli.py', 'main', 'os.dup2'): (1, 'points fd 1 at /dev/null after a broken pipe, so that nothing more is written'),
-    ('cli.py', 'main', 'print'): (3, REASON_JSONERR),
-    ('cli.py', 'main', 'sys.stderr'): (3, REASON_JSONERR),
-    ('cli.py', 'main', 'sys.stdout'): (4, REASON_MAINOUT),
-    ('clock.py', 'Floor.locked', 'fcntl'): (2, REASON_FLOCK),
-    ('clock.py', 'Floor.locked', 'import fcntl'): (1, REASON_IMPORTFCNTL),
-    ('companion.py', 'write_static', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('companion.py', 'write_static', 'write'): (1, REASON_FDWRITE),
-    ('companion_live.py', 'Handler._send', 'write'): (1, 'the HTTP response of the companion page, to a socket'),
-    ('engineering_view.py', 'output_width', 'sys.stdout'): (2, REASON_PROBE),
-    ('execution.py', '_exclusive_json', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('execution.py', '_exclusive_json', 'write'): (1, REASON_FDWRITE),
-    ('host_capabilities.py', '<module>', 'import importlib'): (1, REASON_IMPORTLIB),
-    ('host_capabilities.py', '_facts', 'os as a value'): (1, 'hasattr(os, key) over a fixed tuple of constants: a capability probe'),
-    ('host_capabilities.py', '_module_has', 'importlib'): (1, 'imports a module by name to test that it exists'),
-    ('io.py', 'read_bytes', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('io.py', 'write_json', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('io.py', 'write_json', 'write'): (1, REASON_FDWRITE),
-    ('journey.py', 'run_journey', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('journey.py', 'run_journey', 'write'): (1, REASON_FDWRITE),
-    ('journey_native_atmos.py', '_tool', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('maintenance.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL),
-    ('maintenance.py', '_lock', 'fcntl'): (3, REASON_FLOCK),
-    ('mcp.py', 'serve', 'sys.stdin'): (2, 'the MCP server input stream (JSON-RPC lines), a protocol'),
-    ('mcp.py', 'serve', 'sys.stdout'): (1, 'the MCP server output stream (JSON-RPC lines), a protocol'),
-    ('mcp.py', 'serve.send', 'sys.stdout'): (2, 'the MCP server output stream (JSON-RPC lines), a protocol'),
-    ('mcp.py', 'serve.send', 'write'): (1, 'the MCP protocol: one JSON message per line on the server stream'),
-    ('modeled_service.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL),
-    ('modeled_service.py', 'ModeledService.request', 'fcntl'): (3, REASON_FLOCK),
-    ('native_atmos.py', 'resolve_native_atmos', 'write'): (1, 'writes a file of the native snapshot at a path under its directory (Path.write_bytes)'),
-    ('orchestration_export.py', '<module>', 'os as a value'): (1, 'hasattr(os, name) over a fixed tuple of constants: a capability probe'),
-    ('orchestration_export.py', '_open_checked', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('output_edit.py', 'classify', 'write'): (1, 'writes the stack file of the generated output that it was asked to edit (Path.write_bytes)'),
-    ('protected.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL),
-    ('protected.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE),
-    ('protected.py', '_cleanup_process_group', 'signal'): (3, REASON_KILLGROUP),
-    ('protected.py', '_cleanup_process_group', 'subprocess'): (1, 'names subprocess.TimeoutExpired in a test of an exception; starts nothing'),
-    ('protected.py', '_create', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('protected.py', '_create', 'write'): (1, REASON_FDWRITE),
-    ('protected.py', '_defer_spawn_interrupt', 'signal'): (13, 'defers SIGINT while a child is spawned, then restores the handler and the mask'),
-    ('protected.py', '_defer_spawn_interrupt.child_guard', 'signal'): (4, 'defers SIGINT while a child is spawned, then restores the handler and the mask'),
-    ('protected.py', '_exclusive', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('protected.py', '_exclusive', 'write'): (1, REASON_FDWRITE),
-    ('protected.py', '_network_filter', 'ctypes.CDLL'): (1, 'loads libseccomp, to install a network filter'),
-    ('protected.py', '_run', 'os.dup'): (1, REASON_DUP),
-    ('protected.py', '_run', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('protected.py', '_sha', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('protected.py', '_supervise', 'subprocess'): (4, REASON_CHILD),
-    ('protected_worker.py', 'WorkerJob._apply', 'os.dup'): (2, REASON_DUP),
-    ('protected_worker.py', 'WorkerJob._apply', 'os.fdopen'): (2, REASON_FDOPEN),
-    ('provider_execution.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL),
-    ('provider_execution.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL),
-    ('provider_execution.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE),
-    ('provider_execution.py', 'ProviderExecutor._lock', 'fcntl'): (3, REASON_FLOCK),
-    ('provider_execution.py', 'ProviderExecutor._run', 'os.dup'): (1, REASON_DUP),
-    ('provider_execution.py', 'ProviderExecutor._run', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('provider_execution.py', 'ProviderExecutor.prepare', 'write'): (1, 'writes lock.sha256 under the executor root (Path.write_text)'),
-    ('provider_execution.py', '_copy_pin', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('provider_execution.py', '_copy_pin', 'write'): (1, REASON_FDWRITE),
-    ('provider_execution.py', '_create', 'write'): (1, 'writes the tofu.rc file of the executor root (Path.write_text)'),
-    ('provider_execution.py', '_network_guard', 'ctypes.CDLL'): (1, 'loads libseccomp, to install a network filter'),
-    ('provider_execution.py', '_sealed_plan', 'fcntl'): (2, 'seals the memfd that holds the sealed plan (F_ADD_SEALS, F_GET_SEALS)'),
-    ('provider_execution.py', '_sealed_plan', 'os.dup'): (1, 'duplicates the memfd that holds the sealed plan, so it can be read again'),
-    ('provider_execution.py', '_sealed_plan', 'os.fdopen'): (2, REASON_FDOPEN),
-    ('provider_execution.py', '_sealed_plan', 'write'): (1, REASON_FDWRITE),
-    ('provider_execution.py', '_sha', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('provider_execution.py', '_supervise', 'subprocess'): (4, REASON_CHILD),
-    ('provider_journey.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL),
-    ('provider_journey.py', '_bounded_private_json', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('provider_journey.py', 'read_credential_fd', 'fcntl'): (6, 'sets the credential descriptor non-blocking while it is read, then restores its flags'),
-    ('provider_journey.py', 'read_credential_fd', 'os.dup'): (1, REASON_PROVIDERCRED),
-    ('repository.py', '_Repository._read', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('runner.py', '_dispatch', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('runner.py', '_dispatch', 'write'): (1, REASON_FDWRITE),
-    ('runner.py', 'run', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('runner.py', 'run', 'write'): (1, REASON_FDWRITE),
-    ('signin.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL),
-    ('signin.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE),
-    ('signin.py', '_bounded', 'subprocess'): (5, REASON_CHILD),
-    ('signin.py', '_kill', 'signal'): (1, REASON_KILLGROUP),
-    ('signin.py', 'collect', 'os.write'): (1, 'the token, written to the pipe of the collecting child'),
-    ('sim_cli.py', 'text_lines', 'sys.stdout'): (1, REASON_PROBE),
-    ('sim_fixture.py', '<module>', 'exit-text'): (1, 'raise SystemExit(main()): the status main returns, when the module runs as a script'),
-    ('synthetic.py', 'write_estate', 'write'): (1, 'writes a synthetic estate file (Path.write_text)'),
-    ('validity.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL),
-    ('validity.py', 'critical', 'fcntl'): (2, REASON_FLOCK),
-    ('windows_directory.py', '_Win32.__init__', 'ctypes.WinDLL'): (2, 'kernel32 and advapi32, for directory and file calls'),
-    ('windows_observation_jobs.py', '_IO.publish', 'write'): (1, 'a file of the observer store, through its Windows file API'),
-    ('windows_observation_jobs.py', '_create_job', 'write'): (2, 'files of the observer store, through its Windows file API'),
-    ('windows_observation_jobs.py', 'scheduler_artifacts', 'import subprocess'): (1, 'imports subprocess for list2cmdline only'),
-    ('windows_observation_jobs.py', 'scheduler_artifacts', 'subprocess'): (1, 'list2cmdline quotes an argument of the task file; starts nothing'),
-    ('windows_observation_jobs.py', 'scheduler_artifacts', 'write'): (2, 'files of the observer store, through its Windows file API'),
-    ('windows_storage.py', '_create_file', 'write'): (1, 'the Windows file API: a handle the function created'),
-    ('wizard.py', 'run_wizard', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('wizard.py', 'run_wizard', 'write'): (1, REASON_FDWRITE),
-    ('workbench.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL),
-    ('workbench.py', '_actions', 'signal'): (7, REASON_LOCALSIGNAL),
-    ('workbench.py', '_attention', 'signal'): (4, REASON_LOCALSIGNAL),
-    ('workbench.py', '_intent_blocker', 'signal'): (3, REASON_LOCALSIGNAL),
-    ('workbench.py', '_next_actions', 'signal'): (3, REASON_LOCALSIGNAL),
-    ('workbench.py', '_referenced_operations', 'signal'): (4, REASON_LOCALSIGNAL),
-    ('workbench.py', '_states', 'signal'): (3, REASON_LOCALSIGNAL),
-    ('workbench.py', '_with_collect_cures', 'signal'): (5, REASON_LOCALSIGNAL),
-    ('workbench.py', 'interrupted_lines', '__import__'): (2, REASON_READINESS),
-    ('workbench.py', 'run_terminal', 'signal'): (6, 'installs a SIGINT handler for the line terminal so that Ctrl-C ends the session cleanly; writes nothing'),
-    ('workbench.py', 'run_terminal.receive_interrupt', 'signal'): (1, 'installs a SIGINT handler for the line terminal so that Ctrl-C ends the session cleanly; writes nothing'),
-    ('workbench_adoption.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL),
-    ('workbench_adoption.py', '_lock', 'fcntl'): (3, REASON_FLOCK),
-    ('workbench_revision.py', 'verify_revision', 'os.dup'): (1, REASON_DUP),
-    ('workbench_revision.py', 'verify_revision', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('workbench_scheduler.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL),
-    ('workbench_scheduler.py', '_lock', 'fcntl'): (3, REASON_FLOCK),
-    ('workbench_scheduler.py', '_open_pinned', 'os.dup'): (1, REASON_DUP),
-    ('workbench_scheduler.py', '_open_pinned', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('workbench_scheduler.py', '_save_bytes', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('workbench_scheduler.py', '_save_bytes', 'write'): (1, REASON_FDWRITE),
-    ('workbench_screens.py', '<module>', '__import__'): (1, REASON_READINESS),
-    ('workbench_screens.py', 'queue_lines', '__import__'): (2, REASON_READINESS),
-    ('workbench_screens.py', 'repository_lines', '__import__'): (1, REASON_READINESS),
-    ('workbench_screens.py', 'review_lines', '__import__'): (1, REASON_READINESS),
-    ('workbench_screens.py', 'state_lines', '__import__'): (1, REASON_READINESS),
-    ('workbench_tui.py', 'Workspace._plan_record', 'dynamic access'): (1, 'the instance dictionary as a cache: setdefault of a private key'),
-    ('workbench_tui.py', 'Workspace._strip_note', 'dynamic access'): (1, 'the instance dictionary as a cache: setdefault of a private key'),
-    ('workbench_tui.py', 'Workspace.input', '__import__'): (1, REASON_READINESS),
-    ('workbench_tui.py', 'visual_supported', 'import termios'): (1, 'asks whether stdin is a terminal that can be put in raw mode; writes nothing'),
-    ('workbench_tui.py', 'visual_supported', 'sys.stdin'): (2, 'asks whether stdin and stdout are terminals that can be put in raw mode; writes nothing'),
-    ('workbench_tui.py', 'visual_supported', 'sys.stdout'): (1, 'asks whether stdin and stdout are terminals that can be put in raw mode; writes nothing'),
-    ('workbench_tui.py', 'visual_supported', 'termios'): (1, 'asks whether stdin is a terminal that can be put in raw mode; writes nothing'),
-    ('workbench_views.py', 'propose_source_acceptance', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('workbench_views.py', 'propose_source_acceptance', 'write'): (1, REASON_FDWRITE),
-    ('worker_adoption.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL),
-    ('worker_adoption.py', 'AdoptionJob._dispatch.monitor', 'signal'): (1, REASON_SELFINT),
-    ('worker_adoption.py', '_authenticate', 'os.dup'): (1, REASON_DUP),
-    ('worker_adoption.py', '_authenticate', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('worker_adoption_plan_recovery.py', 'AdoptionPlanRecoveryPolicy._verified', 'os.dup'): (1, REASON_DUP),
-    ('worker_adoption_plan_recovery.py', 'AdoptionPlanRecoveryPolicy._verified', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('worker_adoption_reconcile.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL),
-    ('worker_adoption_reconcile.py', 'RecoveryPlanJob._dispatch.monitor', 'signal'): (1, REASON_SELFINT),
-    ('worker_adoption_reconcile.py', '_authenticate', 'os.dup'): (1, REASON_DUP),
-    ('worker_adoption_reconcile.py', '_authenticate', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('worker_adoption_recovery.py', 'AdoptionRecoveryPolicy._verified', 'os.dup'): (1, REASON_DUP),
-    ('worker_adoption_recovery.py', 'AdoptionRecoveryPolicy._verified', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('worker_adoption_state.py', '_retain', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('worker_adoption_state.py', '_retain', 'write'): (1, REASON_FDWRITE),
-    ('worker_committed_readback.py', 'collect', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('worker_committed_recovery.py', 'CommittedRecoveryPolicy._verified', 'os.dup'): (1, REASON_DUP),
-    ('worker_committed_recovery.py', 'CommittedRecoveryPolicy._verified', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('worker_completed_readback.py', 'collect', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('worker_evidence_posix.py', 'DetachedVerifier.__call__', 'os.dup'): (1, REASON_DUP),
-    ('worker_evidence_posix.py', 'DetachedVerifier.__call__', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('worker_evidence_posix.py', '_capture', '__import__'): (1, 'imports re by a literal name, to match a file name'),
-    ('worker_evidence_posix.py', '_locked_now', 'fcntl'): (2, REASON_FLOCK),
-    ('worker_evidence_posix.py', '_locked_now', 'import fcntl'): (1, REASON_IMPORTFCNTL),
-    ('worker_evidence_posix.py', 'reopen', '__import__'): (1, 'imports re by a literal name, to match a file name'),
-    ('worker_host.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL),
-    ('worker_host.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE),
-    ('worker_host.py', '_Docker.run', 'os.dup'): (1, REASON_DUP),
-    ('worker_host.py', '_Docker.run', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('worker_host.py', '_Docker.run', 'subprocess'): (4, REASON_CHILD),
-    ('worker_host.py', '_bytes', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('worker_host.py', '_bytes', 'write'): (1, REASON_FDWRITE),
-    ('worker_host.py', '_hash_file', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('worker_host.py', 'launch', 'signal'): (7, 'ignores SIGINT around the launch of the container child, then restores the handler'),
-    ('worker_lease_recovery.py', 'RecoveryPolicy._verified', 'os.dup'): (1, REASON_DUP),
-    ('worker_lease_recovery.py', 'RecoveryPolicy._verified', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('worker_provider.py', 'publish_files', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('worker_provider.py', 'publish_files', 'write'): (1, REASON_FDWRITE),
-    ('worker_recovery.py', '<module>', 'exit-text'): (1, 'raise SystemExit(main()): the status main returns, when the module runs as a script'),
-    ('worker_recovery.py', 'main', 'os.write'): (1, 'the bytes of the output file it opened, to its own descriptor'),
-    ('worker_recovery.py', 'main', 'print'): (2, 'a JSON document made by canonical (machine form)'),
-    ('worker_runtime_identity.py', '<module>', 'import importlib'): (1, REASON_IMPORTLIB),
-    ('worker_runtime_identity.py', 'inventory', 'ctypes.CDLL'): (1, 'loads libseccomp for the runtime inventory'),
-    ('worker_runtime_identity.py', 'inventory', 'importlib'): (1, 'importlib.util.source_from_cache: the path of a loaded module, for the inventory'),
-    ('worker_runtime_identity.py', 'inventory', 'sys.modules'): (1, 'lists the loaded modules for the runtime inventory'),
-    ('worker_service.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL),
-    ('worker_service.py', 'ServiceJob.run.monitor', 'signal'): (1, REASON_SELFINT),
-    ('worker_service.py', 'ServicePolicy._authenticate', 'os.dup'): (1, REASON_DUP),
-    ('worker_service.py', 'ServicePolicy._authenticate', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('worker_service.py', '_bounded_private_json', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('worker_successor.py', '_authenticated', 'os.dup'): (1, REASON_DUP),
-    ('worker_successor.py', '_authenticated', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('workflow.py', 'run_guided_workflow', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('workflow.py', 'run_guided_workflow', 'write'): (1, REASON_FDWRITE),
+    ('approval_authority.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL, '393427b28453'),
+    ('approval_authority.py', 'ApprovalAuthority._verify', 'os.dup'): (1, REASON_DUP, 'cedbfd560e41'),
+    ('approval_authority.py', 'ApprovalAuthority._verify', 'os.fdopen'): (2, REASON_FDOPEN, '331097a528bf'),
+    ('approval_authority.py', 'ApprovalAuthority._verify', 'write'): (1, REASON_FDWRITE, '343c166df939'),
+    ('approval_authority.py', 'ApprovedExecution.__enter__', 'fcntl'): (3, REASON_FLOCK, '9e6a77dbac20'),
+    ('approval_authority.py', '_validator', 'ctypes.CDLL'): (1, 'loads the copy of the approved native validator library', '6d35fa56281b'),
+    ('approval_authority.py', '_validator', 'os.fdopen'): (2, REASON_FDOPEN, '738e5cef3cbf'),
+    ('approval_authority.py', '_validator', 'write'): (1, REASON_FDWRITE, '488ef32ad94e'),
+    ('artifact_vault.py', '_read', 'os.fdopen'): (1, REASON_FDOPEN, 'd69c7bef3771'),
+    ('artifact_vault.py', '_write_new', 'os.fdopen'): (1, REASON_FDOPEN, 'c7281f385745'),
+    ('artifact_vault.py', '_write_new', 'write'): (1, REASON_FDWRITE, '855bf42b4c65'),
+    ('azure_backend.py', 'AzureBackendAdapter.publish', 'os.fdopen'): (1, REASON_FDOPEN, '25c5a0065d5d'),
+    ('azure_backend.py', 'AzureBackendAdapter.publish', 'write'): (1, REASON_FDWRITE, '3b579431e2a0'),
+    ('azure_backend.py', 'AzureBackendAdapter.verify_published', 'os.fdopen'): (1, REASON_FDOPEN, 'e8cf89891a0e'),
+    ('capture.py', '_capture', 'write'): (3, 'the files of a capture, through its output_factory', 'b1c226742603'),
+    ('capture.py', '_write', 'os.fdopen'): (1, REASON_FDOPEN, '0a7862d9ee13'),
+    ('capture.py', '_write', 'write'): (1, REASON_FDWRITE, '93114bae4ad6'),
+    ('capture_adapter.py', '_read', 'os.fdopen'): (1, REASON_FDOPEN, '3fa339724f42'),
+    ('cli.py', '<module>', 'import importlib'): (2, REASON_IMPORTLIB, 'aaacb36da458'),
+    ('cli.py', '_lf_only', 'sys.stderr'): (1, 'sets the line ending of the two streams; writes nothing', '778db188df4c'),
+    ('cli.py', '_lf_only', 'sys.stdout'): (1, 'sets the line ending of the two streams; writes nothing', '40d856f1901c'),
+    ('cli.py', 'doctor', 'importlib'): (3, 'asks whether a dependency is installed and its version; prints nothing itself', 'a3d061fbebed'),
+    ('cli.py', 'execute.progress', 'print'): (1, REASON_JSONERR, '952fc6495858'),
+    ('cli.py', 'execute.progress', 'sys.stderr'): (1, REASON_JSONERR, '243fb0fd2963'),
+    ('cli.py', 'main', 'os.dup2'): (1, 'points fd 1 at /dev/null after a broken pipe, so that nothing more is written', 'd277c4093d5c'),
+    ('cli.py', 'main', 'print'): (3, REASON_JSONERR, '1fb085ba1ae4'),
+    ('cli.py', 'main', 'sys.stderr'): (3, REASON_JSONERR, '04c6e9a90b90'),
+    ('cli.py', 'main', 'sys.stdout'): (4, REASON_MAINOUT, '8b8397890b17'),
+    ('clock.py', 'Floor.locked', 'fcntl'): (2, REASON_FLOCK, 'ee11c857c8fd'),
+    ('clock.py', 'Floor.locked', 'import fcntl'): (1, REASON_IMPORTFCNTL, 'db72c825680a'),
+    ('companion.py', 'write_static', 'os.fdopen'): (1, REASON_FDOPEN, '19f32abc2939'),
+    ('companion.py', 'write_static', 'write'): (1, REASON_FDWRITE, '04363bee99d5'),
+    ('companion_live.py', 'Handler._send', 'write'): (1, 'the HTTP response of the companion page, to a socket', '5464e4c55dff'),
+    ('engineering_view.py', 'output_width', 'sys.stdout'): (2, REASON_PROBE, 'c100b4372c8e'),
+    ('execution.py', '_exclusive_json', 'os.fdopen'): (1, REASON_FDOPEN, '73ff2d4ec0d6'),
+    ('execution.py', '_exclusive_json', 'write'): (1, REASON_FDWRITE, '07556dba2333'),
+    ('host_capabilities.py', '<module>', 'import importlib'): (1, REASON_IMPORTLIB, '6d287ac395d4'),
+    ('host_capabilities.py', '_facts', 'os as a value'): (1, 'hasattr(os, key) over a fixed tuple of constants: a capability probe', '6c01a1024120'),
+    ('host_capabilities.py', '_module_has', 'importlib'): (1, 'imports a module by name to test that it exists', 'faf4d30a5246'),
+    ('io.py', 'read_bytes', 'os.fdopen'): (1, REASON_FDOPEN, 'fdd8c0b1f67b'),
+    ('io.py', 'write_json', 'os.fdopen'): (1, REASON_FDOPEN, '26c8f54bc537'),
+    ('io.py', 'write_json', 'write'): (1, REASON_FDWRITE, '5d823c24e4d4'),
+    ('journey.py', 'run_journey', 'os.fdopen'): (1, REASON_FDOPEN, 'ce37de5eaecc'),
+    ('journey.py', 'run_journey', 'write'): (1, REASON_FDWRITE, '36f536b000aa'),
+    ('journey_native_atmos.py', '_tool', 'os.fdopen'): (1, REASON_FDOPEN, 'e3cc97ecc851'),
+    ('maintenance.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL, '10c621b42e9c'),
+    ('maintenance.py', '_lock', 'fcntl'): (3, REASON_FLOCK, 'eff8ceef8b45'),
+    ('mcp.py', 'serve', 'sys.stdin'): (2, 'the MCP server input stream (JSON-RPC lines), a protocol', '7bc738556d82'),
+    ('mcp.py', 'serve', 'sys.stdout'): (1, 'the MCP server output stream (JSON-RPC lines), a protocol', '7f4433eeff36'),
+    ('mcp.py', 'serve.send', 'sys.stdout'): (2, 'the MCP server output stream (JSON-RPC lines), a protocol', '3926e5224d12'),
+    ('mcp.py', 'serve.send', 'write'): (1, 'the MCP protocol: one JSON message per line on the server stream', '5ee69a0133a7'),
+    ('modeled_service.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL, '916aa0dd878b'),
+    ('modeled_service.py', 'ModeledService.request', 'fcntl'): (3, REASON_FLOCK, '02b3731c9b61'),
+    ('native_atmos.py', 'resolve_native_atmos', 'write'): (1, 'writes a file of the native snapshot at a path under its directory (Path.write_bytes)', '6fafcb045e54'),
+    ('orchestration_export.py', '<module>', 'os as a value'): (1, 'hasattr(os, name) over a fixed tuple of constants: a capability probe', '2cd4967f3683'),
+    ('orchestration_export.py', '_open_checked', 'os.fdopen'): (1, REASON_FDOPEN, '5ff0e4162c98'),
+    ('output_edit.py', 'classify', 'write'): (1, 'writes the stack file of the generated output that it was asked to edit (Path.write_bytes)', '15daa834b8e0'),
+    ('protected.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL, 'ef1ac4df107b'),
+    ('protected.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE, 'e2505557b727'),
+    ('protected.py', '_cleanup_process_group', 'signal'): (3, REASON_KILLGROUP, '87edc0f93bd6'),
+    ('protected.py', '_cleanup_process_group', 'subprocess'): (1, 'names subprocess.TimeoutExpired in a test of an exception; starts nothing', 'dd699783ae7d'),
+    ('protected.py', '_create', 'os.fdopen'): (1, REASON_FDOPEN, 'cec9e565b5cd'),
+    ('protected.py', '_create', 'write'): (1, REASON_FDWRITE, 'f0b7d8a0a57c'),
+    ('protected.py', '_defer_spawn_interrupt', 'signal'): (13, 'defers SIGINT while a child is spawned, then restores the handler and the mask', '8bd7a6d94b5a'),
+    ('protected.py', '_defer_spawn_interrupt.child_guard', 'signal'): (4, 'defers SIGINT while a child is spawned, then restores the handler and the mask', 'ae48072b4654'),
+    ('protected.py', '_exclusive', 'os.fdopen'): (1, REASON_FDOPEN, '01ff21961955'),
+    ('protected.py', '_exclusive', 'write'): (1, REASON_FDWRITE, '66ea73b2f6cf'),
+    ('protected.py', '_network_filter', 'ctypes.CDLL'): (1, 'loads libseccomp, to install a network filter', '0b7beee5f152'),
+    ('protected.py', '_run', 'os.dup'): (1, REASON_DUP, '9b908a2681ef'),
+    ('protected.py', '_run', 'os.fdopen'): (1, REASON_FDOPEN, '1cdea539add4'),
+    ('protected.py', '_sha', 'os.fdopen'): (1, REASON_FDOPEN, '6439597b4128'),
+    ('protected.py', '_supervise', 'subprocess'): (4, REASON_CHILD, '34a833a52227'),
+    ('protected_worker.py', 'WorkerJob._apply', 'os.dup'): (2, REASON_DUP, 'b0870aa593b3'),
+    ('protected_worker.py', 'WorkerJob._apply', 'os.fdopen'): (2, REASON_FDOPEN, '6e1a542867ed'),
+    ('provider_execution.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL, 'd67cb5a58bed'),
+    ('provider_execution.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL, '19d9f90c07ed'),
+    ('provider_execution.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE, 'cd99a0a7e735'),
+    ('provider_execution.py', 'ProviderExecutor._lock', 'fcntl'): (3, REASON_FLOCK, '5212621c4da0'),
+    ('provider_execution.py', 'ProviderExecutor._run', 'os.dup'): (1, REASON_DUP, '2929b0f3ac7f'),
+    ('provider_execution.py', 'ProviderExecutor._run', 'os.fdopen'): (1, REASON_FDOPEN, '03712bf0241c'),
+    ('provider_execution.py', 'ProviderExecutor.prepare', 'write'): (1, 'writes lock.sha256 under the executor root (Path.write_text)', 'c96b5c089fa6'),
+    ('provider_execution.py', '_copy_pin', 'os.fdopen'): (1, REASON_FDOPEN, '1189cbc1e0cd'),
+    ('provider_execution.py', '_copy_pin', 'write'): (1, REASON_FDWRITE, '0ff1564c083b'),
+    ('provider_execution.py', '_create', 'write'): (1, 'writes the tofu.rc file of the executor root (Path.write_text)', '458355f404e1'),
+    ('provider_execution.py', '_network_guard', 'ctypes.CDLL'): (1, 'loads libseccomp, to install a network filter', '0cc7ba3770f7'),
+    ('provider_execution.py', '_sealed_plan', 'fcntl'): (2, 'seals the memfd that holds the sealed plan (F_ADD_SEALS, F_GET_SEALS)', 'eed09398fbac'),
+    ('provider_execution.py', '_sealed_plan', 'os.dup'): (1, 'duplicates the memfd that holds the sealed plan, so it can be read again', 'd7d2ebd1097b'),
+    ('provider_execution.py', '_sealed_plan', 'os.fdopen'): (2, REASON_FDOPEN, '00e7ae154d0b'),
+    ('provider_execution.py', '_sealed_plan', 'write'): (1, REASON_FDWRITE, 'f92f6581619a'),
+    ('provider_execution.py', '_sha', 'os.fdopen'): (1, REASON_FDOPEN, 'c60493c614fb'),
+    ('provider_execution.py', '_supervise', 'subprocess'): (4, REASON_CHILD, '49c64e4711ae'),
+    ('provider_journey.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL, '62be1296afdd'),
+    ('provider_journey.py', '_bounded_private_json', 'os.fdopen'): (1, REASON_FDOPEN, '8c6db9a3e15b'),
+    ('provider_journey.py', 'read_credential_fd', 'fcntl'): (6, 'sets the credential descriptor non-blocking while it is read, then restores its flags', 'ee806a64157b'),
+    ('provider_journey.py', 'read_credential_fd', 'os.dup'): (1, REASON_PROVIDERCRED, '3cf971095738'),
+    ('repository.py', '_Repository._read', 'os.fdopen'): (1, REASON_FDOPEN, 'ee2e8141702d'),
+    ('runner.py', '_dispatch', 'os.fdopen'): (1, REASON_FDOPEN, '4a54778c1c07'),
+    ('runner.py', '_dispatch', 'write'): (1, REASON_FDWRITE, 'cda85d7c787a'),
+    ('runner.py', 'run', 'os.fdopen'): (1, REASON_FDOPEN, 'e39ec6c7329a'),
+    ('runner.py', 'run', 'write'): (1, REASON_FDWRITE, 'a0392b1c8b70'),
+    ('signin.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL, '12a6a2fcbcd2'),
+    ('signin.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE, '8db6dc17950c'),
+    ('signin.py', '_bounded', 'subprocess'): (5, REASON_CHILD, 'cbed676779c3'),
+    ('signin.py', '_kill', 'signal'): (1, REASON_KILLGROUP, 'e43e195bbb5f'),
+    ('signin.py', 'collect', 'os.write'): (1, 'the token, written to the pipe of the collecting child', '97d1ca87ec62'),
+    ('sim_cli.py', 'text_lines', 'sys.stdout'): (1, REASON_PROBE, '47415ec2ecdb'),
+    ('sim_fixture.py', '<module>', 'exit-text'): (1, 'raise SystemExit(main()): the status main returns, when the module runs as a script', '04d89e0f6d85'),
+    ('synthetic.py', 'write_estate', 'write'): (1, 'writes a synthetic estate file (Path.write_text)', '161549ab81e5'),
+    ('validity.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL, '4c72edfd437e'),
+    ('validity.py', 'critical', 'fcntl'): (2, REASON_FLOCK, '5641776858a0'),
+    ('windows_directory.py', '_Win32.__init__', 'ctypes.WinDLL'): (2, 'kernel32 and advapi32, for directory and file calls', 'd6b3b50af8b6'),
+    ('windows_observation_jobs.py', '_IO.publish', 'write'): (1, 'a file of the observer store, through its Windows file API', '038416f0508c'),
+    ('windows_observation_jobs.py', '_create_job', 'write'): (2, 'files of the observer store, through its Windows file API', 'be9ab9517fe5'),
+    ('windows_observation_jobs.py', 'scheduler_artifacts', 'import subprocess'): (1, 'imports subprocess for list2cmdline only', '50126ff26b38'),
+    ('windows_observation_jobs.py', 'scheduler_artifacts', 'subprocess'): (1, 'list2cmdline quotes an argument of the task file; starts nothing', 'cbd6ed60cc4c'),
+    ('windows_observation_jobs.py', 'scheduler_artifacts', 'write'): (2, 'files of the observer store, through its Windows file API', '732fcf064e8f'),
+    ('windows_storage.py', '_create_file', 'write'): (1, 'the Windows file API: a handle the function created', 'c1600b6921ce'),
+    ('wizard.py', '_WizardSession.handle_restart', 'write'): (1, 'writes the copy of the session file kept before a restart, at a path it builds (open(candidate, "xb"))', 'b919a38ebfa3'),
+    ('wizard.py', 'run_wizard', 'os.fdopen'): (1, REASON_FDOPEN, '4c983a7cc5c6'),
+    ('wizard.py', 'run_wizard', 'write'): (1, REASON_FDWRITE, '42120b8a910d'),
+    ('workbench.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL, '48fad532600b'),
+    ('workbench.py', '_actions', 'signal'): (7, REASON_LOCALSIGNAL, '5f9993431c85'),
+    ('workbench.py', '_attention', 'signal'): (4, REASON_LOCALSIGNAL, '136b2ec50b0c'),
+    ('workbench.py', '_intent_blocker', 'signal'): (3, REASON_LOCALSIGNAL, '43f6ac53b6ac'),
+    ('workbench.py', '_next_actions', 'signal'): (3, REASON_LOCALSIGNAL, '76b26303868f'),
+    ('workbench.py', '_referenced_operations', 'signal'): (4, REASON_LOCALSIGNAL, '86739a8d85e4'),
+    ('workbench.py', '_states', 'signal'): (3, REASON_LOCALSIGNAL, 'e21941b9df49'),
+    ('workbench.py', '_with_collect_cures', 'signal'): (5, REASON_LOCALSIGNAL, 'ca8ec75699a1'),
+    ('workbench.py', 'interrupted_lines', '__import__'): (2, REASON_READINESS, '4bfac0699512'),
+    ('workbench.py', 'run_terminal', 'signal'): (6, 'installs a SIGINT handler for the line terminal so that Ctrl-C ends the session cleanly; writes nothing', 'c308f181e5ab'),
+    ('workbench.py', 'run_terminal.receive_interrupt', 'signal'): (1, 'installs a SIGINT handler for the line terminal so that Ctrl-C ends the session cleanly; writes nothing', '65ee405d7a15'),
+    ('workbench_adoption.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL, '33d66622e658'),
+    ('workbench_adoption.py', '_lock', 'fcntl'): (3, REASON_FLOCK, 'f5e0fb762ad1'),
+    ('workbench_queue.py', 'template', 'write'): (1, 'writes the review form at the fresh path it is given (open(path, "x")), after refusing an existing one', '305e2bd5e20a'),
+    ('workbench_revision.py', 'verify_revision', 'os.dup'): (1, REASON_DUP, '1f15440d67c7'),
+    ('workbench_revision.py', 'verify_revision', 'os.fdopen'): (1, REASON_FDOPEN, 'aaa964abeeb6'),
+    ('workbench_scheduler.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL, '8e01eb5a5079'),
+    ('workbench_scheduler.py', '_lock', 'fcntl'): (3, REASON_FLOCK, '313d8b968ecc'),
+    ('workbench_scheduler.py', '_open_pinned', 'os.dup'): (1, REASON_DUP, '82281dbaa8b2'),
+    ('workbench_scheduler.py', '_open_pinned', 'os.fdopen'): (1, REASON_FDOPEN, '29e9ec9e58c2'),
+    ('workbench_scheduler.py', '_save_bytes', 'os.fdopen'): (1, REASON_FDOPEN, 'd112c1c63e8b'),
+    ('workbench_scheduler.py', '_save_bytes', 'write'): (1, REASON_FDWRITE, '55d5afb72e95'),
+    ('workbench_screens.py', '<module>', '__import__'): (1, REASON_READINESS, 'fb9d8222b700'),
+    ('workbench_screens.py', 'queue_lines', '__import__'): (2, REASON_READINESS, '0bce5abe25d3'),
+    ('workbench_screens.py', 'repository_lines', '__import__'): (1, REASON_READINESS, '67b37923d7ce'),
+    ('workbench_screens.py', 'review_lines', '__import__'): (1, REASON_READINESS, '0459870a33f2'),
+    ('workbench_screens.py', 'state_lines', '__import__'): (1, REASON_READINESS, '391075c8ad25'),
+    ('workbench_tui.py', 'Workspace._plan_record', 'dynamic access'): (1, 'the instance dictionary as a cache: setdefault of a private key', '5bd5d26a6a6a'),
+    ('workbench_tui.py', 'Workspace._strip_note', 'dynamic access'): (1, 'the instance dictionary as a cache: setdefault of a private key', '9fd4728f60c5'),
+    ('workbench_tui.py', 'Workspace.input', '__import__'): (1, REASON_READINESS, '9c7e65b5810d'),
+    ('workbench_tui.py', 'visual_supported', 'import termios'): (1, 'asks whether stdin is a terminal that can be put in raw mode; writes nothing', '2fb79941c201'),
+    ('workbench_tui.py', 'visual_supported', 'sys.stdin'): (2, 'asks whether stdin and stdout are terminals that can be put in raw mode; writes nothing', '9530699c7431'),
+    ('workbench_tui.py', 'visual_supported', 'sys.stdout'): (1, 'asks whether stdin and stdout are terminals that can be put in raw mode; writes nothing', '4f5705fd67a7'),
+    ('workbench_tui.py', 'visual_supported', 'termios'): (1, 'asks whether stdin is a terminal that can be put in raw mode; writes nothing', '05cbff8da8e9'),
+    ('workbench_views.py', 'propose_source_acceptance', 'os.fdopen'): (1, REASON_FDOPEN, '5250c02ef0d6'),
+    ('workbench_views.py', 'propose_source_acceptance', 'write'): (1, REASON_FDWRITE, '1460362c3198'),
+    ('worker_adoption.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL, '348a342a8f64'),
+    ('worker_adoption.py', 'AdoptionJob._dispatch.monitor', 'signal'): (1, REASON_SELFINT, '631d197d57da'),
+    ('worker_adoption.py', '_authenticate', 'os.dup'): (1, REASON_DUP, 'f5adcb043f76'),
+    ('worker_adoption.py', '_authenticate', 'os.fdopen'): (1, REASON_FDOPEN, '61ec7699198d'),
+    ('worker_adoption_plan_recovery.py', 'AdoptionPlanRecoveryPolicy._verified', 'os.dup'): (1, REASON_DUP, 'aae037cf41d2'),
+    ('worker_adoption_plan_recovery.py', 'AdoptionPlanRecoveryPolicy._verified', 'os.fdopen'): (1, REASON_FDOPEN, '10260e6aa0b7'),
+    ('worker_adoption_reconcile.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL, '16b435b1ff09'),
+    ('worker_adoption_reconcile.py', 'RecoveryPlanJob._dispatch.monitor', 'signal'): (1, REASON_SELFINT, '368c80b80493'),
+    ('worker_adoption_reconcile.py', '_authenticate', 'os.dup'): (1, REASON_DUP, '76e086a9995c'),
+    ('worker_adoption_reconcile.py', '_authenticate', 'os.fdopen'): (1, REASON_FDOPEN, '931cb82f1d4f'),
+    ('worker_adoption_recovery.py', 'AdoptionRecoveryPolicy._verified', 'os.dup'): (1, REASON_DUP, 'c48a0b814b1a'),
+    ('worker_adoption_recovery.py', 'AdoptionRecoveryPolicy._verified', 'os.fdopen'): (1, REASON_FDOPEN, 'd7d44e8b8fb3'),
+    ('worker_adoption_state.py', '_retain', 'os.fdopen'): (1, REASON_FDOPEN, '60fb40a46198'),
+    ('worker_adoption_state.py', '_retain', 'write'): (1, REASON_FDWRITE, 'f4f6592f7133'),
+    ('worker_committed_readback.py', 'collect', 'os.fdopen'): (1, REASON_FDOPEN, 'd9abf5fc59f8'),
+    ('worker_committed_recovery.py', 'CommittedRecoveryPolicy._verified', 'os.dup'): (1, REASON_DUP, '4fb001b26c91'),
+    ('worker_committed_recovery.py', 'CommittedRecoveryPolicy._verified', 'os.fdopen'): (1, REASON_FDOPEN, 'd2d856ceae55'),
+    ('worker_completed_readback.py', 'collect', 'os.fdopen'): (1, REASON_FDOPEN, 'fbd3d91b0c13'),
+    ('worker_evidence_posix.py', 'DetachedVerifier.__call__', 'os.dup'): (1, REASON_DUP, '39d2c22c765c'),
+    ('worker_evidence_posix.py', 'DetachedVerifier.__call__', 'os.fdopen'): (1, REASON_FDOPEN, '5a73903b8a2f'),
+    ('worker_evidence_posix.py', '_capture', '__import__'): (1, 'imports re by a literal name, to match a file name', '3228b59bf2ff'),
+    ('worker_evidence_posix.py', '_locked_now', 'fcntl'): (2, REASON_FLOCK, 'be46003b2163'),
+    ('worker_evidence_posix.py', '_locked_now', 'import fcntl'): (1, REASON_IMPORTFCNTL, 'ac641f0249cb'),
+    ('worker_evidence_posix.py', 'reopen', '__import__'): (1, 'imports re by a literal name, to match a file name', 'c29fac004384'),
+    ('worker_host.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL, '6ee08dbbcb71'),
+    ('worker_host.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE, '3e0c051bccd7'),
+    ('worker_host.py', '_Docker.run', 'os.dup'): (1, REASON_DUP, '063e19680e04'),
+    ('worker_host.py', '_Docker.run', 'os.fdopen'): (1, REASON_FDOPEN, 'e59a53a227f1'),
+    ('worker_host.py', '_Docker.run', 'subprocess'): (4, REASON_CHILD, '956bbc98cb91'),
+    ('worker_host.py', '_bytes', 'os.fdopen'): (1, REASON_FDOPEN, 'a3eb2ab705e0'),
+    ('worker_host.py', '_bytes', 'write'): (1, REASON_FDWRITE, '353b4f30cfde'),
+    ('worker_host.py', '_hash_file', 'os.fdopen'): (1, REASON_FDOPEN, 'd4e341f2cdb9'),
+    ('worker_host.py', 'launch', 'signal'): (7, 'ignores SIGINT around the launch of the container child, then restores the handler', '93ff6148a072'),
+    ('worker_lease_recovery.py', 'RecoveryPolicy._verified', 'os.dup'): (1, REASON_DUP, '5ca8d6d5809c'),
+    ('worker_lease_recovery.py', 'RecoveryPolicy._verified', 'os.fdopen'): (1, REASON_FDOPEN, 'a5fee3681458'),
+    ('worker_provider.py', 'publish_files', 'os.fdopen'): (1, REASON_FDOPEN, 'cd0273abafe4'),
+    ('worker_provider.py', 'publish_files', 'write'): (1, REASON_FDWRITE, '0bbe30481352'),
+    ('worker_recovery.py', '<module>', 'exit-text'): (1, 'raise SystemExit(main()): the status main returns, when the module runs as a script', '6ff0ce264664'),
+    ('worker_recovery.py', 'main', 'os.write'): (1, 'the bytes of the output file it opened, to its own descriptor', '6356b272db12'),
+    ('worker_recovery.py', 'main', 'print'): (2, 'a JSON document made by canonical (machine form)', 'ee0ad592e885'),
+    ('worker_runtime_identity.py', '<module>', 'import importlib'): (1, REASON_IMPORTLIB, 'd73e82e694f5'),
+    ('worker_runtime_identity.py', 'inventory', 'ctypes.CDLL'): (1, 'loads libseccomp for the runtime inventory', '68f71f7d6493'),
+    ('worker_runtime_identity.py', 'inventory', 'importlib'): (1, 'importlib.util.source_from_cache: the path of a loaded module, for the inventory', 'bb43f62fd239'),
+    ('worker_runtime_identity.py', 'inventory', 'sys.modules'): (1, 'lists the loaded modules for the runtime inventory', 'cb370e5fae3d'),
+    ('worker_service.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL, 'ad48e0e9e620'),
+    ('worker_service.py', 'ServiceJob.run.monitor', 'signal'): (1, REASON_SELFINT, '64e54e3b1c31'),
+    ('worker_service.py', 'ServicePolicy._authenticate', 'os.dup'): (1, REASON_DUP, 'c35b927b6559'),
+    ('worker_service.py', 'ServicePolicy._authenticate', 'os.fdopen'): (1, REASON_FDOPEN, 'f9ed740fb7e9'),
+    ('worker_service.py', '_bounded_private_json', 'os.fdopen'): (1, REASON_FDOPEN, 'eecb2a0abbf3'),
+    ('worker_successor.py', '_authenticated', 'os.dup'): (1, REASON_DUP, 'ef57d61f9692'),
+    ('worker_successor.py', '_authenticated', 'os.fdopen'): (1, REASON_FDOPEN, 'd61d775a9594'),
+    ('workflow.py', 'run_guided_workflow', 'os.fdopen'): (1, REASON_FDOPEN, 'bd45e44b8aeb'),
+    ('workflow.py', 'run_guided_workflow', 'write'): (1, REASON_FDWRITE, '062e09ebb4b0'),
 }
 SCAN_NAMES = frozenset(('print', 'input', 'exec', 'eval', 'compile', '__import__', 'globals', 'locals', '__builtins__', 'breakpoint',
                         '_write_text'))
@@ -1797,9 +1800,40 @@ def not_a_status(node):
     return not (isinstance(node, ast.Constant) and (node.value is None or isinstance(node.value, int)))
 
 
+INSIDE = ('body', 'orelse', 'finalbody', 'handlers', 'cases')      # the fields of a compound statement that hold other statements
+
+
+def canon(node):
+    """The code of a node as text that depends on nothing but the code: its class and the fields that are set, no line or column."""
+    if isinstance(node, ast.AST):
+        fields = ' '.join('%s=%s' % (field, canon(getattr(node, field))) for field in node._fields
+                          if getattr(node, field, None) not in (None, []))
+        return '(%s%s)' % (type(node).__name__, ' ' + fields if fields else '')
+    if isinstance(node, list):
+        return '[' + ' '.join(canon(item) for item in node) + ']'
+    return repr(node)
+
+
+def header(statement):
+    """A statement without the statements inside it: the line of code, or the head of a compound one."""
+    fields = ' '.join('%s=%s' % (field, canon(getattr(statement, field))) for field in statement._fields
+                      if field not in INSIDE and getattr(statement, field, None) not in (None, []))
+    return '(%s%s)' % (type(statement).__name__, ' ' + fields if fields else '')
+
+
+def binds_name(target, name):
+    """The assignment target binds the name."""
+    if isinstance(target, ast.Name):
+        return target.id == name
+    if isinstance(target, (ast.Tuple, ast.List)):
+        return any(binds_name(item, name) for item in target.elts)
+    return isinstance(target, ast.Starred) and binds_name(target.value, name)
+
+
 def site_nodes(source):
-    """[(function chain, kind, node)] for every site in the source of one module (see the note above); the chain is the names of the
-    functions and classes around the node. What a name stands for is every binding it has anywhere in the file, in any scope: each
+    """[(function chain, kind, node, code)] for every site in the source of one module (see the note above); the chain is the names of
+    the functions and classes around the node, and the code is the text of the statement the node is in and of the statements that bind
+    the names that statement reads, so that a site whose code changes can be told from one that only moved. What a name stands for is every binding it has anywhere in the file, in any scope: each
     import of it and each assignment to it whose value is a name, a chain on a name, or a choice between such. A load is judged against
     all of them and is a site if any one makes it a site, so a name bound to os in one function and to json in another is both:
     `import os as channel` is not undone by an `import json as channel` elsewhere. A builtin keeps its builtin meaning whatever else
@@ -1899,12 +1933,12 @@ def site_nodes(source):
                 return False
         return True
 
-    def opens_a_terminal(call):
-        """open( of a descriptor or of a device: its first argument (or file=) is an integer, or names a terminal device."""
+    def a_known_path(call):
+        """open( of a path that is written in the source: its first argument (or file=) is a string that names no terminal device. A path
+        that is a name or an expression, a descriptor or a device is not known to be a file here, and the write is a site."""
         arguments = call.args[:1] + [keyword.value for keyword in call.keywords if keyword.arg == 'file']
-        return any(isinstance(item, ast.Constant) and (isinstance(item.value, int) or (isinstance(item.value, str)
-                                                                                         and DEVICE_PATH.search(item.value)))
-                   for item in arguments)
+        return (len(arguments) == 1 and isinstance(arguments[0], ast.Constant) and isinstance(arguments[0].value, str)
+                and not DEVICE_PATH.search(arguments[0].value))
 
     def rebinds(body, name):
         """The block binds the name again: an assignment, a loop or with target, a handler, an import, a def, a parameter, a global."""
@@ -1933,10 +1967,94 @@ def site_nodes(source):
                     opened = item.context_expr
                     if (isinstance(item.optional_vars, ast.Name) and item.optional_vars.id == receiver.id
                             and isinstance(opened, ast.Call) and isinstance(opened.func, ast.Name) and opened.func.id == 'open'
-                            and not opens_a_terminal(opened) and not rebinds(node.body, receiver.id)):
+                            and a_known_path(opened) and not rebinds(node.body, receiver.id)):
                         return True
             child, node = node, parents.get(node)
         return False
+
+    def anchor(node):
+        """The statement, or exception handler, a node is part of."""
+        while node is not None and not isinstance(node, (ast.stmt, ast.ExceptHandler)):
+            node = parents.get(node)
+        return node
+
+    def reads(statement):
+        """The names a statement reads on its own line, not those of the statements inside it."""
+        names = set()
+        for field in statement._fields:
+            value = getattr(statement, field, None)
+            for item in ([] if field in INSIDE else value if isinstance(value, list) else [value]):
+                if isinstance(item, ast.AST):
+                    names |= {inner.id for inner in ast.walk(item) if isinstance(inner, ast.Name) and isinstance(inner.ctx, ast.Load)}
+        return names
+
+    def outermost_function(node):
+        outer = None
+        while node in parents:
+            node = parents[node]
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                outer = node
+        return outer
+
+    module_level, pending = [], list(tree.body)
+    while pending:                                                   # the module without the insides of its functions and classes
+        item = pending.pop()
+        module_level.append(item)
+        if not isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            pending.extend(ast.iter_child_nodes(item))
+    binders_of = {}
+
+    def loads(node):
+        return {inner.id for inner in ast.walk(node) if isinstance(inner, ast.Name) and isinstance(inner.ctx, ast.Load)}
+
+    def binders(scope, name):
+        """{(code, the names it reads)} for the code that binds a name in a scope (the outermost function around a site, or the module): the
+        head of each statement that assigns it, takes it as a loop or with target, handles it, imports it or defines it, the arguments of
+        each function that takes it."""
+        if (id(scope), name) not in binders_of:
+            found_here = set()
+            for inner in (module_level if scope is None else ast.walk(scope)):
+                if (isinstance(inner, ast.Assign) and any(binds_name(item, name) for item in inner.targets)
+                        or isinstance(inner, (ast.AnnAssign, ast.AugAssign)) and binds_name(inner.target, name)
+                        or isinstance(inner, (ast.For, ast.AsyncFor)) and binds_name(inner.target, name)
+                        or isinstance(inner, ast.With) and any(item.optional_vars is not None and binds_name(item.optional_vars, name)
+                                                               for item in inner.items)
+                        or isinstance(inner, ast.ExceptHandler) and inner.name == name
+                        or isinstance(inner, (ast.Import, ast.ImportFrom))
+                        and any((alias.asname or alias.name.split('.')[0]) == name for alias in inner.names)
+                        or isinstance(inner, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and inner.name == name):
+                    found_here.add((header(inner), frozenset(reads(inner))))
+                if isinstance(inner, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)) and name in {
+                        item.arg for item in ast.walk(inner.args) if isinstance(item, ast.arg)}:
+                    found_here.add((canon(inner.args), frozenset(loads(inner.args))))
+                if isinstance(inner, ast.comprehension) and binds_name(inner.target, name):
+                    found_here.add((canon(inner), frozenset(loads(inner.iter)) | {n for test in inner.ifs for n in loads(test)}))
+            binders_of[(id(scope), name)] = found_here
+        return binders_of[(id(scope), name)]
+
+    def around(statement):
+        """The heads of the compound statements and handlers the statement is inside, outermost first."""
+        heads, enclosing = [], parents.get(statement)
+        while enclosing is not None:
+            if isinstance(enclosing, (ast.stmt, ast.ExceptHandler)):
+                heads.append(header(enclosing))
+            enclosing = parents.get(enclosing)
+        return heads[::-1]
+
+    def code_of(node):
+        statement = anchor(node)
+        if statement is None:
+            return canon(node)
+        scope, bound, seen, frontier = outermost_function(statement), set(), set(), reads(statement)
+        for _ in range(3):                                         # the code that binds what is read, and what that code reads
+            fresh = set()
+            for name in sorted(frontier - seen):
+                seen.add(name)
+                for code, names in binders(scope, name) | (binders(None, name) if scope is not None else set()):
+                    bound.add(code)
+                    fresh |= names
+            frontier = fresh
+        return ' / '.join(around(statement) + [header(statement)]) + ' <- ' + ' ; '.join(sorted(bound))
 
     found = []
     for node in ast.walk(tree):
@@ -2009,46 +2127,67 @@ def site_nodes(source):
                 if not (ends.get('stdout') and ends['stdout'] <= {'subprocess.PIPE', 'subprocess.DEVNULL'}
                         and ends.get('stderr') and ends['stderr'] <= {'subprocess.PIPE', 'subprocess.DEVNULL', 'subprocess.STDOUT'}):
                     kinds.add('child on the terminal')                  # a child whose output is not taken writes where it likes
-        found += [(where(node), kind, node) for kind in sorted(kinds)]
+        if kinds:
+            code = code_of(node)
+            found += [(where(node), kind, node, code) for kind in sorted(kinds)]
     return found
 
 
 @functools.lru_cache(maxsize=None)
 def file_sites(source):
-    """(((function, kind), references), ...) for the source of one module. Cached by source, so a test that adds or changes one module
-    reads the product's other modules once."""
-    return tuple(collections.Counter((chain, kind) for chain, kind, _ in site_nodes(source)).items())
+    """(((function, kind), references, codes), ...) for the source of one module: how many references the site has, and the code of each,
+    sorted. Cached by source, so a test that adds or changes one module reads the product's other modules once."""
+    found = collections.defaultdict(list)
+    for chain, kind, _, code in site_nodes(source):
+        found[(chain, kind)].append(code)
+    return tuple((site, len(codes), tuple(sorted(codes))) for site, codes in found.items())
 
 
 def output_sites(sources=None):
     """{(file, function, kind): references} for every site in the sources (the product's modules by default)."""
     found = collections.Counter()
     for name, source in (package_sources() if sources is None else sources).items():
-        for (function, kind), count in file_sites(source):
+        for (function, kind), count, _ in file_sites(source):
             found[(name, function, kind)] += count
+    return found
+
+
+def output_fingerprints(sources=None):
+    """{(file, function, kind): fingerprint} for every site in the sources: a hash of the code of its references (see site_nodes), its file,
+    its function and its kind. The code is the AST of the statement and of the statements that bind what it reads, with no line or column,
+    so a site that moves keeps its fingerprint and a site whose code changes does not, though it has as many references as before."""
+    found = {}
+    for name, source in (package_sources() if sources is None else sources).items():
+        for (function, kind), _, codes in file_sites(source):
+            found[(name, function, kind)] = hashlib.sha256('\n'.join((name, function, kind) + codes).encode('utf-8')).hexdigest()[:12]
     return found
 
 
 def output_site_problems(sources=None, listed=None, table=None, others=None):
     """[str] for what differs between the sites of the sources and OUTPUT_SITES with NOT_A_TERMINAL: a site that is not listed, a site
     with another number of references, a listed site that is gone, a site listed in both, a site that serves a leaf the table does not
-    classify as text or session, and a session leaf that no site serves."""
+    classify as text or session, and a session leaf that no site serves. A listed site also fails when its code is not the code that was
+    listed (its fingerprint), though it has as many references as before."""
     listed = OUTPUT_SITES if listed is None else listed
     others = NOT_A_TERMINAL if others is None else others
     found = output_sites(sources)
+    prints = output_fingerprints(sources)
     problems = ['%s: %s %s is listed as a terminal site and as a site that reaches no terminal' % site for site in sorted(set(listed) & set(others))]
     counts = {site: value[0] for site, value in list(others.items()) + list(listed.items())}
+    listed_prints = {site: value[2] for site, value in list(others.items()) + list(listed.items())}
     for site, calls in sorted(found.items()):
         if site not in counts:
             problems.append('%s: %s has %d unlisted %s site(s)' % (site[0], site[1], calls, site[2]))
         elif counts[site] != calls:
             problems.append('%s: %s has %d %s site(s), %d listed' % (site[0], site[1], calls, site[2], counts[site]))
+        elif prints[site] != listed_prints[site]:
+            problems.append('%s: %s %s: its code changed (fingerprint %s, listed %s)' % (site + (prints[site], listed_prints[site])))
     problems += ['%s: %s %s is listed and the sources have no such site' % site for site in sorted(set(counts) - set(found))]
     kinds = {' '.join(path): kind for path, kind in leaf_table(table).items()}
-    for site, (calls, serves) in sorted(listed.items(), key=str):
+    for site, (calls, serves, _) in sorted(listed.items(), key=str):
         if serves is not None and kinds.get(serves) not in ('session', 'text'):
             problems.append('the site %s: %s serves %r, which the table does not classify as text or session' % (site[0], site[1], serves))
-    served = {serves for _, serves in listed.values()}
+    served = {value[1] for value in listed.values()}
     problems += ['the session leaf %r is served by no listed site' % leaf for leaf, kind in sorted(kinds.items())
                  if kind == 'session' and leaf not in served]
     return problems
@@ -3400,9 +3539,9 @@ class LeafClassificationTests(unittest.TestCase):
         self.assertEqual(output_site_problems(), [])
         found = output_sites()
         self.assertEqual(dict(found), {site: value[0] for site, value in list(OUTPUT_SITES.items()) + list(NOT_A_TERMINAL.items())})
-        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (41, 207, 248, 406))
+        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (41, 209, 250, 408))
         self.assertIn(('cli.py', '_write_text', 'print'), found)                                   # the scan reads the product
-        self.assertTrue(all(isinstance(reason, str) and reason for _, reason in NOT_A_TERMINAL.values()))      # each has its reason
+        self.assertTrue(all(isinstance(value[1], str) and value[1] for value in NOT_A_TERMINAL.values()))      # each has its reason
 
     def test_a_new_leaf_that_prints_with_print_fails_closed(self):
         """Sol V2's input: a kube leaf that prints `Run: kubectl apply PLAN_FILE` with print() was a machine form by subtraction."""
@@ -3428,7 +3567,7 @@ class LeafClassificationTests(unittest.TestCase):
         sources['wizard.py'] = ''
         gone = sorted('wizard.py: %s %s is listed and the sources have no such site' % (site[1], site[2])
                       for site in list(OUTPUT_SITES) + list(NOT_A_TERMINAL) if site[0] == 'wizard.py')
-        self.assertEqual(len(gone), 6)
+        self.assertEqual(len(gone), 7)
         self.assertEqual(sorted(output_site_problems(sources)), gone)
         # a site that reaches no terminal is listed too, and a site is not listed as both
         others = {site: value for site, value in NOT_A_TERMINAL.items() if site[0] != 'mcp.py'}
@@ -3436,12 +3575,12 @@ class LeafClassificationTests(unittest.TestCase):
                 for site, count in sorted(output_sites().items()) if site[0] == 'mcp.py']
         self.assertEqual(len(gone), 4)
         self.assertEqual(output_site_problems(others=others), gone)
-        both = {**NOT_A_TERMINAL, ('cli.py', '_write_text', 'print'): (1, 'a socket')}
+        both = {**NOT_A_TERMINAL, ('cli.py', '_write_text', 'print'): (1, 'a socket', OUTPUT_SITES[('cli.py', '_write_text', 'print')][2])}
         self.assertEqual(output_site_problems(others=both),
                          ['cli.py: _write_text print is listed as a terminal site and as a site that reaches no terminal'])
         # a site that serves a leaf the table does not call text or session, and a session leaf no site serves
         listed = dict(OUTPUT_SITES)
-        listed[('cli.py', '_write_text', 'print')] = (1, 'doctor')
+        listed[('cli.py', '_write_text', 'print')] = (1, 'doctor', OUTPUT_SITES[('cli.py', '_write_text', 'print')][2])
         self.assertEqual(output_site_problems(listed=listed),
                          ["the site cli.py: _write_text serves 'doctor', which the table does not classify as text or session"])
         listed = {site: value for site, value in OUTPUT_SITES.items() if value[1] != 'provider wizard'}
@@ -3559,6 +3698,9 @@ class ReferenceScanTests(unittest.TestCase):
                 ('a file opened outside a with', 'handle = open("result.json", "w")\nhandle.write(%(line)r)', {'doctor': {'write': 1}}),
                 ('the name bound again in the block', 'with open("result.json", "w") as out:\n    out = sys.stdout\n    out.write(%(line)r)',
                  {'doctor': {'sys.stdout': 2, 'write': 1}}),
+                ('a path held in a name', 'path = "result.json"\nwith open(path, "w") as out:\n    out.write(%(line)r)', {'doctor': {'write': 1}}),
+                ('a path given by an attribute', 'with open(self.target, "w") as out:\n    out.write(%(line)r)', {'doctor': {'write': 1}}),
+                ('a path built from a device name', 'with open("/dev/" + "tty", "w") as out:\n    out.write(%(line)r)', {'doctor': {'write': 1}}),
                 ('a function between the with and the write', 'with open("result.json", "w") as out:\n    def later():\n'
                                                               '        out.write(%(line)r)', {'doctor.later': {'write': 1}}),
                 ('a write on another name', 'with open("result.json", "w") as out:\n    other = out\n    other.write(%(line)r)',
@@ -3764,6 +3906,103 @@ class ReferenceScanTests(unittest.TestCase):
         sources = package_sources()
         sources['kube.py'] = "import json\ndef kube(args):\n    print(json.dumps({'next': %r}))\n" % line       # a JSON document is a machine form
         self.assertEqual(self.delta(sources), {})
+
+
+class FingerprintTests(unittest.TestCase):
+    """Sol V4 limit 1: a listing by count lets a listed site change what it does, a descriptor that becomes 1, a path that becomes a
+    device, a child that inherits the terminal. Each listed site carries a fingerprint of its code (see output_fingerprints): the AST of the
+    statement each reference is in and of the statements that bind the names that statement reads, with no line or column, with the
+    function and the kind. A site whose code changes fails until its listing is updated, and says what the fingerprint is now."""
+
+    @staticmethod
+    def rewritten(module, function, transform):
+        """The sources of the product with one function of one module changed by transform(function node), as ast.unparse writes it."""
+        sources = package_sources()
+        tree = ast.parse(sources[module])
+        target = next(node for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == function)
+        transform(target)
+        sources[module] = ast.unparse(tree)
+        return sources
+
+    def changed(self, sources, *sites):
+        """Exactly these sites report that their code changed, with the fingerprint now and the one listed, and nothing else is wrong."""
+        self.assertEqual(output_sites(sources), output_sites())                  # no count moved: the old check saw nothing
+        problems = output_site_problems(sources)
+        self.assertEqual(len(problems), len(sites), problems)
+        for problem, site in zip(problems, sorted(sites)):
+            self.assertTrue(problem.startswith('%s: %s %s: its code changed (fingerprint ' % site), problem)
+            now, listed = re.search(r'fingerprint (\w+), listed (\w+)\)', problem).groups()
+            self.assertNotEqual(now, listed)
+            self.assertEqual(listed, (OUTPUT_SITES.get(site) or NOT_A_TERMINAL[site])[2])
+
+    def test_every_listed_site_carries_a_fingerprint_and_the_product_has_it(self):
+        for table in (OUTPUT_SITES, NOT_A_TERMINAL):
+            for site, value in table.items():
+                self.assertEqual(len(value), 3, site)
+                self.assertRegex(value[2], r'\A[0-9a-f]{12}\Z', site)
+        self.assertEqual(output_fingerprints(), {site: value[2] for site, value in list(OUTPUT_SITES.items()) + list(NOT_A_TERMINAL.items())})
+
+    def test_the_code_around_a_site_and_what_it_names_at_module_level_are_in_its_fingerprint(self):
+        """The fingerprint of a site covers the conditions and handlers it is inside, and the module-level bindings of the names it reads, as
+        well as its statement and the bindings in its function: a constant that becomes 1, or a condition that changes, fails the listing."""
+        def prints(source, kind='os.fdopen'):
+            return dict(output_fingerprints({'x.py': source}))[('x.py', 'save', kind)]
+        base = "import os\nFD = %s\ndef save(data, flag):\n    %swith os.fdopen(FD, 'wb') as out:\n        out.write(data)\n"
+        self.assertEqual(prints(base % (3, '')), prints(base % (3, '')))
+        self.assertNotEqual(prints(base % (3, '')), prints(base % (1, '')))                       # FD = 3 becomes FD = 1
+        conditional = "import os\ndef save(data, flag):\n    if %s:\n        with os.fdopen(3, 'wb') as out:\n            out.write(data)\n"
+        self.assertNotEqual(prints(conditional % 'flag'), prints(conditional % 'not flag'))
+        handled = "import os\ndef save(data):\n    try:\n        pass\n    except %s:\n        with os.fdopen(3, 'wb') as out:\n            out.write(data)\n"
+        self.assertNotEqual(prints(handled % 'OSError'), prints(handled % 'Exception'))
+        self.assertNotEqual(prints(base % (3, ''), 'write'), prints(base % (1, ''), 'write'))   # the write on the file object it opens
+
+    def test_code_that_only_moves_keeps_its_fingerprint(self):
+        sources = package_sources()
+        sources['artifact_vault.py'] = '# a comment\n\n\n' + sources['artifact_vault.py']                  # every line number moves
+        self.assertEqual(output_site_problems(sources), [])
+        sources = package_sources()
+        sources['cli.py'] = ast.unparse(ast.parse(sources['cli.py']))                                    # the module written out again
+        self.assertEqual(output_site_problems(sources), [])
+
+    def test_a_listed_site_whose_code_changes_fails_until_the_listing_is_updated(self):
+        def descriptor_one(function):                                          # fd = os.open(...) becomes fd = 1
+            for node in ast.walk(function):
+                if isinstance(node, ast.Assign) and any(isinstance(item, ast.Name) and item.id == 'fd' for item in node.targets):
+                    node.value = ast.Constant(1)
+
+        def more_data(function):                                               # output.write(data) becomes output.write(data + b"x")
+            for node in ast.walk(function):
+                if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == 'write':
+                    node.args[0] = ast.BinOp(node.args[0], ast.Add(), ast.Constant(b'Run: kubectl apply PLAN_FILE'))
+
+        def another_mode(function):                                            # os.fdopen(descriptor, 'wb') becomes 'ab'
+            for node in ast.walk(function):
+                if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == 'fdopen'
+                        and isinstance(node.args[1], ast.Constant) and node.args[1].value == 'wb'):
+                    node.args[1] = ast.Constant('ab')
+
+        def another_cwd(function):                                             # Popen(argv, cwd=cwd, ...) becomes cwd='/'
+            for node in ast.walk(function):
+                if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == 'Popen':
+                    for keyword in node.keywords:
+                        if keyword.arg == 'cwd':
+                            keyword.value = ast.Constant('/')
+
+        def unguarded(function):                                               # print(text_guard_rows(rows)) becomes print(rows)
+            for node in ast.walk(function):
+                if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == 'print':
+                    node.args[0] = ast.Name('rows', ast.Load())
+        for label, module, function, transform, sites in (
+                ('the descriptor becomes a constant, in a statement of its own', 'artifact_vault.py', '_write_new', descriptor_one,
+                 [('artifact_vault.py', '_write_new', 'os.fdopen'), ('artifact_vault.py', '_write_new', 'write')]),      # and what is written to it
+                ('what is written changes', 'artifact_vault.py', '_write_new', more_data, [('artifact_vault.py', '_write_new', 'write')]),
+                ('the mode of the file object changes', 'approval_authority.py', '_validator', another_mode,
+                 [('approval_authority.py', '_validator', 'os.fdopen'), ('approval_authority.py', '_validator', 'write')]),
+                ('a child is started elsewhere', 'provider_execution.py', '_supervise', another_cwd,
+                 [('provider_execution.py', '_supervise', 'subprocess')]),
+                ('the guard of the text sink is gone', 'cli.py', '_write_text', unguarded, [('cli.py', '_write_text', 'print')])):
+            with self.subTest(label):
+                self.changed(self.rewritten(module, function, transform), *sites)
 
 
 class RemainingRouteSweepTests(unittest.TestCase):
