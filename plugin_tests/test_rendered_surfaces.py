@@ -14,9 +14,12 @@ What it covers
   * The command line's text routes, in process with stdout and stderr captured: start and the catalog (every fixture, goal and
     width), sign-in status and collect with the collector stubbed (every golden case, with and without --account), the workflow map
     text, the engineering view, the interrupted-session sentences, and the --help and the usage error of every route found in
-    cli.parser(). Every parser leaf is classified as text (cli.main prints it through _write_text; read from main's source), a
-    session (the wizard, the workspace, the line terminal) or a machine form (the JSON document); cli._write_text is wrapped to record
-    the leaf each call ran for, and a text leaf that no sweep drove through cli.main fails the test.
+    cli.parser(). The classification of the leaves fails closed: LEAF_TABLE names each of the 139 as text (cli.main prints it
+    through _write_text; read from main's source), a session (the wizard, the workspace, the line terminal, the companion, the
+    provider wizard) or a machine form (the JSON document), a leaf the table lacks fails, every text and session leaf is driven by the
+    sweep LEAF_DRIVERS names (cli._write_text is wrapped to record the leaf each call ran for, and each sweep records the session it
+    opened), and OUTPUT_SITES lists every print(, standard-stream write(, input( and print-as-a-value in the product by file and
+    function: a leaf that prints with print() is a new site and fails until it is classified, listed and driven.
   * The wizard, the guided workflow and the journey: every prompt handed to the person and every line printed, scripted through
     the answers a person types, with and without a repository-owned edit of the generated output.
   * simulate --format text, with the snapshot and revision documents test_sim_render_cli builds. start and catalog with
@@ -70,6 +73,7 @@ synopsis place by place for the same reason (synopsis_verdict).
 """
 import argparse
 import ast
+import builtins
 import collections
 import contextlib
 import copy
@@ -179,12 +183,17 @@ def readable(rows):
 
 
 def machine_form(text):
-    """True when the text is a JSON document: a machine form, which is not read."""
-    try:
-        json.loads(text)
-    except ValueError:
-        return False
-    return bool(text.strip())
+    """True when the text is one JSON document, or a stream of them (JSON lines, or documents one after another): a machine form,
+    which is not read. A text with anything else beside the documents is not, and is read."""
+    decoder, at, text = json.JSONDecoder(), 0, text.strip()
+    while at < len(text):
+        try:
+            _, at = decoder.raw_decode(text, at)
+        except ValueError:
+            return False
+        while at < len(text) and text[at].isspace():
+            at += 1
+    return bool(text)
 
 
 # -- the independent net -----------------------------------------------------------------------------------------------------------
@@ -1151,7 +1160,33 @@ STATES = collections.OrderedDict([
 ])
 
 
+CURRENT_SWEEP = []                                   # the sweeps running now, innermost last
+DRIVEN = collections.defaultdict(set)                # parser leaf -> the names of the sweeps that drove it
+
+
+def driven(leaf):
+    """Record that the sweep running now drove a parser leaf, given as a string of words or as a tuple of them: a session it opened
+    and saw through, or a text route cli.main printed for."""
+    if CURRENT_SWEEP:
+        DRIVEN[tuple(leaf.split()) if isinstance(leaf, str) else tuple(leaf)].add(CURRENT_SWEEP[-1])
+
+
+def named_sweep(function):
+    """A sweep that knows its name, so the leaves it drives are recorded under it, and that records the routes of cli.main it reaches
+    through the helpers of other test modules."""
+    @functools.wraps(function)
+    def wrapper(*args, **kwargs):
+        CURRENT_SWEEP.append(function.__name__)
+        try:
+            with recording_routes():
+                return function(*args, **kwargs)
+        finally:
+            CURRENT_SWEEP.pop()
+    return wrapper
+
+
 @functools.lru_cache(maxsize=None)
+@named_sweep
 def sweep_state(name):
     """Build the state and read every surface in it. Returns the Sweep."""
     builder, options = STATES[name]
@@ -1167,6 +1202,7 @@ def sweep_state(name):
         result = drive(root, service, plan, name, sweep, FULL_SCHEDULE if name == 'observed estate, no selection' else SCHEDULE)
         if result.get('status') != 'closed':
             raise AssertionError('the session did not close: %r' % (result,))
+        driven('workbench workspace')                   # the visual session, opened by keys and closed by q
         return sweep
     finally:
         fx.doCleanups()
@@ -1213,20 +1249,13 @@ def recording_routes():
 
     def write(rows):
         if 'namespace' in seen:
-            WRITTEN[leaf_of(seen['parser'], seen['namespace'])] += 1
+            leaf = leaf_of(seen['parser'], seen['namespace'])
+            WRITTEN[leaf] += 1
+            driven(leaf)
         return real_write(rows)
     write.records_routes = True
     with patch.object(cli, 'parser', parser), patch.object(cli, '_write_text', write):
         yield
-
-
-def records_routes(function):
-    """A sweep that reaches cli.main through a helper of another test module records the routes it drives."""
-    @functools.wraps(function)
-    def wrapper(*args, **kwargs):
-        with recording_routes():
-            return function(*args, **kwargs)
-    return wrapper
 
 
 class Tty(io.StringIO):
@@ -1265,17 +1294,63 @@ def routes(parser, path=()):
     return found
 
 
-# -- every parser leaf, classified: text a person reads, a session, or a machine form ----------------------------------------------
+# -- every parser leaf, classified, and every place the product writes to a terminal -------------------------------------------------
 #
-# A leaf of cli.parser() shows itself to a person in one of three ways. 'text': cli.main prints its screen through cli._write_text
-# (the leaves that satisfy the conditions that enclose a _write_text call, read from cli.main's source by text_leaves_by_code, never
-# listed here). 'session': a terminal session or prompt flow with its own input and output (SESSION_LEAVES, declared). 'machine': every
-# other leaf, which prints the JSON document of cli.main. The sweeps must drive each text leaf through cli.main, which recording_routes
-# observes; a leaf that prints text and is not driven fails the test until it is.
+# A leaf of cli.parser() shows itself to a person in one of three ways, and the classification fails closed: LEAF_TABLE names every leaf
+# (139 today); a leaf the parser has and the table lacks fails, and so does an entry with no leaf.
+#   text     cli.main prints its screen through cli._write_text (text_leaves_by_code reads from main's source which leaves can).
+#   session  a terminal session or a prompt flow with its own input and output.
+#   machine  prints the JSON document of cli.main, or serves a protocol; nothing a person reads.
+# Each text and session leaf is driven by the sweep LEAF_DRIVERS names, and the recorder says what each sweep drove (DRIVEN). What stops
+# a leaf from reaching a person by a road the recorder cannot see is OUTPUT_SITES: every print( call, every .write( on anything but a
+# file the function opened itself, input( with a prompt, print and input used as values, a sentence in an exit, the parser's own output
+# and a module that writes to a terminal by itself is listed there by file and function, with its count, and anything unlisted fails,
+# so a new leaf that prints with print() fails until it is classified, listed and driven.
 
-SESSION_LEAVES = {('wizard',): 'sweep_wizards (the plain wizard, the guided workflow and the journey, scripted)',
-                  ('workbench', 'workspace'): 'sweep_state (the workspace, in thirteen states)',
-                  ('workbench', 'terminal'): 'sweep_state (the engine under the workspace is the line terminal)'}
+LEAF_TABLE = {
+    'text': ('start', 'catalog', 'engineering', 'simulate', 'signin status', 'signin collect', 'workbench workflow'),
+    'session': ('wizard', 'workbench workspace', 'workbench terminal', 'workbench companion', 'provider wizard'),
+    'machine': (
+        'action', 'adoption attach', 'adoption cancel', 'adoption prepare', 'adoption recover',
+        'adoption recovery-plan-attach', 'adoption recovery-plan-cancel', 'adoption recovery-plan-prepare',
+        'adoption recovery-plan-recover', 'adoption recovery-plan-review', 'adoption recovery-plan-status',
+        'adoption review', 'adoption status', 'artifact inspect', 'artifact restore', 'artifact seal', 'capture', 'doctor',
+        'generate', 'graph build', 'graph query', 'inspect', 'judge', 'mcp', 'plan review', 'provider execute',
+        'provider prepare', 'provider reconcile', 'provider review', 'provider status', 'repository inspect',
+        'repository native', 'repository resolve', 'service attach', 'service cancel', 'service prepare',
+        'service recover', 'service review', 'service status', 'simulation create', 'simulation prepare',
+        'simulation reconcile', 'simulation run', 'synthetic generate', 'synthetic inspect', 'target authenticate',
+        'target collect', 'target compare', 'target inspect', 'verify', 'workbench adopt', 'workbench adoption-history',
+        'workbench adoption-lineage', 'workbench adoption-link', 'workbench adoption-preview', 'workbench backup',
+        'workbench collect', 'workbench collection', 'workbench collection-history', 'workbench compare',
+        'workbench delivery', 'workbench deployment-import', 'workbench deployment-record',
+        'workbench device-evidence-import', 'workbench diagnostics', 'workbench dictionary', 'workbench estate-overview',
+        'workbench evidence-history', 'workbench evidence-link', 'workbench execute', 'workbench families',
+        'workbench field-semantics', 'workbench health', 'workbench history', 'workbench history-recent',
+        'workbench import-capture', 'workbench init', 'workbench inspect', 'workbench lab-create', 'workbench lab-init',
+        'workbench lineage', 'workbench migrate', 'workbench observer-create', 'workbench observer-run',
+        'workbench observer-scheduler', 'workbench observer-status', 'workbench operations', 'workbench overview',
+        'workbench ownership-import', 'workbench ownership-scan', 'workbench propose', 'workbench propose-from-intent',
+        'workbench provider-refresh-import', 'workbench queue', 'workbench queue-amend', 'workbench queue-review',
+        'workbench queue-review-history', 'workbench queue-review-template', 'workbench reconcile',
+        'workbench reference-compare', 'workbench reference-import', 'workbench references', 'workbench relationships',
+        'workbench repository-entry', 'workbench repository-import', 'workbench repository-refresh',
+        'workbench repository-status', 'workbench restore', 'workbench restore-propose', 'workbench review',
+        'workbench schedule-create', 'workbench schedule-run', 'workbench schedule-status', 'workbench search',
+        'workbench service-link', 'workbench settings', 'workbench source-acceptance-propose', 'workbench views',
+        'workbench workflow-import', 'workbench workflows', 'worker attach', 'worker cancel', 'worker prepare',
+        'worker reconcile', 'worker review', 'worker run', 'worker status',
+    ),
+}
+
+# The sweep that drives each text and session leaf (functions of this module, which the test runs; DRIVEN says what each one did).
+LEAF_DRIVERS = {
+    'start': 'sweep_start_and_catalog', 'catalog': 'sweep_start_and_catalog', 'engineering': 'sweep_workflow_and_engineering',
+    'simulate': 'sweep_simulate', 'signin status': 'sweep_signin', 'signin collect': 'sweep_signin',
+    'workbench workflow': 'sweep_workflow_and_engineering', 'wizard': 'sweep_wizards',
+    'workbench workspace': ('sweep_state', 'sweep_workflow_and_engineering'),      # the session; and its Ctrl-C sentences, through cli.main
+    'workbench terminal': 'sweep_terminal', 'workbench companion': 'sweep_companion', 'provider wizard': 'sweep_provider_wizard',
+}
 
 
 def leaf_paths(parser):
@@ -1355,11 +1430,236 @@ def text_leaves_by_code(parser, source=None):
     return found
 
 
+def leaf_table(table=None):
+    """{leaf path: kind} for a table of LEAF_TABLE's shape. A leaf named twice, in one kind or in two, raises."""
+    found = {}
+    for kind, names in (LEAF_TABLE if table is None else table).items():
+        for name in names:
+            path = tuple(name.split())
+            if path in found:
+                raise ValueError('the leaf %r is named twice (%s and %s)' % (name, found[path], kind))
+            found[path] = kind
+    return found
+
+
+def leaf_table_problems(parser, table=None, drivers=None):
+    """[str] for what is wrong with the classification of the leaves of a parser: a leaf the parser has and the table lacks, an entry
+    the parser has no leaf for, a leaf named twice, a text or session leaf with no driver, a driver for a leaf that is neither, and a
+    driver that is not a function of this module."""
+    try:
+        classified = leaf_table(table)
+    except ValueError as error:
+        return [str(error)]
+    leaves = set(leaf_paths(parser))
+    problems = ['the parser has the leaf %r and the table does not name it' % ' '.join(path) for path in sorted(leaves - set(classified))]
+    problems += ['the table names %r and the parser has no such leaf' % ' '.join(path) for path in sorted(set(classified) - leaves)]
+    drivers = LEAF_DRIVERS if drivers is None else drivers
+    human = {' '.join(path) for path, kind in classified.items() if kind != 'machine'}
+    problems += ['the %s leaf %r has no driver' % (classified[tuple(name.split())], name) for name in sorted(human - set(drivers))]
+    problems += ['%r has a driver and is not a text or session leaf' % name for name in sorted(set(drivers) - human)]
+    for name, sweeps in sorted(drivers.items()):
+        for sweep in ((sweeps,) if isinstance(sweeps, str) else sweeps):
+            if not callable(globals().get(sweep)):
+                problems.append('the driver %r of %r is not a function of this module' % (sweep, name))
+    return problems
+
+
+# Every place the product could put text in front of a person by a road other than cli._write_text, by file, function and kind, with the
+# number of sites and the leaf each serves (None: not one leaf, but the sink of every text leaf or the usage error of every route). The
+# kinds are
+#   print          a print( call whose first argument is not a JSON document
+#   print-value    print used as a value: the default output function of a session
+#   input          an input( call with a prompt, which writes it
+#   input-value    input used as a value: the default input function of a session, whose prompts a person reads
+#   write          a .write( or .writelines( call, or os.write(, on anything but a file this function opened itself (open(, x.open(, or
+#                  os.fdopen( of a descriptor the function holds): a terminal stream, a stream passed in, a socket, a pipe, an API
+#   parser-output  print_usage(, print_help( or error( on a parser
+#   exit-text      sys.exit(, SystemExit( or an exit( with a sentence, which the interpreter writes to standard error
+#   import X       a module that writes to a terminal by itself (TERMINAL_MODULES)
+# A call whose first argument is json.dumps( or canonical( writes a machine document and is not a site. Exact names, no prefixes: a new
+# site, a site with another count and a listed site that is gone all fail. NOT_A_TERMINAL lists the write sites that reach no terminal.
+OUTPUT_SITES = {
+    ('cli.py', '_write_text', 'print'): (1, None),
+    ('cli.py', '_Parser.error', 'parser-output'): (1, None),          # the usage error of every route, driven by sweep_help_and_usage
+    ('cli.py', '_Parser.error', 'exit-text'): (1, None),
+    ('provider_journey.py', 'run_provider_wizard', 'print'): (2, 'provider wizard'),
+    ('provider_journey.py', 'run_provider_wizard', 'input'): (2, 'provider wizard'),
+    ('workbench.py', 'command', 'print'): (2, 'workbench companion'),
+    ('workbench_tui.py', 'run_workspace.write_line', 'print'): (1, 'workbench workspace'),
+    ('workbench_tui.py', 'run_workspace.read_line', 'write'): (1, 'workbench workspace'),
+    ('workbench_tui.py', 'terminal_session', 'write'): (2, 'workbench workspace'),
+    ('workbench_tui.py', 'Workspace.draw', 'write'): (1, 'workbench workspace'),
+    ('windows_terminal.py', 'NativeConsole.session', 'write'): (2, 'workbench workspace'),
+    ('windows_terminal.py', 'NativeConsole.write', 'write'): (1, 'workbench workspace'),
+    ('workbench.py', 'run_terminal', 'print-value'): (1, 'workbench terminal'),
+    ('workbench.py', '_run_terminal', 'print-value'): (1, 'workbench terminal'),
+    ('workbench.py', '_run_terminal', 'input-value'): (1, 'workbench terminal'),
+    ('wizard.py', 'run_wizard', 'print-value'): (1, 'wizard'),
+    ('wizard.py', 'run_wizard', 'input-value'): (1, 'wizard'),
+    ('wizard.py', '_run_wizard', 'print-value'): (1, 'wizard'),
+    ('wizard.py', '_run_wizard', 'input-value'): (1, 'wizard'),
+    ('journey.py', 'run_journey', 'print-value'): (1, 'wizard'),
+    ('journey.py', 'run_journey', 'input-value'): (1, 'wizard'),
+    ('workflow.py', 'run_guided_workflow', 'print-value'): (1, 'wizard'),
+    ('workflow.py', 'run_guided_workflow', 'input-value'): (1, 'wizard'),
+}
+NOT_A_TERMINAL = {
+    ('capture.py', '_capture', 'write'): (3, 'the files of a capture, through its output_factory'),
+    ('companion_live.py', 'Handler._send', 'write'): (1, 'the HTTP response of the companion page, to a socket'),
+    ('mcp.py', 'serve.send', 'write'): (1, 'the MCP protocol: one JSON message per line on the server stream'),
+    ('signin.py', 'collect', 'write'): (1, 'os.write of the token to the pipe of the collecting child'),
+    ('windows_observation_jobs.py', '_IO.publish', 'write'): (1, 'a file of the observer store'),
+    ('windows_observation_jobs.py', '_create_job', 'write'): (2, 'files of the observer store'),
+    ('windows_observation_jobs.py', 'scheduler_artifacts', 'write'): (2, 'files of the observer store'),
+    ('windows_storage.py', '_create_file', 'write'): (1, 'the Windows file API'),
+    ('worker_recovery.py', 'main', 'write'): (1, 'os.write to the output file it opened'),
+}
+MACHINE_DOCUMENTS = ('dumps', 'canonical')
+PARSER_OUTPUT = ('print_usage', 'print_help', 'error')
+TERMINAL_MODULES = ('logging', 'warnings', 'traceback', 'getpass', 'curses', 'cmd', 'code', 'pdb', 'pprint', 'rich', 'click', 'typer',
+                    'tqdm', 'colorama', 'webbrowser')
+
+
+def package_sources():
+    """{file name: source text} of the product's modules, read from disk."""
+    return {str(path.relative_to(PACKAGE)): path.read_text(encoding='utf-8') for path in sorted(PACKAGE.rglob('*.py'))}
+
+
+def text_like(node):
+    """True for an expression that builds a sentence: a string, an f-string, a % or + with one, or a .format( or .join( call."""
+    if isinstance(node, ast.Constant):
+        return isinstance(node.value, str)
+    if isinstance(node, ast.BinOp):
+        return text_like(node.left) or text_like(node.right)
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+        return node.func.attr in ('format', 'join')
+    return isinstance(node, ast.JoinedStr)
+
+
+def opens_a_file(call):
+    """True for a call that opens a file object: open(...), x.open(...), or os.fdopen of a descriptor the program holds (a name, or
+    os.dup of one). open(1) and os.fdopen(1) open the terminal, and are not."""
+    func = call.func
+    if isinstance(func, ast.Name) and func.id == 'open' or isinstance(func, ast.Attribute) and func.attr == 'open':
+        return not (call.args and isinstance(call.args[0], ast.Constant) and isinstance(call.args[0].value, int))
+    if isinstance(func, ast.Attribute) and func.attr == 'fdopen' and call.args:
+        first = call.args[0]
+        if isinstance(first, ast.Call) and isinstance(first.func, ast.Attribute) and first.func.attr == 'dup' and first.args:
+            first = first.args[0]
+        return isinstance(first, ast.Name)
+    return False
+
+
+def output_sites(sources=None):
+    """{(file, function, kind): sites} for every place the sources could write to a person (see OUTPUT_SITES); the function is the
+    chain of the names of the functions and classes around the site."""
+    found = collections.Counter()
+    for name, source in (package_sources() if sources is None else sources).items():
+        for (function, kind), count in file_sites(source):
+            found[(name, function, kind)] += count
+    return found
+
+
+@functools.lru_cache(maxsize=None)
+def file_sites(source):
+    """(((function, kind), sites), ...) for the source of one module (see output_sites). Cached by source, so a test that adds or
+    changes one module reads the product's other modules once."""
+    found = collections.Counter()
+    tree = ast.parse(source)
+    parents = {child: node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)}
+
+    def around(node):
+        chain = []
+        while node in parents:
+            node = parents[node]
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                chain.append(node)
+        return list(reversed(chain))
+
+    def where(node):
+        return '.'.join(item.name for item in around(node)) or '<module>'
+
+    def document(call):
+        first = call.args[0] if call.args else None
+        while isinstance(first, ast.Call) and isinstance(first.func, ast.Attribute) and isinstance(first.func.value, ast.Call):
+            first = first.func.value                         # canonical(...).decode(): the document under the method that encodes it
+        return isinstance(first, ast.Call) and getattr(first.func, 'attr', getattr(first.func, 'id', '')) in MACHINE_DOCUMENTS
+
+    def file_held(call):
+        """The receiver of a .write( call is a name every binding of which, in the function around the call, opens a file."""
+        receiver = call.func.value
+        functions = [item for item in around(call) if not isinstance(item, ast.ClassDef)]
+        if not functions or not isinstance(receiver, ast.Name):
+            return False
+        bound = []
+        for inner in ast.walk(functions[-1]):
+            if isinstance(inner, (ast.With, ast.AsyncWith)):
+                bound += [item.context_expr for item in inner.items
+                          if isinstance(item.optional_vars, ast.Name) and item.optional_vars.id == receiver.id]
+            elif isinstance(inner, ast.Assign) and any(isinstance(target, ast.Name) and target.id == receiver.id
+                                                       for target in inner.targets):
+                bound.append(inner.value)
+        return bool(bound) and all(isinstance(value, ast.Call) and opens_a_file(value) for value in bound)
+
+    for node in ast.walk(tree):
+        kind = None
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+            if node.func.id == 'print' and not document(node):
+                kind = 'print'
+            elif node.func.id == 'input' and node.args:
+                kind = 'input'
+            elif node.func.id == 'SystemExit' and any(text_like(argument) for argument in node.args):
+                kind = 'exit-text'
+        elif isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+            if node.func.attr in ('write', 'writelines') and not document(node) and not file_held(node):
+                kind = 'write'
+            elif node.func.attr in PARSER_OUTPUT:
+                kind = 'parser-output'
+            elif node.func.attr == 'exit' and any(text_like(argument) for argument in node.args):
+                kind = 'exit-text'
+        elif (isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load) and node.id in ('print', 'input')
+              and not (isinstance(parents.get(node), ast.Call) and parents[node].func is node)):
+            kind = node.id + '-value'
+        elif isinstance(node, (ast.Import, ast.ImportFrom)):
+            modules = [alias.name for alias in node.names] if isinstance(node, ast.Import) else [] if node.level else [node.module or '']
+            for module in modules:
+                if module.split('.')[0] in TERMINAL_MODULES:
+                    found[(where(node), 'import ' + module.split('.')[0])] += 1
+        if kind:
+            found[(where(node), kind)] += 1
+    return tuple(found.items())
+
+
+def output_site_problems(sources=None, listed=None, table=None, others=None):
+    """[str] for what differs between the places the sources could write to a person and OUTPUT_SITES with NOT_A_TERMINAL: a site that
+    is not listed, a site with another number of calls, a listed site that is gone, a site listed in both, a site that serves a leaf
+    the table does not classify as text or session, and a session leaf that no site serves."""
+    listed = OUTPUT_SITES if listed is None else listed
+    others = NOT_A_TERMINAL if others is None else others
+    found = output_sites(sources)
+    problems = ['%s: %s %s is listed as a terminal site and as a site that reaches no terminal' % site for site in sorted(set(listed) & set(others))]
+    counts = {site: value[0] for site, value in list(others.items()) + list(listed.items())}
+    for site, calls in sorted(found.items()):
+        if site not in counts:
+            problems.append('%s: %s has %d unlisted %s site(s)' % (site[0], site[1], calls, site[2]))
+        elif counts[site] != calls:
+            problems.append('%s: %s has %d %s site(s), %d listed' % (site[0], site[1], calls, site[2], counts[site]))
+    problems += ['%s: %s %s is listed and the sources have no such site' % site for site in sorted(set(counts) - set(found))]
+    kinds = {' '.join(path): kind for path, kind in leaf_table(table).items()}
+    for site, (calls, serves) in sorted(listed.items(), key=str):
+        if serves is not None and kinds.get(serves) not in ('session', 'text'):
+            problems.append('the site %s: %s serves %r, which the table does not classify as text or session' % (site[0], site[1], serves))
+    served = {serves for _, serves in listed.values()}
+    problems += ['the session leaf %r is served by no listed site' % leaf for leaf, kind in sorted(kinds.items())
+                 if kind == 'session' and leaf not in served]
+    return problems
+
+
 KINDS = ('empty', 'repository', 'export', 'emptystore', 'full', 'context')
 
 
 @functools.lru_cache(maxsize=1)
-@records_routes
+@named_sweep
 def sweep_start_and_catalog():
     """start and catalog for every fixture directory, with no goal and with each goal, at each width, for an ordinary directory
     name and for one the screen may not show (a credential shape)."""
@@ -1392,7 +1692,7 @@ def sweep_start_and_catalog():
 
 
 @functools.lru_cache(maxsize=1)
-@records_routes
+@named_sweep
 def sweep_signin():
     """signin status and signin collect, the CLIs and the collecting child stubbed as the sign-in tests do: every golden case
     (partial, failed, withheld, blocked, collected ...), each with and without --account, at two widths."""
@@ -1411,6 +1711,7 @@ def sweep_signin():
 
 
 @functools.lru_cache(maxsize=1)
+@named_sweep
 def sweep_workflow_and_engineering():
     """workbench workflow in its text form (a prepared change, an unknown outcome, nothing observed to propose from), the
     engineering view with no records, and the sentences that follow an interrupt, for each kind of interrupt."""
@@ -1447,6 +1748,7 @@ def sweep_workflow_and_engineering():
 
 
 @functools.lru_cache(maxsize=1)
+@named_sweep
 def sweep_help_and_usage():
     """--help of every route, and the usage error of every route that needs an argument (it fails before it does anything)."""
     from intune_iac import cli
@@ -1515,6 +1817,7 @@ def read_transcript(sweep, state, route, transcript):
 
 
 @functools.lru_cache(maxsize=1)
+@named_sweep
 def sweep_wizards():
     """The wizard, the guided workflow and the journey, scripted: a first run, a saved session reopened, a conflict, and the same
     with a repository-owned edit of the generated output, which prints the next steps and the handoff sentence."""
@@ -1573,12 +1876,115 @@ def sweep_wizards():
             with contextlib.suppress(EOFError):
                 run_journey(session, input_fn=later.script(answers), output_fn=later.output)
         read_transcript(sweep, 'journey, repository-owned edit handed off, back and edit', 'wizard --journey', later)
+    assert sweep.coverage and any(route.startswith('wizard') for (_, route, *_) in sweep.coverage), 'the wizard sessions printed nothing'
+    driven('wizard')
+    return sweep
+
+
+@functools.lru_cache(maxsize=1)
+@named_sweep
+def sweep_terminal():
+    """workbench terminal through cli.main: the line terminal with its own input and output, the typed lines scripted. What a person
+    reads there is the prompt it hands to input and what it prints; the JSON documents it prints are a machine form (a stream of them
+    is not read), so a sentence added beside them would be."""
+    sweep = Sweep()
+    fx = Estate()
+    fx.setUp()
+    try:
+        build_observed(fx)
+        typed, prompts = iter(['overview', 'select ' + OBJECT, 'inspect']), []
+
+        def fake_input(prompt=''):
+            prompts.append(prompt)
+            try:
+                return next(typed)
+            except StopIteration:
+                raise EOFError()
+        with patch.object(builtins, 'input', fake_input):
+            code, text, err = run_cli(['workbench', 'terminal', '--root', str(fx.store.root)], 100)
+        assert prompts and prompts[0] == 'workbench> ', prompts
+        for prompt in sorted(set(prompts)):
+            sweep.read('terminal session', 'workbench terminal (prompt)', (100, 0), readable([prompt]), rows=[prompt])
+        sweep.text('terminal session', 'workbench terminal', (100, 0), text)
+        sweep.text('terminal session', 'workbench terminal (stderr)', (100, 0), err)
+        driven('workbench terminal')
+    finally:
+        fx.doCleanups()
+    return sweep
+
+
+@functools.lru_cache(maxsize=1)
+@named_sweep
+def sweep_companion():
+    """workbench companion through cli.main, live for a second (the listener binds this machine's loopback and nobody connects) and as
+    a file: the address notice and the sentence before the JSON end line are printed with print(), outside _write_text."""
+    sweep = Sweep()
+    fx = Estate()
+    fx.setUp()
+    try:
+        build_observed(fx)
+        root = str(fx.store.root)
+        code, text, err = run_cli(['workbench', 'companion', '--root', root, '--object', OBJECT, '--serve', '--idle-seconds', '1'], 100)
+        assert 'Listening on' in text and 'its address no longer answers' in text, text
+        sweep.text('companion, live', 'workbench companion --serve', (100, 0), text)
+        sweep.text('companion, live', 'workbench companion --serve (stderr)', (100, 0), err)
+        with tempfile.TemporaryDirectory() as temp:
+            code, text, err = run_cli(['workbench', 'companion', '--root', root, '--object', OBJECT, '--out', str(Path(temp) / 'page.html')], 100)
+        sweep.text('companion, file', 'workbench companion --out', (100, 0), text)
+        driven('workbench companion')
+    finally:
+        fx.doCleanups()
+    return sweep
+
+
+class StandInJourney:
+    """Presentation only: the canned results, in the shapes the real provider journey returns, for provider wizard's own prompts."""
+
+    def __init__(self, executor_root, session, authority_config):
+        self._authorization = self._reviewed_sha = None
+
+    def approve(self, receipt):
+        return {'status': 'approved', 'receipt': receipt}
+
+    def suspend(self, reason='save'):
+        return {'status': 'suspended', 'reason': reason}
+
+    def __getattr__(self, name):
+        if name in ('prepare', 'review', 'execute', 'reconcile', 'status'):
+            return lambda: {'status': name}
+        raise AttributeError(name)
+
+
+@functools.lru_cache(maxsize=1)
+@named_sweep
+def sweep_provider_wizard():
+    """provider wizard through cli.main with a stand-in journey (the real one needs an admitted executor) and the lines typed: the
+    prompts it hands to input and the two lines it prints with print(), before its JSON results."""
+    sweep = Sweep()
+    typed, prompts = iter(['prepare', 'approve', 'receipt.json', 'bogus', 'status', 'save']), []
+
+    def fake_input(prompt=''):
+        prompts.append(prompt)
+        try:
+            return next(typed)
+        except StopIteration:
+            raise EOFError()
+    with patch('intune_iac.provider_journey.ProviderJourney', StandInJourney), patch.object(builtins, 'input', fake_input):
+        code, text, err = run_cli(['provider', 'wizard', '--executor-root', '/executor', '--session', '/session', '--authority-config',
+                                   '/authority'], 100)
+    assert set(prompts) == {'provider> ', 'Receipt file: '} and text.startswith('Provider journey:'), (prompts, text)
+    for prompt in sorted(set(prompts)):
+        sweep.read('provider wizard session', 'provider wizard (prompt)', (100, 0), readable([prompt]), rows=[prompt])
+    sweep.text('provider wizard session', 'provider wizard', (100, 0), text)
+    sweep.text('provider wizard session', 'provider wizard (stderr)', (100, 0), err)
+    driven('provider wizard')
     return sweep
 
 
 # -- simulate, --check-signin, and the protected service and adoption views ------------------------------------------------------------
 
 @functools.lru_cache(maxsize=1)
+@named_sweep
 def sweep_simulate():
     """simulate --format text, with the documents test_sim_render_cli builds: its scenario (a conflict between two policies), a
     snapshot with an unbounded group, one with an incomplete collection, a complete one with no findings, and the estate and
@@ -1740,6 +2146,7 @@ def run_signin_case(sweep, case, folders, effective=True):
 
 
 @functools.lru_cache(maxsize=1)
+@named_sweep
 def sweep_check_signin():
     """start --goal G --check-signin P and catalog --check-signin P (with and without a goal), with the az and gh the sign-in tests
     stub (FakeClis: canned answers on a temporary search path, no real tool, no network), for every case of signin_cases, in a
@@ -1771,6 +2178,7 @@ class ServiceView(ServiceFixtures, unittest.TestCase):
 
 
 @functools.lru_cache(maxsize=1)
+@named_sweep
 def sweep_protected_views():
     """The views behind the service, adoption and adoption-plan navigation, as the workspace shows them: for each of review, status,
     attach, cancel and recover, the command sent and the response received, with the hand-authored responses (presentation
@@ -1824,6 +2232,7 @@ def sweep_protected_views():
 LINK_ROUTES = ('service-link', 'adoption-link', 'evidence-link', 'evidence-history')
 
 
+@named_sweep
 def build_link_sweep(inject=None):
     """service-link, adoption-link, evidence-link and evidence-history, as the workspace shows them: for each, the command sent and
     the response received (plugin_tests/link_presentation_fixtures.py: the rows the product's own store writes for the three links,
@@ -2519,68 +2928,207 @@ class CommandLineSweepTests(unittest.TestCase):
         from intune_iac import cli
         self.assertGreaterEqual(sweep.routes_read, len(routes(cli.parser())))
 
-    @staticmethod
-    def drive_every_text_route():
-        for sweep in (sweep_start_and_catalog, sweep_signin, sweep_workflow_and_engineering, sweep_simulate, sweep_check_signin):
-            sweep()
 
-    def test_every_leaf_that_prints_text_is_driven_through_cli_main(self):
-        """cli.main prints a person's text through _write_text for the leaves that satisfy the conditions around each call. The
-        leaves are read from its source, and what the sweeps drove is recorded whenever _write_text runs (recording_routes), so a
-        route the sweeps did not reach, however it got its text, is a failure and not a count that still adds up."""
+def run_every_sweep():
+    """Run, once (they are cached), the sweep each text and session leaf names; the recorder then says what each one drove."""
+    for sweeps in LEAF_DRIVERS.values():
+        for name in ((sweeps,) if isinstance(sweeps, str) else sweeps):
+            globals()[name]('empty store') if name == 'sweep_state' else globals()[name]()
+
+
+class LeafClassificationTests(unittest.TestCase):
+    """Sol B V2 finding 1: the classification of the parser's leaves fails closed. A leaf is text, a session or a machine form because the
+    table says so, a leaf the table does not name fails, and a product that writes to a terminal anywhere unlisted fails."""
+
+    @staticmethod
+    def parser():
         from intune_iac import cli
-        self.drive_every_text_route()
-        by_code = text_leaves_by_code(cli.parser())
-        driven = {leaf for leaf, count in WRITTEN.items() if count}
+        return cli.parser()
+
+    @staticmethod
+    def add_leaf(parser, *path):
+        for name in path[:-1]:
+            parser = next(item for item in parser._actions if isinstance(item, argparse._SubParsersAction)).choices[name]
+        next(item for item in parser._actions if isinstance(item, argparse._SubParsersAction)).add_parser(path[-1])
+
+    def test_the_table_names_every_parser_leaf_once_and_only_those(self):
+        parser = self.parser()
+        self.assertEqual(leaf_table_problems(parser), [])
+        kinds = collections.Counter(leaf_table().values())
+        self.assertEqual((kinds['text'], kinds['session'], kinds['machine']), (7, 5, 127))
+        self.assertEqual(sum(kinds.values()), len(leaf_paths(parser)))                         # 139
+
+    def test_a_leaf_the_table_does_not_name_fails_and_so_does_an_entry_with_no_leaf(self):
+        for path in (('kube',), ('signin', 'whoami'), ('workbench', 'kube')):
+            parser = self.parser()
+            self.add_leaf(parser, *path)
+            self.assertEqual(leaf_table_problems(parser), ['the parser has the leaf %r and the table does not name it' % ' '.join(path)])
+        table = {kind: tuple(names) for kind, names in LEAF_TABLE.items()}
+        parser = self.parser()
+        self.assertEqual(leaf_table_problems(parser, dict(table, machine=table['machine'] + ('worker teleport',))),
+                         ["the table names 'worker teleport' and the parser has no such leaf"])
+        self.assertEqual(leaf_table_problems(parser, dict(table, machine=tuple(name for name in table['machine'] if name != 'doctor'))),
+                         ["the parser has the leaf 'doctor' and the table does not name it"])
+        self.assertEqual(leaf_table_problems(parser, dict(table, text=table['text'] + ('doctor',))),
+                         ["the leaf 'doctor' is named twice (text and machine)"])
+        drivers = dict(LEAF_DRIVERS)
+        del drivers['start']
+        self.assertEqual(leaf_table_problems(parser, drivers=drivers), ["the text leaf 'start' has no driver"])
+        self.assertEqual(leaf_table_problems(parser, drivers=dict(LEAF_DRIVERS, doctor='sweep_signin')),
+                         ["'doctor' has a driver and is not a text or session leaf"])
+        self.assertEqual(leaf_table_problems(parser, drivers=dict(LEAF_DRIVERS, start='sweep_nothing')),
+                         ["the driver 'sweep_nothing' of 'start' is not a function of this module"])
+
+    def test_every_text_and_session_leaf_is_driven_by_the_sweep_the_table_names(self):
+        parser = self.parser()
+        run_every_sweep()
+        for name, sweeps in LEAF_DRIVERS.items():
+            for sweep in ((sweeps,) if isinstance(sweeps, str) else sweeps):
+                self.assertIn(sweep, DRIVEN[tuple(name.split())], '%s was not driven by %s' % (name, sweep))
+        kinds = leaf_table()
+        by_code = text_leaves_by_code(parser)
+        written = {leaf for leaf, count in WRITTEN.items() if count}
         self.assertTrue({('start',), ('catalog',), ('engineering',), ('signin', 'status'), ('signin', 'collect'), ('simulate',),
                          ('workbench', 'workflow'), ('workbench', 'workspace')} <= by_code, sorted(by_code))       # not a vacuous read
-        self.assertEqual(sorted(by_code - driven), [],
-                         'a leaf prints text through cli._write_text and no sweep drove it through cli.main: drive it')
-        self.assertEqual(sorted(driven - by_code), [], 'cli.main printed text for a leaf the analysis of its source did not admit')
+        self.assertEqual(sorted(leaf for leaf in by_code if kinds[leaf] == 'machine'), [],
+                         'cli.main prints text through cli._write_text for a leaf the table calls a machine form')
+        self.assertEqual(sorted(leaf for leaf, kind in kinds.items() if kind == 'text' and leaf not in by_code), [],
+                         'the table calls a leaf text and cli.main prints no text through cli._write_text for it')
+        self.assertEqual(sorted(by_code - written), [], 'a leaf prints text through cli._write_text and no sweep drove it through cli.main')
+        self.assertEqual(sorted(written - by_code), [], 'cli.main printed text for a leaf the analysis of its source did not admit')
 
-    def test_every_parser_leaf_is_text_a_session_or_a_machine_form_and_the_sessions_are_driven(self):
-        from intune_iac import cli
-        parser = cli.parser()
-        leaves = set(leaf_paths(parser))
-        text, session = text_leaves_by_code(parser), set(SESSION_LEAVES)
-        self.assertTrue(session <= leaves, sorted(session - leaves))
-        machine = leaves - text - session
-        self.assertEqual(len(text | session | machine), len(leaves))
-        self.assertGreater(len(machine), 100)                    # the rest print the JSON document of cli.main; their --help is read above
-        self.assertTrue({('doctor',), ('inspect',), ('workbench', 'init'), ('workbench', 'collect')} <= machine)
-        self.assertIn('wizard, first run', {state for (state, *_) in sweep_wizards().coverage})
-        self.assertTrue(sweep_state('empty store').coverage)
+    def test_the_product_writes_to_a_person_only_at_the_listed_sites(self):
+        self.assertEqual(output_site_problems(), [])
+        found = output_sites()
+        self.assertEqual(dict(found), {site: value[0] for site, value in list(OUTPUT_SITES.items()) + list(NOT_A_TERMINAL.items())})
+        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (23, 9, 32, 41))
+        self.assertIn(('cli.py', '_write_text', 'print'), found)                                   # the scan reads the product
 
-    def test_a_new_leaf_that_prints_text_fails_until_it_is_driven(self):
+    @staticmethod
+    def unlisted(source):
+        """What output_site_problems reports for the product with one more module, kube.py, of this source."""
+        sources = package_sources()
+        sources['kube.py'] = source
+        return output_site_problems(sources)
+
+    def test_a_new_leaf_that_prints_with_print_fails_closed(self):
+        """Sol's input: a kube leaf that prints `Run: kubectl apply PLAN_FILE` with print() was a machine form by subtraction. The same
+        line by every other road to a terminal that the scan names fails as well, and a file written by the same call shapes does not."""
+        parser = self.parser()
+        self.add_leaf(parser, 'kube')
+        self.assertEqual(leaf_table_problems(parser), ["the parser has the leaf 'kube' and the table does not name it"])
+        line = 'Run: kubectl apply PLAN_FILE'
+        for label, body, kind in (
+                ('print', "def kube(args):\n    print(%r)\n    return 0\n", 'print'),
+                ('print to a stream', "import sys\ndef kube(args):\n    print(%r, file=sys.stderr)\n", 'print'),
+                ('sys.stdout.write', "import sys\ndef kube(args):\n    sys.stdout.write(%r)\n", 'write'),
+                ('sys.stderr.write', "import sys\ndef kube(args):\n    sys.stderr.write(%r)\n", 'write'),
+                ('a stream passed in', "def kube(args, stream):\n    stream.write(%r)\n", 'write'),
+                ('a stream under another name', "import sys\ndef kube(args):\n    out = sys.stdout\n    out.write(%r)\n", 'write'),
+                ('writelines', "import sys\ndef kube(args):\n    sys.stdout.writelines([%r])\n", 'write'),
+                ('the terminal opened as a file', "import os\ndef kube(args):\n    with os.fdopen(1, 'w') as out:\n        out.write(%r)\n",
+                 'write'),
+                ('os.write', "import os\ndef kube(args):\n    os.write(1, %r.encode())\n", 'write'),
+                ('input with a prompt', "def kube(args):\n    return input(%r)\n", 'input'),
+                ('input as a value', "def kube(args, input_fn=input):\n    return input_fn(%r)\n", 'input-value'),
+                ('print as a value', "def kube(args, output_fn=print):\n    output_fn(%r)\n", 'print-value'),
+                ('an exit with a sentence', "import sys\ndef kube(args):\n    sys.exit(%r)\n", 'exit-text'),
+                ('a raised exit with a sentence', "def kube(args):\n    raise SystemExit(%r)\n", 'exit-text'),
+                ('the parser', "def kube(parser):\n    parser.error(%r)\n", 'parser-output'),
+                ('a module that writes by itself', "import logging\ndef kube(args):\n    logging.warning(%r)\n", 'import logging')):
+            with self.subTest(label):
+                where = '<module>' if kind.startswith('import') else 'kube'
+                self.assertEqual(self.unlisted(body % line), ['kube.py: %s has 1 unlisted %s site(s)' % (where, kind)])
+        for label, body in (
+                ('a JSON document by print', "import json\ndef kube(args):\n    print(json.dumps({'next': %r}))\n"),
+                ('a JSON document by write', "import sys, json\ndef kube(args):\n    sys.stdout.write(json.dumps({'next': %r}))\n"),
+                ('a file opened by name', "def save(path):\n    with open(path, 'w') as handle:\n        handle.write(%r)\n"),
+                ('a file opened by descriptor', "import os\ndef save(fd):\n    with os.fdopen(fd, 'w') as stream:\n        stream.write(%r)\n"),
+                ('a file opened on a path', "def save(path):\n    with path.open('x') as out:\n        out.write(%r)\n"),
+                ('an exit with a status', "import sys\ndef kube(args):\n    sys.exit(2)  # %r\n")):
+            with self.subTest(label):
+                self.assertEqual(self.unlisted(body % line), [])
+        branch = "        if args.command=='mcp':"                                                   # and inside cli.main itself
+        main = package_sources()['cli.py']
+        self.assertIn(branch, main)
+        sources = package_sources()
+        sources['cli.py'] = main.replace(branch, "        if args.command=='kube':\n            print(%r)\n            return 0\n" % line + branch, 1)
+        self.assertEqual(output_site_problems(sources), ['cli.py: main has 1 unlisted print site(s)'])
+
+    def test_a_listed_site_must_be_exact(self):
+        sources = package_sources()
+        sources['provider_journey.py'] = sources['provider_journey.py'].replace(
+            "    print('Provider journey: network-denied", "    print('A third line')\n    print('Provider journey: network-denied", 1)
+        self.assertEqual(output_site_problems(sources), ['provider_journey.py: run_provider_wizard has 3 print site(s), 2 listed'])
+        sources = package_sources()
+        sources['wizard.py'] = ''
+        self.assertEqual(sorted(output_site_problems(sources)),
+                         ['wizard.py: _run_wizard input-value is listed and the sources have no such site',
+                          'wizard.py: _run_wizard print-value is listed and the sources have no such site',
+                          'wizard.py: run_wizard input-value is listed and the sources have no such site',
+                          'wizard.py: run_wizard print-value is listed and the sources have no such site'])
+        # a write that reaches no terminal is listed too, and a site is not listed as both
+        others = {site: value for site, value in NOT_A_TERMINAL.items() if site[0] != 'mcp.py'}
+        self.assertEqual(output_site_problems(others=others), ['mcp.py: serve.send has 1 unlisted write site(s)'])
+        both = {**NOT_A_TERMINAL, ('cli.py', '_write_text', 'print'): (1, 'a socket')}
+        self.assertEqual(output_site_problems(others=both),
+                         ['cli.py: _write_text print is listed as a terminal site and as a site that reaches no terminal'])
+        # a site that serves a leaf the table does not call text or session, and a session leaf no site serves
+        listed = dict(OUTPUT_SITES)
+        listed[('cli.py', '_write_text', 'print')] = (1, 'doctor')
+        self.assertEqual(output_site_problems(listed=listed),
+                         ["the site cli.py: _write_text serves 'doctor', which the table does not classify as text or session"])
+        listed = {site: value for site, value in OUTPUT_SITES.items() if value[1] != 'provider wizard'}
+        self.assertIn("the session leaf 'provider wizard' is served by no listed site", output_site_problems(listed=listed))
+
+    def test_a_new_leaf_that_prints_text_through_write_text_fails_until_it_is_driven(self):
         """The count of _write_text calls did not move when a leaf was added to a branch that already printed text; the leaves read
         from the source do. A new branch of cli.main that prints text for a leaf of its own is found the same way."""
         from intune_iac import cli
-        self.drive_every_text_route()
-        parser = cli.parser()
-        top = next(item for item in parser._actions if isinstance(item, argparse._SubParsersAction))
-        group = next(item for item in top.choices['signin']._actions if isinstance(item, argparse._SubParsersAction))
-        group.add_parser('whoami')                               # under the signin branch, which prints text for every signin leaf
-        top.add_parser('kube')                                   # a leaf of its own, for a branch that main gains
+        run_every_sweep()
+        parser = self.parser()
+        self.add_leaf(parser, 'signin', 'whoami')                 # under the signin branch, which prints text for every signin leaf
+        self.add_leaf(parser, 'kube')                             # a leaf of its own, for a branch that main gains
         source = inspect.getsource(cli.main)
         branch = "        if args.command=='mcp':"
         self.assertIn(branch, source)
         source = source.replace(branch, "        if args.command=='kube':\n            _write_text(['Run: kubectl apply -f MANIFEST_FILE'])\n"
                                         "            return 0\n" + branch, 1)
         by_code = text_leaves_by_code(parser, source)
-        driven = {leaf for leaf, count in WRITTEN.items() if count}
-        self.assertEqual(sorted(by_code - driven), [('kube',), ('signin', 'whoami')])
-        self.assertEqual(inspect.getsource(cli.main).count('_write_text('), source.count('_write_text(') - 1)
-        self.assertNotIn(('kube',), text_leaves_by_code(parser))                     # the real main names no such branch
+        written = {leaf for leaf, count in WRITTEN.items() if count}
+        self.assertEqual(sorted(by_code - written), [('kube',), ('signin', 'whoami')])
+        self.assertEqual(len(leaf_table_problems(parser)), 2)                                      # and the table names neither
+        self.assertNotIn(('kube',), text_leaves_by_code(parser))                                   # the real main names no such branch
 
-    def test_the_recorder_reads_the_leaf_cli_main_ran_for(self):
+    def test_the_recorder_reads_the_leaf_cli_main_ran_for_and_the_sweep_that_ran_it(self):
         before = WRITTEN[('engineering',)]
-        run_cli(['engineering'], 80)
-        self.assertEqual(WRITTEN[('engineering',)], before + 1)
-        run_cli(['engineering', '--json'], 80)                                         # the machine form prints no text
-        run_cli(['engineering', '--help'], 80)
-        self.assertEqual(WRITTEN[('engineering',)], before + 1)
-        run_cli(['workbench', 'workspace', '--root', '/stores/one'], 80, tty=True, execute={'status': 'interrupted'})
-        self.assertGreater(WRITTEN[('workbench', 'workspace')], 0)
+        CURRENT_SWEEP.append('a probe')
+        try:
+            run_cli(['engineering'], 80)
+            self.assertEqual(WRITTEN[('engineering',)], before + 1)
+            run_cli(['engineering', '--json'], 80)                                         # the machine form prints no text
+            run_cli(['engineering', '--help'], 80)
+            self.assertEqual(WRITTEN[('engineering',)], before + 1)
+            run_cli(['workbench', 'workspace', '--root', '/stores/one'], 80, tty=True, execute={'status': 'interrupted'})
+            self.assertGreater(WRITTEN[('workbench', 'workspace')], 0)
+        finally:
+            CURRENT_SWEEP.pop()
+        self.assertEqual({sweep for sweep in DRIVEN[('engineering',)] if sweep == 'a probe'}, {'a probe'})
+        self.assertIn('a probe', DRIVEN[('workbench', 'workspace')])
+
+    def test_a_stream_of_json_documents_is_a_machine_form_and_a_sentence_beside_it_is_not(self):
+        self.assertTrue(machine_form('{"a": 1}'))
+        self.assertTrue(machine_form('{"a": 1}\n{"b": [2, 3]}\n'))
+        self.assertTrue(machine_form('{\n  "a": 1\n}\n{\n  "b": 2\n}'))
+        self.assertFalse(machine_form('{"a": 1}\nRun: kubectl apply PLAN_FILE'))
+        self.assertFalse(machine_form('Run: kubectl apply PLAN_FILE\n{"a": 1}'))
+        self.assertFalse(machine_form('   '))
+        sweep = Sweep()
+        sweep.text('state', 'workbench terminal', (80, 0), '{"next": "Run: kubectl apply PLAN_FILE"}\n{"status": "ok"}')
+        self.assertEqual(sweep.net, collections.OrderedDict())
+        sweep = Sweep()
+        sweep.text('state', 'workbench terminal', (80, 0), '{"status": "ok"}\nRun: kubectl apply PLAN_FILE')
+        self.assertEqual(sorted(sweep.net), [('Run', 'PLAN_FILE')])
 
 
 class RemainingRouteSweepTests(unittest.TestCase):
@@ -2647,6 +3195,18 @@ class RemainingRouteSweepTests(unittest.TestCase):
                         self.assertGreater(sweep.coverage[(domain, label, size[0])], 0, (domain, label, size))
             for size in SCHEDULE:
                 self.assertGreater(sweep.coverage[(domain, '%s-review (an error response)' % prefix, size[0])], 0, (domain, size))
+
+    def test_the_line_terminal_the_companion_and_the_provider_wizard_through_cli_main(self):
+        """The leaves that print with print() or input() rather than cli._write_text, each through cli.main with its input scripted."""
+        for sweep, routes, printed in (
+                (sweep_terminal(), ('workbench terminal (prompt)', 'workbench terminal'), None),
+                (sweep_companion(), ('workbench companion --serve', 'workbench companion --out'),
+                 ('companion, live', 'workbench companion --serve')),
+                (sweep_provider_wizard(), ('provider wizard (prompt)', 'provider wizard'), ('provider wizard session', 'provider wizard'))):
+            judge(self, sweep)
+            self.assertTrue(set(routes) <= {route for (_, route, *_) in sweep.coverage}, routes)
+            if printed:
+                self.assertGreater(sweep.printed[printed], 2, printed)                      # the sentences it prints were read
 
 
 class LinkedRecordSweepTests(unittest.TestCase):
