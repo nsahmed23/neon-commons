@@ -793,3 +793,87 @@ class GoalRowTests(unittest.TestCase):
                     self.assertNotIn('--tenant TENANT_ID', text)
                     if route != 'plain':
                         self.assertIn('Resume with the workbench init command, naming your store folder and your tenant id.', text)
+
+
+# sha256 (first 16 hex digits) of the JSON forms, taken on 9687896 before round 3: `start --json` and `catalog --json` of the four
+# fixtures, with no goal and with each goal. The machine forms keep the recorded steps, placeholders and legends included; only the
+# human text says them in words. The fixture directory is written FIXTURES and this machine's own facts are made fixed first.
+JSON_GOLDEN = {
+    'catalog|context|-': 'c9f93c8cd71feca1',
+    'catalog|context|adopt': 'eb1bdb9a1cb84212',
+    'catalog|context|change': '11ea9714a191bc0c',
+    'catalog|context|discover': '22c1b78cd5f3dc8b',
+    'catalog|context|inspect': 'df065fd96efc04f1',
+    'catalog|full|-': 'bf9ace0c91432b4b',
+    'catalog|full|adopt': '0851548c2f8bdd5b',
+    'catalog|full|change': '6ef296b54f96514c',
+    'catalog|full|discover': 'fa727032f051aff8',
+    'catalog|full|inspect': '828864452f4187c3',
+    'catalog|offline|-': 'ee2e02e36caaf5e5',
+    'catalog|offline|adopt': '15756c3587cd8478',
+    'catalog|offline|change': '13f90cb0d18ab49e',
+    'catalog|offline|discover': '5bf89ab1272a4bdb',
+    'catalog|offline|inspect': '00c2570d3b15330b',
+    'catalog|repository|-': '30f927594f88c20e',
+    'catalog|repository|adopt': '53781916434b1965',
+    'catalog|repository|change': 'e35a35ae1fa2ac33',
+    'catalog|repository|discover': 'e1e16923fa9462e6',
+    'catalog|repository|inspect': 'f20a046378acdc0c',
+    'start|context|-': '294054ccbb2cc379',
+    'start|context|adopt': '1d3159d82df1aa6d',
+    'start|context|change': '86700a9353961285',
+    'start|context|discover': 'f263de09ab799395',
+    'start|context|inspect': 'ccd3dafa5bd2d95f',
+    'start|full|-': '22a102575e422562',
+    'start|full|adopt': 'befb45f7edd4302e',
+    'start|full|change': '3a5c6f5c10ab045a',
+    'start|full|discover': '7d518e258599f0e4',
+    'start|full|inspect': '8ee589bcf2cbdeb9',
+    'start|offline|-': '4b69aa90a9b2fd8c',
+    'start|offline|adopt': '2825e01433a3bec5',
+    'start|offline|change': '0d43a1ae8c481493',
+    'start|offline|discover': 'cdd285ddcaf84d2b',
+    'start|offline|inspect': '6dda309a5bdd26b1',
+    'start|repository|-': '895316c63fed83eb',
+    'start|repository|adopt': '095cf4592a4fba52',
+    'start|repository|change': '84ce949e877760e5',
+    'start|repository|discover': 'c57f2a237029c562',
+    'start|repository|inspect': 'df505d92cf976103',
+}
+
+
+class JsonFormsUnchangedTests(unittest.TestCase):
+    """Round 3, item 3: the display transform is for the text forms only."""
+
+    def test_the_json_of_start_and_the_catalog_is_byte_for_byte_what_it_was(self):
+        seen = 0
+        for key, path in sorted(Fixtures.get().items()):
+            for command in ('start', 'catalog'):
+                for goal in GOALS:
+                    argv = [command, str(path), '--json'] + (['--goal', goal] if goal else [])
+                    out = io.StringIO()
+                    from intune_iac import cli
+                    with contextlib.redirect_stdout(out):
+                        self.assertEqual(cli.main(argv), 0)
+                    data = host_free(json.loads(out.getvalue().replace(str(path.parent), 'FIXTURES')))
+                    seen += 1
+                    with self.subTest(command=command, fixture=key, goal=goal):
+                        self.assertEqual(hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()[:16],
+                                         JSON_GOLDEN['%s|%s|%s' % (command, key, goal or '-')])
+        self.assertEqual(seen, len(JSON_GOLDEN))
+
+    def test_the_json_still_records_the_commands_with_their_placeholders_and_legends(self):
+        from plugin_tests.test_start_goal import Fixtures as F
+        out = io.StringIO()
+        from intune_iac import cli
+        with contextlib.redirect_stdout(out):
+            cli.main(['start', str(F.get()['full']), '--json', '--goal', 'discover'])
+        text = out.getvalue()
+        self.assertIn('--policy POLICY --output NEW_DIR --token-env TOKEN_VARIABLE_NAME', text)
+        self.assertIn('POLICY is the policy id, a GUID', text)
+        self.assertNotIn('the capture command, naming', text)
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            cli.main(['catalog', str(F.get()['repository']), '--json', '--goal', 'discover'])
+        self.assertIn('intune-iac start DIRECTORY', out.getvalue())
+        self.assertNotIn('the start command, naming', out.getvalue())
