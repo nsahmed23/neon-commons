@@ -2247,7 +2247,9 @@ def output_site_problems(sources=None, listed=None, table=None, others=None):
 # (and every getter of a property named m, on any load); super().m(...) reaches the m of the bases. A name or an attribute of an imported
 # module of the standard library reaches nothing of the product. `with` reaches every __enter__ and __exit__, an import reaches the module,
 # a function reached reaches the functions it names. The if-chains of cli.main, of cli.execute and of every function that dispatches on
-# args.<route> (or on a name that holds it) are read as route conditions: a branch is skipped for a leaf that fails the condition. A reach
+# args.<route> (or on a name that holds it) are read as route conditions: a route expression is true, false or unknown for the leaf (only a
+# comparison of a route attribute with words is known; and, or and not follow Kleene's rules), and a branch is skipped only when the known
+# comparisons decide the whole expression against it, so an operand that is not a route comparison keeps both branches. A reach
 # that follows direct names only is exact; every other reach needs an attribute name, which is how a function that shares its name with an
 # attribute some reached function uses is reached though nothing calls it. Both are listed (EXACT_REACHES, NAME_REACHES), by leaf and holder.
 # Those conditions are the command line's own, so whatever makes another command line has to be seen: a namespace or a parse of an argv of its
@@ -2267,36 +2269,66 @@ def dotted_module(filename):
     return '.'.join([PACKAGE.name] + (parts[:-1] if parts[-1] == '__init__' else parts))
 
 
+def route_attribute(node, aliases):
+    """The route attribute an expression reads: args.dest, getattr(args, 'dest', ...), either of them in a walrus, or a name that holds one."""
+    if isinstance(node, ast.NamedExpr):
+        node = node.value
+    if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == 'args':
+        return node.attr
+    if (isinstance(node, ast.Call) and getattr(node.func, 'id', '') == 'getattr' and len(node.args) >= 2 and isinstance(node.args[0], ast.Name)
+            and node.args[0].id == 'args' and isinstance(node.args[1], ast.Constant) and isinstance(node.args[1].value, str)):
+        return node.args[1].value
+    return aliases.get(node.id) if isinstance(node, ast.Name) else None
+
+
 def route_aliases(body):
-    """{local name: dest} for `name = args.dest` and `name = getattr(args, 'dest', None)`, when the name is assigned once in the statements."""
-    found, count = {}, collections.Counter()
+    """{local name: dest} for `name = args.dest`, `name = getattr(args, 'dest', None)` and the walrus form of both, when nothing else in the
+    statements binds the name."""
+    found, stores = {}, collections.Counter()
     for statement in body:
         for node in ast.walk(statement):
-            if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
-                value, dest = node.value, None
-                if isinstance(value, ast.Attribute) and isinstance(value.value, ast.Name) and value.value.id == 'args':
-                    dest = value.attr
-                elif (isinstance(value, ast.Call) and getattr(value.func, 'id', '') == 'getattr' and len(value.args) >= 2
-                      and isinstance(value.args[0], ast.Name) and value.args[0].id == 'args' and isinstance(value.args[1], ast.Constant)):
-                    dest = value.args[1].value
-                count[node.targets[0].id] += 1
+            if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+                stores[node.id] += 1
+            if (isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name)) or isinstance(node, ast.NamedExpr):
+                dest = route_attribute(node.value, {})
                 if dest:
-                    found[node.targets[0].id] = dest
-    return {name: dest for name, dest in found.items() if count[name] == 1}
+                    found[(node.targets[0] if isinstance(node, ast.Assign) else node.target).id] = dest
+    return {name: dest for name, dest in found.items() if stores[name] == 1}
 
 
-def route_clauses(test, aliases):
-    """The route constraints of an if test: route_constraints, and the comparisons of a name that holds a route value (name = args.dest)."""
-    found = list(route_constraints(test))
-    for clause in (test.values if isinstance(test, ast.BoolOp) and isinstance(test.op, ast.And) else [test]):
-        if (isinstance(clause, ast.Compare) and len(clause.ops) == 1 and isinstance(clause.ops[0], (ast.Eq, ast.In))
-                and isinstance(clause.left, ast.Name) and clause.left.id in aliases):
-            right = clause.comparators[0]
-            words = {item.value for item in (right.elts if isinstance(right, (ast.Tuple, ast.List, ast.Set)) else [right])
-                     if isinstance(item, ast.Constant) and isinstance(item.value, str)}
-            if words:
-                found.append((aliases[clause.left.id], words))
-    return found
+def route_expression(test, aliases):
+    """The route expression of an `if` test as a tree: ('and' | 'or', items), ('not', item), ('eq', attribute, words) for a comparison of a
+    route attribute with a word, or with a tuple, list or set of words only (== and in), and ('unknown',) for everything else."""
+    if isinstance(test, ast.BoolOp):
+        return ('and' if isinstance(test.op, ast.And) else 'or', tuple(route_expression(item, aliases) for item in test.values))
+    if isinstance(test, ast.UnaryOp) and isinstance(test.op, ast.Not):
+        return ('not', route_expression(test.operand, aliases))
+    if isinstance(test, ast.NamedExpr):
+        return route_expression(test.value, aliases)
+    if isinstance(test, ast.Compare) and len(test.ops) == 1 and isinstance(test.ops[0], (ast.Eq, ast.In)):
+        dest, right = route_attribute(test.left, aliases), test.comparators[0]
+        if dest:
+            items = ([right] if isinstance(test.ops[0], ast.Eq)
+                     else right.elts if isinstance(right, (ast.Tuple, ast.List, ast.Set)) else [])
+            if items and all(isinstance(item, ast.Constant) and isinstance(item.value, str) for item in items):
+                return ('eq', dest, tuple(sorted({item.value for item in items})))
+    return ('unknown',)
+
+
+def route_value(tree, chosen, dests):
+    """True, False or None (unknown): what a route expression is for a leaf whose route values are `chosen`. Only a comparison of a route
+    attribute with words is known; and, or and not follow Kleene's rules, so an expression is decided only where the known comparisons
+    decide it: an and with a false clause is false whatever else it holds, an and with a true clause and an unknown one is unknown."""
+    if tree[0] == 'eq':
+        return chosen.get(tree[1]) in tree[2] if tree[1] in dests else None
+    if tree[0] == 'not':
+        value = route_value(tree[1], chosen, dests)
+        return None if value is None else not value
+    if tree[0] in ('and', 'or'):
+        values = [route_value(item, chosen, dests) for item in tree[1]]
+        decided = tree[0] == 'or'
+        return decided if decided in values else None if None in values else not decided
+    return None
 
 
 def value_escapes(node, parents):
@@ -2414,13 +2446,10 @@ def file_reach(source, filename):
                 if hasattr(statement, 'lineno'):
                     guards_by_position[(statement.lineno, statement.col_offset)] = guards
                 if isinstance(statement, ast.If):
-                    constraints = tuple((dest, tuple(sorted(words))) for dest, words in route_clauses(statement.test, aliases))
-                    pure = bool(constraints) and (isinstance(statement.test, ast.Compare) or (
-                        isinstance(statement.test, ast.BoolOp) and isinstance(statement.test.op, ast.And)
-                        and all(isinstance(item, ast.Compare) for item in statement.test.values)))
+                    tree = route_expression(statement.test, aliases)
                     visit(statement.test, guards)
-                    walk(statement.body, guards + ((constraints, pure, False),))
-                    walk(statement.orelse, guards + ((constraints, pure, True),))
+                    walk(statement.body, guards + ((tree, False),))
+                    walk(statement.orelse, guards + ((tree, True),))
                     continue
                 if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     for expression in statement.decorator_list + [statement.args] + ([statement.returns] if statement.returns else []):
@@ -2638,15 +2667,10 @@ class ReachGraph:
 
 
 def passes(guards, chosen, dests):
-    """A statement behind these route conditions can run for a leaf whose route values are `chosen`: no condition it fails, and no else
-    branch of a condition that certainly holds (a conjunction of route comparisons that the leaf satisfies)."""
-    for constraints, pure, negated in guards:
-        if not constraints:
-            continue
-        satisfied = all(chosen.get(dest) in set(words) for dest, words in constraints if dest in dests)
-        if (not negated and not satisfied) or (negated and satisfied and pure):
-            return False
-    return True
+    """A statement behind these route conditions can run for a leaf whose route values are `chosen`: none of its conditions is decided
+    against it. The body of an `if` is out when its route expression is false for the leaf, and the else branch when it is true; an
+    expression that is unknown (an operand that is not a route comparison keeps it open) takes neither branch out."""
+    return all(route_value(tree, chosen, dests) is not negated for tree, negated in guards)
 
 
 @functools.lru_cache(maxsize=None)
@@ -4836,6 +4860,40 @@ class ReachTests(unittest.TestCase):
         with self.subTest('the storage classes made (control: windows_directory\'s API, not the console\'s)'):
             found = self.new_reaches(self.mutated('from .windows_storage import _Win32Storage\n_Win32Storage()'), 'doctor')
             self.assertNotIn(loader, found)
+
+    def test_a_route_expression_is_true_false_or_unknown(self):
+        """Sol V5 finding 1: `if args.command == "doctor" and 0 == 1: pass / else: run_terminal(...)` pruned the live else branch for the doctor
+        leaf, because both operands were comparisons and so the test counted as nothing but route comparisons. A branch is pruned only when the
+        known route comparisons decide the whole expression against it; and, or and not follow Kleene's rules for true, false and unknown.
+        Each case is judged on the doctor leaf itself, with the code at the start of cli.doctor (as in the review) or of cli.execute."""
+        terminal = '    from .workbench import run_terminal\n    run_terminal("x")'
+        for label, snippet, function, reached in (
+                ('Sol: a route clause and an operand that is not one, the else branch live',
+                 'if args.command == "doctor" and 0 == 1:\n    pass\nelse:\n' + terminal, 'doctor', True),
+                ('Sol: a route clause and an operand that is not one, in execute',
+                 'if args.command == "doctor" and 0 == 1:\n    pass\nelse:\n' + terminal, 'execute', True),
+                ('Sol: or with a constant true, the body live', 'if args.command == "workbench" or 1 == 1:\n' + terminal, 'doctor', True),
+                ('Sol: or with a constant true, in execute', 'if args.command == "workbench" or 1 == 1:\n' + terminal, 'execute', True),
+                ('a false clause decides an and', 'if args.command == "workbench" and 0 == 1:\n' + terminal, 'execute', False),
+                ('a true clause decides an or', 'if args.command == "doctor" or 0 == 1:\n    pass\nelse:\n' + terminal, 'execute', False),
+                ('not of a clause that is true', 'if not (args.command == "doctor"):\n' + terminal, 'execute', False),
+                ('not of an expression that is unknown', 'if not (args.command == "doctor" and 0 == 1):\n' + terminal, 'execute', True),
+                ('nested: an or of two false clauses, one of them an and with an unknown operand',
+                 'if (args.command == "workbench" and 0 == 1) or args.command == "worker":\n' + terminal, 'execute', False),
+                ('nested: a true or inside an and with an unknown operand, the else branch live',
+                 'if (args.command == "workbench" or args.command == "doctor") and 0 == 1:\n    pass\nelse:\n' + terminal, 'execute', True),
+                ('a walrus on the route attribute', 'if (cmd := args.command) == "workbench":\n' + terminal, 'execute', False),
+                ('a walrus, and the name it binds in the next test',
+                 'if (cmd := args.command) == "workbench":\n    pass\nelif cmd == "doctor":\n    pass\nelse:\n' + terminal, 'execute', False),
+                ('a walrus around a whole comparison', 'if (ok := args.command == "doctor") and 0 == 1:\n    pass\nelse:\n' + terminal,
+                 'execute', True),
+                ('a tuple with an operand that is not a word', 'if args.command in ("workbench", other):\n' + terminal, 'execute', True),
+                ('a tuple of words the leaf is not in (control)', 'if args.command in ("workbench", "worker"):\n' + terminal, 'execute', False)):
+            with self.subTest(label):
+                found = self.new_reaches(self.mutated(snippet, function=function), 'doctor')
+                self.assertEqual(self.TERMINAL <= set(found), reached, found)
+                if not reached:
+                    self.assertFalse(self.TERMINAL & set(found), found)
 
     def test_code_behind_a_route_condition_the_leaf_fails_is_not_run_by_it(self):
         for label, snippet in (('the command is another', 'if args.command == "workbench":\n    from .workbench import run_terminal\n'
