@@ -23,12 +23,16 @@ What it covers
     presentation fixtures of their TUI tests (the service one through plugin_tests/service_presentation_fixtures.py, which holds no
     docker import).
 
-Not driven, and why: service-link, adoption-link, evidence-link and evidence-history, and the real protected journals behind the
-service views. Their fixtures are test_worker_service_r4.WorkerServiceR4Tests, test_worker_service_readback_r4 and
-test_worker_evidence_r4 (used by test_workbench_service_views_r4, test_workbench_service_tui_r4.ServiceEntrypointTests and
-test_workbench_evidence_views_r4), which import the pinned docker and relay of scripts/qualification_tools and build a TLS probe
-with /usr/bin/gcc; the real adoption recovery plan fixture (test_worker_adoption_plan_recovery_r4) refuses the controller's
-standard-library links on this machine.
+service-link, adoption-link, evidence-link and evidence-history (and the history of adoptions) are driven with the responses of
+plugin_tests/link_presentation_fixtures.py: the rows the product's own store writes for the links and the real history of received
+evidence, fed through the workspace like the others, at every size, in the summary and the typed details.
+
+Not driven, and why: the real protected journals behind the service views. Their fixtures are
+test_worker_service_r4.WorkerServiceR4Tests, test_worker_service_readback_r4 and test_worker_evidence_r4 (used by
+test_workbench_service_views_r4, test_workbench_service_tui_r4.ServiceEntrypointTests and test_workbench_evidence_views_r4), which
+import the pinned docker and relay of scripts/qualification_tools and build a TLS probe with /usr/bin/gcc; the real adoption
+recovery plan fixture (test_worker_adoption_plan_recovery_r4) refuses the controller's standard-library links on this machine.
+What a person reads is the response as the workspace draws it, which the presentation fixtures reach without any of that.
 It excludes only machine forms: --json output, the non-terminal JSON document of the line terminal and the raw record layer of the
 workspace (r), which shows that same JSON document.
 
@@ -1358,8 +1362,9 @@ def sweep_protected_views():
     fixtures) of ServicePresentationTests (through service_presentation_fixtures), AdoptionPresentationTests and
     RecoveryPlanPresentation, in the summary and in the typed details, plus an error response and the adoption history. The real
     protected journals need the pinned docker and a TLS probe built with gcc (test_worker_service_r4.WorkerServiceR4Tests,
-    test_worker_service_readback_r4, test_worker_evidence_r4), which this machine does not have, so service-link, adoption-link and
-    evidence-link/-history are not driven (see the module docstring)."""
+    test_worker_service_readback_r4, test_worker_evidence_r4), which this machine does not have; service-link, adoption-link,
+    evidence-link and evidence-history are driven by build_link_sweep with the presentation fixtures of
+    plugin_tests/link_presentation_fixtures.py (see the module docstring)."""
     from plugin_tests.test_workbench_adoption_recovery_tui_r4 import RecoveryPlanPresentation
     from plugin_tests.test_workbench_adoption_tui_r4 import AdoptionPresentationTests
     sweep = Sweep()
@@ -1399,6 +1404,37 @@ def sweep_protected_views():
         finally:
             case.doCleanups()
     return sweep
+
+
+LINK_ROUTES = ('service-link', 'adoption-link', 'evidence-link', 'evidence-history')
+
+
+def build_link_sweep(inject=None):
+    """service-link, adoption-link, evidence-link and evidence-history, as the workspace shows them: for each, the command sent and
+    the response received (plugin_tests/link_presentation_fixtures.py: the rows the product's own store writes for the three links,
+    the real history of received evidence with one entry that reopens and one that cannot, and a refusal of each), read in the
+    summary and in the typed details at every size; also the history of adoptions with a linked operation that cannot be reopened.
+    inject: a text that replaces the one string each response shows in full, to prove a command in a response is read."""
+    from plugin_tests import link_presentation_fixtures as links
+    sweep = Sweep()
+    case = ServiceView()
+    case.setUp()
+    try:
+        case.ui.rules = 'unicode'
+        case.ui.selected = OBJECT
+        for route, variant, command, response in links.responses(case.store, case.job, case.policy, case.root, inject):
+            case.ui._send(command)
+            case.ui.receive(response)
+            for layer in ('summary', 'details'):
+                case.ui.layer, case.ui.scroll = layer, 0
+                read_screen(sweep, case.ui, 'linked records', '%s, %s%s' % (route, variant, ', typed details' if layer == 'details' else ''))
+            case.ui.layer = 'summary'
+    finally:
+        case.doCleanups()
+    return sweep
+
+
+sweep_link_views = functools.lru_cache(maxsize=1)(build_link_sweep)
 
 
 # -- the tests --------------------------------------------------------------------------------------------------------------------
@@ -1862,6 +1898,53 @@ class RemainingRouteSweepTests(unittest.TestCase):
                         self.assertGreater(sweep.coverage[(domain, label, size[0])], 0, (domain, label, size))
             for size in SCHEDULE:
                 self.assertGreater(sweep.coverage[(domain, '%s-review (an error response)' % prefix, size[0])], 0, (domain, size))
+
+
+class LinkedRecordSweepTests(unittest.TestCase):
+    """service-link, adoption-link, evidence-link and evidence-history, which no sweep drove before (their journals need docker)."""
+
+    def test_the_four_routes_are_read_in_the_summary_and_the_typed_details_at_every_size(self):
+        sweep = sweep_link_views()
+        judge(self, sweep)
+        labels = {surface for (state, surface, size) in sweep.coverage}
+        for route in LINK_ROUTES + ('adoption-history',):
+            read = sorted(label for label in labels if label.startswith(route + ','))
+            self.assertTrue(any('typed details' in label for label in read) and any('typed details' not in label for label in read), route)
+            for label in read:
+                for size in SCHEDULE:
+                    self.assertGreater(sweep.coverage[('linked records', label, size[0])], 0, (label, size))
+        for variant in ('a link already recorded', 'refused: workbench_service_identity', 'refused: workbench_adoption_identity',
+                        'refused: workbench_evidence_identity', 'refused: no object selected', 'one entry reopens, one cannot'):
+            self.assertTrue(any(variant in label for label in labels), variant)
+
+    def test_a_command_in_a_response_reaches_the_net_on_each_route(self):
+        """The routes are read, not only listed: a response that carries a command the product's own renderer does not know is found."""
+        sweep = build_link_sweep('Run: tofu apply PLAN_FILE')
+        found = {surface.split(',')[0] for held in sweep.net.values() for (_, surface, _) in held['where']
+                 if any('PLAN_FILE' in row for row in held['rows'])}
+        self.assertEqual(found, set(LINK_ROUTES))
+
+    def test_the_fixtures_are_the_responses_the_products_own_functions_give(self):
+        from plugin_tests import link_presentation_fixtures as links
+        case = ServiceView()
+        case.setUp()
+        try:
+            self.assertEqual(links.shape_problems(case.store), [])
+            by = {(route, variant): response for route, variant, _, response in
+                  links.responses(case.store, case.job, case.policy, case.root)}
+            for route, kind in (('service-link', 'deployment_receipt'), ('adoption-link', 'adoption_receipt'),
+                                ('evidence-link', 'deployment_receipt')):
+                row = by[(route, 'a new link')]
+                self.assertEqual((row['kind'], row['created'], row['evidence_class']), (kind, True, 'caller_asserted_artifact'), route)
+            self.assertIs(by[('service-link', 'a link already recorded')]['created'], False)
+            history = by[('evidence-history', 'one entry reopens, one cannot')]
+            self.assertEqual([entry['status'] for entry in history['entries']], ['recorded', 'unavailable'])
+            self.assertEqual(history['schema_version'], 'workbench-worker-evidence-history/1')
+            self.assertTrue(history['entries'][1]['error_code'])
+            self.assertEqual([entry['status'] for entry in by[('adoption-history', 'one linked operation that cannot be reopened')]
+                              ['operations']], ['unknown'])
+        finally:
+            case.doCleanups()
 
 
 class WizardSweepTests(unittest.TestCase):
