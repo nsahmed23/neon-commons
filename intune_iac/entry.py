@@ -303,6 +303,34 @@ DIRECTORY_PLACEHOLDER = 'DIRECTORY'
 PATH_PLACEHOLDER = 'PATH'
 PATH_NOT_SHOWN_SENTENCE = PATH_PLACEHOLDER + ' is a path in this directory whose name is not shown here.'
 
+# The fill-in templates: a word that stands where the person must put a real value (a folder, a file, a tenant id). The start screen
+# never prints one as the operand of a command, because a shell takes it for a real name (STORE or SERVICE_ROOT is a valid relative
+# path) or the command fails; it says the step in words instead. One set, used by the product (has_fill_in) and by the tests: the
+# placeholders this module writes for a path it may not show (DIRECTORY, PATH), the generic names ROOT and ID, and every fixed
+# placeholder of the next steps below. A test walks this module's command strings and fails when one holds a name that is not here.
+FILL_IN_TEMPLATES = frozenset((DIRECTORY_PLACEHOLDER, PATH_PLACEHOLDER, 'ROOT', 'ID', 'SERVICE_ROOT', 'TENANT_ID', 'STORE',
+                               'CONTEXT_JSON', 'EXPORT_JSON', 'REPOSITORY', 'NEW_OUTPUT_DIR', 'NEW_SESSION'))
+_FILL_IN = re.compile(r'(?:%s)(?:[/.].*)?\Z' % '|'.join(sorted(FILL_IN_TEMPLATES, key=len, reverse=True)), re.DOTALL)
+
+
+def is_fill_in(token):
+    """True when the operand is a fill-in template or starts one (DIRECTORY/store, NEW_SESSION.json)."""
+    return bool(_FILL_IN.match(token))
+
+
+def has_fill_in(step):
+    """True when a command in the step has a fill-in template as an operand. A command runs from the program name to the end of its
+    sentence (a full stop, semicolon or colon before a space, or an opening parenthesis)."""
+    for command in step.split(PROGRAM + ' ')[1:]:
+        command = re.split(r'\s\(|[.;:](?:\s|\Z)', command)[0]
+        try:
+            tokens = shlex.split(command)
+        except ValueError:
+            tokens = command.split()
+        if any(is_fill_in(token) for token in tokens):
+            return True
+    return False
+
 
 def json_paths(root, relative_to):
     """(show, q): how the JSON forms write the path operands of a command. show is a path as a sentence says it; q is the same

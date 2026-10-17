@@ -407,3 +407,46 @@ class SweepTests(Estates):
                         seen += 1
                         self.assertEqual(digest(text, self.parent), GOLDEN['%s|%d|%s' % (route, width, goal or '-')])
         self.assertEqual(seen, len(GOLDEN))
+
+
+class SharedTemplateSetTests(unittest.TestCase):
+    """Round 2, item 1: one explicit set of fill-in templates, defined once (entry.FILL_IN_TEMPLATES) and used by the product and
+    by these tests: a word a command may hold only until the person replaces it."""
+    REQUIRED = ('DIRECTORY', 'PATH', 'ROOT', 'ID', 'SERVICE_ROOT', 'TENANT_ID', 'STORE', 'CONTEXT_JSON', 'EXPORT_JSON',
+                'REPOSITORY', 'NEW_OUTPUT_DIR', 'NEW_SESSION')
+
+    @staticmethod
+    def templates():
+        from intune_iac import entry
+        return getattr(entry, 'FILL_IN_TEMPLATES', frozenset())
+
+    def test_the_set_holds_every_fill_in_name_the_start_screen_can_print(self):
+        for name in self.REQUIRED:
+            self.assertIn(name, self.templates())
+
+    def test_every_fill_in_word_of_a_command_string_in_entry_py_is_in_the_set(self):
+        import ast
+        path = Path(__file__).resolve().parents[1] / 'intune_iac' / 'entry.py'
+        tree = ast.parse(path.read_text(encoding='utf-8'))
+        word = re.compile(r'^[A-Z][A-Z0-9_]*[A-Z0-9](?:\.[a-z]+)?$')
+        found = set()
+        for node in ast.walk(tree):
+            if not (isinstance(node, ast.Constant) and isinstance(node.value, str)):
+                continue
+            if not re.search(r'(?:intune-iac|%s) +(?:workbench|wizard|capture|start|catalog)\b', node.value):
+                continue                                        # a command string, not a heading or a sentence
+            for token in node.value.split():
+                token = token.strip("'\"(),.;:")
+                if word.match(token):
+                    found.add(token.split('.')[0])
+        self.assertTrue({'STORE', 'TENANT_ID', 'NEW_SESSION', 'NEW_OUTPUT_DIR', 'CONTEXT_JSON', 'EXPORT_JSON',
+                         'REPOSITORY'} <= found, found)         # the walk found the producers
+        self.assertEqual(sorted(found - self.templates()), [])
+
+    def test_an_operand_is_a_template_when_it_is_one_or_starts_one(self):
+        from intune_iac import entry
+        is_fill_in = getattr(entry, 'is_fill_in', lambda token: False)
+        for token in ('STORE', 'DIRECTORY/store', 'NEW_SESSION.json', 'PATH', 'SERVICE_ROOT', 'ID'):
+            self.assertTrue(is_fill_in(token), token)
+        for token in ('estate dir/store', 'STOREROOM', 'store', 'session.json', '--root'):
+            self.assertFalse(is_fill_in(token), token)
