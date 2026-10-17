@@ -428,35 +428,17 @@ FALLBACK_STEPS = (
     '--tenant TENANT_ID' % PROGRAM,
     'Then list the policies it holds and the exact command to record each: %s workbench repository-entry '
     '--root STORE --repo REPOSITORY' % PROGRAM)
-# What a screen says in their place: the command and what the person names, never a placeholder.
-FIXED_STEP_WORDS = {
-    STORE_FIRST_STEP: 'Create a store first with the workbench init command, naming its folder and your tenant id.',
-    FALLBACK_STEPS[0]: 'Start from a supported export with the wizard command, naming a new session file, your export file, your '
-                       'context file and a new output folder.',
-    FALLBACK_STEPS[1]: 'Or start from an Atmos repository you maintain, beginning with a store: create it with the workbench init '
-                       'command, naming its folder and your tenant id.',
-    FALLBACK_STEPS[2]: 'Then list the policies it holds and the exact command to record each: use the workbench repository-entry '
-                       'command, naming your store and your repository.'}
-
-
-def placeholder_words(step):
-    """A step whose command still holds a fill-in template (FILL_IN_TEMPLATES) as an operand, said in words: the fixed steps in
-    their own words, any other (a real path beside a placeholder) as its lead and the command, naming the operands it still needs."""
-    if step in FIXED_STEP_WORDS:
-        return FIXED_STEP_WORDS[step]
-    at = step.index(PROGRAM + ' ')
-    words = step[at:].split()[1:]
-    head = words[:next((index for index, word in enumerate(words) if word.startswith('-')), len(words))]
-    flags = [word for word in words if word in ('--journey', '--guided')]
-    return '%s: use the %s command, naming the operands it still needs.' % (step[:at].rstrip(': '), ' '.join(head + flags))
+# Steps that hold placeholders by design and name no path: a screen says them through the same transform as every other step.
+FIXED_STEPS = (STORE_FIRST_STEP,) + FALLBACK_STEPS
 
 
 def screen_action(step, hidden=False):
-    """A recorded next step of plain data as a screen prints it: shown_step, and in words when its command still holds a template."""
-    if step in FIXED_STEP_WORDS:
-        return FIXED_STEP_WORDS[step]                  # names no path: the same words whether or not the directory is shown
-    shown = shown_step(step, hidden)
-    return placeholder_words(shown) if has_fill_in(shown) else shown
+    """A recorded next step of plain data as a screen prints it: shown_step (a step that names no path, the fixed ones, as it is),
+    then readiness.without_stand_in where the directory may not be shown, then readiness.placeholders_in_words, the one transform
+    that says a command with a placeholder in words, every operand described from readiness.TEMPLATE_WORDS."""
+    from .readiness import placeholders_in_words, without_stand_in
+    shown = step if step in FIXED_STEPS else shown_step(step, hidden)
+    return placeholders_in_words(without_stand_in(shown) if hidden else shown)
 
 
 def _in_words(lead, kind, step):
@@ -494,13 +476,14 @@ def _next_actions(items, root=None, relative_to=None, paths=None, fresh=None):
         own_show, own_q, stood_in, _ = fresh()
         text = build(own_show, own_q)
         # a path it may not show, or a placeholder still to be replaced: words, not a command
+        from .readiness import placeholders_in_words
         words = '%s. ' % said if said else ''
-        actions.append(words + _in_words(lead, kind, text) if stood_in else
-                       words + placeholder_words(text) if has_fill_in(text) else text)
+        actions.append(words + _in_words(lead, kind, text) if stood_in else placeholders_in_words(text))
 
     def fixed(text):
         """A step that holds placeholders by design: recorded as it is, said in words on a screen."""
-        actions.append(text if fresh is None else FIXED_STEP_WORDS[text])
+        from .readiness import placeholders_in_words
+        actions.append(text if fresh is None else placeholders_in_words(text))
 
     conflicts = {'repository_owned_edit': 'Review the repository-owned edit, or hand it off to the repository workflow',
                  'output_changed': 'Resolve the changed output (new-path, review or cancel)',
@@ -984,7 +967,7 @@ def start_lines(value, width, goal=None, goal_hint=False):
     goal is the result of goal_readiness and adds that goal's readiness after the survey; goal_hint adds the one closing line
     that names the goals and the flag. The workspace screen passes neither.
     """
-    from .readiness import DIRECTORY_NOT_SHOWN_SENTENCE, IN_WORDS, without_stand_in
+    from .readiness import DIRECTORY_NOT_SHOWN_SENTENCE, IN_WORDS, placeholders_in_words, without_stand_in
     from .workbench_screens import word_wrap
     lines = ['INTUNE WORKBENCH: START']
     # The directory is user input: a name the output-path rule of signin collect refuses prints as DIRECTORY, here, in the
@@ -1031,8 +1014,8 @@ def start_lines(value, width, goal=None, goal_hint=False):
         lines += _flow(action, width, prefix, ' ' * len(prefix), commands=True)
     lines.append('MISSING')
     for note in value['missing']:
-        note = placeholder_words(note) if has_fill_in(note) else note        # a command with a placeholder is words on a screen
-        for index, part in enumerate(word_wrap(without_stand_in(note) if hidden else note, width - 4)):
+        note = placeholders_in_words(without_stand_in(note) if hidden else note)      # the one transform, after the rule
+        for index, part in enumerate(word_wrap(note, width - 4)):
             lines.append(('  - ' if index == 0 else '    ') + part)
     if value.get('skipped_links'):
         lines += word_wrap('Symbolic links not followed: ' + ', '.join(value['skipped_links']), width)

@@ -311,45 +311,46 @@ class ProducerStringTests(Estates):
 
 
 # sha256 (first 16 hex digits) of the screen's rows for an ordinary name. Taken on the base of this package (04260b8) before
-# the change. Round 2 took all 33 again: the next step "Start from the export" is now said in words. Round 3 took the 18 of
-# the goals discover, adopt and change again (built and plain, at all three widths): the goal block says the recorded
-# commands that hold a placeholder in words. The 15 others (no goal, inspect, and the command line) did not change.
+# the change, and taken again where a screen changed on purpose: round 2 (the step "Start from the export" in words), round 3
+# (the goal block's recorded commands in words) and round 4, which routes the next steps through the one transform
+# (readiness.placeholders_in_words) so that the same step now describes each operand from readiness.TEMPLATE_WORDS. All 33
+# changed in round 4, because that step is on every screen of this fixture and nothing else on them changed.
 # key: route|width|goal. The temporary parent and fixture directories are written PARENT and FIXTURES first, and the
 # readiness view is host-free (host_free). Linux with a temporary directory of /tmp only: a longer path wraps differently.
 GOLDEN = {
-    'built|120|-': '408f5d8deb11b2f3',
-    'built|120|adopt': 'f76a12c6dc1fa7cb',
-    'built|120|change': '4626215afbbd5d4a',
-    'built|120|discover': '000fa6958933b0d9',
-    'built|120|inspect': 'd6cb074befe6f1e8',
-    'built|60|-': 'd7ecef7a29dc844c',
-    'built|60|adopt': '0a43a09036e8b662',
-    'built|60|change': '9f92d6328f5e2856',
-    'built|60|discover': 'aa01102987eddf20',
-    'built|60|inspect': 'fa9f05ec9a11fee6',
-    'built|80|-': 'a2d46f429067021e',
-    'built|80|adopt': '22800ca4b9ef28cf',
-    'built|80|change': '61fb88e33b7cfbeb',
-    'built|80|discover': '949573c1cda5819d',
-    'built|80|inspect': '5348da356099d53f',
-    'cli|120|-': '1b346448b55b6f0d',
-    'cli|60|-': '8ce31278ea4f0458',
-    'cli|80|-': '190a13af2934097f',
-    'plain|120|-': '493952215c3b7477',
-    'plain|120|adopt': '4e889ecae486f9b9',
-    'plain|120|change': '9679e2ac90f3a42c',
-    'plain|120|discover': 'a871a9eff1c3b8eb',
-    'plain|120|inspect': 'aabf7bd2fc85f81a',
-    'plain|60|-': 'c71aad4dcbce1f46',
-    'plain|60|adopt': 'fe2337bf42c8d228',
-    'plain|60|change': '11d667db1d60e263',
-    'plain|60|discover': 'ac4f98a0bf78457f',
-    'plain|60|inspect': '38e65b2841068bdb',
-    'plain|80|-': '553f2eecaffac66e',
-    'plain|80|adopt': 'd1c0c567ba463d54',
-    'plain|80|change': '5d71bde6d6de6549',
-    'plain|80|discover': '71c9e9112ccf0d74',
-    'plain|80|inspect': '1c04e145f7b31865',
+    'built|120|-': '7c2cd51d03a89e17',
+    'built|120|adopt': '75ba3de828ed411e',
+    'built|120|change': '55ff2a7d8760faf5',
+    'built|120|discover': '1b2041dc222fcdd9',
+    'built|120|inspect': '0d528f7b89e8396c',
+    'built|60|-': '69987efd1f648f2f',
+    'built|60|adopt': 'c99f1068896c0155',
+    'built|60|change': '39da1bd40cb23f7d',
+    'built|60|discover': 'b362f6f206427b19',
+    'built|60|inspect': '91c1734b5d88cb89',
+    'built|80|-': '5cffba962628686f',
+    'built|80|adopt': '215dfaa9317e2234',
+    'built|80|change': '820c3eca3df0cc42',
+    'built|80|discover': '94f6f56b56913312',
+    'built|80|inspect': 'f4c7626393b42943',
+    'cli|120|-': '61242f00ecb3f77d',
+    'cli|60|-': 'febc80b09bb71595',
+    'cli|80|-': '7f0de19b6a129b31',
+    'plain|120|-': 'af0d91bcbf1d7f36',
+    'plain|120|adopt': '3db86cb1b739fd4e',
+    'plain|120|change': 'e56cbed4531880a7',
+    'plain|120|discover': '00599f2f0f674f8c',
+    'plain|120|inspect': 'c3b56586900c238b',
+    'plain|60|-': '37f16056f037466a',
+    'plain|60|adopt': 'e95b6dc3d0232271',
+    'plain|60|change': '9cd2e745e8831815',
+    'plain|60|discover': '7947546a3ef2b5bb',
+    'plain|60|inspect': '1f8ffdbb455383b8',
+    'plain|80|-': '1dc47487dcb7f69e',
+    'plain|80|adopt': '632be0fd1ae7bc2f',
+    'plain|80|change': 'af1b3bbcd35d2f38',
+    'plain|80|discover': '730677928655e789',
+    'plain|80|inspect': 'd9f72665760a8d4f',
 }
 
 
@@ -502,17 +503,17 @@ class PlaceholderCommandTests(unittest.TestCase):
     KINDS = ('empty', 'repository', 'export', 'emptystore')
     NAMES = {'credential': CREDENTIAL, 'ordinary': ORDINARY}
     FALLBACKS = (
-        'Start from a supported export with the wizard command, naming a new session file, your export file, your context file '
-        'and a new output folder.',
-        'Or start from an Atmos repository you maintain, beginning with a store: create it with the workbench init command, naming '
-        'its folder and your tenant id.',
-        'Then list the policies it holds and the exact command to record each: use the workbench repository-entry command, naming '
-        'your store and your repository.')
-    STORE_FIRST = 'Create a store first with the workbench init command, naming its folder and your tenant id.'
+        'Start from a supported export: the wizard command, naming your export file, your context file and a new output folder',
+        'Or start from an Atmos repository you maintain, beginning with a store: the workbench init command, naming your store '
+        'folder and your tenant id',
+        'Then list the policies it holds and the exact command to record each: the workbench repository-entry command, naming '
+        'your store folder and your repository folder')
+    STORE_FIRST = 'Create a store first: the workbench init command, naming your store folder and your tenant id'
     MIXED = {
-        'emptystore': 'Collect into estate dir/store: use the workbench collect command, naming the operands it still needs.',
-        'export': 'Start from the export estate dir/export.json: use the wizard command, naming the operands it still needs.',
-        'repository': 'use the workbench repository-entry command, naming the operands it still needs.'}
+        'emptystore': 'Collect into estate dir/store: the workbench collect command, naming your service folder',
+        'export': 'Start from the export estate dir/export.json: the wizard command, naming a new session file and a new output '
+                  'folder',
+        'repository': 'the workbench repository-entry command, naming your store folder'}
 
     @classmethod
     def setUpClass(cls):
@@ -556,7 +557,7 @@ class PlaceholderCommandTests(unittest.TestCase):
                     text = flat(render(route, self.parents[kind], ORDINARY, 100, None))
                     self.assertIn(sentence, text)
         plain = flat(render('plain', self.parents['export'], ORDINARY, 100, None))
-        self.assertIn('use the wizard command, naming the operands it still needs.', plain)
+        self.assertIn('the wizard command, naming a new session file and a new output folder', plain)
 
     def test_a_command_whose_operands_are_all_resolved_keeps_its_exact_form(self):
         text = flat(render('built', self.parents['emptystore'], ORDINARY, 100, None))
@@ -594,7 +595,7 @@ class CheckerTests(unittest.TestCase):
                         text = flat(lines)
                         steps = [row for row in lines if re.match(r'  \d\. ', row)]
                         self.assertEqual(len(steps), 3, lines)                   # the three fallback steps are there ...
-                        self.assertIn('naming its folder and your tenant id', text)  # ... in words
+                        self.assertIn('naming your store folder and your tenant id', text)  # ... in words
                         self.assertEqual(stand_in_operands(lines), [])
                         # the reader does see the templates of the old step, so [] above is not blindness
                         old = 'intune-iac workbench init --root STORE --tenant TENANT_ID'
@@ -871,6 +872,16 @@ class JsonFormsUnchangedTests(unittest.TestCase):
         self.assertNotIn('the start command, naming', out.getvalue())
 
 
+def template_beside_command(text):
+    """The places where a printed sentence holds a template word beside the word command ("the start DIRECTORY command"), or says
+    that operands are still needed without saying which: a command in words names what the person is to supply."""
+    from intune_iac import entry
+    names = '|'.join(sorted(getattr(entry, 'FILL_IN_TEMPLATES', STAND_INS), key=len, reverse=True))
+    found = re.findall(r'(?<![A-Za-z0-9_])(?:%s)(?:[/.]\S*)?\s+command\b' % names, text)
+    found += re.findall(r'\bcommand,? (?:naming )?(?:%s)\b(?![A-Za-z0-9_])' % names, text)
+    return found + re.findall(r'the operands it still needs', text)
+
+
 class FullSetEverywhereTests(unittest.TestCase):
     """Round 3, item 4: the reader checks the whole shared set on the whole screen, goal block and catalog rows included: every
     fixture, directory name, goal and width, through the builders, the plain data and the command line, for start and the catalog."""
@@ -908,6 +919,7 @@ class FullSetEverywhereTests(unittest.TestCase):
                                 lines = draw(route, self.parents[kind], name, width, goal)
                                 count += 1
                                 self.assertEqual(stand_in_operands(lines), [], flat(lines))
+                                self.assertEqual(template_beside_command(flat(lines)), [], flat(lines))
         self.assertEqual(count, len(self.KINDS) * len(self.NAMES) * 3 * 2 * len(GOALS))
 
     def test_no_row_of_the_start_screen_has_a_template_as_an_operand(self):
@@ -921,3 +933,64 @@ class FullSetEverywhereTests(unittest.TestCase):
                       '    intune-iac capture --tenant TENANT_ID --policy POLICY --output \\',
                       '        NEW_DIR --token-env TOKEN_VARIABLE_NAME']
         self.assertEqual(stand_in_operands(goal_block), ['TENANT_ID', 'POLICY', 'NEW_DIR', 'TOKEN_VARIABLE_NAME'])
+
+
+class OneTransformTests(unittest.TestCase):
+    """Round 4: the start screen's next steps and MISSING rows go through readiness.placeholders_in_words, the one transform; every
+    operand is described from readiness.TEMPLATE_WORDS, the one table."""
+
+    def test_a_step_that_runs_start_on_the_directory_names_what_the_directory_is(self):
+        from intune_iac import entry
+        self.assertEqual(entry.screen_action('Then run: intune-iac start DIRECTORY'),
+                         'Then run: the start command, naming the directory to survey')
+        self.assertEqual(entry.screen_action('Then run: intune-iac start DIRECTORY and pass its result.'),
+                         'Then run: the start command, naming the directory to survey, and pass its result.')
+
+    def test_a_positional_placeholder_is_described_not_left_in_the_command_name(self):
+        from intune_iac import entry
+        for step, said in (('Run: intune-iac repository inspect POLICY', 'Run: the repository inspect command, naming the policy id (a GUID)'),
+                           ('Run: intune-iac start STORE', 'Run: the start command, naming your store folder')):
+            with self.subTest(step=step):
+                self.assertEqual(entry.screen_action(step), said)
+                self.assertEqual(template_beside_command(entry.screen_action(step)), [])
+
+    def test_the_steps_with_a_placeholder_by_design_are_described_from_the_one_table(self):
+        from intune_iac import entry, readiness
+        self.assertEqual(entry.screen_action(entry.STORE_FIRST_STEP),
+                         'Create a store first: the workbench init command, naming your store folder and your tenant id')
+        for text in entry.FALLBACK_STEPS:
+            said = entry.screen_action(text)
+            with self.subTest(text=text):
+                self.assertEqual(said, readiness.placeholders_in_words(text))
+                self.assertEqual(template_beside_command(said), [])
+
+    def test_a_missing_note_goes_through_the_same_transform(self):
+        from intune_iac import entry, readiness
+        note = 'Run: intune-iac start DIRECTORY and pass its result to this check.'
+        with tempfile.TemporaryDirectory() as parent:
+            Path(parent, ORDINARY).mkdir()
+
+            def run():
+                survey = json.loads(json.dumps(entry.survey(ORDINARY, relative_to=os.getcwd())))
+                survey['missing'] = [note]
+                return flat(entry.start_lines(survey, 200))
+            text = in_directory(parent, run)
+        self.assertIn(readiness.placeholders_in_words(note), text)
+        self.assertEqual(template_beside_command(text), [])
+
+    def test_there_is_one_table_of_operand_descriptions(self):
+        import ast
+        from intune_iac import entry, readiness
+        root = Path(__file__).resolve().parents[1] / 'intune_iac'
+        tables = {}
+        for module in ('entry.py', 'readiness.py', 'catalog.py'):
+            for node in ast.parse((root / module).read_text(encoding='utf-8')).body:
+                if isinstance(node, ast.Assign) and isinstance(node.value, ast.Dict):
+                    keys = {key.value for key in node.value.keys if isinstance(key, ast.Constant) and isinstance(key.value, str)}
+                    if len(keys & set(getattr(entry, 'FILL_IN_TEMPLATES', ()))) >= 3:
+                        tables[node.targets[0].id] = module
+        # the description table, and the legend wording the JSON forms record (frozen, and used only to write and to strip a legend)
+        self.assertEqual(tables, {'TEMPLATE_WORDS': 'readiness.py', 'PLACEHOLDER_MEANINGS': 'readiness.py'})
+        self.assertTrue(set(readiness.PLACEHOLDER_MEANINGS) <= set(readiness.TEMPLATE_WORDS))
+        self.assertFalse(hasattr(entry, 'placeholder_words'))
+        self.assertFalse(hasattr(entry, 'FIXED_STEP_WORDS'))

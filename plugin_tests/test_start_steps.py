@@ -70,7 +70,7 @@ class StartStepsTests(unittest.TestCase):
     def test_a_repository_with_no_store_says_to_create_one_first(self):
         code, text = run_cli(str(self.dirs['repository']), width=100)
         said = ' '.join(' '.join(next_section(text)).split())
-        first = 'Create a store first with the workbench init command, naming its folder and your tenant id.'
+        first = 'Create a store first: the workbench init command, naming your store folder and your tenant id'
         self.assertIn(first, said)
         self.assertLess(said.index(first), said.index('workbench repository-entry command'))
         self.assertEqual(command_rows(next_section(text)), [])      # both steps hold a placeholder: words, no command
