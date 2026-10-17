@@ -565,6 +565,12 @@ def terminal_session(stdin, stdout):
                 raise AppError('workspace_terminal_cleanup_failed', message)
 
 
+def word_wrap_rows(text, width):
+    """A sentence as rows no wider than the window, for a row of the chrome."""
+    from .workbench_screens import word_wrap
+    return word_wrap(text, max(1, width))
+
+
 class KeyReader:
     """Bounded byte reader; terminal escape input is data, never output."""
     SEQUENCES = {b'\x1b[A': 'up', b'\x1b[B': 'down', b'\x1b[C': 'right', b'\x1b[D': 'left',
@@ -1912,6 +1918,11 @@ class Workspace:
         finally:
             self._display_fault = None
 
+    def _shows_synopses(self):
+        """True on the help surface (the key reference and its typed details), which lists usage synopses."""
+        value = getattr(self, 'value', None)
+        return getattr(self, 'tab', None) == 7 and isinstance(value, dict) and isinstance(value.get('navigation'), list)
+
     def _compose(self):
         self.size = self._terminal_size()
         width, height = self.size
@@ -1931,6 +1942,10 @@ class Workspace:
                            repository_here=self.tab == 8,
                            listed=getattr(self, 'layer', 'summary') == 'actions',
                            layered=getattr(self, 'layer', 'summary') == 'workflow') if selected else []
+        # The help lists usage synopses: the sentence that says what their capitals mean is a row of the chrome, above the box, so
+        # that every page of the help shows it (it is not a row of the body, which scrolls and pages).
+        from .workbench_screens import SYNOPSIS_CONVENTION
+        convention = word_wrap_rows(SYNOPSIS_CONVENTION, width) if self._shows_synopses() else []
         staged = getattr(self, 'staged', None) if self.mode == 'command' else None
         staged_rows = None
         if isinstance(staged, dict) and staged.get('boundary'):
@@ -1941,7 +1956,7 @@ class Workspace:
         strip_text, definitions = self._strip_choice(width)
         status_rows, key_rows = strip_layout(strip_text, definitions if self._strip_key_rows(width) else [], width)
         def room_left():
-            return height - 8 - len(band) - (1 if staged_rows else 0) - len(key_rows) - (len(status_rows) - 1)
+            return height - 8 - len(band) - len(convention) - (1 if staged_rows else 0) - len(key_rows) - (len(status_rows) - 1)
         # A frame taller than the window scrolls its title and tab line away: at the minimum height the key rows go
         # first, then the strip split, so the title, the tab line, the strip and the band stay (review 36).
         if room_left() < 0 and key_rows:
@@ -2011,6 +2026,7 @@ class Workspace:
         top, side, bottom = RULES[getattr(self, 'rules', 'ascii')]
         # Content beyond the frame is announced inside the border, not only by the row counter below it.
         frame = [pad(header, width), pad(labels, width)] + [pad(row, width) for row in status_rows] + [pad(row, width) for row in band] + [
+                pad(row, width) for row in convention] + [
                  ruled(top[0], top[1], top[2], inner, ' more above: PgUp ' if self.scroll > 0 else None)]
         band_rows = set(range(2 + len(status_rows), 2 + len(status_rows) + len(band)))
         map_rows = {len(frame) + index for index in mapped}
@@ -2484,13 +2500,14 @@ class Workspace:
     def _mechanics(self, action, *, bound):
         """What to type, longest form first; the last fits 40 columns. How to submit or cancel is not said here: the key
         line (TYPING_KEY_LINES) says it while the command is staged, so the keys are said once (run 12, frames 21, 37)."""
-        needs = [str(need).split(':')[0] for need in action.get('needs') or []]
+        from .readiness import TEMPLATE_WORDS
+        # what to type is said in words (the shared description table), never as the capitalised label of the input
+        needs = [TEMPLATE_WORDS.get(str(need).split(':')[0].strip(), str(need).split(':')[0]) for need in action.get('needs') or []]
         if bound:
-            return ('Type REVISION (the full 40-character commit ID) at the cursor; the digest after it pins the difference '
-                    'you reviewed.',
-                    'Type REVISION at the cursor; the digest after it pins the reviewed difference.',
-                    'Type REVISION; the digest pins the reviewed difference.',
-                    'Type REVISION first.')
+            return ('Type the full 40-character commit hash at the cursor; the digest after it pins the difference you reviewed.',
+                    'Type the commit hash at the cursor; the digest after it pins the reviewed difference.',
+                    'Type the commit hash; the digest pins the reviewed difference.',
+                    'Type the commit hash first.')
         if needs:
             names = ' and '.join(needs)
             return ('Type %s at the cursor.' % names, 'Type %s at the cursor.' % names, 'Type %s.' % names)

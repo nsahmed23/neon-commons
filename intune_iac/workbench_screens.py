@@ -976,7 +976,9 @@ def lifecycle_lines(tab, width, value=None, now=None, eligibility=None, band_nam
     freshness = (value or {}).get('freshness') if isinstance((value or {}).get('freshness'), dict) else {}
     if tab == 8 and band_names_refresh and freshness.get('status') != 'current':
         return word_wrap('Lifecycle: %s. A proposal follows from the new intent.' % path, width)
-    step = lifecycle_next(tab, value, time.time() if now is None else now, eligibility, newest_open)
+    from .readiness import placeholders_in_words
+    # the whole step is rendered before it is split into its sentence and its commands, so a command keeps its place in the sentence
+    step = placeholders_in_words(lifecycle_next(tab, value, time.time() if now is None else now, eligibility, newest_open))
     # A step that prints a command ends with it: the sentence comes first and no full stop follows the command.
     head, _, command = step.partition(COMMAND_BREAK)
     if band_has_next and tab == 5:
@@ -1751,6 +1753,16 @@ def _compact_block_words(item):
             or (_code_words(item['code']) if item.get('code') else 'not available'))
 
 
+def _need_words(need):
+    """A needed input as the actions list says it: the input named in words from the shared description table, then what the engine
+    said about it ("the file you name: where to write it"), never the capitalised label."""
+    from .readiness import TEMPLATE_WORDS
+    name, colon, rest = str(need).partition(':')
+    if name.strip() in TEMPLATE_WORDS:
+        return TEMPLATE_WORDS[name.strip()] + (':' + rest if colon else '')
+    return str(need)
+
+
 def actions_lines(actions, focus, width, name=None, object_id=None, submit='Enter', prefixes=None):
     """The guided actions for the selected policy: what each is, whether it is available, its exact command and what
     it does. A blocked action says why, with the engine's own code."""
@@ -1782,7 +1794,7 @@ def actions_lines(actions, focus, width, name=None, object_id=None, submit='Ente
             from .readiness import placeholders_in_words
             lines += _labelled('', 'command  ' + placeholders_in_words(command.rstrip()), width, 5)
             for need in action.get('needs') or []:
-                lines += _labelled('', 'needs  ' + str(need), width, 5)
+                lines += _labelled('', 'needs  ' + _need_words(need), width, 5)
         else:
             blocked = action.get('blocked') or {}
             lines += _labelled('', 'blocked  ' + _blocked_words(blocked), width, 5)
@@ -1800,6 +1812,7 @@ def details_lines(value, width, synopsis=False):
     other screen. synopsis is for the help listing, whose lines are usage synopses: they keep their capitals, and the caller shows
     the sentence that says what capitals mean."""
     from .readiness import placeholders_in_words
+    # the sentence opens the listing; the workspace also shows it in its chrome on every page of it
     lines = word_wrap(SYNOPSIS_CONVENTION, width) + [''] if synopsis else []
 
     def scalar(item):
@@ -1914,7 +1927,6 @@ HELP_WORDS = (
     ('Session', 'The next start reopens the last read-only view of the selected policy; Delivery and '
                 'repository-entry views, which hold paths, are not reopened. :clear-selection clears the selected '
                 'policy. Between commands nothing is running, so :cancel cancels nothing.'),
-    ('Notation', SYNOPSIS_CONVENTION),
 )
 
 
@@ -1994,7 +2006,9 @@ def help_lines(width, map_keys=False, strip=None, strip_shown=None):
         lines += _labelled('  ' + name, text, width, 14)
         if name == 'Context' and strip:
             lines += _labelled('  Line now', strip, width, 14)
-    return lines
+    # The sentence that says what the capitals in the command syntax mean; the workspace also shows it as a row of its chrome on every
+    # page of the help (workbench_tui.Workspace._compose), so no page of it is read without it.
+    return lines + word_wrap(SYNOPSIS_CONVENTION, width)
 
 
 def _availability(entry, category):

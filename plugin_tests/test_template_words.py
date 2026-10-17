@@ -720,7 +720,8 @@ class CheckSigninScreenTests(unittest.TestCase):
             folder = Path(temp) / 'estate dir'
             folder.mkdir()
             shutil.copyfile(root / 'examples/context.json', folder / 'context.json')
-            for label, provider, azure, github, phrase in sweep.signin_cases(context):
+            for case in sweep.signin_cases(context):
+                label, provider, azure, github, phrase = case[:5]
                 if label.split(': ', 1)[1] not in labels:
                     continue
                 fakes = FakeClis()
@@ -912,6 +913,72 @@ class HelpConventionTests(unittest.TestCase):
     def test_the_sentence_is_built_once(self):
         from intune_iac import readiness, workbench_screens
         self.assertIs(workbench_screens.SYNOPSIS_CONVENTION, getattr(readiness, 'SYNOPSIS_CONVENTION', None))
+
+
+
+# -- round 7: words that refer to nothing on the screen -------------------------------------------------------------------------
+
+class ReferToNothingTests(unittest.TestCase):
+    def test_item_1_the_capture_contact_does_not_name_a_placeholder_the_screen_no_longer_has(self):
+        from intune_iac import readiness
+        from plugin_tests.test_start_standin import ORDINARY, estate, render, render_catalog
+        sentence = readiness.capture_contact('Run: intune-iac capture --tenant T --policy P --output NEW_DIR')
+        self.assertIn('writes what it reads into the new folder for the output.', sentence)
+        self.assertNotIn('NEW_DIR', sentence)
+        with tempfile.TemporaryDirectory() as parent:
+            estate(parent, ORDINARY)
+            for route in ('built', 'plain', 'cli'):
+                text = ' '.join(' '.join(render(route, parent, ORDINARY, 100, 'discover')).split())
+                with self.subTest(route=route):
+                    self.assertIn('writes what it reads into the new folder for the output.', text)
+                    self.assertNotRegex(text, r'into NEW_DIR')
+            for route in ('built', 'plain', 'cli'):
+                text = ' '.join(' '.join(render_catalog(route, parent, ORDINARY, 100, 'discover')).split())
+                with self.subTest(catalog=route):
+                    self.assertNotRegex(text, r'into NEW_DIR')
+
+    def test_item_2_the_actions_layer_names_the_needed_input_in_words(self):
+        from intune_iac import workbench_screens
+        for need, expected in (('FILE: where to write it', 'needs the file you name: where to write it'),
+                               ('REPOSITORY: the repository', 'needs your repository folder: the repository'),
+                               ('DESIRED_JSON: the desired file', 'needs your desired-policy JSON file: the desired file'),
+                               ('REVISION: the commit', 'needs the Git revision to record: the commit')):
+            action = {'label': 'An action', 'available': True, 'command': 'x ', 'cursor': 2, 'needs': [need],
+                      'effects': 'It does a thing.', 'summary': 'A thing.'}
+            text = ' '.join(' '.join(workbench_screens.actions_lines([action], 0, 100, 'P', '1' * 8 + '-1111-4111-8111-' + '1' * 12)).split())
+            with self.subTest(need=need):
+                self.assertIn(expected, text)
+                self.assertNotIn(need.split(':')[0] + ':', text)
+
+    def test_item_3_the_typing_hint_says_what_to_type_not_a_capitalised_word(self):
+        from intune_iac import workbench_tui
+        mechanics = workbench_tui.Workspace._mechanics
+        for need, expected in (('FILE: x', 'Type the file you name at the cursor.'),
+                               ('REPOSITORY: x', 'Type your repository folder at the cursor.'),
+                               ('DESIRED_JSON: x', 'Type your desired-policy JSON file at the cursor.')):
+            forms = mechanics(None, {'needs': [need]}, bound=False)
+            with self.subTest(need=need):
+                self.assertEqual(forms[0], expected)
+                from intune_iac import entry
+                self.assertFalse(any(word in entry.FILL_IN_TEMPLATES for form in forms for word in re.findall(r'[A-Z][A-Z_]+', form)), forms)
+        bound = mechanics(None, {'needs': []}, bound=True)
+        self.assertEqual(bound[0], 'Type the full 40-character commit hash at the cursor; the digest after it pins the difference you reviewed.')
+        self.assertFalse(any('REVISION' in form for form in bound), bound)
+
+    def test_item_4_the_convention_sentence_is_a_row_of_the_chrome_of_every_help_page(self):
+        import types
+        from intune_iac import workbench_tui
+        shows = workbench_tui.Workspace._shows_synopses
+        help_view = types.SimpleNamespace(tab=7, value={'navigation': ['start [DIRECTORY]']}, layer='summary')
+        details = types.SimpleNamespace(tab=7, value={'navigation': ['start [DIRECTORY]']}, layer='details')
+        other = types.SimpleNamespace(tab=0, value={'objects': []}, layer='summary')
+        self.assertTrue(shows(help_view))
+        self.assertTrue(shows(details))
+        self.assertFalse(shows(other))
+        source = ' '.join((PACKAGE / 'workbench_tui.py').read_text(encoding='utf-8').split())
+        self.assertIn('convention = word_wrap_rows(SYNOPSIS_CONVENTION, width) if self._shows_synopses() else []', source)
+        self.assertIn('len(band) - len(convention)', source)             # the rows are counted before the body is sized
+        self.assertNotIn('PinnedRow(row) for row in word_wrap(SYNOPSIS_CONVENTION', (PACKAGE / 'workbench_screens.py').read_text(encoding='utf-8'))
 
 
 if __name__ == '__main__':

@@ -68,28 +68,31 @@ class WhereToTypeTests(unittest.TestCase):
         from intune_iac.workbench_screens import lifecycle_lines
         return lifecycle_lines(4, width, value)
 
-    def test_the_plan_review_frames_both_forms_and_keeps_the_placeholder(self):
+    WORKSPACE = 'In the workspace: the execute command using %s, naming the digest that the review shows From a shell: '
+    SHELL = ('the workbench execute command using --operation %s, naming --approve-digest as the digest that the review shows')
+
+    def test_the_plan_review_frames_both_forms_in_words_and_never_fills_the_digest(self):
+        # PKG-TEMPLATE-WORDS: the recorded text is "execute /w/op DIGEST" and the intune-iac form; the screen says them in words
         for width in (80, 118):
-            text = '\n'.join(row.strip() for row in self.rows(self.review(), width))
-            self.assertIn('In the workspace:\nexecute /w/op DIGEST\nFrom a shell:\nintune-iac workbench execute --operation '
-                          '/w/op --approve-digest DIGEST', text, width)
+            text = ' '.join(' '.join(row.strip() for row in self.rows(self.review(), width)).split())
+            self.assertIn((self.WORKSPACE % '/w/op') + (self.SHELL % '/w/op'), text, width)
             self.assertNotIn('Command:', text)
             self.assertNotIn('d' * 64, text)
 
     def test_a_no_change_plan_and_a_review_without_a_directory_say_it_too(self):
         no_change = ' '.join(' '.join(self.rows(self.review(changes=[], no_configuration_change=True))).split())
-        self.assertIn('In the workspace: execute /w/op DIGEST From a shell: intune-iac workbench execute --operation /w/op '
-                      '--approve-digest DIGEST', no_change)
+        self.assertIn((self.WORKSPACE % '/w/op') + (self.SHELL % '/w/op'), no_change)
         value = self.review()
         del value['operation_root']
         bare = ' '.join(' '.join(self.rows(value)).split())
-        self.assertIn('In the workspace: execute OPERATION_DIR DIGEST From a shell: intune-iac workbench execute '
-                      '--operation OPERATION_DIR --approve-digest DIGEST', bare)
+        self.assertIn('In the workspace: the execute command, naming the operation folder and the digest that the review shows '
+                      'From a shell: the workbench execute command, naming --operation as the operation folder and '
+                      '--approve-digest as the digest that the review shows', bare)
 
     def test_a_path_with_spaces_is_quoted_in_both_forms(self):
         text = ' '.join(' '.join(self.rows(self.review(operation_root='/w/my op'))).split())
-        self.assertIn("execute '/w/my op' DIGEST", text)
-        self.assertIn("--operation '/w/my op' --approve-digest DIGEST", text)
+        self.assertIn("the execute command using '/w/my op', naming the digest", text)
+        self.assertIn("--operation '/w/my op', naming --approve-digest", text)
 
     def test_the_queue_amend_command_says_it_is_typed_in_the_workspace(self):
         from intune_iac.workbench_screens import review_lines
@@ -267,7 +270,7 @@ class StagedKeysSaidOnceTests(MapTruth):
     def test_what_to_type_is_still_said(self):
         ws = self.workspace((120, 40))
         mechanics = ws._mechanics({'kind': 'repository-entry', 'needs': ['REPOSITORY: a path']}, bound=False)
-        self.assertEqual(mechanics[0], 'Type REPOSITORY at the cursor.')
+        self.assertEqual(mechanics[0], 'Type your repository folder at the cursor.')
         bound = ws._mechanics({'kind': 'repository-refresh'}, bound=True)
         self.assertIn('the digest after it pins the difference you reviewed', bound[0])
         self.assertTrue(all('Esc' not in form and 'submit' not in form for form in mechanics + bound))
@@ -340,7 +343,7 @@ class RefreshRouteTests(Proposed):
         _, signals = self.view()
         step = signals['repository_stale']['next_step']
         self.assertEqual(step, 'Review the difference on the Repository surface (9), then ' + self.ROUTE + ': it asks for '
-                               'the REVISION and pins the difference you reviewed.')
+                               'the revision and pins the difference you reviewed.')
 
     def test_the_refusals_and_the_status_name_it_too(self):
         from intune_iac.workbench_repository import NEXT_ACTIONS
