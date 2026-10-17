@@ -1495,6 +1495,9 @@ def leaf_table_problems(parser, table=None, drivers=None):
 #                                       `with open(...) as name:` binds
 #   parser-output                       print_usage, print_help or error on a parser
 #   exit-text                           an exit whose argument is not plainly a status: the interpreter writes it to standard error
+#   console, import console             a Win32 console call that writes, or chooses where the output goes (WriteConsole and every form of it,
+#                                       GetStdHandle, SetStdHandle, AllocConsole, AttachConsole, CreateConsoleScreenBuffer,
+#                                       SetConsoleActiveScreenBuffer): as an attribute of anything, a name, a string or an import
 #   namespace, route value stored       an object that can carry route values of its own (a Namespace, or what parse_args returns), and a
 #                                       store to one: what the route conditions of the reachability check read as the command line's (see
 #                                       the note on what a machine leaf can run)
@@ -1532,7 +1535,10 @@ OUTPUT_SITES = {
     ('provider_journey.py', 'run_provider_wizard', 'print'): (2, 'provider wizard', 'b6c3bce9b4c4'),
     ('windows_terminal.py', 'NativeConsole.session', 'write'): (2, 'workbench workspace', 'b9434dce89d5'),
     ('windows_terminal.py', 'NativeConsole.write', 'write'): (1, 'workbench workspace', 'ca6d6e7eb425'),
+    ('windows_terminal.py', '_Win32.__init__', 'console'): (2, 'workbench workspace', 'a603dab5bd21'),  # the signature table names GetStdHandle and WriteConsoleW as strings, to give them their argument and result types
     ('windows_terminal.py', '_Win32.__init__', 'ctypes.WinDLL'): (1, 'workbench workspace', '4a6c32409595'),  # kernel32 for the console: the API of NativeConsole, which makes it and nothing else does (windows_directory has a class of the same name, for the storage layer)
+    ('windows_terminal.py', '_Win32.handles', 'console'): (2, 'workbench workspace', '9ae07c41d2fe'),  # GetStdHandle for the input and output handles of the console, which it reads and writes through
+    ('windows_terminal.py', '_Win32.write', 'console'): (1, 'workbench workspace', 'fead57fd021a'),  # WriteConsoleW: the one call that writes text to the console
     ('wizard.py', '_run_wizard', 'input'): (1, 'wizard', 'de76bcd7d16d'),
     ('wizard.py', '_run_wizard', 'print'): (1, 'wizard', 'f8512bed4462'),
     ('wizard.py', 'run_wizard', 'input'): (1, 'wizard', '51cbdac7e975'),
@@ -1793,6 +1799,8 @@ SCAN_DUNDERS = frozenset(('__dict__', '__globals__', '__builtins__', '__subclass
 PARSER_OUTPUT = ('print_usage', 'print_help', 'error')
 NAMESPACES = ('Namespace', 'SimpleNamespace')                    # an object that can carry route values of its own
 PARSE_CALLS = ('parse_args', 'parse_known_args', 'parse_intermixed_args', 'parse_known_intermixed_args')    # argparse: a namespace from an argv
+SCAN_CONSOLE = re.compile(r'(?:WriteConsole\w*|GetStdHandle|SetStdHandle|AllocConsole|AttachConsole|CreateConsoleScreenBuffer'
+                          r'|SetConsoleActiveScreenBuffer)\Z')      # the Win32 calls that write to the console, or choose where its output goes
 DESCRIPTOR_CALLS = frozenset(('os.fdopen', 'os.dup', 'os.dup2', 'os.write', 'os.writev', 'os.pwrite', 'os.pwritev', 'os.sendfile',
                               'os.copy_file_range', 'os.splice'))                     # calls whose descriptor argument may be fd 0, 1 or 2
 CHILD_CALLS = frozenset(('subprocess.Popen', 'subprocess.run', 'subprocess.call', 'subprocess.check_call', 'subprocess.check_output'))
@@ -2082,6 +2090,7 @@ def site_nodes(source):
                 kinds = {'import %s.%s' % (root, alias.name) for alias in node.names
                          if alias.name == '*' or route('%s.%s' % (root, alias.name))}
             kinds |= {'import _write_text' for alias in node.names if alias.name == '_write_text'}      # from wherever it is imported
+            kinds |= {'import console' for alias in node.names if SCAN_CONSOLE.match(alias.name)}
         elif isinstance(node, ast.Constant) and isinstance(node.value, str):
             if DEVICE_PATH.search(node.value):
                 kinds = {'device path'}
@@ -2089,11 +2098,15 @@ def site_nodes(source):
                 kinds = {'_write_text as a string'}                    # getattr(cli, "_write_text"): the product's own text sink by name
             elif node.value in PARSE_CALLS:
                 kinds = {'namespace'}                                  # getattr(parser, "parse_args"): a namespace of its own
+            elif SCAN_CONSOLE.match(node.value):
+                kinds = {'console'}                                    # a table of signatures keyed by the name, getattr(kernel32, "WriteConsoleW")
         elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
             if node.id in SCAN_NAMES and not (node.id == 'print' and in_call and machine_print(parent)):
                 kinds.add(node.id)                                     # the builtin, whatever else the name is bound to
             if node.id in NAMESPACES or any(name.rsplit('.', 1)[-1] in NAMESPACES for name in bindings[node.id]):
                 kinds.add('namespace')
+            if SCAN_CONSOLE.match(node.id):
+                kinds.add('console')
             if not is_root:                                            # the root of a chain is judged with the chain
                 kinds |= kinds_of(bindings[node.id])
                 for module in sorted({'sys', 'os'} & bindings[node.id]):
@@ -2114,6 +2127,8 @@ def site_nodes(source):
                     kinds.add('exit-text')                              # handed on: what it carries is not seen here
         elif isinstance(node, ast.Attribute) and not isinstance(node.ctx, ast.Load):
             holder = node.value
+            if SCAN_CONSOLE.match(node.attr):
+                kinds.add('console')                                    # kernel32.WriteConsoleW = ...
             if (node.attr == 'command' or node.attr.endswith('_command')) and (
                     (isinstance(holder, ast.Name) and holder.id not in ('self', 'cls'))
                     or (isinstance(holder, ast.Attribute) and holder.attr in ('args', 'namespace'))):
@@ -2121,6 +2136,8 @@ def site_nodes(source):
         elif isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Load):
             if node.attr in NAMESPACES or node.attr in PARSE_CALLS:
                 kinds.add('namespace')
+            if SCAN_CONSOLE.match(node.attr):
+                kinds.add('console')                                    # of anything: api.k.WriteConsoleW, d.k.GetStdHandle
             if node.attr in SCAN_DUNDERS:
                 kinds.add('dynamic access')
             if not is_root and kinds_of(dotted(node)):
@@ -2759,6 +2776,16 @@ NAME_REACHES = {
         'every stream.write(data) of a file writer (cli.execute > runner.run) is an attribute call named '
         "write, and an attribute call reaches every function named write; this one is the Windows console's, "
         'which only windows_workspace_binding makes, and no machine leaf reaches that along direct names',
+        NAME_REACH_LEAVES),
+    ('windows_terminal.py', '_Win32.handles'): (
+        'repository._Repository.__init__ calls self._initialize(), an attribute call named _initialize, which reaches every function named '
+        "_initialize; NativeConsole._initialize is the Windows console's, and it calls api.handles(). The console API is made only by "
+        'NativeConsole.__init__, which only windows_workspace_binding makes, and no machine leaf reaches either along direct names',
+        NAME_REACH_LEAVES),
+    ('windows_terminal.py', '_Win32.write'): (
+        'every stream.write(data) of a file writer (cli.execute > runner.run) is an attribute call named write, and an attribute call '
+        "reaches every function named write; this one is the Windows console API's, which only NativeConsole.__init__ makes, and that is made "
+        'only by windows_workspace_binding; no machine leaf reaches either along direct names',
         NAME_REACH_LEAVES),
     ('workbench_tui.py', 'Workspace.draw'): (
         'artifact_vault.command passes on an attribute named input, which reaches Workspace.input, whose '
@@ -4114,7 +4141,7 @@ class LeafClassificationTests(unittest.TestCase):
         self.assertEqual(output_site_problems(), [])
         found = output_sites()
         self.assertEqual(dict(found), {site: value[0] for site, value in list(OUTPUT_SITES.items()) + list(NOT_A_TERMINAL.items())})
-        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (41, 213, 254, 412))
+        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (44, 213, 257, 417))
         self.assertIn(('cli.py', '_write_text', 'print'), found)                                   # the scan reads the product
         self.assertTrue(all(isinstance(value[1], str) and value[1] for value in NOT_A_TERMINAL.values()))      # each has its reason
 
@@ -4426,6 +4453,44 @@ class ReferenceScanTests(unittest.TestCase):
                                                                     'readline', 'curses', 'tty'}
         self.assertEqual(used, {'fcntl', 'termios', 'signal'})
 
+    def test_a_console_win32_name_is_a_site_as_an_attribute_a_name_a_string_or_an_import(self):
+        """The calls that write to the console, or choose where its output goes, are a fail-closed set (SCAN_CONSOLE). The review's input: a
+        write through the handle of windows_directory's API, which no reach can see because that loader is not a terminal. The product names
+        them only in windows_terminal's API (the signature table, handles and write), each listed. The snippets are parsed, never run."""
+        for label, snippet, expected in (
+                ('the review: a write through windows_directory\'s handle',
+                 'from .windows_directory import _Win32 as D\nd = D()\nd.k.WriteConsoleW(d.k.GetStdHandle(-11), %(line)r, 28, None, None)',
+                 {'console': 2}),
+                ('WriteConsoleA', 'k.WriteConsoleA(h, b"x", 1, None, None)', {'console': 1}),
+                ('WriteConsole itself', 'k.WriteConsole(h, "x", 1, None, None)', {'console': 1}),
+                ('WriteConsoleOutputW', 'k.WriteConsoleOutputW(h, buffer, size, origin, region)', {'console': 1}),
+                ('WriteConsoleOutputCharacterW', 'k.WriteConsoleOutputCharacterW(h, "x", 1, origin, count)', {'console': 1}),
+                ('WriteConsoleOutputAttribute', 'k.WriteConsoleOutputAttribute(h, attributes, 1, origin, count)', {'console': 1}),
+                ('WriteConsoleInputW', 'k.WriteConsoleInputW(h, records, 1, count)', {'console': 1}),
+                ('GetStdHandle', 'k.GetStdHandle(-11)', {'console': 1}),
+                ('SetStdHandle', 'k.SetStdHandle(-11, h)', {'console': 1}),
+                ('AllocConsole', 'k.AllocConsole()', {'console': 1}),
+                ('AttachConsole', 'k.AttachConsole(-1)', {'console': 1}),
+                ('CreateConsoleScreenBuffer', 'k.CreateConsoleScreenBuffer(0, 0, None, 1, None)', {'console': 1}),
+                ('SetConsoleActiveScreenBuffer', 'k.SetConsoleActiveScreenBuffer(h)', {'console': 1}),
+                ('a chain from ctypes', 'import ctypes\nctypes.windll.kernel32.WriteConsoleW(h, "x", 1, None, None)',
+                 {'console': 1, 'ctypes__dot__windll': 1}),
+                ('a name', 'WriteConsoleW(h, "x", 1, None, None)', {'console': 1}),
+                ('a name imported', 'from somewhere import WriteConsoleW\nWriteConsoleW(h, "x", 1, None, None)', {'import console': 1, 'console': 1}),
+                ('the name as a string', 'getattr(k, "WriteConsoleW")(h, "x", 1, None, None)', {'console': 1}),
+                ('a table keyed by the names', 'table = {"GetStdHandle": 1, "WriteConsoleW": 2}', {'console': 2}),
+                ('an attribute stored', 'k.WriteConsoleW = None', {'console': 1}),
+                ('a prototype set on it', 'k.WriteConsoleW.argtypes = []', {'console': 1})):
+            with self.subTest(label):
+                self.inside(snippet, **expected)
+        for label, snippet in (('the console mode calls', 'k.GetConsoleMode(h, m)\nk.SetConsoleMode(h, 1)'),
+                               ('reading input', 'k.ReadConsoleInputW(h, r, 1, c)\nk.WaitForSingleObject(h, 5)'),
+                               ('the size of the buffer', 'k.GetConsoleScreenBufferInfo(h, info)'),
+                               ('a sentence that names one', 'note = "call WriteConsoleW later"'),
+                               ('a longer name that only starts like one', 'k.GetStdHandleCount(1)')):
+            with self.subTest(label):
+                self.inside(snippet)
+
     def test_a_namespace_of_its_own_or_a_route_value_stored_is_a_site(self):
         """What the route conditions of the reachability check read as the command line's: a handler that makes a namespace of its own, or stores
         a route value, could call a dispatcher as another route. Neither exists in the product, but for one stand-in with a single field."""
@@ -4637,8 +4702,9 @@ class ReachTests(unittest.TestCase):
         self.assertEqual(reach_problems(), [])
         by_holder = collections.Counter(holder for (_, holder) in found)
         self.assertEqual(by_holder, {('windows_terminal.py', 'NativeConsole.session'): 127, ('windows_terminal.py', 'NativeConsole.write'): 127,
+                                     ('windows_terminal.py', '_Win32.handles'): 127, ('windows_terminal.py', '_Win32.write'): 127,
                                      ('workbench_tui.py', 'Workspace.draw'): 111})
-        self.assertEqual(len(found), 365)
+        self.assertEqual(len(found), 619)
         self.assertEqual(set(NAME_REACH_LEAVES), {' '.join(path) for path, kind in leaf_table().items() if kind == 'machine'})
         for holder, (reason, leaves) in NAME_REACHES.items():
             self.assertTrue(reason and leaves and set(leaves) <= set(NAME_REACH_LEAVES), holder)
