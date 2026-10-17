@@ -41,10 +41,13 @@ It excludes only machine forms: --json output, the non-terminal JSON document of
 workspace (r), which shows that same JSON document.
 
 The allowlist is the :help listing and the help legend (the synopses of workbench.HELP and of the legend's Changes and Workflow map
-rows), and only on a surface that also shows the convention sentence (SYNOPSIS_CONVENTION of test_template_words): words in capitals
-there are metavariables, and the sentence says so. Nothing else is allowed. Until a surface shows the sentence, its synopses fail.
-An argparse usage block (the `usage:` rows of --help and of a usage error) is allowed on the same condition: only in an output that
-itself shows the sentence. The sweep of every route's --help and usage error fails for each output that prints a block without it.
+rows), and only on a page that also shows the convention sentence (SYNOPSIS_CONVENTION of test_template_words): words in capitals
+there are metavariables, and the sentence says so. A page is the rows on screen at one scroll position at one size, so a sentence on
+the first page of a long listing licenses nothing on the second. Nothing else is allowed. Until a page shows the sentence, the
+synopses on it fail.
+An argparse usage block (the `usage:` rows of --help and of a usage error) is allowed on the same condition, with the whole output
+as the unit (it is not paged): only in an output that itself shows the sentence. The sweep of every route's --help and usage error
+fails for each output that prints a block without it.
 
 A second check, the independent net, does not use the reader's context rules: a form the reader misses is missed by the renderer
 and by the check above alike. In every visual block of every surface, help included (a command wrapped over rows is one command; a
@@ -55,7 +58,8 @@ as a command, is a hit. The command words are the product's tables and the exter
 and git today), which external_programs derives from the product's source, never from a list here. Two readings need no table, so a
 program the product only prints is found too: a placeholder after a lead (run, type, use, try: `Run: kubectl apply -f MANIFEST_FILE`)
 and a placeholder right after an option (`-f MANIFEST_FILE`, `--root STORE`). On the help surfaces a hit is
-excused only inside a synopsis the product writes verbatim, on a surface that shows the convention sentence. Its other false
+excused only inside a synopsis the product writes verbatim, on a page that shows the convention sentence (every page that shows the
+row, for a row two pages repeat). Its other false
 positives are the entries of NET_ALLOWED, each with its reason. Both checks are reported.
 """
 import argparse
@@ -502,6 +506,33 @@ def is_synopsis(command):
     return ' '.join(command.split()) in synopsis_corpus()
 
 
+def rows_holding(rows, command):
+    """The indexes of the rows that hold the text of a command: found in the visual blocks, joined as a person reads them, so a
+    command wrapped over rows (or pages) is held by each row it runs over; every place it is printed counts."""
+    wanted = ' '.join(command.split())
+    found = set()
+    for indexes in visual_blocks(rows):
+        parts = [' '.join(rows[index].split()) for index in indexes]
+        parts = [part[:-1].rstrip() if part.endswith('\\') else part for part in parts]
+        text, bases = '', []
+        for part in parts:
+            text += (' ' if text else '') + part
+            bases.append(len(text) - len(part))
+        start = text.find(wanted)
+        while wanted and start != -1:
+            found |= {indexes[number] for number, base in enumerate(bases) if base < start + len(wanted) and base + len(parts[number]) > start}
+            start = text.find(wanted, start + 1)
+    return found
+
+
+def licensed_command(command, rows, shown, convention):
+    """Whether a synopsis the reader found on a help surface stands only on pages that show the convention sentence: every row that
+    holds it is shown (net_input's flags). Without the flags, or if the rows do not hold it, the surface's own flag (convention:
+    every page shows the sentence)."""
+    holding = rows_holding(rows, command) if shown is not None else set()
+    return all(shown[index] for index in holding) if holding else convention
+
+
 @functools.lru_cache(maxsize=1)
 def synopsis_sources():
     """The two tables of synopses the product prints on its help surfaces, each entry whole and with its whitespace collapsed:
@@ -553,34 +584,40 @@ class Sweep:
 
     def __init__(self):
         self.found = collections.OrderedDict()                 # (command, operands) -> {(state, surface, size)}
-        self.synopses = collections.OrderedDict()              # a synopsis printed on a surface without the convention sentence
+        self.synopses = collections.OrderedDict()              # a synopsis read on a help surface where a page lacks the sentence
         self.coverage = collections.Counter()                  # (state, surface, size) -> screens read
         self.net = collections.OrderedDict()                   # (command word, token) -> {'where': {...}, 'rows': {...}}
         self.excused = collections.Counter()                   # allowlist entry -> hits it excused
         self.printed = collections.Counter()                   # (state, route) -> rows a route printed (a route that prints nothing
                                                                # is not a sweep)
 
-    def cast(self, state, surface, size, rows, convention=False):
-        """The independent net over the rows of one screen, on every surface. On a help surface that shows the convention sentence
-        the synopses the product writes verbatim are excused (exact_spans); nothing else on it is."""
+    def cast(self, state, surface, size, rows, convention=False, shown=None):
+        """The independent net over the rows of one screen, on every surface. On a help surface the synopses the product writes
+        verbatim are excused (exact_spans), row by row and only where the page that shows the row shows the convention sentence
+        (shown, one flag a row, as net_input gives it; without it, convention for the whole screen); nothing else on it is."""
         seen = set()
-        for hit in net_scan(rows, synopses=convention and surface in HELP_SURFACES):
+        for hit in net_scan(rows, synopses=surface in HELP_SURFACES):
             if (hit.word, hit.token, hit.shown) in seen:
                 continue
             seen.add((hit.word, hit.token, hit.shown))
-            reason = 'exact synopsis' if hit.exact else net_excuse(state, surface, rows, hit.index, hit.previous, hit.token)
+            licensed = convention if shown is None else shown[hit.index]
+            reason = 'exact synopsis' if hit.exact and licensed else net_excuse(state, surface, rows, hit.index, hit.previous, hit.token)
             if reason:
                 self.excused[reason] += 1
                 continue
-            held = self.net.setdefault((hit.word, hit.token), {'where': set(), 'rows': set()})
+            held = self.net.setdefault((hit.word, hit.token), {'where': set(), 'rows': set(), 'unlicensed': set()})
             held['where'].add((state, surface, size))
             held['rows'].add(scrubbed(hit.shown))
+            if hit.exact:
+                held['unlicensed'].add((state, surface, size))        # a synopsis the product writes, on a page without the sentence
 
-    def read(self, state, surface, size, texts, convention=False, rows=()):
-        """Judge the texts of one screen. convention: the surface shows SYNOPSIS_CONVENTION (all its pages). rows: the rows as
-        printed, for the net."""
+    def read(self, state, surface, size, texts, convention=False, rows=(), shown=None):
+        """Judge the texts of one screen. convention: every page of the surface shows SYNOPSIS_CONVENTION. rows: the rows as printed,
+        for the net; shown: for each row, whether every page that shows it shows the sentence (net_input). Both checks excuse a
+        synopsis by the page it is on, the net row by row and the reader by the rows that hold the command it read; without shown,
+        by convention for the whole screen."""
         self.coverage[(state, surface, size)] += 1
-        self.cast(state, surface, size, rows, convention)
+        self.cast(state, surface, size, rows, convention, shown)
         seen = set()
         for text in texts:
             for command, operands in unresolved(text):
@@ -588,7 +625,7 @@ class Sweep:
                     continue
                 seen.add((command, tuple(operands)))
                 if surface in HELP_SURFACES and is_synopsis(command):
-                    if convention:
+                    if licensed_command(command, rows, shown, convention):
                         continue
                     self.synopses.setdefault((command, tuple(operands)), set()).add((state, surface, size))
                 else:
@@ -612,14 +649,18 @@ class Sweep:
             for state, surface, size in sorted(held['where']):
                 places.setdefault((surface, state), []).append(size)
             for (surface, state), sizes in places.items():
-                lines.append('    on %r, in state %r, at %s' % (surface, state, ' '.join(size_word(s) for s in sizes)))
+                bare = [size for size in sizes if (state, surface, size) in held.get('unlicensed', ())]
+                lines.append('    on %r, in state %r, at %s%s' % (
+                    surface, state, ' '.join(size_word(s) for s in sizes),
+                    ' (a synopsis the product writes, on a page without the convention sentence at %s)' % ' '.join(size_word(s) for s in bare)
+                    if bare else ''))
         return lines
 
     def failures(self):
         """The failure lines: one per command, naming every surface, state and size it was printed on."""
         lines = []
         for table, why in ((self.found, 'a command with an unresolved operand'),
-                           (self.synopses, 'a synopsis on a surface without "%s"' % SYNOPSIS_CONVENTION)):
+                           (self.synopses, 'a synopsis on a help page without "%s"' % SYNOPSIS_CONVENTION)):
             for (command, operands), where in table.items():
                 places = collections.OrderedDict()
                 for state, surface, size in sorted(where):
@@ -637,9 +678,10 @@ class Sweep:
             for item, where in theirs.items():
                 mine.setdefault(item, set()).update(where)
         for item, held in other.net.items():
-            mine = self.net.setdefault(item, {'where': set(), 'rows': set()})
+            mine = self.net.setdefault(item, {'where': set(), 'rows': set(), 'unlicensed': set()})
             mine['where'] |= held['where']
             mine['rows'] |= held['rows']
+            mine['unlicensed'] |= held.get('unlicensed', set())
         self.coverage.update(other.coverage)
         self.excused.update(other.excused)
         return self
@@ -699,14 +741,30 @@ def surface_pages(ws, size, rules):
     return pages, clone.layer
 
 
-def whole_body(pages):
-    """The body rows of all the pages of a surface as one list, each row once. The last page of a scroll is drawn from the row
-    that fills it, so it repeats the rows it shares with the page before it; the offset of each page says how many."""
-    rows, end = [], 0
-    for page in pages:
-        rows += page.body[max(0, end - page.offset):]
+def body_owners(pages):
+    """The body rows of all the pages of a surface as one list, each row once, and for each row the numbers of the pages that show
+    it. The last page of a scroll is drawn from the row that fills it, so it repeats the rows it shares with the page before it; the
+    offset of each page says how many, and a repeated row is shown by both pages."""
+    rows, owners, end = [], [], 0
+    for number, page in enumerate(pages):
+        repeated = max(0, end - page.offset)
+        for index in range(len(rows) - repeated, len(rows)):
+            owners[index].add(number)
+        rows += page.body[repeated:]
+        owners += [{number} for _ in page.body[repeated:]]
         end = max(end, page.offset + len(page.body))
-    return rows
+    return rows, owners
+
+
+def whole_body(pages):
+    """The body rows of all the pages of a surface as one list, each row once (see body_owners)."""
+    return body_owners(pages)[0]
+
+
+def page_shows(page):
+    """Whether one page, the rows on screen at its scroll position at its size (above the box, in it and below it), shows the
+    convention sentence."""
+    return shows_convention(page.above + page.body + page.below)
 
 
 def screen_texts(pages, layer):
@@ -723,20 +781,33 @@ def screen_texts(pages, layer):
     return texts
 
 
-def net_rows(pages, layer):
-    """The rows the net reads, in the groups screen_texts reads: the chrome above and below the box of each page, and the body (its
-    pages joined, each row once, unless the layer pages by commands). A blank row ends each group, so no visual block runs over
-    from one group into the next."""
-    rows = []
-    for page in pages:
+def net_input(pages, layer, licensed=True):
+    """(rows, shown): the rows the net reads, in the groups screen_texts reads: the chrome above and below the box of each page, and
+    the body (its pages joined, each row once, unless the layer pages by commands). A blank row ends each group, so no visual block
+    runs over from one group into the next. shown, for each row, says whether every page that shows the row also shows the
+    convention sentence (None when licensed is false): a synopsis is excused page by page, not by the surface."""
+    rows, owners = [], []
+    for number, page in enumerate(pages):
         for row in page.above + page.below:                  # the chrome (title, tabs, strip, band, status, keys): each row is a line
             rows += [row, '']                                # of its own, so a blank row after it keeps the next from joining it
+            owners += [{number}, set()]
     if layer in ('catalog', 'workflow'):
-        for page in pages:
+        for number, page in enumerate(pages):
             rows += page.body + ['']
+            owners += [{number} for _ in page.body] + [set()]
     else:
-        rows += whole_body(pages) + ['']
-    return rows
+        body, who = body_owners(pages)
+        rows += body + ['']
+        owners += who + [set()]
+    if not licensed:
+        return rows, None
+    sentence = [page_shows(page) for page in pages]
+    return rows, [all(sentence[number] for number in row) for row in owners]
+
+
+def net_rows(pages, layer):
+    """The rows the net reads (see net_input)."""
+    return net_input(pages, layer, licensed=False)[0]
 
 
 class Look:
@@ -772,8 +843,10 @@ def read_screen(sweep, ws, state, label, schedule=SCHEDULE):
     """Read the surface the workspace shows now, at every size of the schedule (in its rule style), with both checks."""
     for size, style in schedule:
         pages, layer = surface_pages(ws, size, style)
-        body = ' '.join(' '.join(row for page in pages for row in page.body).split())
-        sweep.read(state, label, size, screen_texts(pages, layer), SYNOPSIS_CONVENTION in body, net_rows(pages, layer))
+        helping = label in HELP_SURFACES
+        rows, shown = net_input(pages, layer, licensed=helping)
+        # A synopsis is excused per page, by both checks: by the pages that show the row it is in (net_input's flags).
+        sweep.read(state, label, size, screen_texts(pages, layer), helping and all(page_shows(page) for page in pages), rows, shown)
 
 
 def drive(root, service_root, plan, state, sweep, schedule=SCHEDULE):
@@ -1914,6 +1987,15 @@ class NetTests(unittest.TestCase):
         self.assertEqual(whole_body(pages), ['a', 'b', 'c', 'd', 'e', 'f', 'g'])
         self.assertEqual(net_rows(pages[:1], 'summary'), ['A1', '', 'C1', '', 'a', 'b', 'c', ''])
         self.assertEqual(net_rows(pages[:2], 'catalog'), ['A1', '', 'C1', '', 'A1', '', 'C1', '', 'a', 'b', 'c', '', 'd', 'e', 'f', ''])
+        # which pages show each row, and whether they all show the sentence: the chrome by its own page, a body row by every page
+        # that shows it (the last page repeats e and f)
+        self.assertEqual(body_owners(pages)[1], [{0}, {0}, {0}, {1}, {1, 2}, {1, 2}, {2}])
+        said = Page(['A1', SYNOPSIS_CONVENTION], ['d', 'e', 'f'], ['C1'], True, 3)
+        rows, shown = net_input([pages[0], said, pages[2]], 'details')
+        self.assertEqual(len(rows), len(shown))
+        self.assertEqual(sorted({row for row, ok in zip(rows, shown) if ok and row}), sorted(['A1', 'C1', 'd', SYNOPSIS_CONVENTION]))
+        self.assertEqual(sorted({row for row, ok in zip(rows, shown) if not ok and row}), ['A1', 'C1', 'a', 'b', 'c', 'e', 'f', 'g'])
+        self.assertIsNone(net_input(pages, 'details', licensed=False)[1])
 
     def test_help_surfaces_are_read_and_only_the_exact_synopses_are_excused(self):
         listing, legend, keys = synopsis_sources()
@@ -1950,6 +2032,80 @@ class NetTests(unittest.TestCase):
                 self.assertTrue(failures(rows + ['Run: tofu apply PLAN_FILE'], surface=heading).net)      # a sentence added after it
                 self.assertTrue(failures(wrapped(name.ljust(12) + text + ' Run: tofu apply PLAN_FILE'), surface=heading).net)
                 self.assertTrue(failures(rows, convention=False, surface=heading).net)
+
+    def test_a_synopsis_is_excused_only_on_a_page_that_shows_the_convention_sentence(self):
+        """The excuse is the page's, not the surface's: a help surface whose sentence is only on page 1 fails on page 2."""
+        listing, legend, keys = synopsis_sources()
+        # an item both checks read: the net as an exact entry with operands, the reader as a command that is a synopsis
+        entry = next(entry for entry in sorted(listing) if len(entry.split()) >= 3 and net_scan(['1. ' + entry])
+                     and unresolved('1. ' + entry) and all(is_synopsis(command) for command, _ in unresolved('1. ' + entry)))
+        surface = '? Help, typed details (e)'
+
+        def read(pages, layer='details'):
+            rows, shown = net_input(pages, layer)
+            sweep = Sweep()
+            sweep.read('state', surface, (80, 24), screen_texts(pages, layer), all(page_shows(page) for page in pages), rows, shown)
+            return sweep
+        # page 1 carries the sentence in its body, as the typed listing prints it; page 2 carries a second item and no sentence
+        first = Page(['TITLE'], [SYNOPSIS_CONVENTION, '', '1. ' + entry], ['STATUS'], True, 0)
+        second = Page(['TITLE'], ['2. ' + entry], ['STATUS'], False, 3)
+        self.assertEqual((page_shows(first), page_shows(second)), (True, False))
+        sweep = read([first, second])
+        text = '\n'.join(sweep.net_failures())
+        self.assertTrue(sweep.excused['exact synopsis'])                                  # the item on page 1 is excused
+        self.assertIn("in the row '2. ", text)                                            # the same item on page 2 is a hit
+        self.assertNotIn("in the row '1. ", text)
+        self.assertIn('on a page without the convention sentence at 80x24', text)         # and the failure says why
+        self.assertTrue(sweep.synopses)                                                   # the reader holds the page 2 item to it too
+        self.assertEqual(read([first]).net_failures() + read([first]).failures(), [])     # page 1 alone is clean in both checks
+        # a page without the sentence that holds no synopsis does not take the licence from the page that does
+        bare = read([first, Page(['TITLE'], ['maintenance  (12)'], ['STATUS'], False, 3)])
+        self.assertEqual(bare.net_failures() + bare.failures(), [])
+        # the sentence in a fixed row on page 2 (below the box, wrapped as a narrow window wraps it) licenses it
+        words = SYNOPSIS_CONVENTION.split()
+        fixed = Page(['TITLE'], ['2. ' + entry], ['STATUS', ' '.join(words[:3]), ' '.join(words[3:])], False, 3)
+        self.assertTrue(page_shows(fixed))
+        self.assertEqual(read([first, fixed]).net_failures() + read([first, fixed]).failures(), [])
+        # an item that runs over the page boundary: the part on page 1 is excused, the part on page 2 is not
+        halves = None
+        for candidate in sorted(listing):
+            parts = candidate.split()
+            for at in range(1, len(parts)):
+                hits = net_scan(['7. ' + ' '.join(parts[:at]), ' '.join(parts[at:])])
+                before, after = {h.token for h in hits if h.index == 0}, {h.token for h in hits if h.index == 1}
+                if before and after and not before & after:
+                    halves = (' '.join(parts[:at]), ' '.join(parts[at:]), before, after)
+                    break
+            if halves:
+                break
+        self.assertTrue(halves, 'an entry with an operand on each side of a break')
+        left, right, on_first, on_second = halves
+        sweep = read([Page(['TITLE'], [SYNOPSIS_CONVENTION, '', '7. ' + left], ['STATUS'], True, 0),
+                      Page(['TITLE'], [right], ['STATUS'], False, 3)])
+        self.assertEqual({token for (_, token) in sweep.net}, on_second)                   # only what is on the page without the sentence
+        self.assertTrue(sweep.excused['exact synopsis'])
+        # a row two pages repeat (the last page of a scroll) is licensed only if both pages show the sentence
+        said = Page(['TITLE', SYNOPSIS_CONVENTION], ['filler', '1. ' + entry], [], True, 0)
+        last = Page(['TITLE'], ['1. ' + entry, '2. ' + entry], [], False, 1)
+        self.assertEqual(body_owners([said, last])[1], [{0}, {0, 1}, {1}])
+        self.assertTrue(read([said, last]).net)
+        self.assertEqual(read([said, Page(['TITLE', SYNOPSIS_CONVENTION], ['1. ' + entry, '2. ' + entry], [], False, 1)]).net_failures(), [])
+
+    def test_read_screen_excuses_a_synopsis_by_the_page_it_is_on(self):
+        """The wiring: read_screen draws the pages of a surface and hands the net the pages' own flags."""
+        listing, legend, keys = synopsis_sources()
+        entry = next(entry for entry in sorted(listing) if len(entry.split()) >= 3 and net_scan(['1. ' + entry]))
+        first = Page(['TITLE'], [SYNOPSIS_CONVENTION, '', '1. ' + entry], ['STATUS'], True, 0)
+        second = Page(['TITLE'], ['2. ' + entry], ['STATUS'], False, 3)
+        for label in ('? Help, typed details (e)', '8 Help', '2 Inspector'):
+            sweep = Sweep()
+            with patch.dict(globals(), {'surface_pages': lambda ws, size, style: ([first, second], 'details')}):
+                read_screen(sweep, None, 'state', label, schedule=(((80, 24), 'ascii'),))
+            rows = {row for held in sweep.net.values() for row in held['rows']}
+            with self.subTest(label=label):
+                self.assertTrue(any(row.startswith('2. ') for row in rows), label)          # page 2's item is a hit on every surface
+                # page 1's is excused on a help surface only (the same words anywhere else are an instruction, not a synopsis)
+                self.assertEqual(any(row.startswith('1. ') for row in rows), label not in HELP_SURFACES)
 
     def test_a_net_failure_names_the_token_the_command_word_the_row_the_surface_the_state_and_the_size(self):
         sweep = Sweep()
