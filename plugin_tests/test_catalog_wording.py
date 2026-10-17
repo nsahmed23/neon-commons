@@ -108,7 +108,9 @@ class VerdictOnTheLastScreenTests(Base):
             # the verdict wraps now that it carries its caveats (PKG-CATALOG-6 item 3): read it across its rows
             text = flat(entry)
             self.assertIn(verdict, text, (fixture, goal, name, 'no verdict line beside the next action in the last rows'))
-            self.assertIn(flat([item['next_action']]), text[text.index(verdict):], (fixture, goal, name))
+            from intune_iac.readiness import placeholders_in_words
+            # the screen says a recorded command that holds a placeholder in words (PKG-START-STANDIN round 3)
+            self.assertIn(flat([placeholders_in_words(item['next_action'])]), text[text.index(verdict):], (fixture, goal, name))
             # one source: the words are the state rows' own words, not a second wording of the same state
             self.assertEqual(item['operation_ready']['status'] in rows['operation-ready'], True)
 
@@ -577,7 +579,7 @@ class CaptureContactTests(Base):
             entry = next_action_entries(lines)['discover']
             self.assertTrue(flat(entry).endswith(self.SENTENCE), flat(entry))
             # the legend of the command comes first, the sentence follows it
-            self.assertLess(flat(entry).index('(POLICY is'), flat(entry).index(self.SENTENCE))
+            self.assertLess(flat(entry).index('the capture command, naming'), flat(entry).index(self.SENTENCE))
 
     def test_a_goal_that_prints_no_capture_command_says_nothing_about_it(self):
         for goal in ('inspect', 'adopt', 'change'):
@@ -1435,13 +1437,13 @@ class OperandRenderingTests(Base):
             view = entry.goal_readiness(survey, 'adopt')
             needed = [row for row in view['rows'] if row['needed']]
             needed[0]['state'], needed[0]['missing'], needed[0]['next_action'] = 'missing', [planted], planted
-            needed[1]['next_action'] = 'Run: intune-iac start DIRECTORY'  # names nothing refused: as recorded
+            needed[1]['next_action'] = 'Run: intune-iac start DIRECTORY'  # names nothing refused: in words (a placeholder)
             lines = entry.start_lines(survey, 120, view)
             shown = '\n'.join(lines)
             for fragment in ('cafe', chr(0x301), '\\u0301'):
                 self.assertNotIn(fragment, shown, fragment)
             self.assertGreaterEqual(flat(lines).count(self.EXPLANATION), 2)  # the note and the next action of the planted row
-            self.assertIn('Run: intune-iac start DIRECTORY', flat(lines))
+            self.assertIn('Run: the start command, naming the directory to survey', flat(lines))
 
     def test_a_plain_catalog_of_a_refused_directory_prints_neither_the_directory_nor_a_step_that_names_it(self):
         import tempfile

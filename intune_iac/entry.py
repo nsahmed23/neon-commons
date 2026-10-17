@@ -852,9 +852,11 @@ def recorded_text(text, hidden):
     screen may not show) and, where the directory may not be shown (hidden), readiness.without_stand_in on top, the CATALOG-6 rule
     the catalog applies to the same strings: a part of it that could name the directory (DIRECTORY would be a real folder to a
     shell) is said in words. The rule is that function's; this module writes no second one."""
-    from .readiness import without_stand_in
+    from .readiness import placeholders_in_words, without_stand_in
     step = shown_step(text)
-    return without_stand_in(step) if hidden else step
+    # then the display transform (readiness.placeholders_in_words) for a command that still has a placeholder; neither replaces the
+    # other: the first says the commands for a directory that may not be shown, the second the commands with a value to fill in
+    return placeholders_in_words(without_stand_in(step) if hidden else step)
 
 
 def guard_rows(rows):

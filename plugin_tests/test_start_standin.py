@@ -315,43 +315,44 @@ class ProducerStringTests(Estates):
 
 
 # sha256 (first 16 hex digits) of the screen's rows for an ordinary name. Taken on the base of this package (04260b8) before
-# the change; all 33 were taken again in round 2 (PKG-START-STANDIN), because the next step "Start from the export" of this
-# fixture is now said in words (its command held NEW_SESSION.json and NEW_OUTPUT_DIR), and nothing else on the screen changed.
+# the change. Round 2 took all 33 again: the next step "Start from the export" is now said in words. Round 3 took the 18 of
+# the goals discover, adopt and change again (built and plain, at all three widths): the goal block says the recorded
+# commands that hold a placeholder in words. The 15 others (no goal, inspect, and the command line) did not change.
 # key: route|width|goal. The temporary parent and fixture directories are written PARENT and FIXTURES first, and the
 # readiness view is host-free (host_free). Linux with a temporary directory of /tmp only: a longer path wraps differently.
 GOLDEN = {
     'built|120|-': '408f5d8deb11b2f3',
-    'built|120|adopt': 'd9e76687a0ee3209',
-    'built|120|change': '9feaf63eac2ad467',
-    'built|120|discover': '2e96a6893e1648e4',
+    'built|120|adopt': 'f76a12c6dc1fa7cb',
+    'built|120|change': '4626215afbbd5d4a',
+    'built|120|discover': '000fa6958933b0d9',
     'built|120|inspect': 'd6cb074befe6f1e8',
     'built|60|-': 'd7ecef7a29dc844c',
-    'built|60|adopt': '648ed36df9625d33',
-    'built|60|change': '471a954f01977bef',
-    'built|60|discover': '74c94dbeba3b0e00',
+    'built|60|adopt': '0a43a09036e8b662',
+    'built|60|change': '9f92d6328f5e2856',
+    'built|60|discover': 'aa01102987eddf20',
     'built|60|inspect': 'fa9f05ec9a11fee6',
     'built|80|-': 'a2d46f429067021e',
-    'built|80|adopt': '9a3f7009034e9749',
-    'built|80|change': '21ef20cc4f64163a',
-    'built|80|discover': 'f1f87aa3c82314d7',
+    'built|80|adopt': '22800ca4b9ef28cf',
+    'built|80|change': '61fb88e33b7cfbeb',
+    'built|80|discover': '949573c1cda5819d',
     'built|80|inspect': '5348da356099d53f',
     'cli|120|-': '1b346448b55b6f0d',
     'cli|60|-': '8ce31278ea4f0458',
     'cli|80|-': '190a13af2934097f',
     'plain|120|-': '493952215c3b7477',
-    'plain|120|adopt': 'e92da6e362bb7517',
-    'plain|120|change': '665074fe39bbb73f',
-    'plain|120|discover': 'b39b6dc16e5eccd7',
+    'plain|120|adopt': '4e889ecae486f9b9',
+    'plain|120|change': '9679e2ac90f3a42c',
+    'plain|120|discover': 'a871a9eff1c3b8eb',
     'plain|120|inspect': 'aabf7bd2fc85f81a',
     'plain|60|-': 'c71aad4dcbce1f46',
-    'plain|60|adopt': '5560bb3990fc00a1',
-    'plain|60|change': '8887c0e1fc969d67',
-    'plain|60|discover': '7763603b91fc1439',
+    'plain|60|adopt': 'fe2337bf42c8d228',
+    'plain|60|change': '11d667db1d60e263',
+    'plain|60|discover': 'ac4f98a0bf78457f',
     'plain|60|inspect': '38e65b2841068bdb',
     'plain|80|-': '553f2eecaffac66e',
-    'plain|80|adopt': '20bc7b8e667de2a2',
-    'plain|80|change': 'ec450c40db817198',
-    'plain|80|discover': '8aca92c77cff7e44',
+    'plain|80|adopt': 'd1c0c567ba463d54',
+    'plain|80|change': '5d71bde6d6de6549',
+    'plain|80|discover': '71c9e9112ccf0d74',
     'plain|80|inspect': '1c04e145f7b31865',
 }
 
@@ -642,3 +643,153 @@ class ConflictSessionTests(unittest.TestCase):
         actions = self.actions(ORDINARY, {'step': 'conflict', 'conflict_reason': 'output_changed'})
         self.assertEqual(actions, ['Resolve the changed output (new-path, review or cancel): intune-iac wizard --session '
                                    "'estate dir/session.json'"])
+
+
+def render_catalog(route, parent, name, width, goal):
+    """The catalog's rows for parent/name, typed from parent: built (the builders' own value), plain (after a JSON round trip) or
+    cli (main(['catalog', ...]))."""
+    from intune_iac import catalog, cli, entry
+    from plugin_tests import test_catalog as tc
+
+    def run():
+        if route == 'cli':
+            out = io.StringIO()
+            argv = ['catalog', name] + (['--goal', goal] if goal else [])
+            with patch('shutil.get_terminal_size', return_value=os.terminal_size((width, 40))), contextlib.redirect_stdout(out):
+                assert cli.main(argv) == 0
+            return out.getvalue().split('\n')
+        survey = entry.survey(name, relative_to=os.getcwd())
+        value = catalog.build(survey, doctor=tc.doctor(), goal=goal, relative_to=os.getcwd())
+        if route == 'plain':
+            value = json.loads(json.dumps(value))
+        return catalog.catalog_lines(value, width)
+    return in_directory(parent, run)
+
+
+class DisplayTransformTests(unittest.TestCase):
+    """Round 3, item 2: one display transform (readiness.placeholders_in_words) says a recorded step's command in words when it has
+    a placeholder as an operand: the step's own lead, then "the <command> command, naming" and one description per placeholder from
+    one table. A legend that only explained the placeholders goes; anything else in it stays; a part without a placeholder stays."""
+    CAPTURE = ('Provide the read token only to this one command: intune-iac capture --tenant TENANT_ID --policy POLICY --output '
+               'NEW_DIR --token-env TOKEN_VARIABLE_NAME (TENANT_ID is the tenant id the context names; POLICY is the policy id, a '
+               'GUID; NEW_DIR is a folder that does not exist yet; TOKEN_VARIABLE_NAME is the name of the environment variable that '
+               'holds your read token; through the environment variable that flag names; never on a command line)')
+
+    @staticmethod
+    def words(step):
+        from intune_iac import readiness
+        return getattr(readiness, 'placeholders_in_words', lambda text: text)(step)
+
+    def test_a_capture_step_is_its_lead_the_command_and_what_to_name(self):
+        self.assertEqual(self.words(self.CAPTURE),
+                         'Provide the read token only to this one command: the capture command, naming your tenant id, the policy '
+                         'id (a GUID), a new folder for the output and the name of the environment variable that holds the token '
+                         '(through the environment variable that flag names; never on a command line)')
+
+    def test_a_legend_that_only_explained_the_placeholders_goes(self):
+        from intune_iac import readiness
+        step = readiness.with_legend('intune-iac target authenticate --input TARGET_JSON --provider-secret-fd FD')
+        self.assertIn('TARGET_JSON is', step)
+        self.assertEqual(self.words('Run: ' + step),
+                         'Run: the target authenticate command, naming the path of your target JSON file and a file descriptor '
+                         'number your shell has open on the secret')
+
+    def test_a_resolved_command_and_a_part_without_a_placeholder_stay_as_they_are(self):
+        for step in ('Run: intune-iac doctor and pass its result, with the host report, to this check.',
+                     'No action needed.',
+                     "Run: intune-iac workbench workspace --root 'estate dir/store'",
+                     'Review the changed output (new-path, review or cancel)',
+                     'Run: intune-iac capture --tenant 11111111-1111-4111-8111-111111111111 and read the output'):
+            with self.subTest(step=step):
+                self.assertEqual(self.words(step), step)
+
+    def test_the_prose_after_a_command_stays_and_follows_after_a_comma(self):
+        self.assertEqual(self.words('Run: intune-iac start DIRECTORY and pass its result to this check.'),
+                         'Run: the start command, naming the directory to survey, and pass its result to this check.')
+
+    def test_every_command_of_a_step_is_read_and_a_workspace_command_too(self):
+        route = ('If you rely on a pinned executable, pass it with intune-iac wizard --session SESSION --journey --repo REPOSITORY '
+                 '--atmos-executable PATH --tofu-executable PATH, or intune-iac repository native --root REPOSITORY --stack STACK '
+                 '--component COMPONENT --executable PATH; then run: intune-iac doctor')
+        said = self.words(route)
+        self.assertEqual(said, 'If you rely on a pinned executable, pass it with the wizard command, naming a session file, your '
+                               'repository folder and the path of the executable, or the repository native command, naming your '
+                               'repository folder, the stack name, the component name and the path of the executable; then run: '
+                               'intune-iac doctor')
+        entry_step = ('See the policies: intune-iac workbench repository-entry --root STORE --repo REPOSITORY '
+                      '(in the workspace: :repository-entry REPOSITORY)')
+        self.assertEqual(self.words(entry_step),
+                         'See the policies: the workbench repository-entry command, naming your store folder and your repository '
+                         'folder (in the workspace: the :repository-entry command, naming your repository folder)')
+
+    def test_the_transform_is_stable_and_the_table_has_a_description_for_every_template(self):
+        from intune_iac import entry, readiness
+        table = getattr(readiness, 'TEMPLATE_WORDS', {})
+        self.assertEqual(sorted(entry.FILL_IN_TEMPLATES - set(table)), [])
+        for step in (self.CAPTURE, 'Run: intune-iac start DIRECTORY and pass its result to this check.'):
+            once = self.words(step)
+            self.assertEqual(self.words(once), once)
+
+
+class GoalRowTests(unittest.TestCase):
+    """Round 3, item 2: the start screen's goal block and the catalog's goal rows print the recorded steps through the transform, on
+    every directory, together with the rule for a hidden one."""
+    CAPTURE_FULL = ('the capture command, naming the policy id (a GUID), a new folder for the output and the name of the '
+                    'environment variable that holds the token')
+    CAPTURE_NO_TENANT = ('the capture command, naming your tenant id, the policy id (a GUID), a new folder for the output and the '
+                         'name of the environment variable that holds the token')
+    CONTACT = 'The capture command sends the token to graph.microsoft.com in GET requests only'
+
+    @classmethod
+    def setUpClass(cls):
+        cls.temp = tempfile.TemporaryDirectory()
+        cls.parents = {}
+        for kind in ('full', 'repository'):
+            parent = Path(cls.temp.name) / kind
+            parent.mkdir()
+            for name in (CREDENTIAL, ORDINARY):
+                variant_estate(parent, name, 'repository') if kind == 'repository' else estate(parent, name)
+            cls.parents[kind] = str(parent)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.temp.cleanup()
+
+    def test_the_start_screens_goal_block_says_the_capture_command_in_words(self):
+        for kind, capture in (('full', self.CAPTURE_FULL), ('repository', self.CAPTURE_NO_TENANT)):
+            for name in (ORDINARY, CREDENTIAL):
+                for route in ('built', 'plain', 'cli'):
+                    with self.subTest(kind=kind, name=name == ORDINARY, route=route):
+                        text = flat(render(route, self.parents[kind], name, 100, 'discover'))
+                        self.assertIn(capture, text)
+                        self.assertIn(self.CONTACT, text)                          # the sentence about the token stays
+                        self.assertNotIn('--token-env', text)
+                        self.assertNotIn('TOKEN_VARIABLE_NAME', text)
+                        self.assertIn('never on a command line', text)             # a legend's note is kept
+
+    def test_a_goal_step_that_runs_start_on_the_directory_is_words_on_an_ordinary_directory_too(self):
+        text = flat(render('built', self.parents['repository'], ORDINARY, 100, 'discover'))
+        self.assertIn('then run: the start command, naming the directory to survey', text)
+        self.assertNotIn('start DIRECTORY', text)
+
+    def test_the_catalogs_goal_rows_say_the_recorded_commands_in_words(self):
+        # the catalog prints the next action of the first row that blocks the goal: the capture command here, the start command there
+        for kind, said in (('full', self.CAPTURE_FULL), ('repository', 'then run: the start command, naming the directory to survey')):
+            for name in (ORDINARY, CREDENTIAL):
+                for route in ('built', 'plain', 'cli'):
+                    with self.subTest(kind=kind, name=name == ORDINARY, route=route):
+                        text = flat(render_catalog(route, self.parents[kind], name, 100, 'discover'))
+                        if kind == 'repository' and name == CREDENTIAL:    # the rule for a hidden directory says it, not the table
+                            said = 'the start command with this directory (the directory cannot be shown here)'
+                        self.assertIn(said, text)
+                        for command in ('--token-env', 'TOKEN_VARIABLE_NAME', 'start DIRECTORY'):
+                            self.assertNotIn(command, text)
+
+    def test_the_catalogs_resume_command_with_placeholders_is_words(self):
+        for name in (ORDINARY, CREDENTIAL):
+            for route in ('built', 'plain', 'cli'):
+                with self.subTest(name=name == ORDINARY, route=route):
+                    text = flat(render_catalog(route, self.parents['repository'], name, 100, None))
+                    self.assertNotIn('--tenant TENANT_ID', text)
+                    if route != 'plain':
+                        self.assertIn('Resume with the workbench init command, naming your store folder and your tenant id.', text)

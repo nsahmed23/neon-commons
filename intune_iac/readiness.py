@@ -149,10 +149,86 @@ def command_operands(step):
     return [operand for _, _, _, operands in commands_in(step) for operand in operands]
 
 
+# What each placeholder in a printed command asks the person to name, for a screen that says the command in words. One table for the
+# start screen and the catalog; entry.FILL_IN_TEMPLATES has an entry here for every placeholder (a test checks it).
+TEMPLATE_WORDS = {
+    'DIRECTORY': 'the directory to survey',
+    'PATH': 'the path of the executable',
+    'ROOT': 'the folder',
+    'ID': 'the id',
+    'SERVICE_ROOT': 'your service folder',
+    'TENANT_ID': 'your tenant id',
+    'STORE': 'your store folder',
+    'CONTEXT_JSON': 'your context file',
+    'EXPORT_JSON': 'your export file',
+    'REPOSITORY': 'your repository folder',
+    'NEW_OUTPUT_DIR': 'a new output folder',
+    'NEW_SESSION': 'a new session file',
+    'POLICY': 'the policy id (a GUID)',
+    'NEW_DIR': 'a new folder for the output',
+    'TOKEN_VARIABLE_NAME': 'the name of the environment variable that holds the token',
+    'TARGET_JSON': 'the path of your target JSON file',
+    'FD': 'a file descriptor number your shell has open on the secret',
+    'REPOSITORY_DIRECTORY': 'the folder of your Git checkout',
+    'SESSION': 'a session file',
+    'STACK': 'the stack name',
+    'COMPONENT': 'the component name',
+}
+_PLACEHOLDER_NAME = re.compile(r'[A-Z][A-Z0-9_]*[A-Z0-9]')
+_LEGEND = re.compile(r' \(([^()]*)\)')
+_WORKSPACE_ENTRY = re.compile(r'(:repository-entry) ([A-Z][A-Z0-9_]*[A-Z0-9])(?=\)|\s|\Z)')
+
+
+def _described(operands):
+    """The descriptions of the placeholders among the operands, each once, as one phrase."""
+    from .entry import is_fill_in
+    said = []
+    for operand in operands:
+        if is_fill_in(operand):
+            text = TEMPLATE_WORDS[_PLACEHOLDER_NAME.match(operand).group()]
+            if text not in said:
+                said.append(text)
+    if len(said) < 2:
+        return said[0] if said else ''
+    return ', '.join(said[:-1]) + ' and ' + said[-1]
+
+
+def placeholders_in_words(step):
+    """A recorded step as a human text form prints it: every command of it that has a placeholder as an operand (entry.
+    FILL_IN_TEMPLATES) is said in words, because a placeholder in a command is a name to a shell (STORE or POLICY is a valid
+    relative path) or makes the command fail when it is copied. The step's own lead stays; the command becomes "the <command>
+    command, naming" and one description per placeholder (TEMPLATE_WORDS); the legend after it that only explained the placeholders
+    goes, because the descriptions carry it, and anything else in that legend stays. A command with no placeholder, and every
+    other part of the step, is unchanged. The machine forms (the JSON of start and the catalog) keep the recorded step: this is
+    for the human text only, and it is applied after without_stand_in, which says a command for a hidden directory."""
+    if not step:
+        return step
+    out, at = [], 0
+    for begin, end, head, operands in commands_in(step):
+        said = _described(operands)
+        if not said or begin < at:
+            continue
+        out += [step[at:begin], 'the %s command, naming %s' % (' '.join(head) or 'named', said)]
+        at = end
+        legend = _LEGEND.match(step, at)
+        if legend:
+            parts = legend.group(1).split('; ')
+            kept = [part for part in parts if not re.match(r'(?:%s) is ' % '|'.join(PLACEHOLDER_MEANINGS), part)]
+            if len(kept) < len(parts):
+                if kept:
+                    out.append(' (%s)' % '; '.join(kept))
+                at = legend.end()
+        if re.match(r' [a-z]', step[at:]):
+            out.append(',')
+    out.append(step[at:])
+    return _WORKSPACE_ENTRY.sub(lambda m: 'the %s command, naming %s' % (m.group(1), _described([m.group(2)])) if m.group(2) in TEMPLATE_WORDS
+                                else m.group(0), ''.join(out))
+
+
 def capture_contact(text):
     """The sentence that says where capture sends the token, for a printed step that runs the capture command (as command_names
     reads it, never a substring of the text); '' for any other step."""
-    if 'capture' not in command_names(text):
+    if 'capture' not in command_names(text) and 'the capture command, naming' not in text:    # as printed, or said in words
         return ''
     from urllib.parse import urlsplit
     from .capture import GRAPH_ROOT

@@ -394,7 +394,7 @@ class StartGoalTests(unittest.TestCase):
         from intune_iac.cli import doctor
         from intune_iac.entry import survey
         from intune_iac.host_capabilities import report
-        from intune_iac.readiness import readiness, screen_note
+        from intune_iac.readiness import placeholders_in_words, readiness, screen_note
         from plugin_tests.test_readiness import ReadinessTests
         extractor = ReadinessTests('printed_commands')
         for fixture in self.dirs:
@@ -406,8 +406,9 @@ class StartGoalTests(unittest.TestCase):
                     if row['needed']:
                         # The screen says each recorded note through screen_note (PKG-CATALOG-5, item 4); a note may hold a command.
                         for note in row['missing']:
-                            expected += extractor.printed_commands(screen_note(note, value['directory']))
-                        expected += extractor.printed_commands(row['next_action'])
+                            # PKG-START-STANDIN round 3: a command with a placeholder is said in words, so it is not printed
+                            expected += extractor.printed_commands(placeholders_in_words(screen_note(note, value['directory'])))
+                        expected += extractor.printed_commands(placeholders_in_words(row['next_action']))
                 for width in (50, 120):
                     _, block = goal_block(self.goal(fixture, goal, width=width))
                     shown = []
@@ -424,7 +425,8 @@ class StartGoalTests(unittest.TestCase):
 
     def test_a_long_command_wraps_between_arguments_with_a_trailing_backslash(self):
         _, block = goal_block(self.goal('offline', 'discover', width=60))
-        starts = [i for i, line in enumerate(block) if line.strip().startswith('intune-iac capture ')]
+        # the capture command is words now (it holds placeholders); the sign-in check command is the long one that is printed
+        starts = [i for i, line in enumerate(block) if line.strip().startswith('intune-iac start ')]
         self.assertTrue(starts)
         for start in starts:
             rows = [block[start]]

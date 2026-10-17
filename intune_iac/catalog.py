@@ -308,6 +308,9 @@ def _text_build(result, survey, goal, relative_to):
         command, note = _resume(item, survey['items'], own)
         if stood_in and command:
             command, note = None, _resume_words(command, item['kind'])
+        elif command and entry.has_fill_in(command):
+            # a placeholder (STORE, TENANT_ID, NEW_SESSION.json ...) in a resume command: the command in words
+            command, note = None, readiness_model.placeholders_in_words('Resume with ' + command) + "."
         row['command'], row['note'] = command, note
         row['path'] = entry.screen_path(row['path'], placeholders)
     # the directory as a screen says it, and as the path writer writes it in a command (the refused name is not kept here)
@@ -332,6 +335,7 @@ def _shown_goal_steps(goals, operand, hidden=False):
                 holder['next_action'] = entry.shown_step(holder['next_action'])
                 if hidden:
                     holder['next_action'] = readiness_model.without_stand_in(holder['next_action'])
+                holder['next_action'] = readiness_model.placeholders_in_words(holder['next_action'])
         missing = item['blocked'].get('missing')
         if missing:
             written = readiness_model.screen_note(missing, operand, hidden=hidden)
@@ -341,6 +345,7 @@ def _shown_goal_steps(goals, operand, hidden=False):
                 item['blocked']['missing'] = entry.shown_step(missing)
                 if hidden:
                     item['blocked']['missing'] = readiness_model.without_stand_in(item['blocked']['missing'])
+                item['blocked']['missing'] = readiness_model.placeholders_in_words(item['blocked']['missing'])
 
 
 def _plain_text_build(value):
@@ -358,6 +363,8 @@ def _plain_text_build(value):
         if row['command'] and entry.recorded_step_for_screen(row['command'], hidden) is None:
             row['command'] = None
             row['note'] = COMMAND_NOT_SHOWN
+        elif row['command'] and entry.has_fill_in(row['command']):
+            row['command'], row['note'] = None, readiness_model.placeholders_in_words('Resume with ' + row['command']) + "."
     goals = data['integrations'][0]['goals']
     # every unchecked sign-in message is written again from the directory, shown or not: a recorded one may name anything
     for item in goals:

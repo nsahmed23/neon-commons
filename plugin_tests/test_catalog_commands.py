@@ -169,7 +169,9 @@ class RefusedFileNameTests(unittest.TestCase):
     def test_an_ordinary_export_name_keeps_its_resume_command(self):
         parent = self.workspace('export.json')
         text = ' '.join(run_catalog_text(parent, 'work').replace(' \\', '').split())
-        self.assertIn('Resume: intune-iac wizard --session NEW_SESSION.json --input work/export.json', text)
+        # PKG-START-STANDIN round 3: the resume command still holds placeholders (a new session, a new output folder)
+        self.assertIn('Resume with the wizard command, naming a new session file and a new output folder.', text)
+        self.assertNotIn('NEW_SESSION.json', text)
 
 
 class StandInRuleTests(unittest.TestCase):
