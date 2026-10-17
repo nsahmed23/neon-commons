@@ -1495,6 +1495,9 @@ def leaf_table_problems(parser, table=None, drivers=None):
 #                                       `with open(...) as name:` binds
 #   parser-output                       print_usage, print_help or error on a parser
 #   exit-text                           an exit whose argument is not plainly a status: the interpreter writes it to standard error
+#   namespace, route value stored       an object that can carry route values of its own (a Namespace, or what parse_args returns), and a
+#                                       store to one: what the route conditions of the reachability check read as the command line's (see
+#                                       the note on what a machine leaf can run)
 # Exempt, exactly: a print that can emit one JSON document and nothing else (one positional argument that is a json.dumps(...) call, no
 # sep or file argument, no end but whitespace); and a write lexically inside `with open(...) as name:` on that name, where the block does
 # not bind the name again and open takes neither a descriptor nor a device. Everything else is a site, however it got there.
@@ -1529,7 +1532,6 @@ OUTPUT_SITES = {
     ('provider_journey.py', 'run_provider_wizard', 'print'): (2, 'provider wizard', 'b6c3bce9b4c4'),
     ('windows_terminal.py', 'NativeConsole.session', 'write'): (2, 'workbench workspace', 'b9434dce89d5'),
     ('windows_terminal.py', 'NativeConsole.write', 'write'): (1, 'workbench workspace', 'ca6d6e7eb425'),
-    ('windows_terminal.py', '_Win32.__init__', 'ctypes.WinDLL'): (1, 'workbench workspace', '4a6c32409595'),
     ('wizard.py', '_run_wizard', 'input'): (1, 'wizard', 'de76bcd7d16d'),
     ('wizard.py', '_run_wizard', 'print'): (1, 'wizard', 'f8512bed4462'),
     ('wizard.py', 'run_wizard', 'input'): (1, 'wizard', '51cbdac7e975'),
@@ -1584,6 +1586,7 @@ NOT_A_TERMINAL = {
     ('cli.py', 'doctor', 'importlib'): (3, 'asks whether a dependency is installed and its version; prints nothing itself', 'a3d061fbebed'),
     ('cli.py', 'execute.progress', 'print'): (1, REASON_JSONERR, '952fc6495858'),
     ('cli.py', 'execute.progress', 'sys.stderr'): (1, REASON_JSONERR, '243fb0fd2963'),
+    ('cli.py', 'main', 'namespace'): (1, 'the parse that gives the route: the command line of the leaf itself, which the route conditions of the reachability check read', 'd12542958194'),
     ('cli.py', 'main', 'os.dup2'): (1, 'points fd 1 at /dev/null after a broken pipe, so that nothing more is written', 'd277c4093d5c'),
     ('cli.py', 'main', 'print'): (3, REASON_JSONERR, '1fb085ba1ae4'),
     ('cli.py', 'main', 'sys.stderr'): (3, REASON_JSONERR, '04c6e9a90b90'),
@@ -1667,6 +1670,7 @@ NOT_A_TERMINAL = {
     ('signin.py', 'collect', 'os.write'): (1, 'the token, written to the pipe of the collecting child', '97d1ca87ec62'),
     ('sim_cli.py', 'text_lines', 'sys.stdout'): (1, REASON_PROBE, '47415ec2ecdb'),
     ('sim_fixture.py', '<module>', 'exit-text'): (1, 'raise SystemExit(main()): the status main returns, when the module runs as a script', '04d89e0f6d85'),
+    ('sim_fixture.py', 'main', 'namespace'): (1, 'the parse of a separate program (python -m intune_iac.sim_fixture) with a command line of its own; cli.main never calls it, and a machine leaf that did is walked by the reach check like any function', 'b46536bf23cc'),
     ('synthetic.py', 'write_estate', 'write'): (1, 'writes a synthetic estate file (Path.write_text)', '161549ab81e5'),
     ('validity.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL, '4c72edfd437e'),
     ('validity.py', 'critical', 'fcntl'): (2, REASON_FLOCK, '5641776858a0'),
@@ -1677,6 +1681,8 @@ NOT_A_TERMINAL = {
     ('windows_observation_jobs.py', 'scheduler_artifacts', 'subprocess'): (1, 'list2cmdline quotes an argument of the task file; starts nothing', 'cbd6ed60cc4c'),
     ('windows_observation_jobs.py', 'scheduler_artifacts', 'write'): (2, 'files of the observer store, through its Windows file API', '732fcf064e8f'),
     ('windows_storage.py', '_create_file', 'write'): (1, 'the Windows file API: a handle the function created', 'c1600b6921ce'),
+    ('windows_terminal.py', '_Win32.__init__', 'ctypes.WinDLL'): (1, 'kernel32 for the Win32 API that the console and the Windows storage layer share: the base class of their API classes', '4a6c32409595'),
+    ('windows_workspace_context.py', '_ContextCore._validate', 'namespace'): (1, 'a stand-in with one field, store, handed to Workspace._validate_context; not a namespace of the command line', '0a9499f7b1a1'),
     ('wizard.py', '_WizardSession.handle_restart', 'write'): (1, 'writes the copy of the session file kept before a restart, at a path it builds (open(candidate, "xb"))', 'b919a38ebfa3'),
     ('wizard.py', 'run_wizard', 'os.fdopen'): (1, REASON_FDOPEN, '4c983a7cc5c6'),
     ('wizard.py', 'run_wizard', 'write'): (1, REASON_FDWRITE, '42120b8a910d'),
@@ -1754,6 +1760,7 @@ NOT_A_TERMINAL = {
     ('worker_provider.py', 'publish_files', 'os.fdopen'): (1, REASON_FDOPEN, 'cd0273abafe4'),
     ('worker_provider.py', 'publish_files', 'write'): (1, REASON_FDWRITE, '0bbe30481352'),
     ('worker_recovery.py', '<module>', 'exit-text'): (1, 'raise SystemExit(main()): the status main returns, when the module runs as a script', '6ff0ce264664'),
+    ('worker_recovery.py', 'main', 'namespace'): (1, 'the parse of a separate program (python -m intune_iac.worker_recovery) with a command line of its own; cli.main never calls it, and a machine leaf that did is walked by the reach check like any function', '0ea5128c4059'),
     ('worker_recovery.py', 'main', 'os.write'): (1, 'the bytes of the output file it opened, to its own descriptor', '6356b272db12'),
     ('worker_recovery.py', 'main', 'print'): (2, 'a JSON document made by canonical (machine form)', 'ee0ad592e885'),
     ('worker_runtime_identity.py', '<module>', 'import importlib'): (1, REASON_IMPORTLIB, 'd73e82e694f5'),
@@ -1784,6 +1791,8 @@ SCAN_LOADERS = frozenset(('CDLL', 'cdll', 'PyDLL', 'pythonapi', 'windll', 'WinDL
 SCAN_DUNDERS = frozenset(('__dict__', '__globals__', '__builtins__', '__subclasses__', '__getattribute__', '__loader__', '__code__',
                           '__closure__', '__mro__', '__bases__', '__base__'))
 PARSER_OUTPUT = ('print_usage', 'print_help', 'error')
+NAMESPACES = ('Namespace', 'SimpleNamespace')                    # an object that can carry route values of its own
+PARSE_CALLS = ('parse_args', 'parse_known_args', 'parse_intermixed_args', 'parse_known_intermixed_args')    # argparse: a namespace from an argv
 DESCRIPTOR_CALLS = frozenset(('os.fdopen', 'os.dup', 'os.dup2', 'os.write', 'os.writev', 'os.pwrite', 'os.pwritev', 'os.sendfile',
                               'os.copy_file_range', 'os.splice'))                     # calls whose descriptor argument may be fd 0, 1 or 2
 CHILD_CALLS = frozenset(('subprocess.Popen', 'subprocess.run', 'subprocess.call', 'subprocess.check_call', 'subprocess.check_output'))
@@ -2078,9 +2087,13 @@ def site_nodes(source):
                 kinds = {'device path'}
             elif node.value == '_write_text':
                 kinds = {'_write_text as a string'}                    # getattr(cli, "_write_text"): the product's own text sink by name
+            elif node.value in PARSE_CALLS:
+                kinds = {'namespace'}                                  # getattr(parser, "parse_args"): a namespace of its own
         elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
             if node.id in SCAN_NAMES and not (node.id == 'print' and in_call and machine_print(parent)):
                 kinds.add(node.id)                                     # the builtin, whatever else the name is bound to
+            if node.id in NAMESPACES or any(name.rsplit('.', 1)[-1] in NAMESPACES for name in bindings[node.id]):
+                kinds.add('namespace')
             if not is_root:                                            # the root of a chain is judged with the chain
                 kinds |= kinds_of(bindings[node.id])
                 for module in sorted({'sys', 'os'} & bindings[node.id]):
@@ -2099,7 +2112,15 @@ def site_nodes(source):
                                    or (isinstance(holder, ast.Raise) and holder.exc is node))
                 if not in_call and not names_the_class:
                     kinds.add('exit-text')                              # handed on: what it carries is not seen here
+        elif isinstance(node, ast.Attribute) and not isinstance(node.ctx, ast.Load):
+            holder = node.value
+            if (node.attr == 'command' or node.attr.endswith('_command')) and (
+                    (isinstance(holder, ast.Name) and holder.id not in ('self', 'cls'))
+                    or (isinstance(holder, ast.Attribute) and holder.attr in ('args', 'namespace'))):
+                kinds.add('route value stored')                         # args.workbench_command = ..., not self.command
         elif isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Load):
+            if node.attr in NAMESPACES or node.attr in PARSE_CALLS:
+                kinds.add('namespace')
             if node.attr in SCAN_DUNDERS:
                 kinds.add('dynamic access')
             if not is_root and kinds_of(dotted(node)):
@@ -2111,6 +2132,11 @@ def site_nodes(source):
         elif isinstance(node, ast.Call):
             func = node.func
             called = dotted(func) if isinstance(func, (ast.Attribute, ast.Name)) else set()
+            if isinstance(func, ast.Name) and func.id in ('setattr', 'vars') and node.args and (
+                    (isinstance(node.args[0], ast.Name) and node.args[0].id == 'args')
+                    or (func.id == 'setattr' and len(node.args) > 1 and isinstance(node.args[1], ast.Constant)
+                        and isinstance(node.args[1].value, str) and (node.args[1].value == 'command' or node.args[1].value.endswith('_command')))):
+                kinds.add('route value stored')                         # setattr(args, ...), vars(args)[...] = ..., setattr(x, "..._command", ...)
             if isinstance(func, ast.Attribute) and func.attr in ('write', 'writelines', 'write_text', 'write_bytes'):
                 if not inside_open(node) and not any((classify(name) or '').startswith('os.') for name in called):
                     kinds.add('write')                                  # os.write is its own kind
@@ -2191,6 +2217,469 @@ def output_site_problems(sources=None, listed=None, table=None, others=None):
     problems += ['the session leaf %r is served by no listed site' % leaf for leaf, kind in sorted(kinds.items())
                  if kind == 'session' and leaf not in served]
     return problems
+
+
+# -- what a machine leaf can run ---------------------------------------------------------------------------------------------------------
+#
+# The scan above says where the product can put text in front of a person; it does not say who can get there. A leaf that LEAF_TABLE calls a
+# machine form must not run a function that holds a terminal site (a site of OUTPUT_SITES; the usage error of every route, which the help
+# sweep drives, is not one), unless that site is behind a route condition the leaf fails. The call graph of intune_iac is static and
+# conservative. A direct name, and a name imported from a module of the product, resolve exactly: to that function, or to the __init__ of
+# that class. An attribute call x.m(...), or an attribute passed on as a value, reaches every function or method named m in the product
+# (and every getter of a property named m, on any load); super().m(...) reaches the m of the bases. A name or an attribute of an imported
+# module of the standard library reaches nothing of the product. `with` reaches every __enter__ and __exit__, an import reaches the module,
+# a function reached reaches the functions it names. The if-chains of cli.main, of cli.execute and of every function that dispatches on
+# args.<route> (or on a name that holds it) are read as route conditions: a branch is skipped for a leaf that fails the condition. A reach
+# that follows direct names only is exact; every other reach needs an attribute name, which is how a function that shares its name with an
+# attribute some reached function uses is reached though nothing calls it. Both are listed (EXACT_REACHES, NAME_REACHES), by leaf and holder.
+# Those conditions are the command line's own, so whatever makes another command line has to be seen: a namespace or a parse of an argv of its
+# own is a site of the scan (namespace), and a call of cli.main from any function but the entry, by a name or by an attribute name, is a
+# reach to REENTRY that no listing allows, so a leaf that runs the command line again with an argv of its own fails.
+
+ESCAPES_NOT = (ast.Compare, ast.UnaryOp, ast.BinOp, ast.FormattedValue, ast.JoinedStr, ast.Expr, ast.Assert, ast.AugAssign)
+INIT_METHODS = ('__init__', '__new__', '__post_init__', '__call__')
+Ref = collections.namedtuple('Ref', 'kind name guards')
+REENTRY = ('cli.py', 'main again')                                   # not a function: the command line run again, from a function other than the entry
+FileReach = collections.namedtuple('FileReach', 'definitions classes refs imports guards')
+
+
+def dotted_module(filename):
+    """intune_iac.cli for cli.py, intune_iac.sub.x for sub/x.py, intune_iac for __init__.py."""
+    parts = filename[:-3].split('/')
+    return '.'.join([PACKAGE.name] + (parts[:-1] if parts[-1] == '__init__' else parts))
+
+
+def route_aliases(body):
+    """{local name: dest} for `name = args.dest` and `name = getattr(args, 'dest', None)`, when the name is assigned once in the statements."""
+    found, count = {}, collections.Counter()
+    for statement in body:
+        for node in ast.walk(statement):
+            if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+                value, dest = node.value, None
+                if isinstance(value, ast.Attribute) and isinstance(value.value, ast.Name) and value.value.id == 'args':
+                    dest = value.attr
+                elif (isinstance(value, ast.Call) and getattr(value.func, 'id', '') == 'getattr' and len(value.args) >= 2
+                      and isinstance(value.args[0], ast.Name) and value.args[0].id == 'args' and isinstance(value.args[1], ast.Constant)):
+                    dest = value.args[1].value
+                count[node.targets[0].id] += 1
+                if dest:
+                    found[node.targets[0].id] = dest
+    return {name: dest for name, dest in found.items() if count[name] == 1}
+
+
+def route_clauses(test, aliases):
+    """The route constraints of an if test: route_constraints, and the comparisons of a name that holds a route value (name = args.dest)."""
+    found = list(route_constraints(test))
+    for clause in (test.values if isinstance(test, ast.BoolOp) and isinstance(test.op, ast.And) else [test]):
+        if (isinstance(clause, ast.Compare) and len(clause.ops) == 1 and isinstance(clause.ops[0], (ast.Eq, ast.In))
+                and isinstance(clause.left, ast.Name) and clause.left.id in aliases):
+            right = clause.comparators[0]
+            words = {item.value for item in (right.elts if isinstance(right, (ast.Tuple, ast.List, ast.Set)) else [right])
+                     if isinstance(item, ast.Constant) and isinstance(item.value, str)}
+            if words:
+                found.append((aliases[clause.left.id], words))
+    return found
+
+
+def value_escapes(node, parents):
+    """The value of a name or attribute load leaves the place it is written in: passed on, kept, returned or put in a container. A
+    comparison, an operand, a test, the object of an attribute or a subscript, and a bare expression statement do not pass it on."""
+    parent = parents.get(node)
+    if isinstance(parent, ESCAPES_NOT) or (isinstance(parent, ast.Call) and parent.func is node):
+        return False
+    if isinstance(parent, (ast.If, ast.While, ast.IfExp)) and parent.test is node:
+        return False
+    return not (isinstance(parent, (ast.Attribute, ast.Subscript)) and parent.value is node)
+
+
+@functools.lru_cache(maxsize=None)
+def file_reach(source, filename):
+    """FileReach for one module: its functions (qualified name, name, whether a property getter) and classes (qualified name, name, bases,
+    methods); what each function and the module body refer to (Ref: kind, name, the route conditions around it); what the module imports;
+    and the route conditions around every node, by position. Cached by source and file name."""
+    tree = ast.parse(source)
+    parents = {child: node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)}
+    module_name = dotted_module(filename)
+    package = module_name if filename.endswith('__init__.py') else module_name.rsplit('.', 1)[0]
+
+    def from_base(node):
+        if not node.level:
+            return node.module or ''
+        parts = package.split('.')
+        return '.'.join(parts[:len(parts) - (node.level - 1)] + ([node.module] if node.module else []))
+    imports = collections.defaultdict(list)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                imports[alias.asname or alias.name.split('.')[0]].append(('import', alias.name if alias.asname else alias.name.split('.')[0]))
+        elif isinstance(node, ast.ImportFrom):
+            for alias in node.names:
+                imports[alias.asname or alias.name].append(('from', from_base(node), alias.name))
+
+    def outside_the_product(name):
+        """Every binding of the name in this file is a module or a name of the standard library or of another package."""
+        return bool(imports.get(name)) and all(item[1].split('.')[0] != PACKAGE.name for item in imports[name])
+
+    def qualified(node):
+        names = [node.name]
+        while node in parents:
+            node = parents[node]
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                names.append(node.name)
+        return '.'.join(reversed(names))
+
+    definitions, classes = [], []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            is_property = any((isinstance(item, ast.Name) and item.id in ('property', 'cached_property'))
+                              or (isinstance(item, ast.Attribute) and item.attr in ('setter', 'getter', 'deleter'))
+                              for item in node.decorator_list)
+            definitions.append((qualified(node), node.name, is_property))
+        elif isinstance(node, ast.ClassDef):
+            bases = tuple(item.id if isinstance(item, ast.Name) else item.attr for item in node.bases
+                          if isinstance(item, (ast.Name, ast.Attribute)))
+            classes.append((qualified(node), node.name, bases, tuple(
+                (member.name, qualified(member)) for member in node.body if isinstance(member, (ast.FunctionDef, ast.AsyncFunctionDef)))))
+    guards_by_position, refs = {}, {}
+
+    def scan_scope(body, key):
+        aliases, found = route_aliases(body), []
+
+        def visit(root, guards):
+            for node in ast.walk(root):
+                if hasattr(node, 'lineno'):
+                    guards_by_position[(node.lineno, node.col_offset)] = guards
+                parent = parents.get(node)
+                if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
+                    if (isinstance(parent, ast.Call) and parent.func is node) or value_escapes(node, parents):
+                        found.append(Ref('name', node.id, guards))
+                elif isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Load):
+                    chain, base = [], node
+                    while isinstance(base, ast.Attribute):
+                        chain.append(base.attr)
+                        base = base.value
+                    if isinstance(base, ast.Name) and outside_the_product(base.id):
+                        continue                                    # an attribute of a module of the standard library
+                    found.append(Ref('property', node.attr, guards))   # a getter runs on any load
+                    is_call = isinstance(parent, ast.Call) and parent.func is node
+                    if not (is_call or value_escapes(node, parents)):
+                        continue
+                    if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name) and node.value.func.id == 'super':
+                        owner = node
+                        while owner in parents and not isinstance(owner, ast.ClassDef):
+                            owner = parents[owner]
+                        found.append(Ref('super', (node.attr, qualified(owner) if isinstance(owner, ast.ClassDef) else None), guards))
+                    elif isinstance(base, ast.Name) and base.id in imports:
+                        found.append(Ref('module', (base.id, tuple(reversed(chain))), guards))
+                    else:
+                        found.append(Ref('call' if is_call else 'value', node.attr, guards))
+                elif (isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == 'getattr' and len(node.args) >= 2
+                      and isinstance(node.args[1], ast.Constant) and isinstance(node.args[1].value, str)):
+                    found.append(Ref('call', node.args[1].value, guards))
+
+        def walk(statements, guards):
+            for statement in statements:
+                if hasattr(statement, 'lineno'):
+                    guards_by_position[(statement.lineno, statement.col_offset)] = guards
+                if isinstance(statement, ast.If):
+                    constraints = tuple((dest, tuple(sorted(words))) for dest, words in route_clauses(statement.test, aliases))
+                    pure = bool(constraints) and (isinstance(statement.test, ast.Compare) or (
+                        isinstance(statement.test, ast.BoolOp) and isinstance(statement.test.op, ast.And)
+                        and all(isinstance(item, ast.Compare) for item in statement.test.values)))
+                    visit(statement.test, guards)
+                    walk(statement.body, guards + ((constraints, pure, False),))
+                    walk(statement.orelse, guards + ((constraints, pure, True),))
+                    continue
+                if isinstance(statement, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    for expression in statement.decorator_list + [statement.args] + ([statement.returns] if statement.returns else []):
+                        visit(expression, guards)
+                    continue
+                if isinstance(statement, ast.ClassDef):
+                    for expression in statement.decorator_list + statement.bases + [item.value for item in statement.keywords]:
+                        visit(expression, guards)
+                    walk(statement.body, guards)
+                    continue
+                if isinstance(statement, ast.With):
+                    found.append(Ref('with', None, guards))
+                if isinstance(statement, ast.Import):
+                    found.extend(Ref('import', alias.name, guards) for alias in statement.names)
+                elif isinstance(statement, ast.ImportFrom):
+                    found.append(Ref('import', from_base(statement), guards))
+                    found.extend(Ref('import', from_base(statement) + '.' + alias.name, guards) for alias in statement.names)
+                inner = []
+                for field in statement._fields:
+                    value = getattr(statement, field, None)
+                    for item in (value if isinstance(value, list) else [value]):
+                        if isinstance(item, ast.stmt):
+                            inner.append(item)
+                        elif isinstance(item, ast.ExceptHandler):
+                            if item.type is not None:
+                                visit(item.type, guards)
+                            inner += item.body
+                        elif isinstance(item, ast.match_case):
+                            inner += item.body
+                        elif isinstance(item, ast.withitem):
+                            visit(item.context_expr, guards)
+                            if item.optional_vars is not None:
+                                visit(item.optional_vars, guards)
+                        elif isinstance(item, ast.AST):
+                            visit(item, guards)
+                walk(inner, guards)
+        walk(body, ())
+        refs[key] = tuple(found)
+
+    scan_scope(tree.body, '<module>')
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            scan_scope(node.body, qualified(node))
+    return FileReach(tuple(definitions), tuple(classes), refs, dict(imports), guards_by_position)
+
+
+class ReachGraph:
+    """The static call graph of a set of modules (a dict of file name to source; the product's by default). edges(function) are
+    (target, the route conditions around the reference, whether the name was resolved exactly)."""
+
+    def __init__(self, sources=None):
+        sources = package_sources() if sources is None else sources
+        self.files = {name: file_reach(source, name) for name, source in sources.items()}
+        self.modules = {dotted_module(name): name for name in sources}
+        self.functions = {(name, '<module>') for name in sources}
+        self.by_name, self.properties = collections.defaultdict(set), collections.defaultdict(set)
+        self.classes = collections.defaultdict(dict)
+        for name, reach in self.files.items():
+            for qualname, simple, is_property in reach.definitions:
+                self.functions.add((name, qualname))
+                self.by_name[simple].add((name, qualname))
+                if is_property:
+                    self.properties[simple].add((name, qualname))
+            for qualname, simple, bases, methods in reach.classes:
+                self.classes[simple][(name, qualname)] = (bases, dict(methods))
+        self.cache, self.edge_cache = {}, {}
+
+    def inits(self, simple, only_file=None):
+        """The __init__, __new__, __post_init__ and __call__ of the classes with that name, and of their bases."""
+        found, todo, seen = set(), [key for key in self.classes.get(simple, {}) if only_file in (None, key[0])], set()
+        while todo:
+            key = todo.pop()
+            if key in seen:
+                continue
+            seen.add(key)
+            bases, methods = self.classes[key[1].split('.')[-1]][key]
+            found |= {(key[0], qualname) for method, qualname in methods.items() if method in INIT_METHODS}
+            todo += [base_key for base in bases for base_key in self.classes.get(base, {})]
+        return found
+
+    def resolve(self, file, ref):
+        """(exact targets, by-name targets) of a reference made in a file."""
+        key = (file, ref.kind, ref.name)
+        if key in self.cache:
+            return self.cache[key]
+        imports, exact, loose = self.files[file].imports, set(), set()
+        if ref.kind == 'name':
+            for item in imports.get(ref.name, ()):
+                module, member = (item[1], None) if item[0] == 'import' else (item[1], item[2])
+                if member is None:
+                    if module in self.modules:
+                        exact.add((self.modules[module], '<module>'))
+                    continue
+                if module in self.modules:
+                    exact |= self.inits(member, self.modules[module]) | {(self.modules[module], member), (self.modules[module], '<module>')}
+                if module + '.' + member in self.modules:
+                    exact.add((self.modules[module + '.' + member], '<module>'))
+            exact |= {target for target in self.by_name.get(ref.name, ()) if target[0] == file} | self.inits(ref.name, file)
+        elif ref.kind == 'module':
+            root, chain = ref.name
+            for item in imports.get(root, ()):
+                prefix = item[1] if item[0] == 'import' else item[1] + '.' + item[2]
+                for count in range(len(chain)):                      # the longest prefix of the chain that is a module of the product
+                    module = '.'.join([prefix] + list(chain[:count]))
+                    if module in self.modules:
+                        exact |= {(self.modules[module], chain[count])} | self.inits(chain[count], self.modules[module])
+            if not exact:
+                loose = set(self.by_name.get(chain[-1], ())) | self.inits(chain[-1])
+        elif ref.kind in ('call', 'value'):
+            loose = set(self.by_name.get(ref.name, ())) | self.inits(ref.name)
+        elif ref.kind == 'property':
+            loose = set(self.properties.get(ref.name, ()))
+        elif ref.kind == 'with':
+            loose = set(self.by_name.get('__enter__', ())) | set(self.by_name.get('__exit__', ()))
+        elif ref.kind == 'import':
+            if ref.name in self.modules:
+                exact.add((self.modules[ref.name], '<module>'))
+        elif ref.kind == 'super':
+            attribute, owner = ref.name
+            todo, seen = ([(file, owner)] if owner else []), set()
+            while todo:
+                owner_key = todo.pop()
+                for base in self.classes.get(owner_key[1].split('.')[-1], {}).get(owner_key, ((), {}))[0]:
+                    for base_key, (_, methods) in self.classes.get(base, {}).items():
+                        if base_key not in seen:
+                            seen.add(base_key)
+                            todo.append(base_key)
+                            if attribute in methods:
+                                exact.add((base_key[0], methods[attribute]))
+        self.cache[key] = (exact & self.functions, loose & self.functions)
+        return self.cache[key]
+
+    def edges(self, key):
+        """[(target, guards, exact)] from a function (file, qualified name) or from a module body (file, '<module>')."""
+        if key not in self.edge_cache:
+            found = []
+            for ref in self.files[key[0]].refs.get(key[1], ()):
+                exact, loose = self.resolve(key[0], ref)
+                found += [(target, ref.guards, True) for target in sorted(exact) if target != key]
+                found += [(target, ref.guards, False) for target in sorted(loose - exact) if target != key]
+            self.edge_cache[key] = found
+        return self.edge_cache[key]
+
+
+def passes(guards, chosen, dests):
+    """A statement behind these route conditions can run for a leaf whose route values are `chosen`: no condition it fails, and no else
+    branch of a condition that certainly holds (a conjunction of route comparisons that the leaf satisfies)."""
+    for constraints, pure, negated in guards:
+        if not constraints:
+            continue
+        satisfied = all(chosen.get(dest) in set(words) for dest, words in constraints if dest in dests)
+        if (not negated and not satisfied) or (negated and satisfied and pure):
+            return False
+    return True
+
+
+@functools.lru_cache(maxsize=None)
+def terminal_positions(source):
+    """{(function chain, kind): ((line, column), ...)} for the references of one module's source."""
+    found = collections.defaultdict(list)
+    for chain, kind, node, _ in site_nodes(source):
+        found[(chain, kind)].append((node.lineno, node.col_offset))
+    return {site: tuple(positions) for site, positions in found.items()}
+
+
+def trail(parent, key):
+    """The functions from a root to key, along the parents that the walk recorded."""
+    path = []
+    while key is not None:
+        path.append(key)
+        key = parent[key]
+    return tuple(reversed(path))
+
+
+def machine_reaches(sources=None, listed=None, table=None, leaves=None, graph=None):
+    """{(leaf, (file, function)): ('exact' | 'name', path)} for every machine leaf and every function that holds a terminal site (a site of
+    the listing, but cli._Parser.error) that the leaf can run: 'exact' along direct names only, 'name' when an attribute name is needed;
+    the path is the functions from cli.main. A call of cli.main from a function other than the entry is a reach to REENTRY. leaves: the
+    names of the leaves to judge, all the machine leaves by default."""
+    from intune_iac import cli
+    sources = package_sources() if sources is None else sources
+    listed = OUTPUT_SITES if listed is None else listed
+    graph, parser = ReachGraph(sources) if graph is None else graph, cli.parser()
+    dests = parser_dests(parser)
+    holders = collections.defaultdict(list)                               # (file, function) -> [(line, column)]
+    for (name, chain, kind) in listed:
+        if (name, chain) != ('cli.py', '_Parser.error') and name in sources:
+            holders[(name, chain)] += terminal_positions(sources[name]).get((chain, kind), ())
+    roots = [('cli.py', '<module>'), ('cli.py', 'main')]
+    found = {}
+    for leaf in sorted(' '.join(path) for path, kind in leaf_table(table).items() if kind == 'machine'):
+        if leaves is not None and leaf not in leaves:
+            continue
+        chosen = route_dests(parser, tuple(leaf.split()))
+        for exact_only in (True, False):
+            parent, queue = {root: None for root in roots}, collections.deque(roots)
+            while queue:
+                key = queue.popleft()
+                for target, guards, exact in graph.edges(key):
+                    if not ((exact or not exact_only) and passes(guards, chosen, dests)):
+                        continue
+                    if target == ('cli.py', 'main') and key not in roots and (leaf, REENTRY) not in found:
+                        found[(leaf, REENTRY)] = ('exact' if exact_only else 'name', trail(parent, key) + (REENTRY,))
+                    if target not in parent:
+                        parent[target] = key
+                        queue.append(target)
+            for holder, positions in holders.items():
+                if holder in parent and (leaf, holder) not in found and any(
+                        passes(graph.files[holder[0]].guards.get(position, ()), chosen, dests) for position in positions):
+                    found[(leaf, holder)] = ('exact' if exact_only else 'name', trail(parent, holder))
+    return found
+
+
+def reach_problems(sources=None, listed=None, table=None, exact=None, by_name=None):
+    """[str] for what differs between the reaches of the machine leaves and EXACT_REACHES with NAME_REACHES: a reach that is not listed,
+    in either kind, and a listed reach that is gone or is of the other kind."""
+    exact = EXACT_REACHES if exact is None else exact
+    by_name = NAME_REACHES if by_name is None else by_name
+    sources = package_sources() if sources is None else sources
+    graph = ReachGraph(sources)
+    found = machine_reaches(sources, listed, table, graph=graph)
+    problems = ['the site %s: %s is in no function that the call graph knows, so no reach to it can be judged' % holder
+                for holder in sorted({(name, chain) for name, chain, _ in (OUTPUT_SITES if listed is None else listed)
+                                      if name in sources and (name, chain) != ('cli.py', '_Parser.error')
+                                      and (name, chain) not in graph.functions})]
+    for (leaf, holder), (kind, path) in sorted(found.items()):
+        if (kind == 'exact' and (leaf, holder) not in exact) or (kind == 'name' and leaf not in by_name.get(holder, ('', ()))[1]):
+            how = 'by direct names' if kind == 'exact' else 'by an attribute name'
+            what = ('runs the command line again (cli.py: main) %s, so the route conditions no longer describe what it runs' % how
+                    if holder == REENTRY else 'reaches %s: %s %s' % (holder[0], holder[1], how))
+            problems.append('the machine leaf %r %s, along %s, and the reach is not listed'
+                            % (leaf, what, ' > '.join('%s:%s' % step for step in path[-6:])))
+    problems += ['the listed exact reach of %r to %s: %s is gone' % (leaf, holder[0], holder[1]) for leaf, holder in sorted(exact)
+                 if found.get((leaf, holder), ('',))[0] != 'exact']
+    problems += ['the listed reach by name of %r to %s: %s is gone, or no longer needs a name' % (leaf, holder[0], holder[1])
+                 for holder, (_, leaves) in sorted(by_name.items()) for leaf in leaves if found.get((leaf, holder), ('',))[0] != 'name']
+    return problems
+
+
+# The machine leaves, as LEAF_TABLE names them. Each reaches, by an attribute name, every function below that holds a terminal site and shares its
+# name with an attribute that a function it reaches uses. None reaches such a function along direct names (EXACT_REACHES is empty).
+NAME_REACH_LEAVES = (
+    'action', 'adoption attach', 'adoption cancel', 'adoption prepare', 'adoption recover', 'adoption recovery-plan-attach',
+    'adoption recovery-plan-cancel', 'adoption recovery-plan-prepare', 'adoption recovery-plan-recover', 'adoption recovery-plan-review',
+    'adoption recovery-plan-status', 'adoption review', 'adoption status', 'artifact inspect', 'artifact restore', 'artifact seal',
+    'capture', 'doctor', 'generate', 'graph build', 'graph query', 'inspect', 'judge', 'mcp', 'plan review', 'provider execute',
+    'provider prepare', 'provider reconcile', 'provider review', 'provider status', 'repository inspect', 'repository native',
+    'repository resolve', 'service attach', 'service cancel', 'service prepare', 'service recover', 'service review', 'service status',
+    'simulation create', 'simulation prepare', 'simulation reconcile', 'simulation run', 'synthetic generate', 'synthetic inspect',
+    'target authenticate', 'target collect', 'target compare', 'target inspect', 'verify', 'workbench adopt', 'workbench adoption-history',
+    'workbench adoption-lineage', 'workbench adoption-link', 'workbench adoption-preview', 'workbench backup', 'workbench collect',
+    'workbench collection', 'workbench collection-history', 'workbench compare', 'workbench delivery', 'workbench deployment-import',
+    'workbench deployment-record', 'workbench device-evidence-import', 'workbench diagnostics', 'workbench dictionary',
+    'workbench estate-overview', 'workbench evidence-history', 'workbench evidence-link', 'workbench execute', 'workbench families',
+    'workbench field-semantics', 'workbench health', 'workbench history', 'workbench history-recent', 'workbench import-capture',
+    'workbench init', 'workbench inspect', 'workbench lab-create', 'workbench lab-init', 'workbench lineage', 'workbench migrate',
+    'workbench observer-create', 'workbench observer-run', 'workbench observer-scheduler', 'workbench observer-status',
+    'workbench operations', 'workbench overview', 'workbench ownership-import', 'workbench ownership-scan', 'workbench propose',
+    'workbench propose-from-intent', 'workbench provider-refresh-import', 'workbench queue', 'workbench queue-amend',
+    'workbench queue-review', 'workbench queue-review-history', 'workbench queue-review-template', 'workbench reconcile',
+    'workbench reference-compare', 'workbench reference-import', 'workbench references', 'workbench relationships',
+    'workbench repository-entry', 'workbench repository-import', 'workbench repository-refresh', 'workbench repository-status',
+    'workbench restore', 'workbench restore-propose', 'workbench review', 'workbench schedule-create', 'workbench schedule-run',
+    'workbench schedule-status', 'workbench search', 'workbench service-link', 'workbench settings', 'workbench source-acceptance-propose',
+    'workbench views', 'workbench workflow-import', 'workbench workflows', 'worker attach', 'worker cancel', 'worker prepare',
+    'worker reconcile', 'worker review', 'worker run', 'worker status',
+)
+NOT_REACHING_DRAW = (
+    'action', 'capture', 'doctor', 'judge', 'mcp', 'provider execute', 'provider prepare', 'provider reconcile', 'provider review',
+    'provider status', 'repository inspect', 'repository native', 'repository resolve', 'simulation prepare', 'simulation reconcile',
+    'simulation run',
+)
+EXACT_REACHES = {}
+NAME_REACHES = {
+    ('windows_terminal.py', 'NativeConsole.session'): (
+        'an attribute named session that provider_journey.ProviderJourney._save passes on is a function value'
+        " named session, and reaches every function named session; this one is the Windows console's context "
+        'manager, which only windows_workspace_binding makes, and no machine leaf reaches that along direct '
+        'names',
+        NAME_REACH_LEAVES),
+    ('windows_terminal.py', 'NativeConsole.write'): (
+        'every stream.write(data) of a file writer (cli.execute > runner.run) is an attribute call named '
+        "write, and an attribute call reaches every function named write; this one is the Windows console's, "
+        'which only windows_workspace_binding makes, and no machine leaf reaches that along direct names',
+        NAME_REACH_LEAVES),
+    ('workbench_tui.py', 'Workspace.draw'): (
+        'artifact_vault.command passes on an attribute named input, which reaches Workspace.input, whose '
+        'self.draw() is an attribute call named draw; Workspace is made only by run_workspace and by '
+        'windows_workspace_binding, and no machine leaf reaches either along direct names',
+        tuple(leaf for leaf in NAME_REACH_LEAVES if leaf not in NOT_REACHING_DRAW)),
+}
 
 
 KINDS = ('empty', 'repository', 'export', 'emptystore', 'full', 'context')
@@ -3539,7 +4028,7 @@ class LeafClassificationTests(unittest.TestCase):
         self.assertEqual(output_site_problems(), [])
         found = output_sites()
         self.assertEqual(dict(found), {site: value[0] for site, value in list(OUTPUT_SITES.items()) + list(NOT_A_TERMINAL.items())})
-        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (41, 209, 250, 408))
+        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (40, 214, 254, 412))
         self.assertIn(('cli.py', '_write_text', 'print'), found)                                   # the scan reads the product
         self.assertTrue(all(isinstance(value[1], str) and value[1] for value in NOT_A_TERMINAL.values()))      # each has its reason
 
@@ -3851,6 +4340,30 @@ class ReferenceScanTests(unittest.TestCase):
                                                                     'readline', 'curses', 'tty'}
         self.assertEqual(used, {'fcntl', 'termios', 'signal'})
 
+    def test_a_namespace_of_its_own_or_a_route_value_stored_is_a_site(self):
+        """What the route conditions of the reachability check read as the command line's: a handler that makes a namespace of its own, or stores
+        a route value, could call a dispatcher as another route. Neither exists in the product, but for one stand-in with a single field."""
+        for label, snippet, expected in (
+                ('a namespace made', 'from argparse import Namespace\nNamespace(workbench_command="terminal")', {'namespace': 1}),
+                ('argparse.Namespace by attribute', 'import argparse\nargparse.Namespace()', {'namespace': 1}),
+                ('SimpleNamespace under an alias', 'from types import SimpleNamespace as via_ns\nvia_ns(workbench_command="terminal")', {'namespace': 1}),
+                ('a route value stored', 'args.workbench_command = "terminal"', {'route value stored': 1}),
+                ('a store on the namespace held by an object', 'self.args.command = "workbench"', {'route value stored': 1}),
+                ('setattr on args', 'setattr(args, "workbench_command", "terminal")', {'route value stored': 1}),
+                ('setattr of a route name on anything', 'setattr(options, "signin_command", "collect")', {'route value stored': 1}),
+                ('vars(args)', 'vars(args)["workbench_command"] = "terminal"', {'route value stored': 1}),
+                ('a parse of an argv of its own, on the parser of the product', 'from .cli import parser\nparser().parse_args(["workbench", "terminal"])',
+                 {'namespace': 1}),
+                ('a parse on any parser', 'import argparse\nargparse.ArgumentParser().parse_args(["x"])', {'namespace': 1}),
+                ('parse_known_args', 'import argparse\nargparse.ArgumentParser().parse_known_args(["x"])', {'namespace': 1}),
+                ('the method only passed on', 'import argparse\nparse = argparse.ArgumentParser().parse_args', {'namespace': 1}),
+                ('the method by name', 'import argparse\ngetattr(argparse.ArgumentParser(), "parse_args")(["x"])', {'namespace': 1})):
+            with self.subTest(label):
+                self.inside(snippet, **expected)
+        for label, snippet in (('a store that is not a route', 'args.format = "text"'), ('the typed command of an object', 'self.command = "x"')):
+            with self.subTest(label):
+                self.inside(snippet)
+
     def test_a_name_of_the_product_is_a_site_however_it_is_reached(self):
         """Sol V4 finding 2: `from .cli import _write_text as emit` resolved to .cli._write_text, which the bare-name branch skipped and
         route() did not know, and relative imports were not looked at where they are written. A resolved import whose final component
@@ -4003,6 +4516,155 @@ class FingerprintTests(unittest.TestCase):
                 ('the guard of the text sink is gone', 'cli.py', '_write_text', unguarded, [('cli.py', '_write_text', 'print')])):
             with self.subTest(label):
                 self.changed(self.rewritten(module, function, transform), *sites)
+
+
+class ReachTests(unittest.TestCase):
+    """Sol V4 limits 2 and 6: the scan says where the product can put text in front of a person, not who can get there. A machine leaf must
+    not run a function that holds a terminal site (see the note on reachability): no reach along direct names, and the reaches that need an
+    attribute name only the ones listed. Each case puts code into cli.doctor, the function of a machine leaf, or changes a dispatcher, and
+    the reaches of the leaf that are not listed must be exactly the ones named. Nothing is run."""
+
+    TERMINAL = {('workbench.py', 'run_terminal'), ('workbench.py', '_run_terminal'), ('workbench.py', '_run_terminal.present'),
+                ('workbench.py', '_render')}                                    # what run_terminal runs, all of it holding a site
+
+    @staticmethod
+    def mutated(snippet, function='doctor', module='cli.py', extra=None):
+        """The sources of the product with a snippet at the start of the body of a function, and text added to the end of other modules."""
+        sources = package_sources()
+        tree = ast.parse(sources[module])
+        target = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == function)
+        target.body[0:0] = ast.parse(textwrap.dedent(snippet)).body
+        sources[module] = ast.unparse(tree)
+        for name, addition in (extra or {}).items():
+            sources[name] += addition
+        return sources
+
+    @staticmethod
+    def new_reaches(sources, leaf):
+        """{holder: 'exact' | 'name'} the leaf reaches in these sources and the listing does not allow."""
+        return {holder: kind for (name, holder), (kind, _) in machine_reaches(sources, leaves=(leaf,)).items()
+                if name == leaf and (leaf, holder) not in EXACT_REACHES and not (kind == 'name' and leaf in NAME_REACHES.get(holder, ('', ()))[1])}
+
+    def test_no_machine_leaf_reaches_a_terminal_site_along_direct_names_and_the_rest_is_listed(self):
+        found = machine_reaches()
+        self.assertEqual({key for key, (kind, _) in found.items() if kind == 'exact'}, set())
+        self.assertEqual(reach_problems(), [])
+        by_holder = collections.Counter(holder for (_, holder) in found)
+        self.assertEqual(by_holder, {('windows_terminal.py', 'NativeConsole.session'): 127, ('windows_terminal.py', 'NativeConsole.write'): 127,
+                                     ('workbench_tui.py', 'Workspace.draw'): 111})
+        self.assertEqual(len(found), 365)
+        self.assertEqual(set(NAME_REACH_LEAVES), {' '.join(path) for path, kind in leaf_table().items() if kind == 'machine'})
+        for holder, (reason, leaves) in NAME_REACHES.items():
+            self.assertTrue(reason and leaves and set(leaves) <= set(NAME_REACH_LEAVES), holder)
+
+    def test_a_machine_leaf_that_calls_a_function_that_holds_a_terminal_site_fails(self):
+        """The calls the scan of the sites cannot see: nothing here is a site, and each leaf now runs the line terminal."""
+        for label, snippet, expected in (
+                ('a name imported from the module', 'from .workbench import run_terminal\nrun_terminal("x")', 'exact'),
+                ('the same name under an alias', 'from .workbench import run_terminal as go\ngo("x")', 'exact'),
+                ('the function only passed on', 'from .workbench import run_terminal\nhandler = run_terminal', 'exact'),
+                ('the function in a dictionary', 'from .workbench import run_terminal\nhandlers = {"x": run_terminal}', 'exact'),
+                ('an attribute of the module imported relatively', 'from . import workbench\nworkbench.run_terminal("x")', 'exact'),
+                ('an attribute of the package imported whole', 'import intune_iac.workbench\nintune_iac.workbench.run_terminal("x")', 'exact'),
+                ('an attribute call on anything', 'service.run_terminal("x")', 'name'),
+                ('an attribute passed on as a value', 'handler = service.run_terminal', 'name'),
+                ('a name given to getattr', 'getattr(service, "run_terminal")("x")', 'name')):
+            with self.subTest(label):
+                sources = self.mutated(snippet)
+                self.assertEqual(output_site_problems(sources), [])                      # the scan of the sites sees nothing
+                self.assertEqual(self.new_reaches(sources, 'doctor'), {holder: expected for holder in self.TERMINAL})
+
+    def test_a_machine_leaf_reaches_what_a_function_it_calls_calls(self):
+        sources = self.mutated('from .host_capabilities import show_it\nshow_it()', extra={
+            'host_capabilities.py': '\n\ndef show_it():\n    from .workbench_tui import run_workspace\n    return run_workspace("x")\n'})
+        self.assertEqual(output_site_problems(sources), [])
+        found = self.new_reaches(sources, 'doctor')
+        self.assertEqual(found[('workbench_tui.py', 'run_workspace')], 'exact')
+        self.assertEqual(found[('workbench_tui.py', 'run_workspace.read_line')], 'exact')
+        self.assertEqual(found[('workbench_tui.py', 'terminal_session')], 'exact')
+        sources = self.mutated('from .workbench_tui import Workspace\nWorkspace("x")')                 # a class made: its __init__ runs
+        self.assertEqual(self.new_reaches(sources, 'doctor'), {('workbench_tui.py', 'Workspace.__init__'): 'exact'})
+
+    def test_code_behind_a_route_condition_the_leaf_fails_is_not_run_by_it(self):
+        for label, snippet in (('the command is another', 'if args.command == "workbench":\n    from .workbench import run_terminal\n'
+                                                           '    run_terminal("x")'),
+                               ('the command is one of others', 'if args.command in ("workbench", "worker"):\n    from .workbench import run_terminal\n'
+                                                                '    run_terminal("x")'),
+                               ('the usage error of every route', 'parser.error("x")')):
+            with self.subTest(label):
+                self.assertEqual(self.new_reaches(self.mutated(snippet), 'doctor'), {})
+
+    def test_when_the_route_is_not_read_every_branch_is_run(self):
+        """Take away what lets the dispatcher of the workbench commands be read, and the leaves of the group reach what they should not."""
+        def unconditional(function):                                   # if name == 'terminal': ... becomes if True: ...
+            for node in ast.walk(function):
+                if isinstance(node, ast.If) and ast.unparse(node.test) == "name == 'terminal'":
+                    node.test = ast.Constant(True)
+
+        def unreadable(function):                                      # name = args.workbench_command becomes name = args.workbench_command.lower()
+            for node in ast.walk(function):
+                if isinstance(node, ast.Assign) and ast.unparse(node.value) == 'args.workbench_command':
+                    node.value = ast.Call(ast.Attribute(node.value, 'lower', ast.Load()), [], [])
+        for label, transform in (('the condition is gone', unconditional), ('the route value is a call on the attribute', unreadable)):
+            with self.subTest(label):
+                sources = package_sources()
+                tree = ast.parse(sources['workbench.py'])
+                transform(next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == 'command'))
+                sources['workbench.py'] = ast.unparse(tree)
+                found = self.new_reaches(sources, 'workbench overview')
+                self.assertTrue(self.TERMINAL <= set(found), found)
+                self.assertEqual({found[holder] for holder in self.TERMINAL}, {'exact'})
+
+    def test_a_handler_that_calls_a_dispatcher_as_another_route_is_caught_by_the_scan_not_by_the_reach(self):
+        """The route conditions of the dispatchers are the leaf's own. A handler that hands one a namespace of its own, or a parse of an argv
+        of its own, is not seen as another route by the reach check, and is a site of the scan (a namespace), so the listing stops it."""
+        for label, snippet in (
+                ('a namespace made', 'from argparse import Namespace\nfrom . import workbench\n'
+                                     'workbench.command(Namespace(workbench_command="terminal", root="x", service_root=None))'),
+                ('a parse of an argv of its own', 'from . import cli, workbench\n'
+                                                  'workbench.command(cli.parser().parse_args(["workbench", "terminal"]))'),
+                ('a parse handed to execute', 'from . import cli\ncli.execute(cli.parser().parse_args(["workbench", "terminal"]))')):
+            with self.subTest(label):
+                sources = self.mutated(snippet)
+                self.assertEqual(self.new_reaches(sources, 'doctor'), {})
+                self.assertEqual(output_site_problems(sources), ['cli.py: doctor has 1 unlisted namespace site(s)'])
+
+    def test_a_machine_leaf_that_runs_the_command_line_again_fails(self):
+        """cli.main with an argv of its own picks another route for the code that follows: the route conditions along the way would no longer
+        describe what the leaf runs. Nothing here is a site of the scan; the run again is a reach to REENTRY, which no listing allows."""
+        for label, snippet, expected in (
+                ('main under an alias', 'from .cli import main as again\nagain(["workbench", "terminal"])', 'exact'),
+                ('main as an attribute of the module', 'from . import cli\ncli.main(["workbench", "terminal"])', 'exact'),
+                ('main as an attribute of the package', 'import intune_iac.cli\nintune_iac.cli.main(["workbench", "terminal"])', 'exact'),
+                ('main only passed on', 'from . import cli\nhandler = cli.main', 'exact'),
+                ('an attribute call named main', 'service.main(["workbench", "terminal"])', 'name'),
+                ('a name given to getattr', 'getattr(service, "main")(["workbench", "terminal"])', 'name')):
+            with self.subTest(label):
+                sources = self.mutated(snippet)
+                self.assertEqual(output_site_problems(sources), [])
+                self.assertEqual(self.new_reaches(sources, 'doctor').get(REENTRY), expected)
+        problems = reach_problems(self.mutated('from . import cli\ncli.main(["workbench", "terminal"])'))
+        self.assertTrue(any(problem.startswith("the machine leaf 'doctor' runs the command line again (cli.py: main) by direct names, so the route "
+                                               "conditions no longer describe what it runs, along ") and 'cli.py:main again' in problem
+                            for problem in problems), problems)
+
+    def test_a_listed_terminal_site_in_no_known_function_is_a_problem(self):
+        listed = {**OUTPUT_SITES, ('cli.py', 'NoSuchFunction', 'print'): (1, None, 'abcdef123456')}
+        self.assertEqual(reach_problems(listed=listed),
+                         ['the site cli.py: NoSuchFunction is in no function that the call graph knows, so no reach to it can be judged'])
+
+    def test_a_listed_reach_must_be_exact_both_ways(self):
+        leaves = tuple(leaf for leaf in NAME_REACH_LEAVES if leaf != 'doctor')
+        holder = ('windows_terminal.py', 'NativeConsole.write')
+        problems = reach_problems(by_name={**NAME_REACHES, holder: (NAME_REACHES[holder][0], leaves)})
+        self.assertEqual(len(problems), 1)
+        self.assertTrue(problems[0].startswith("the machine leaf 'doctor' reaches windows_terminal.py: NativeConsole.write by an attribute name"))
+        problems = reach_problems(by_name={**NAME_REACHES, ('workbench_tui.py', 'Workspace.draw'): (
+            NAME_REACHES[('workbench_tui.py', 'Workspace.draw')][0], tuple(NAME_REACH_LEAVES))})
+        self.assertEqual(sorted(problems), sorted("the listed reach by name of %r to workbench_tui.py: Workspace.draw is gone, or no longer needs a name" % leaf
+                                                  for leaf in NOT_REACHING_DRAW))
+        problems = reach_problems(exact={('doctor', ('workbench.py', 'run_terminal')): 'a reason'})
+        self.assertEqual(problems, ["the listed exact reach of 'doctor' to workbench.py: run_terminal is gone"])
 
 
 class RemainingRouteSweepTests(unittest.TestCase):
