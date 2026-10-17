@@ -1474,7 +1474,9 @@ def leaf_table_problems(parser, table=None, drivers=None):
 # the leaf it serves or the reason it reaches no terminal; an unlisted site, another number, and a listed site that is gone all fail.
 # What a name stands for is every binding it has anywhere in the file, in any scope (an import of it, an assignment to it from a name, a
 # chain on a name or a choice between such), and a load is a site if any one of them makes it one: `import os as channel` is not undone
-# by `import json as channel` elsewhere in the file, and a builtin keeps its meaning whatever else its name is bound to.
+# by `import json as channel` elsewhere in the file, and a builtin keeps its meaning whatever else its name is bound to. A name of the
+# product's own that is a scan name (the text sink _write_text) is a site however it is reached: from .cli import _write_text as emit,
+# cli._write_text, intune_iac.cli._write_text, or the string "_write_text", and so is the relative import that brings it.
 # The kinds, one per reference:
 #   print, input, exec, eval, compile, __import__, globals, locals, __builtins__, breakpoint, _write_text    the name, in load context
 #   sys.stdout, sys.stderr, sys.stdin, sys.__stdout__, sys.__stderr__, sys.__stdin__, sys.modules          the attribute (aliases resolved)
@@ -1812,10 +1814,16 @@ def site_nodes(source):
         return None
 
     def classify(qualified):
-        """The kind of site a qualified name is, or None: a builtin or the text sink by its bare name, or a route of the standard library."""
+        """The kind of site a qualified name is, or None: a builtin or the text sink by its bare name; a route of the standard library;
+        or a name of the product's own that is a scan name, however it is reached (from .cli import _write_text as emit)."""
         if qualified in SCAN_NAMES:
             return qualified
-        return route(qualified)
+        if route(qualified):
+            return route(qualified)
+        last = qualified.rsplit('.', 1)[-1]
+        if last in SCAN_NAMES and (last == '_write_text' or qualified.startswith('.') or qualified.split('.')[0] == PACKAGE.name):
+            return last
+        return None
 
     def kinds_of(names):
         return {classify(name) for name in names} - {None}
@@ -1878,15 +1886,21 @@ def site_nodes(source):
         is_root = isinstance(parent, ast.Attribute) and parent.value is node
         if isinstance(node, ast.Import):
             kinds = {'import ' + alias.name.split('.')[0] for alias in node.names if alias.name.split('.')[0] in SCAN_MODULES}
-        elif isinstance(node, ast.ImportFrom) and not node.level:
+        elif isinstance(node, ast.ImportFrom):
             root = (node.module or '').split('.')[0]
-            if root in SCAN_MODULES:
+            if node.level or root == PACKAGE.name:
+                kinds = {'import ' + alias.name for alias in node.names if alias.name in SCAN_NAMES}     # from .cli import _write_text
+            elif root in SCAN_MODULES:
                 kinds = {'import ' + root}
             elif root in ('sys', 'os', 'ctypes'):
                 kinds = {'import %s.%s' % (root, alias.name) for alias in node.names
                          if alias.name == '*' or route('%s.%s' % (root, alias.name))}
-        elif isinstance(node, ast.Constant) and isinstance(node.value, str) and DEVICE_PATH.search(node.value):
-            kinds = {'device path'}
+            kinds |= {'import _write_text' for alias in node.names if alias.name == '_write_text'}      # from wherever it is imported
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            if DEVICE_PATH.search(node.value):
+                kinds = {'device path'}
+            elif node.value == '_write_text':
+                kinds = {'_write_text as a string'}                    # getattr(cli, "_write_text"): the product's own text sink by name
         elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
             if node.id in SCAN_NAMES and not (node.id == 'print' and in_call and machine_print(parent)):
                 kinds.add(node.id)                                     # the builtin, whatever else the name is bound to
@@ -3603,6 +3617,35 @@ class ReferenceScanTests(unittest.TestCase):
         for label, snippet in (('two modules under one name, none of them an output route',
                                 'import json as channel\nchannel.dumps({})\n\ndef harmless():\n    import re as channel\n'),
                                ('an assignment to a module that is no route', 'channel = json\nchannel.dumps({})')):
+            with self.subTest(label):
+                self.inside(snippet)
+
+    def test_a_name_of_the_product_is_a_site_however_it_is_reached(self):
+        """Sol V4 finding 2: `from .cli import _write_text as emit` resolved to .cli._write_text, which the bare-name branch skipped and
+        route() did not know, and relative imports were not looked at where they are written. A resolved import whose final component
+        is a scan name is classified, relative and package-qualified forms included, at the import and at every use of what it binds."""
+        for label, snippet, expected in (
+                ('Sol: a relative import under an alias', 'from .cli import _write_text as emit\nemit([%(line)r])',
+                 {'import _write_text': 1, '_write_text': 1}),
+                ('a relative import under its own name', 'from .cli import _write_text\n_write_text([%(line)r])',
+                 {'import _write_text': 1, '_write_text': 1}),
+                ('a package-qualified import under an alias', 'from intune_iac.cli import _write_text as emit\nemit([%(line)r])',
+                 {'import _write_text': 1, '_write_text': 1}),
+                ('imported from a module by its own name', 'from cli import _write_text as emit\nemit([%(line)r])',
+                 {'import _write_text': 1, '_write_text': 1}),
+                ('a module imported by its own name', 'import cli as c\nc._write_text([%(line)r])', {'_write_text': 1}),
+                ('the module imported relatively', 'from . import cli as c\nc._write_text([%(line)r])', {'_write_text': 1}),
+                ('the module imported from the package', 'from intune_iac import cli as c\nc._write_text([%(line)r])', {'_write_text': 1}),
+                ('the package imported whole', 'import intune_iac.cli\nintune_iac.cli._write_text([%(line)r])', {'_write_text': 1}),
+                ('the module under an alias', 'import intune_iac.cli as c\nc._write_text([%(line)r])', {'_write_text': 1}),
+                ('an assignment from the module', 'from . import cli\nemit = cli._write_text\nemit([%(line)r])', {'_write_text': 2}),
+                ('the name as a string', 'name = "_write_text"', {'_write_text as a string': 1}),
+                ('another scan name of the product', 'from .shim import print as out\nout(%(line)r)', {'import print': 1, 'print': 1})):
+            with self.subTest(label):
+                self.inside(snippet, **expected)
+        for label, snippet in (('a relative import of a name that is no route', 'from .io import canonical as c\nc({})'),
+                               ('a standard-library name that is a scan name elsewhere', 'from re import compile as rc\nrc("x")'),
+                               ('a chain on re', 'import re\nre.compile("x")')):
             with self.subTest(label):
                 self.inside(snippet)
 
