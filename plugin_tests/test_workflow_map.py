@@ -603,7 +603,7 @@ class RealStoreTests(unittest.TestCase):
                           'not_recorded', 'not_recorded', 'not_recorded'])
         self.assertEqual(flow['position'], 'approve_execute')
         self.assertEqual(stages['approve_execute']['continuation'], lifecycle_next(4, maintenance.review(self.operation), 0.0, None))
-        self.assertIn('the execute command using %s, naming the digest that the review shows' % self.operation, stages['approve_execute']['continuation'])
+        self.assertIn('execute %s DIGEST' % self.operation, stages['approve_execute']['continuation'])        # the recorded text, not the words
         self.assertNotIn(review['approval_digest'], str(flow))
         self.assertEqual(flow['operation']['operation_id'], review['operation_id'])
 

@@ -954,8 +954,8 @@ def _execute_forms(operation):
     """Where the plan review's execute is typed, as Delivery frames its commands: the workspace's command bar, or a
     shell with the complete program form. DIGEST stays a placeholder: the engineer copies the digest from the review
     they approve, and it is never filled in (run 12, frames 18, 31, 53, 63, 64)."""
-    from .readiness import placeholders_in_words
-    return placeholders_in_words('In the workspace:' + COMMAND_BREAK + '  execute %s DIGEST' % operation + COMMAND_BREAK + 'From a shell:'
+    # The recorded text: it is also the workflow map's structured continuation. A screen says it in words where it prints it.
+    return ('In the workspace:' + COMMAND_BREAK + '  execute %s DIGEST' % operation + COMMAND_BREAK + 'From a shell:'
             + COMMAND_BREAK + '  intune-iac workbench execute --operation %s --approve-digest DIGEST' % operation
             + COMMAND_BREAK + 'The shell form takes no --root: the operation directory names its store.')
 
@@ -2706,7 +2706,8 @@ def workflow_detail_rows(flow, stage, width):
     step = stage.get('continuation')
     if isinstance(step, str) and step:
         # A step that prints commands writes each on its own row after the sentence, as every screen does.
-        first, *commands = _workflow_step_parts(layer_hint(step))
+        from .readiness import placeholders_in_words
+        first, *commands = _workflow_step_parts(placeholders_in_words(layer_hint(step)))
         head = _labelled('next', first, width, WORKFLOW_DETAIL_LABEL)
         rows += [PinnedRow(row) for row in head[:2]] + head[2:]
         rows += [row for part in commands for row in _labelled('', part, width, WORKFLOW_DETAIL_LABEL)]
@@ -2783,7 +2784,8 @@ def workflow_text_lines(flow, width, rules='ascii', prefixes=None):
             lines += _labelled('  recorded', '; '.join(facts), width, 11)
         step = stage.get('continuation')
         if isinstance(step, str) and step:
-            for index, part in enumerate(_workflow_step_parts(step)):
+            from .readiness import placeholders_in_words
+            for index, part in enumerate(_workflow_step_parts(placeholders_in_words(step))):
                 lines += _labelled('  next' if index == 0 else '', part, width, 11)
     # Said once, on the last rows, because a small terminal shows the end of the output and not its start.
     return lines + [''] + word_wrap(WORKFLOW_READ_ONLY_STATEMENT, width)

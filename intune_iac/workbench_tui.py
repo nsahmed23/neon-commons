@@ -2688,8 +2688,7 @@ class Workspace:
             self.layer = 'summary'
             self.value = {'display_scope': 'last engine result in this interface; refresh durable operations for later activity',
                           'operation_root': self.active_operation, 'result': self.execution_result,
-                          'recovery': __import__('intune_iac.readiness', fromlist=['x']).placeholders_in_words(
-                              'Use :reconcile OPERATION_DIR for explicit independent readback; never blindly replay execution.')}
+                          'recovery': 'Use :reconcile OPERATION_DIR for explicit independent readback; never blindly replay execution.'}
             self.scroll = 0
             self.notice = 'LAST RESULT: no action dispatched. :operations refreshes durable receipts.'
             self.save_context(); self.draw()

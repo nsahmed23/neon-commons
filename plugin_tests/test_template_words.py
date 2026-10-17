@@ -155,7 +155,7 @@ class RenderedSurfaceTests(unittest.TestCase):
 
     def test_the_execute_forms_say_the_digest_in_words(self):
         from intune_iac import workbench_screens
-        text = workbench_screens._execute_forms('/ops/one')
+        text = said(workbench_screens._execute_forms('/ops/one'))      # the forms are recorded text; the screens say them in words
         self.assertEqual(unresolved(text), [])
         self.assertIn('using /ops/one, naming the digest that the review shows', text)
         self.assertIn('--operation /ops/one, naming --approve-digest as the digest that the review shows', text)
@@ -164,8 +164,7 @@ class RenderedSurfaceTests(unittest.TestCase):
         self.assertEqual(unresolved(said('  intune-iac workbench diagnostics --root /s --object ID')), [])
         self.assertEqual(unresolved(said('Use :reconcile OPERATION_DIR for explicit independent readback; never blindly replay execution.')),
                          [])
-        for module, needle in (('workbench.py', "placeholders_in_words(\n                    '  intune-iac workbench diagnostics --root %s --object ID'"),
-                               ('workbench_tui.py', "'recovery': __import__('intune_iac.readiness'")):
+        for module, needle in (('workbench.py', "placeholders_in_words(\n                    '  intune-iac workbench diagnostics --root %s --object ID'"),):
             self.assertIn(needle, (PACKAGE / module).read_text(encoding='utf-8'), module)
 
 
@@ -404,8 +403,7 @@ class RenderedEverywhereTests(unittest.TestCase):
         self.assertEqual(unresolved('\n'.join(map(str, lines))), [], lines)
 
     def test_the_reconcile_recovery_and_the_review_notice_are_words(self):
-        for module, needle in (('workbench_tui.py', "placeholders_in_words( 'Use :reconcile OPERATION_DIR"),
-                               ('workbench_tui.py', "placeholders_in_words('No active operation: review one first (5, or :review OPERATION_DIR).')"),
+        for module, needle in (('workbench_tui.py', "placeholders_in_words('No active operation: review one first (5, or :review OPERATION_DIR).')"),
                                ('workbench_screens.py', "placeholders_in_words('    :queue-amend FILE %s' % prior)"),
                                ('workbench_screens.py', "placeholders_in_words(':repository-entry REPOSITORY')"),
                                ('workbench_screens.py', "placeholders_in_words('none recorded; repository-entry REPOSITORY finds")):
@@ -691,6 +689,46 @@ class SigninStatusTests(unittest.TestCase):
         source = (PACKAGE / 'signin_facts.py').read_text(encoding='utf-8')
         self.assertIn("_wrap(_in_words(verdict['next_step'])", source)
         self.assertIn("_wrap(_in_words(present['sentence'])", source)
+
+
+
+# -- round 6, item 1: render only where the text is printed ---------------------------------------------------------------------
+
+class RecordedTextStaysTests(unittest.TestCase):
+    """The structured values and the raw record carry the recorded text; only the screens carry the words."""
+
+    def test_the_execute_forms_and_the_workflow_continuation_are_the_recorded_text(self):
+        from intune_iac import workbench_screens
+        raw = workbench_screens._execute_forms('/ops/one')
+        self.assertIn('execute /ops/one DIGEST', raw)
+        self.assertIn('--approve-digest DIGEST', raw)
+        self.assertNotIn('naming', raw)
+        from plugin_tests import test_workflow_map as tw
+        case = tw.RealStoreTests('test_a_prepared_change_waits_for_the_exact_digest')
+        case.setUp()
+        try:
+            case.prepare()
+            read, flow = case.flow()
+            continuation = tw.by_id(flow)['approve_execute']['continuation']
+            self.assertIn('execute %s DIGEST' % case.operation, continuation)
+            self.assertNotIn('naming', continuation)
+            # the screens say it in words
+            rows = ' '.join(' '.join(map(str, tw.lines_of(flow, 100, focus='approve_execute'))).split())
+            self.assertIn('the execute command using', rows)
+            self.assertNotIn(' DIGEST', rows)
+        finally:
+            case.doCleanups()
+
+    def test_the_reconcile_recovery_value_is_the_recorded_text_and_the_layers_say_it(self):
+        from intune_iac import workbench_screens
+        source = ' '.join((PACKAGE / 'workbench_tui.py').read_text(encoding='utf-8').split())
+        self.assertIn("'recovery': 'Use :reconcile OPERATION_DIR for explicit independent readback; never blindly replay execution.'}",
+                      source)
+        value = {'recovery': 'Use :reconcile OPERATION_DIR for explicit independent readback; never blindly replay execution.'}
+        self.assertIn('Use :reconcile OPERATION_DIR', json.dumps(value))                      # the raw record layer shows the value as recorded
+        details = ' '.join(' '.join(workbench_screens.details_lines(value, 100)).split())
+        self.assertIn('the :reconcile command, naming the operation folder', details)          # the typed details layer says it
+        self.assertNotIn('Use :reconcile OPERATION_DIR', details)
 
 
 if __name__ == '__main__':
