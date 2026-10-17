@@ -480,15 +480,18 @@ def _next_actions(items, root=None, relative_to=None, paths=None, fresh=None):
         kinds.setdefault(item['kind'], []).append(item)
     actions = []
 
-    def step(lead, kind, build):
-        """One next step, built from the writer (show, q) it is given; said in words when its own writer wrote a stand-in."""
+    def step(lead, kind, build, said=None):
+        """One next step, built from the writer (show, q) it is given; said in words when its own writer wrote a stand-in. said is
+        the sentence that must survive in words (what a wizard session in conflict asks to be resolved), put before them."""
         if fresh is None:
             actions.append(build(show, q))
             return
         own_show, own_q, stood_in, _ = fresh()
         text = build(own_show, own_q)
         # a path it may not show, or a placeholder still to be replaced: words, not a command
-        actions.append(_in_words(lead, kind, text) if stood_in else placeholder_words(text) if has_fill_in(text) else text)
+        words = '%s. ' % said if said else ''
+        actions.append(words + _in_words(lead, kind, text) if stood_in else
+                       words + placeholder_words(text) if has_fill_in(text) else text)
 
     def fixed(text):
         """A step that holds placeholders by design: recorded as it is, said in words on a screen."""
@@ -502,7 +505,8 @@ def _next_actions(items, root=None, relative_to=None, paths=None, fresh=None):
         if item.get('valid') and item.get('step') != 'complete':
             said = conflicts.get(item.get('conflict_reason'), 'Resume the wizard session') if item.get('step') == 'conflict' else 'Resume the wizard session'
             step('Resume with', 'wizard_session',
-                 lambda show, q, item=item, said=said: '%s: %s wizard --session %s' % (said, PROGRAM, q(item['path'])))
+                 lambda show, q, item=item, said=said: '%s: %s wizard --session %s' % (said, PROGRAM, q(item['path'])),
+                 said=said if said != 'Resume the wizard session' else None)
     for item in kinds.get('journey_session', []):
         if item.get('valid') and item.get('lifecycle') not in ('complete_simulation',):
             step('Resume with', 'journey_session',

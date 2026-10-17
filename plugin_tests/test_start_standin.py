@@ -588,3 +588,39 @@ class CheckerTests(unittest.TestCase):
                         # the reader does see the templates of the old step, so [] above is not blindness
                         old = 'intune-iac workbench init --root STORE --tenant TENANT_ID'
                         self.assertEqual(stand_in_operands([old]), ['STORE', 'TENANT_ID'])
+
+
+class ConflictSessionTests(unittest.TestCase):
+    """Round 2, item 4: a wizard session in conflict keeps the sentence that says what to resolve, whether or not the directory
+    can be shown; the command after it is a command only when its path can be shown."""
+    REASONS = {'repository_owned_edit': 'Review the repository-owned edit, or hand it off to the repository workflow',
+               'output_changed': 'Resolve the changed output (new-path, review or cancel)',
+               'output_conflict': 'Resolve the output conflict (new-path, review or cancel)',
+               'outcome_unknown': 'Review the uncertain generation outcome before any retry'}
+    RESUME = 'Resume with the wizard command using this saved session; its path cannot be shown here.'
+
+    def actions(self, name, session):
+        from intune_iac import entry
+        with tempfile.TemporaryDirectory() as parent:
+            root = Path(parent) / name
+            item = dict({'kind': 'wizard_session', 'path': 'session.json', 'valid': True}, **session)
+            return entry._next_actions([item], root, parent, entry.text_paths(root, parent)[:2],
+                                       lambda: entry.text_paths(root, parent))
+
+    def test_a_hidden_directory_keeps_the_conflict_sentence_before_the_resume_words(self):
+        for reason, sentence in self.REASONS.items():
+            with self.subTest(reason=reason):
+                actions = self.actions(CREDENTIAL, {'step': 'conflict', 'conflict_reason': reason})
+                self.assertEqual(actions, ['%s. %s' % (sentence, self.RESUME)])
+                self.assertEqual(stand_in_operands(actions), [])
+                self.assertNotIn('intune-iac', actions[0])
+
+    def test_a_hidden_directory_without_a_conflict_says_only_the_resume_words(self):
+        for session in ({'step': 'review'}, {'step': 'conflict', 'conflict_reason': 'something_new'}):
+            with self.subTest(session=session):
+                self.assertEqual(self.actions(CREDENTIAL, session), [self.RESUME])
+
+    def test_an_ordinary_directory_keeps_the_conflict_sentence_and_its_command(self):
+        actions = self.actions(ORDINARY, {'step': 'conflict', 'conflict_reason': 'output_changed'})
+        self.assertEqual(actions, ['Resolve the changed output (new-path, review or cancel): intune-iac wizard --session '
+                                   "'estate dir/session.json'"])
