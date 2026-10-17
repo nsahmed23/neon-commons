@@ -1532,6 +1532,7 @@ OUTPUT_SITES = {
     ('provider_journey.py', 'run_provider_wizard', 'print'): (2, 'provider wizard', 'b6c3bce9b4c4'),
     ('windows_terminal.py', 'NativeConsole.session', 'write'): (2, 'workbench workspace', 'b9434dce89d5'),
     ('windows_terminal.py', 'NativeConsole.write', 'write'): (1, 'workbench workspace', 'ca6d6e7eb425'),
+    ('windows_terminal.py', '_Win32.__init__', 'ctypes.WinDLL'): (1, 'workbench workspace', '4a6c32409595'),  # kernel32 for the console: the API of NativeConsole, which makes it and nothing else does (windows_directory has a class of the same name, for the storage layer)
     ('wizard.py', '_run_wizard', 'input'): (1, 'wizard', 'de76bcd7d16d'),
     ('wizard.py', '_run_wizard', 'print'): (1, 'wizard', 'f8512bed4462'),
     ('wizard.py', 'run_wizard', 'input'): (1, 'wizard', '51cbdac7e975'),
@@ -1674,14 +1675,13 @@ NOT_A_TERMINAL = {
     ('synthetic.py', 'write_estate', 'write'): (1, 'writes a synthetic estate file (Path.write_text)', '161549ab81e5'),
     ('validity.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL, '4c72edfd437e'),
     ('validity.py', 'critical', 'fcntl'): (2, REASON_FLOCK, '5641776858a0'),
-    ('windows_directory.py', '_Win32.__init__', 'ctypes.WinDLL'): (2, 'kernel32 and advapi32, for directory and file calls', 'd6b3b50af8b6'),
+    ('windows_directory.py', '_Win32.__init__', 'ctypes.WinDLL'): (2, 'kernel32 and advapi32, for directory and file calls: the base of the Windows storage classes (windows_storage, windows_observer_credentials), not the console API', 'd6b3b50af8b6'),
     ('windows_observation_jobs.py', '_IO.publish', 'write'): (1, 'a file of the observer store, through its Windows file API', '038416f0508c'),
     ('windows_observation_jobs.py', '_create_job', 'write'): (2, 'files of the observer store, through its Windows file API', 'be9ab9517fe5'),
     ('windows_observation_jobs.py', 'scheduler_artifacts', 'import subprocess'): (1, 'imports subprocess for list2cmdline only', '50126ff26b38'),
     ('windows_observation_jobs.py', 'scheduler_artifacts', 'subprocess'): (1, 'list2cmdline quotes an argument of the task file; starts nothing', 'cbd6ed60cc4c'),
     ('windows_observation_jobs.py', 'scheduler_artifacts', 'write'): (2, 'files of the observer store, through its Windows file API', '732fcf064e8f'),
     ('windows_storage.py', '_create_file', 'write'): (1, 'the Windows file API: a handle the function created', 'c1600b6921ce'),
-    ('windows_terminal.py', '_Win32.__init__', 'ctypes.WinDLL'): (1, 'kernel32 for the Win32 API that the console and the Windows storage layer share: the base class of their API classes', '4a6c32409595'),
     ('windows_workspace_context.py', '_ContextCore._validate', 'namespace'): (1, 'a stand-in with one field, store, handed to Workspace._validate_context; not a namespace of the command line', '0a9499f7b1a1'),
     ('wizard.py', '_WizardSession.handle_restart', 'write'): (1, 'writes the copy of the session file kept before a restart, at a path it builds (open(candidate, "xb"))', 'b919a38ebfa3'),
     ('wizard.py', 'run_wizard', 'os.fdopen'): (1, REASON_FDOPEN, '4c983a7cc5c6'),
@@ -4114,7 +4114,7 @@ class LeafClassificationTests(unittest.TestCase):
         self.assertEqual(output_site_problems(), [])
         found = output_sites()
         self.assertEqual(dict(found), {site: value[0] for site, value in list(OUTPUT_SITES.items()) + list(NOT_A_TERMINAL.items())})
-        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (40, 214, 254, 412))
+        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (41, 213, 254, 412))
         self.assertIn(('cli.py', '_write_text', 'print'), found)                                   # the scan reads the product
         self.assertTrue(all(isinstance(value[1], str) and value[1] for value in NOT_A_TERMINAL.values()))      # each has its reason
 
@@ -4725,6 +4725,25 @@ class ReachTests(unittest.TestCase):
         listed = {**OUTPUT_SITES, console + ('ctypes.WinDLL',): (1, 'workbench workspace', '')}
         found = machine_reaches(listed=listed)
         self.assertEqual(sorted(leaf for (leaf, holder), (kind, _) in found.items() if holder == console and kind == 'exact'), [])
+
+    def test_a_machine_leaf_that_makes_the_console_api_fails(self):
+        """The console's Win32 API is a terminal. windows_terminal._Win32 loads kernel32 for the console and is made by NativeConsole, which
+        only the Windows workspace binding makes: a machine leaf that makes either reaches the loader along direct names. Round 9 had listed the
+        loader as a site that reaches no terminal, on a reason that came from the conflation of the two classes named _Win32, and the first
+        two inputs below were caught by neither the listing, the reach nor the fingerprints."""
+        loader = ('windows_terminal.py', '_Win32.__init__')
+        for label, snippet in (
+                ('the API made, and written through', 'from .windows_terminal import _Win32\napi = _Win32()\n'
+                                                      'api.k.WriteConsoleW(api.handles()[1], "Run: kubectl apply PLAN_FILE", 28, None, None)'),
+                ('the console made, and written through', 'from .windows_terminal import NativeConsole\nconsole = NativeConsole()\n'
+                                                          'console.api.k.WriteConsoleW(console.output_handle, "Run: kubectl apply PLAN_FILE", 28, None, None)'),
+                ('the class only passed on', 'from .windows_terminal import _Win32\nfactory = _Win32'),
+                ('the API made by the package attribute', 'import intune_iac.windows_terminal\nintune_iac.windows_terminal._Win32()')):
+            with self.subTest(label):
+                self.assertEqual(self.new_reaches(self.mutated(snippet), 'doctor').get(loader), 'exact')
+        with self.subTest('the storage classes made (control: windows_directory\'s API, not the console\'s)'):
+            found = self.new_reaches(self.mutated('from .windows_storage import _Win32Storage\n_Win32Storage()'), 'doctor')
+            self.assertNotIn(loader, found)
 
     def test_code_behind_a_route_condition_the_leaf_fails_is_not_run_by_it(self):
         for label, snippet in (('the command is another', 'if args.command == "workbench":\n    from .workbench import run_terminal\n'
