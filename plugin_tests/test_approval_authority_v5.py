@@ -119,10 +119,14 @@ class ApprovalAuthorityTests(unittest.TestCase):
             with self.assertRaises(AppError): permit.check_active()
 
     def test_expiry_after_verification_before_dispatch(self):
-        now = int(time.time()); receipt = self.receipt(expires_at=now+1)
+        # The receipt has a minute of life so that it passes verification wherever in a second the test starts (a receipt
+        # with one second left expired inside authorize, as approval_receipt_time); the clock is then moved past it, so the
+        # dispatch check alone refuses.
+        now = int(time.time()); receipt = self.receipt(expires_at=now+60)
         authorization = self.authorize(receipt)
-        with patch.object(self.api.time, 'time', return_value=now+2), self.assertRaises(AppError):
+        with patch.object(self.api.time, 'time', return_value=now+61), self.assertRaises(AppError) as refused:
             with authorization: pass
+        self.assertEqual(refused.exception.code, 'approval_expired')
 
     def test_untrusted_json_cannot_mint_permit_or_live_guard(self):
         with self.assertRaises(AppError): self.api.ExecutionPermit(None, None)
