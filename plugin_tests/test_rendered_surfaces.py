@@ -18,8 +18,11 @@ What it covers
     through _write_text; read from main's source), a session (the wizard, the workspace, the line terminal, the companion, the
     provider wizard) or a machine form (the JSON document), a leaf the table lacks fails, every text and session leaf is driven by the
     sweep LEAF_DRIVERS names (cli._write_text is wrapped to record the leaf each call ran for, and each sweep records the session it
-    opened), and OUTPUT_SITES lists every print(, standard-stream write(, input( and print-as-a-value in the product by file and
-    function: a leaf that prints with print() is a new site and fails until it is classified, listed and driven.
+    opened), and the product is scanned by reference, not by call: every reference to an output-capable name or stream (print, input,
+    builtins, sys.stdout and the other streams, os.write, os.fdopen, subprocess, logging ...) or to a primitive that reaches one by
+    name (getattr on sys, __import__, exec, eval, globals, importlib ...), and every write that is not inside `with open(...)`, is a
+    site that OUTPUT_SITES or NOT_A_TERMINAL lists by file and function with its count and its reason, so a leaf that prints in any
+    way is a new site and fails until it is classified, listed and driven.
   * The wizard, the guided workflow and the journey: every prompt handed to the person and every line printed, scripted through
     the answers a person types, with and without a repository-owned edit of the generated output.
   * simulate --format text, with the snapshot and revision documents test_sim_render_cli builds. start and catalog with
@@ -1302,10 +1305,10 @@ def routes(parser, path=()):
 #   session  a terminal session or a prompt flow with its own input and output.
 #   machine  prints the JSON document of cli.main, or serves a protocol; nothing a person reads.
 # Each text and session leaf is driven by the sweep LEAF_DRIVERS names, and the recorder says what each sweep drove (DRIVEN). What stops
-# a leaf from reaching a person by a road the recorder cannot see is OUTPUT_SITES: every print( call, every .write( on anything but a
-# file the function opened itself, input( with a prompt, print and input used as values, a sentence in an exit, the parser's own output
-# and a module that writes to a terminal by itself is listed there by file and function, with its count, and anything unlisted fails,
-# so a new leaf that prints with print() fails until it is classified, listed and driven.
+# a leaf from reaching a person by a road the recorder cannot see is the scan of the product by reference (site_nodes): each reference to an
+# output-capable name or stream, called or not, each primitive that reaches one by name, and each write that is not inside
+# `with open(...)` is listed in OUTPUT_SITES (it serves a leaf) or NOT_A_TERMINAL (it reaches no terminal, and says why) by file and
+# function, with its count, and anything unlisted fails, so a new leaf that prints in any way fails until it is classified, listed and driven.
 
 LEAF_TABLE = {
     'text': ('start', 'catalog', 'engineering', 'simulate', 'signin status', 'signin collect', 'workbench workflow'),
@@ -1464,60 +1467,248 @@ def leaf_table_problems(parser, table=None, drivers=None):
     return problems
 
 
-# Every place the product could put text in front of a person by a road other than cli._write_text, by file, function and kind, with the
-# number of sites and the leaf each serves (None: not one leaf, but the sink of every text leaf or the usage error of every route). The
-# kinds are
-#   print          a print( call whose first argument is not a JSON document
-#   print-value    print used as a value: the default output function of a session
-#   input          an input( call with a prompt, which writes it
-#   input-value    input used as a value: the default input function of a session, whose prompts a person reads
-#   write          a .write( or .writelines( call, or os.write(, on anything but a file this function opened itself (open(, x.open(, or
-#                  os.fdopen( of a descriptor the function holds): a terminal stream, a stream passed in, a socket, a pipe, an API
-#   parser-output  print_usage(, print_help( or error( on a parser
-#   exit-text      sys.exit(, SystemExit( or an exit( with a sentence, which the interpreter writes to standard error
-#   import X       a module that writes to a terminal by itself (TERMINAL_MODULES)
-# A call whose first argument is json.dumps( or canonical( writes a machine document and is not a site. Exact names, no prefixes: a new
-# site, a site with another count and a listed site that is gone all fail. NOT_A_TERMINAL lists the write sites that reach no terminal.
+# Every place the product could put text in front of a person by a road other than cli._write_text. The scan flags by reference: an
+# output-capable name or stream is a site wherever it appears in the product, called or not, because a call is only one way to use it
+# (`p = print`, `functools.partial(print)`, `builtins.print`, an alias imported from builtins, `getattr(builtins, "print")`), and so is
+# a primitive that reaches one by name. Each site is listed below by file, function and kind with its number of references, and with
+# the leaf it serves or the reason it reaches no terminal; an unlisted site, another number, and a listed site that is gone all fail.
+# The kinds, one per reference:
+#   print, input, exec, eval, compile, __import__, globals, locals, __builtins__, breakpoint, _write_text    the name, in load context
+#   sys.stdout, sys.stderr, sys.stdin, sys.__stdout__, sys.__stderr__, sys.__stdin__, sys.modules          the attribute (aliases resolved)
+#   os.write, os.fdopen, os.dup2, os.system, os.popen, os.dup, os.exec*, os.spawn*, ...                    the attribute (SCAN_OS)
+#   builtins, subprocess, pty, importlib, logging, ctypes, ...                                              a module of SCAN_MODULES, any reference
+#   import M, import sys.stdout, import os.fdopen                  the import of one of those, or of a flagged name from sys or os
+#   sys as a value, os as a value       the module kept or handed on instead of reading an attribute of it (getattr(sys, name))
+#   dynamic access                      an attribute that opens the interpreter's own tables (SCAN_DUNDERS)
+#   device path                         a string that names a terminal device or the process table
+#   standard descriptor                 fd 0, 1 or 2, given as a number to open, os.fdopen, os.dup, os.dup2, os.write and the like
+#   child on the terminal               subprocess.Popen, run, call, check_call or check_output without stdout and stderr taken by pipes
+#   write                               a .write(, .writelines(, .write_text( or .write_bytes( call, other than on the name a
+#                                       `with open(...) as name:` binds
+#   parser-output                       print_usage, print_help or error on a parser
+#   exit-text                           an exit whose argument is not plainly a status: the interpreter writes it to standard error
+# Exempt, exactly: a print that can emit one JSON document and nothing else (one positional argument that is a json.dumps(...) call, no
+# sep or file argument, no end but whitespace); and a write lexically inside `with open(...) as name:` on that name, where the block does
+# not bind the name again and open takes neither a descriptor nor a device. Everything else is a site, however it got there.
+# The reasons that more than one site gives, by a short name.
+REASON_FDOPEN = 'a file object on a descriptor from os.open, mkstemp or os.dup of one: a store file, never fd 0, 1 or 2'
+REASON_FDWRITE = 'writes the file the function opened with os.fdopen on its own descriptor'
+REASON_DUP = 'duplicates a descriptor from os.open so the same file can be read again; never fd 0, 1 or 2'
+REASON_CHILD = 'starts a child with stdin DEVNULL and stdout and stderr PIPE: the program reads what it prints, no terminal sees it'
+REASON_READINESS = 'imports intune_iac.readiness by a literal name, to call placeholders_in_words on a sentence'
+REASON_PROBE = 'asks the stream whether it is a terminal, its width or its encoding; writes nothing'
+REASON_JSONERR = 'a JSON document on standard error (machine form)'
+REASON_MAINOUT = 'asks its encoding and whether it is a terminal; flushes it after the JSON document; reads its descriptor'
+REASON_PROVIDERCRED = 'duplicates the credential descriptor its caller passes in, to read the credential from it'
+REASON_IMPORTLIB = 'asks which modules are installed or loaded (see its importlib sites)'
+REASON_CHILDMODULE = 'the child process this module starts (see its subprocess sites)'
 OUTPUT_SITES = {
-    ('cli.py', '_write_text', 'print'): (1, None),
-    ('cli.py', '_Parser.error', 'parser-output'): (1, None),          # the usage error of every route, driven by sweep_help_and_usage
     ('cli.py', '_Parser.error', 'exit-text'): (1, None),
-    ('provider_journey.py', 'run_provider_wizard', 'print'): (2, 'provider wizard'),
+    ('cli.py', '_Parser.error', 'parser-output'): (1, None),
+    ('cli.py', '_Parser.error', 'sys.stderr'): (1, None),
+    ('cli.py', '_write_text', 'print'): (1, None),
+    ('cli.py', '_write_text', 'sys.stdout'): (1, None),
+    ('cli.py', 'main', '_write_text'): (7, None),
+    ('journey.py', 'run_journey', 'input'): (1, 'wizard'),
+    ('journey.py', 'run_journey', 'print'): (1, 'wizard'),
     ('provider_journey.py', 'run_provider_wizard', 'input'): (2, 'provider wizard'),
-    ('workbench.py', 'command', 'print'): (2, 'workbench companion'),
-    ('workbench_tui.py', 'run_workspace.write_line', 'print'): (1, 'workbench workspace'),
-    ('workbench_tui.py', 'run_workspace.read_line', 'write'): (1, 'workbench workspace'),
-    ('workbench_tui.py', 'terminal_session', 'write'): (2, 'workbench workspace'),
-    ('workbench_tui.py', 'Workspace.draw', 'write'): (1, 'workbench workspace'),
+    ('provider_journey.py', 'run_provider_wizard', 'print'): (2, 'provider wizard'),
     ('windows_terminal.py', 'NativeConsole.session', 'write'): (2, 'workbench workspace'),
     ('windows_terminal.py', 'NativeConsole.write', 'write'): (1, 'workbench workspace'),
-    ('workbench.py', 'run_terminal', 'print-value'): (1, 'workbench terminal'),
-    ('workbench.py', '_run_terminal', 'print-value'): (1, 'workbench terminal'),
-    ('workbench.py', '_run_terminal', 'input-value'): (1, 'workbench terminal'),
-    ('wizard.py', 'run_wizard', 'print-value'): (1, 'wizard'),
-    ('wizard.py', 'run_wizard', 'input-value'): (1, 'wizard'),
-    ('wizard.py', '_run_wizard', 'print-value'): (1, 'wizard'),
-    ('wizard.py', '_run_wizard', 'input-value'): (1, 'wizard'),
-    ('journey.py', 'run_journey', 'print-value'): (1, 'wizard'),
-    ('journey.py', 'run_journey', 'input-value'): (1, 'wizard'),
-    ('workflow.py', 'run_guided_workflow', 'print-value'): (1, 'wizard'),
-    ('workflow.py', 'run_guided_workflow', 'input-value'): (1, 'wizard'),
+    ('windows_terminal.py', '_Win32.__init__', 'ctypes.WinDLL'): (1, 'workbench workspace'),
+    ('wizard.py', '_run_wizard', 'input'): (1, 'wizard'),
+    ('wizard.py', '_run_wizard', 'print'): (1, 'wizard'),
+    ('wizard.py', 'run_wizard', 'input'): (1, 'wizard'),
+    ('wizard.py', 'run_wizard', 'print'): (1, 'wizard'),
+    ('workbench.py', '_run_terminal', 'input'): (1, 'workbench terminal'),
+    ('workbench.py', '_run_terminal', 'print'): (1, 'workbench terminal'),
+    ('workbench.py', 'command', 'print'): (2, 'workbench companion'),
+    ('workbench.py', 'run_terminal', 'print'): (1, 'workbench terminal'),
+    ('workbench_tui.py', 'Workspace.__init__', 'sys.stdin'): (1, 'workbench workspace'),
+    ('workbench_tui.py', 'Workspace.__init__', 'sys.stdout'): (1, 'workbench workspace'),
+    ('workbench_tui.py', 'Workspace.draw', 'write'): (1, 'workbench workspace'),
+    ('workbench_tui.py', 'run_workspace', 'sys.stdin'): (1, 'workbench workspace'),
+    ('workbench_tui.py', 'run_workspace', 'sys.stdout'): (1, 'workbench workspace'),
+    ('workbench_tui.py', 'run_workspace.read_line', 'write'): (1, 'workbench workspace'),
+    ('workbench_tui.py', 'run_workspace.write_line', 'print'): (1, 'workbench workspace'),
+    ('workbench_tui.py', 'terminal_session', 'write'): (2, 'workbench workspace'),
+    ('workflow.py', 'run_guided_workflow', 'input'): (1, 'wizard'),
+    ('workflow.py', 'run_guided_workflow', 'print'): (1, 'wizard'),
 }
 NOT_A_TERMINAL = {
+    ('approval_authority.py', 'ApprovalAuthority._verify', 'os.dup'): (1, REASON_DUP),
+    ('approval_authority.py', 'ApprovalAuthority._verify', 'os.fdopen'): (2, REASON_FDOPEN),
+    ('approval_authority.py', 'ApprovalAuthority._verify', 'write'): (1, REASON_FDWRITE),
+    ('approval_authority.py', '_validator', 'ctypes.CDLL'): (1, 'loads the copy of the approved native validator library'),
+    ('approval_authority.py', '_validator', 'os.fdopen'): (2, REASON_FDOPEN),
+    ('approval_authority.py', '_validator', 'write'): (1, REASON_FDWRITE),
+    ('artifact_vault.py', '_read', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('artifact_vault.py', '_write_new', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('artifact_vault.py', '_write_new', 'write'): (1, REASON_FDWRITE),
+    ('azure_backend.py', 'AzureBackendAdapter.publish', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('azure_backend.py', 'AzureBackendAdapter.publish', 'write'): (1, REASON_FDWRITE),
+    ('azure_backend.py', 'AzureBackendAdapter.verify_published', 'os.fdopen'): (1, REASON_FDOPEN),
     ('capture.py', '_capture', 'write'): (3, 'the files of a capture, through its output_factory'),
+    ('capture.py', '_write', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('capture.py', '_write', 'write'): (1, REASON_FDWRITE),
+    ('capture_adapter.py', '_read', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('cli.py', '<module>', 'import importlib'): (2, REASON_IMPORTLIB),
+    ('cli.py', '_lf_only', 'sys.stderr'): (1, 'sets the line ending of the two streams; writes nothing'),
+    ('cli.py', '_lf_only', 'sys.stdout'): (1, 'sets the line ending of the two streams; writes nothing'),
+    ('cli.py', 'doctor', 'importlib'): (3, 'asks whether a dependency is installed and its version; prints nothing itself'),
+    ('cli.py', 'execute.progress', 'print'): (1, REASON_JSONERR),
+    ('cli.py', 'execute.progress', 'sys.stderr'): (1, REASON_JSONERR),
+    ('cli.py', 'main', 'os.dup2'): (1, 'points fd 1 at /dev/null after a broken pipe, so that nothing more is written'),
+    ('cli.py', 'main', 'print'): (3, REASON_JSONERR),
+    ('cli.py', 'main', 'sys.stderr'): (3, REASON_JSONERR),
+    ('cli.py', 'main', 'sys.stdout'): (4, REASON_MAINOUT),
+    ('companion.py', 'write_static', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('companion.py', 'write_static', 'write'): (1, REASON_FDWRITE),
     ('companion_live.py', 'Handler._send', 'write'): (1, 'the HTTP response of the companion page, to a socket'),
+    ('engineering_view.py', 'output_width', 'sys.stdout'): (2, REASON_PROBE),
+    ('execution.py', '_exclusive_json', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('execution.py', '_exclusive_json', 'write'): (1, REASON_FDWRITE),
+    ('host_capabilities.py', '<module>', 'import importlib'): (1, REASON_IMPORTLIB),
+    ('host_capabilities.py', '_facts', 'os as a value'): (1, 'hasattr(os, key) over a fixed tuple of constants: a capability probe'),
+    ('host_capabilities.py', '_module_has', 'importlib'): (1, 'imports a module by name to test that it exists'),
+    ('io.py', 'read_bytes', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('io.py', 'write_json', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('io.py', 'write_json', 'write'): (1, REASON_FDWRITE),
+    ('journey.py', 'run_journey', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('journey.py', 'run_journey', 'write'): (1, REASON_FDWRITE),
+    ('journey_native_atmos.py', '_tool', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('mcp.py', 'serve', 'sys.stdin'): (1, 'the MCP server input stream (JSON-RPC lines), a protocol'),
+    ('mcp.py', 'serve', 'sys.stdout'): (1, 'the MCP server output stream (JSON-RPC lines), a protocol'),
     ('mcp.py', 'serve.send', 'write'): (1, 'the MCP protocol: one JSON message per line on the server stream'),
-    ('signin.py', 'collect', 'write'): (1, 'os.write of the token to the pipe of the collecting child'),
-    ('windows_observation_jobs.py', '_IO.publish', 'write'): (1, 'a file of the observer store'),
-    ('windows_observation_jobs.py', '_create_job', 'write'): (2, 'files of the observer store'),
-    ('windows_observation_jobs.py', 'scheduler_artifacts', 'write'): (2, 'files of the observer store'),
-    ('windows_storage.py', '_create_file', 'write'): (1, 'the Windows file API'),
-    ('worker_recovery.py', 'main', 'write'): (1, 'os.write to the output file it opened'),
+    ('native_atmos.py', 'resolve_native_atmos', 'write'): (1, 'writes a file of the native snapshot at a path under its directory (Path.write_bytes)'),
+    ('orchestration_export.py', '<module>', 'os as a value'): (1, 'hasattr(os, name) over a fixed tuple of constants: a capability probe'),
+    ('orchestration_export.py', '_open_checked', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('output_edit.py', 'classify', 'write'): (1, 'writes the stack file of the generated output that it was asked to edit (Path.write_bytes)'),
+    ('protected.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE),
+    ('protected.py', '_cleanup_process_group', 'subprocess'): (1, 'names subprocess.TimeoutExpired in a test of an exception; starts nothing'),
+    ('protected.py', '_create', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('protected.py', '_create', 'write'): (1, REASON_FDWRITE),
+    ('protected.py', '_exclusive', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('protected.py', '_exclusive', 'write'): (1, REASON_FDWRITE),
+    ('protected.py', '_network_filter', 'ctypes.CDLL'): (1, 'loads libseccomp, to install a network filter'),
+    ('protected.py', '_run', 'os.dup'): (1, REASON_DUP),
+    ('protected.py', '_run', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('protected.py', '_sha', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('protected.py', '_supervise', 'subprocess'): (4, REASON_CHILD),
+    ('protected_worker.py', 'WorkerJob._apply', 'os.dup'): (2, REASON_DUP),
+    ('protected_worker.py', 'WorkerJob._apply', 'os.fdopen'): (2, REASON_FDOPEN),
+    ('provider_execution.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE),
+    ('provider_execution.py', 'ProviderExecutor._run', 'os.dup'): (1, REASON_DUP),
+    ('provider_execution.py', 'ProviderExecutor._run', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('provider_execution.py', 'ProviderExecutor.prepare', 'write'): (1, 'writes lock.sha256 under the executor root (Path.write_text)'),
+    ('provider_execution.py', '_copy_pin', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('provider_execution.py', '_copy_pin', 'write'): (1, REASON_FDWRITE),
+    ('provider_execution.py', '_create', 'write'): (1, 'writes the tofu.rc file of the executor root (Path.write_text)'),
+    ('provider_execution.py', '_network_guard', 'ctypes.CDLL'): (1, 'loads libseccomp, to install a network filter'),
+    ('provider_execution.py', '_sealed_plan', 'os.dup'): (1, 'duplicates the memfd that holds the sealed plan, so it can be read again'),
+    ('provider_execution.py', '_sealed_plan', 'os.fdopen'): (2, REASON_FDOPEN),
+    ('provider_execution.py', '_sealed_plan', 'write'): (1, REASON_FDWRITE),
+    ('provider_execution.py', '_sha', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('provider_execution.py', '_supervise', 'subprocess'): (4, REASON_CHILD),
+    ('provider_journey.py', '_bounded_private_json', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('provider_journey.py', 'read_credential_fd', 'os.dup'): (1, REASON_PROVIDERCRED),
+    ('repository.py', '_Repository._read', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('runner.py', '_dispatch', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('runner.py', '_dispatch', 'write'): (1, REASON_FDWRITE),
+    ('runner.py', 'run', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('runner.py', 'run', 'write'): (1, REASON_FDWRITE),
+    ('signin.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE),
+    ('signin.py', '_bounded', 'subprocess'): (5, REASON_CHILD),
+    ('signin.py', 'collect', 'os.write'): (1, 'the token, written to the pipe of the collecting child'),
+    ('sim_cli.py', 'text_lines', 'sys.stdout'): (1, REASON_PROBE),
+    ('sim_fixture.py', '<module>', 'exit-text'): (1, 'raise SystemExit(main()): the status main returns, when the module runs as a script'),
+    ('synthetic.py', 'write_estate', 'write'): (1, 'writes a synthetic estate file (Path.write_text)'),
+    ('windows_directory.py', '_Win32.__init__', 'ctypes.WinDLL'): (2, 'kernel32 and advapi32, for directory and file calls'),
+    ('windows_observation_jobs.py', '_IO.publish', 'write'): (1, 'a file of the observer store, through its Windows file API'),
+    ('windows_observation_jobs.py', '_create_job', 'write'): (2, 'files of the observer store, through its Windows file API'),
+    ('windows_observation_jobs.py', 'scheduler_artifacts', 'import subprocess'): (1, 'imports subprocess for list2cmdline only'),
+    ('windows_observation_jobs.py', 'scheduler_artifacts', 'subprocess'): (1, 'list2cmdline quotes an argument of the task file; starts nothing'),
+    ('windows_observation_jobs.py', 'scheduler_artifacts', 'write'): (2, 'files of the observer store, through its Windows file API'),
+    ('windows_storage.py', '_create_file', 'write'): (1, 'the Windows file API: a handle the function created'),
+    ('wizard.py', 'run_wizard', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('wizard.py', 'run_wizard', 'write'): (1, REASON_FDWRITE),
+    ('workbench.py', 'interrupted_lines', '__import__'): (2, REASON_READINESS),
+    ('workbench_revision.py', 'verify_revision', 'os.dup'): (1, REASON_DUP),
+    ('workbench_revision.py', 'verify_revision', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('workbench_scheduler.py', '_open_pinned', 'os.dup'): (1, REASON_DUP),
+    ('workbench_scheduler.py', '_open_pinned', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('workbench_scheduler.py', '_save_bytes', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('workbench_scheduler.py', '_save_bytes', 'write'): (1, REASON_FDWRITE),
+    ('workbench_screens.py', '<module>', '__import__'): (1, REASON_READINESS),
+    ('workbench_screens.py', 'queue_lines', '__import__'): (2, REASON_READINESS),
+    ('workbench_screens.py', 'repository_lines', '__import__'): (1, REASON_READINESS),
+    ('workbench_screens.py', 'review_lines', '__import__'): (1, REASON_READINESS),
+    ('workbench_screens.py', 'state_lines', '__import__'): (1, REASON_READINESS),
+    ('workbench_tui.py', 'Workspace._plan_record', 'dynamic access'): (1, 'the instance dictionary as a cache: setdefault of a private key'),
+    ('workbench_tui.py', 'Workspace._strip_note', 'dynamic access'): (1, 'the instance dictionary as a cache: setdefault of a private key'),
+    ('workbench_tui.py', 'Workspace.input', '__import__'): (1, REASON_READINESS),
+    ('workbench_views.py', 'propose_source_acceptance', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('workbench_views.py', 'propose_source_acceptance', 'write'): (1, REASON_FDWRITE),
+    ('worker_adoption.py', '_authenticate', 'os.dup'): (1, REASON_DUP),
+    ('worker_adoption.py', '_authenticate', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_adoption_plan_recovery.py', 'AdoptionPlanRecoveryPolicy._verified', 'os.dup'): (1, REASON_DUP),
+    ('worker_adoption_plan_recovery.py', 'AdoptionPlanRecoveryPolicy._verified', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_adoption_reconcile.py', '_authenticate', 'os.dup'): (1, REASON_DUP),
+    ('worker_adoption_reconcile.py', '_authenticate', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_adoption_recovery.py', 'AdoptionRecoveryPolicy._verified', 'os.dup'): (1, REASON_DUP),
+    ('worker_adoption_recovery.py', 'AdoptionRecoveryPolicy._verified', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_adoption_state.py', '_retain', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_adoption_state.py', '_retain', 'write'): (1, REASON_FDWRITE),
+    ('worker_committed_readback.py', 'collect', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_committed_recovery.py', 'CommittedRecoveryPolicy._verified', 'os.dup'): (1, REASON_DUP),
+    ('worker_committed_recovery.py', 'CommittedRecoveryPolicy._verified', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_completed_readback.py', 'collect', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_evidence_posix.py', 'DetachedVerifier.__call__', 'os.dup'): (1, REASON_DUP),
+    ('worker_evidence_posix.py', 'DetachedVerifier.__call__', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_evidence_posix.py', '_capture', '__import__'): (1, 'imports re by a literal name, to match a file name'),
+    ('worker_evidence_posix.py', 'reopen', '__import__'): (1, 'imports re by a literal name, to match a file name'),
+    ('worker_host.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE),
+    ('worker_host.py', '_Docker.run', 'os.dup'): (1, REASON_DUP),
+    ('worker_host.py', '_Docker.run', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_host.py', '_Docker.run', 'subprocess'): (4, REASON_CHILD),
+    ('worker_host.py', '_bytes', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_host.py', '_bytes', 'write'): (1, REASON_FDWRITE),
+    ('worker_host.py', '_hash_file', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_lease_recovery.py', 'RecoveryPolicy._verified', 'os.dup'): (1, REASON_DUP),
+    ('worker_lease_recovery.py', 'RecoveryPolicy._verified', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_provider.py', 'publish_files', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_provider.py', 'publish_files', 'write'): (1, REASON_FDWRITE),
+    ('worker_recovery.py', '<module>', 'exit-text'): (1, 'raise SystemExit(main()): the status main returns, when the module runs as a script'),
+    ('worker_recovery.py', 'main', 'os.write'): (1, 'the bytes of the output file it opened, to its own descriptor'),
+    ('worker_recovery.py', 'main', 'print'): (2, 'a JSON document made by canonical (machine form)'),
+    ('worker_runtime_identity.py', '<module>', 'import importlib'): (1, REASON_IMPORTLIB),
+    ('worker_runtime_identity.py', 'inventory', 'ctypes.CDLL'): (1, 'loads libseccomp for the runtime inventory'),
+    ('worker_runtime_identity.py', 'inventory', 'importlib'): (1, 'importlib.util.source_from_cache: the path of a loaded module, for the inventory'),
+    ('worker_runtime_identity.py', 'inventory', 'sys.modules'): (1, 'lists the loaded modules for the runtime inventory'),
+    ('worker_service.py', 'ServicePolicy._authenticate', 'os.dup'): (1, REASON_DUP),
+    ('worker_service.py', 'ServicePolicy._authenticate', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_service.py', '_bounded_private_json', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('worker_successor.py', '_authenticated', 'os.dup'): (1, REASON_DUP),
+    ('worker_successor.py', '_authenticated', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('workflow.py', 'run_guided_workflow', 'os.fdopen'): (1, REASON_FDOPEN),
+    ('workflow.py', 'run_guided_workflow', 'write'): (1, REASON_FDWRITE),
 }
-MACHINE_DOCUMENTS = ('dumps', 'canonical')
+SCAN_NAMES = frozenset(('print', 'input', 'exec', 'eval', 'compile', '__import__', 'globals', 'locals', '__builtins__', 'breakpoint',
+                        '_write_text'))
+SCAN_STREAMS = ('sys.stdout', 'sys.stderr', 'sys.stdin', 'sys.__stdout__', 'sys.__stderr__', 'sys.__stdin__', 'sys.modules')
+SCAN_OS = re.compile(r'(?:write|writev|pwrite|pwritev|sendfile|copy_file_range|splice|fdopen|dup|dup2|system|popen|startfile|openpty|forkpty|fork|exec\w*'
+                     r'|spawn\w*|posix_spawn\w*)\Z')
+SCAN_MODULES = frozenset(('builtins', 'subprocess', 'pty', 'importlib', 'logging', 'warnings', 'traceback', 'getpass', 'curses', 'cmd',
+                          'code', 'pdb', 'pprint', 'rich', 'click', 'typer', 'tqdm', 'colorama', 'webbrowser', 'asyncio',
+                          'multiprocessing', 'concurrent', 'runpy', 'imp'))
+SCAN_LOADERS = frozenset(('CDLL', 'cdll', 'PyDLL', 'pythonapi', 'windll', 'WinDLL', 'oledll', 'OleDLL'))      # ctypes: loads a native library
+SCAN_DUNDERS = frozenset(('__dict__', '__globals__', '__builtins__', '__subclasses__', '__getattribute__', '__loader__', '__code__',
+                          '__closure__', '__mro__', '__bases__', '__base__'))
 PARSER_OUTPUT = ('print_usage', 'print_help', 'error')
-TERMINAL_MODULES = ('logging', 'warnings', 'traceback', 'getpass', 'curses', 'cmd', 'code', 'pdb', 'pprint', 'rich', 'click', 'typer',
-                    'tqdm', 'colorama', 'webbrowser')
+DESCRIPTOR_CALLS = frozenset(('os.fdopen', 'os.dup', 'os.dup2', 'os.write', 'os.writev', 'os.pwrite', 'os.pwritev', 'os.sendfile',
+                              'os.copy_file_range', 'os.splice'))                     # calls whose descriptor argument may be fd 0, 1 or 2
+CHILD_CALLS = frozenset(('subprocess.Popen', 'subprocess.run', 'subprocess.call', 'subprocess.check_call', 'subprocess.check_output'))
+DEVICE_PATH = re.compile(r'/dev/(?:tty|pts/|stdout|stderr|stdin|console|fd/)|/proc/(?:self|\d+)/fd/[012]\b|CONOUT\$|CONIN\$')
 
 
 def package_sources():
@@ -1525,34 +1716,188 @@ def package_sources():
     return {str(path.relative_to(PACKAGE)): path.read_text(encoding='utf-8') for path in sorted(PACKAGE.rglob('*.py'))}
 
 
-def text_like(node):
-    """True for an expression that builds a sentence: a string, an f-string, a % or + with one, or a .format( or .join( call."""
-    if isinstance(node, ast.Constant):
-        return isinstance(node.value, str)
-    if isinstance(node, ast.BinOp):
-        return text_like(node.left) or text_like(node.right)
-    if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
-        return node.func.attr in ('format', 'join')
-    return isinstance(node, ast.JoinedStr)
+def not_a_status(node):
+    """An exit argument that is not plainly a status: the interpreter writes anything but an integer or None to standard error."""
+    return not (isinstance(node, ast.Constant) and (node.value is None or isinstance(node.value, int)))
 
 
-def opens_a_file(call):
-    """True for a call that opens a file object: open(...), x.open(...), or os.fdopen of a descriptor the program holds (a name, or
-    os.dup of one). open(1) and os.fdopen(1) open the terminal, and are not."""
-    func = call.func
-    if isinstance(func, ast.Name) and func.id == 'open' or isinstance(func, ast.Attribute) and func.attr == 'open':
-        return not (call.args and isinstance(call.args[0], ast.Constant) and isinstance(call.args[0].value, int))
-    if isinstance(func, ast.Attribute) and func.attr == 'fdopen' and call.args:
-        first = call.args[0]
-        if isinstance(first, ast.Call) and isinstance(first.func, ast.Attribute) and first.func.attr == 'dup' and first.args:
-            first = first.args[0]
-        return isinstance(first, ast.Name)
-    return False
+def site_nodes(source):
+    """[(function chain, kind, node)] for every site in the source of one module (see the note above); the chain is the names of the
+    functions and classes around the node. Names that an import binds are resolved first, in every scope, so an alias is the thing it
+    stands for: `from builtins import print as p` makes every p a builtins site, `import os as o` makes o.system an os.system site."""
+    tree = ast.parse(source)
+    parents = {child: node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)}
+    aliases = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                aliases[alias.asname or alias.name.split('.')[0]] = alias.name if alias.asname else alias.name.split('.')[0]
+        elif isinstance(node, ast.ImportFrom):
+            base = '.' * node.level + (node.module or '')
+            for alias in node.names:
+                aliases[alias.asname or alias.name] = base + ('' if base.endswith('.') else '.') + alias.name
+
+    def where(node):
+        names = []
+        while node in parents:
+            node = parents[node]
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                names.append(node.name)
+        return '.'.join(reversed(names)) or '<module>'
+
+    def dotted(node):
+        """The qualified name of a chain rooted at a name, the root resolved through the imports: o.system is os.system."""
+        parts = []
+        while isinstance(node, ast.Attribute):
+            parts.append(node.attr)
+            node = node.value
+        return '.'.join([aliases[node.id]] + parts[::-1]) if isinstance(node, ast.Name) and node.id in aliases else None
+
+    def route(qualified):
+        """The kind of site a qualified name is, or None."""
+        parts = (qualified or '').split('.')
+        if parts[0] in SCAN_MODULES:
+            return parts[0]
+        for stream in SCAN_STREAMS:
+            if qualified == stream or (qualified or '').startswith(stream + '.'):
+                return stream
+        if parts[0] == 'os' and len(parts) > 1 and SCAN_OS.match(parts[1]):
+            return 'os.' + parts[1]
+        if parts[0] == 'ctypes' and len(parts) > 1 and parts[1] in SCAN_LOADERS:
+            return 'ctypes.' + parts[1]
+        return None
+
+    def machine_print(call):
+        """The whole call can emit exactly one JSON document and nothing else."""
+        if len(call.args) != 1 or not isinstance(call.args[0], ast.Call) or dotted(call.args[0].func) != 'json.dumps':
+            return False
+        for keyword in call.keywords:
+            end = keyword.arg == 'end' and isinstance(keyword.value, ast.Constant) and isinstance(keyword.value.value, str) \
+                and not keyword.value.value.strip()
+            if not (keyword.arg == 'flush' or end):                  # sep, file, **options, end that is not whitespace
+                return False
+        return True
+
+    def opens_a_terminal(call):
+        """open( of a descriptor or of a device: its first argument (or file=) is an integer, or names a terminal device."""
+        arguments = call.args[:1] + [keyword.value for keyword in call.keywords if keyword.arg == 'file']
+        return any(isinstance(item, ast.Constant) and (isinstance(item.value, int) or (isinstance(item.value, str)
+                                                                                         and DEVICE_PATH.search(item.value)))
+                   for item in arguments)
+
+    def rebinds(body, name):
+        """The block binds the name again: an assignment, a loop or with target, a handler, an import, a def, a parameter, a global."""
+        for statement in body:
+            for inner in ast.walk(statement):
+                if (isinstance(inner, ast.Name) and inner.id == name and not isinstance(inner.ctx, ast.Load)) \
+                        or (isinstance(inner, ast.arg) and inner.arg == name) \
+                        or (isinstance(inner, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and inner.name == name) \
+                        or (isinstance(inner, ast.ExceptHandler) and inner.name == name) \
+                        or (isinstance(inner, (ast.Global, ast.Nonlocal)) and name in inner.names) \
+                        or (isinstance(inner, (ast.Import, ast.ImportFrom))
+                            and any((alias.asname or alias.name.split('.')[0]) == name for alias in inner.names)):
+                    return True
+        return False
+
+    def inside_open(call):
+        """The call is a write lexically inside `with open(...) as name:` on that name, with no function between the two."""
+        receiver, child, node = call.func.value, call, parents.get(call)
+        if not isinstance(receiver, ast.Name) or 'open' in aliases:
+            return False
+        while node is not None:
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda, ast.ClassDef)):
+                return False
+            if isinstance(node, ast.With) and child in node.body:
+                for item in node.items:
+                    opened = item.context_expr
+                    if (isinstance(item.optional_vars, ast.Name) and item.optional_vars.id == receiver.id
+                            and isinstance(opened, ast.Call) and isinstance(opened.func, ast.Name) and opened.func.id == 'open'
+                            and not opens_a_terminal(opened) and not rebinds(node.body, receiver.id)):
+                        return True
+            child, node = node, parents.get(node)
+        return False
+
+    found = []
+    for node in ast.walk(tree):
+        parent, kinds = parents.get(node), []
+        in_call = isinstance(parent, ast.Call) and parent.func is node
+        if isinstance(node, ast.Import):
+            kinds = ['import ' + alias.name.split('.')[0] for alias in node.names if alias.name.split('.')[0] in SCAN_MODULES]
+        elif isinstance(node, ast.ImportFrom) and not node.level:
+            root = (node.module or '').split('.')[0]
+            if root in SCAN_MODULES:
+                kinds = ['import ' + root]
+            elif root in ('sys', 'os', 'ctypes'):
+                kinds = ['import %s.%s' % (root, alias.name) for alias in node.names
+                         if alias.name == '*' or route('%s.%s' % (root, alias.name))]
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str) and DEVICE_PATH.search(node.value):
+            kinds = ['device path']
+        elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
+            qualified = aliases.get(node.id)
+            if isinstance(parent, ast.Attribute) and parent.value is node and qualified is not None:
+                pass                                                    # an imported root of a chain: judged with the chain
+            elif qualified is None and node.id in SCAN_NAMES:
+                if not (node.id == 'print' and in_call and machine_print(parent)):
+                    kinds = [node.id]
+            elif qualified in ('sys', 'os'):
+                probe = (isinstance(parent, ast.Call) and isinstance(parent.func, ast.Name) and parent.func.id in ('getattr', 'hasattr')
+                         and parent.args[:1] == [node] and len(parent.args) > 1 and isinstance(parent.args[1], ast.Constant)
+                         and isinstance(parent.args[1].value, str) and not route('%s.%s' % (qualified, parent.args[1].value)))
+                kinds = [] if probe else [qualified + ' as a value']
+            elif route(qualified):
+                kinds = [route(qualified)]
+            elif qualified is None and node.id in ('SystemExit', 'exit', 'quit'):
+                holder = parent
+                while isinstance(holder, (ast.Tuple, ast.List)):
+                    holder = parents.get(holder)
+                names_the_class = ((isinstance(holder, ast.Call) and isinstance(holder.func, ast.Name)
+                                    and holder.func.id in ('isinstance', 'issubclass'))
+                                   or (isinstance(holder, ast.ExceptHandler) and holder.type is not None)
+                                   or (isinstance(holder, ast.Raise) and holder.exc is node))
+                if not in_call and not names_the_class:
+                    kinds = ['exit-text']                               # handed on: what it carries is not seen here
+        elif isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Load):
+            qualified = dotted(node)
+            if node.attr in SCAN_DUNDERS:
+                kinds.append('dynamic access')
+            if not (isinstance(parent, ast.Attribute) and parent.value is node) and route(qualified):
+                kinds.append(route(qualified))                          # the outermost link of a chain names the site once
+            elif node.attr in PARSER_OUTPUT and not (isinstance(parent, ast.Attribute) and parent.value is node):
+                kinds.append('parser-output')
+            if node.attr == 'exit' and not in_call:
+                kinds.append('exit-text')
+        elif isinstance(node, ast.Call):
+            func = node.func
+            if isinstance(func, ast.Attribute) and func.attr in ('write', 'writelines', 'write_text', 'write_bytes'):
+                if not inside_open(node) and not (route(dotted(func)) or '').startswith('os.'):
+                    kinds.append('write')                               # os.write is its own kind
+            if ((isinstance(func, ast.Name) and func.id in ('SystemExit', 'exit', 'quit') and func.id not in aliases)
+                    or (isinstance(func, ast.Attribute) and func.attr == 'exit')) and any(not_a_status(item) for item in node.args):
+                kinds.append('exit-text')
+            called = dotted(func) if isinstance(func, (ast.Attribute, ast.Name)) else None
+            if called in DESCRIPTOR_CALLS or (isinstance(func, ast.Name) and func.id == 'open' and 'open' not in aliases):
+                given = node.args[:2] + [keyword.value for keyword in node.keywords if keyword.arg in ('fd', 'file', 'out_fd', 'dst')]
+                if any(isinstance(item, ast.Constant) and isinstance(item.value, int) and not isinstance(item.value, bool)
+                       and item.value in (0, 1, 2) for item in given):
+                    kinds.append('standard descriptor')                   # the terminal itself, however it is opened or copied to
+            if called in CHILD_CALLS:
+                ends = {keyword.arg: dotted(keyword.value) for keyword in node.keywords if keyword.arg in ('stdout', 'stderr')}
+                if not (ends.get('stdout') in ('subprocess.PIPE', 'subprocess.DEVNULL')
+                        and ends.get('stderr') in ('subprocess.PIPE', 'subprocess.DEVNULL', 'subprocess.STDOUT')):
+                    kinds.append('child on the terminal')                 # a child whose output is not taken writes where it likes
+        found += [(where(node), kind, node) for kind in kinds]
+    return found
+
+
+@functools.lru_cache(maxsize=None)
+def file_sites(source):
+    """(((function, kind), references), ...) for the source of one module. Cached by source, so a test that adds or changes one module
+    reads the product's other modules once."""
+    return tuple(collections.Counter((chain, kind) for chain, kind, _ in site_nodes(source)).items())
 
 
 def output_sites(sources=None):
-    """{(file, function, kind): sites} for every place the sources could write to a person (see OUTPUT_SITES); the function is the
-    chain of the names of the functions and classes around the site."""
+    """{(file, function, kind): references} for every site in the sources (the product's modules by default)."""
     found = collections.Counter()
     for name, source in (package_sources() if sources is None else sources).items():
         for (function, kind), count in file_sites(source):
@@ -1560,80 +1905,10 @@ def output_sites(sources=None):
     return found
 
 
-@functools.lru_cache(maxsize=None)
-def file_sites(source):
-    """(((function, kind), sites), ...) for the source of one module (see output_sites). Cached by source, so a test that adds or
-    changes one module reads the product's other modules once."""
-    found = collections.Counter()
-    tree = ast.parse(source)
-    parents = {child: node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)}
-
-    def around(node):
-        chain = []
-        while node in parents:
-            node = parents[node]
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-                chain.append(node)
-        return list(reversed(chain))
-
-    def where(node):
-        return '.'.join(item.name for item in around(node)) or '<module>'
-
-    def document(call):
-        first = call.args[0] if call.args else None
-        while isinstance(first, ast.Call) and isinstance(first.func, ast.Attribute) and isinstance(first.func.value, ast.Call):
-            first = first.func.value                         # canonical(...).decode(): the document under the method that encodes it
-        return isinstance(first, ast.Call) and getattr(first.func, 'attr', getattr(first.func, 'id', '')) in MACHINE_DOCUMENTS
-
-    def file_held(call):
-        """The receiver of a .write( call is a name every binding of which, in the function around the call, opens a file."""
-        receiver = call.func.value
-        functions = [item for item in around(call) if not isinstance(item, ast.ClassDef)]
-        if not functions or not isinstance(receiver, ast.Name):
-            return False
-        bound = []
-        for inner in ast.walk(functions[-1]):
-            if isinstance(inner, (ast.With, ast.AsyncWith)):
-                bound += [item.context_expr for item in inner.items
-                          if isinstance(item.optional_vars, ast.Name) and item.optional_vars.id == receiver.id]
-            elif isinstance(inner, ast.Assign) and any(isinstance(target, ast.Name) and target.id == receiver.id
-                                                       for target in inner.targets):
-                bound.append(inner.value)
-        return bool(bound) and all(isinstance(value, ast.Call) and opens_a_file(value) for value in bound)
-
-    for node in ast.walk(tree):
-        kind = None
-        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-            if node.func.id == 'print' and not document(node):
-                kind = 'print'
-            elif node.func.id == 'input' and node.args:
-                kind = 'input'
-            elif node.func.id == 'SystemExit' and any(text_like(argument) for argument in node.args):
-                kind = 'exit-text'
-        elif isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
-            if node.func.attr in ('write', 'writelines') and not document(node) and not file_held(node):
-                kind = 'write'
-            elif node.func.attr in PARSER_OUTPUT:
-                kind = 'parser-output'
-            elif node.func.attr == 'exit' and any(text_like(argument) for argument in node.args):
-                kind = 'exit-text'
-        elif (isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load) and node.id in ('print', 'input')
-              and not (isinstance(parents.get(node), ast.Call) and parents[node].func is node)):
-            kind = node.id + '-value'
-        elif isinstance(node, (ast.Import, ast.ImportFrom)):
-            modules = [alias.name for alias in node.names] if isinstance(node, ast.Import) else [] if node.level else [node.module or '']
-            for module in modules:
-                if module.split('.')[0] in TERMINAL_MODULES:
-                    found[(where(node), 'import ' + module.split('.')[0])] += 1
-        if kind:
-            found[(where(node), kind)] += 1
-    return tuple(found.items())
-
-
 def output_site_problems(sources=None, listed=None, table=None, others=None):
-    """[str] for what differs between the places the sources could write to a person and OUTPUT_SITES with NOT_A_TERMINAL: a site that
-    is not listed, a site with another number of calls, a listed site that is gone, a site listed in both, a site that serves a leaf
-    the table does not classify as text or session, and a session leaf that no site serves."""
+    """[str] for what differs between the sites of the sources and OUTPUT_SITES with NOT_A_TERMINAL: a site that is not listed, a site
+    with another number of references, a listed site that is gone, a site listed in both, a site that serves a leaf the table does not
+    classify as text or session, and a session leaf that no site serves."""
     listed = OUTPUT_SITES if listed is None else listed
     others = NOT_A_TERMINAL if others is None else others
     found = output_sites(sources)
@@ -3001,59 +3276,24 @@ class LeafClassificationTests(unittest.TestCase):
         self.assertEqual(output_site_problems(), [])
         found = output_sites()
         self.assertEqual(dict(found), {site: value[0] for site, value in list(OUTPUT_SITES.items()) + list(NOT_A_TERMINAL.items())})
-        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (23, 9, 32, 41))
+        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (31, 156, 187, 235))
         self.assertIn(('cli.py', '_write_text', 'print'), found)                                   # the scan reads the product
-
-    @staticmethod
-    def unlisted(source):
-        """What output_site_problems reports for the product with one more module, kube.py, of this source."""
-        sources = package_sources()
-        sources['kube.py'] = source
-        return output_site_problems(sources)
+        self.assertTrue(all(isinstance(reason, str) and reason for _, reason in NOT_A_TERMINAL.values()))      # each has its reason
 
     def test_a_new_leaf_that_prints_with_print_fails_closed(self):
-        """Sol's input: a kube leaf that prints `Run: kubectl apply PLAN_FILE` with print() was a machine form by subtraction. The same
-        line by every other road to a terminal that the scan names fails as well, and a file written by the same call shapes does not."""
+        """Sol V2's input: a kube leaf that prints `Run: kubectl apply PLAN_FILE` with print() was a machine form by subtraction."""
         parser = self.parser()
         self.add_leaf(parser, 'kube')
         self.assertEqual(leaf_table_problems(parser), ["the parser has the leaf 'kube' and the table does not name it"])
-        line = 'Run: kubectl apply PLAN_FILE'
-        for label, body, kind in (
-                ('print', "def kube(args):\n    print(%r)\n    return 0\n", 'print'),
-                ('print to a stream', "import sys\ndef kube(args):\n    print(%r, file=sys.stderr)\n", 'print'),
-                ('sys.stdout.write', "import sys\ndef kube(args):\n    sys.stdout.write(%r)\n", 'write'),
-                ('sys.stderr.write', "import sys\ndef kube(args):\n    sys.stderr.write(%r)\n", 'write'),
-                ('a stream passed in', "def kube(args, stream):\n    stream.write(%r)\n", 'write'),
-                ('a stream under another name', "import sys\ndef kube(args):\n    out = sys.stdout\n    out.write(%r)\n", 'write'),
-                ('writelines', "import sys\ndef kube(args):\n    sys.stdout.writelines([%r])\n", 'write'),
-                ('the terminal opened as a file', "import os\ndef kube(args):\n    with os.fdopen(1, 'w') as out:\n        out.write(%r)\n",
-                 'write'),
-                ('os.write', "import os\ndef kube(args):\n    os.write(1, %r.encode())\n", 'write'),
-                ('input with a prompt', "def kube(args):\n    return input(%r)\n", 'input'),
-                ('input as a value', "def kube(args, input_fn=input):\n    return input_fn(%r)\n", 'input-value'),
-                ('print as a value', "def kube(args, output_fn=print):\n    output_fn(%r)\n", 'print-value'),
-                ('an exit with a sentence', "import sys\ndef kube(args):\n    sys.exit(%r)\n", 'exit-text'),
-                ('a raised exit with a sentence', "def kube(args):\n    raise SystemExit(%r)\n", 'exit-text'),
-                ('the parser', "def kube(parser):\n    parser.error(%r)\n", 'parser-output'),
-                ('a module that writes by itself', "import logging\ndef kube(args):\n    logging.warning(%r)\n", 'import logging')):
-            with self.subTest(label):
-                where = '<module>' if kind.startswith('import') else 'kube'
-                self.assertEqual(self.unlisted(body % line), ['kube.py: %s has 1 unlisted %s site(s)' % (where, kind)])
-        for label, body in (
-                ('a JSON document by print', "import json\ndef kube(args):\n    print(json.dumps({'next': %r}))\n"),
-                ('a JSON document by write', "import sys, json\ndef kube(args):\n    sys.stdout.write(json.dumps({'next': %r}))\n"),
-                ('a file opened by name', "def save(path):\n    with open(path, 'w') as handle:\n        handle.write(%r)\n"),
-                ('a file opened by descriptor', "import os\ndef save(fd):\n    with os.fdopen(fd, 'w') as stream:\n        stream.write(%r)\n"),
-                ('a file opened on a path', "def save(path):\n    with path.open('x') as out:\n        out.write(%r)\n"),
-                ('an exit with a status', "import sys\ndef kube(args):\n    sys.exit(2)  # %r\n")):
-            with self.subTest(label):
-                self.assertEqual(self.unlisted(body % line), [])
-        branch = "        if args.command=='mcp':"                                                   # and inside cli.main itself
-        main = package_sources()['cli.py']
-        self.assertIn(branch, main)
         sources = package_sources()
-        sources['cli.py'] = main.replace(branch, "        if args.command=='kube':\n            print(%r)\n            return 0\n" % line + branch, 1)
-        self.assertEqual(output_site_problems(sources), ['cli.py: main has 1 unlisted print site(s)'])
+        sources['kube.py'] = "def kube(args):\n    print(%r)\n    return 0\n" % ReferenceScanTests.LINE
+        self.assertEqual(output_site_problems(sources), ['kube.py: kube has 1 unlisted print site(s)'])
+        sources = package_sources()
+        branch = "        if args.command=='mcp':"                                                   # and inside cli.main itself
+        self.assertIn(branch, sources['cli.py'])
+        sources['cli.py'] = sources['cli.py'].replace(
+            branch, "        if args.command=='kube':\n            print(%r)\n            return 0\n" % ReferenceScanTests.LINE + branch, 1)
+        self.assertEqual(output_site_problems(sources), ['cli.py: main has 4 print site(s), 3 listed'])
 
     def test_a_listed_site_must_be_exact(self):
         sources = package_sources()
@@ -3062,14 +3302,15 @@ class LeafClassificationTests(unittest.TestCase):
         self.assertEqual(output_site_problems(sources), ['provider_journey.py: run_provider_wizard has 3 print site(s), 2 listed'])
         sources = package_sources()
         sources['wizard.py'] = ''
-        self.assertEqual(sorted(output_site_problems(sources)),
-                         ['wizard.py: _run_wizard input-value is listed and the sources have no such site',
-                          'wizard.py: _run_wizard print-value is listed and the sources have no such site',
-                          'wizard.py: run_wizard input-value is listed and the sources have no such site',
-                          'wizard.py: run_wizard print-value is listed and the sources have no such site'])
-        # a write that reaches no terminal is listed too, and a site is not listed as both
+        gone = sorted('wizard.py: %s %s is listed and the sources have no such site' % (site[1], site[2])
+                      for site in list(OUTPUT_SITES) + list(NOT_A_TERMINAL) if site[0] == 'wizard.py')
+        self.assertEqual(len(gone), 6)
+        self.assertEqual(sorted(output_site_problems(sources)), gone)
+        # a site that reaches no terminal is listed too, and a site is not listed as both
         others = {site: value for site, value in NOT_A_TERMINAL.items() if site[0] != 'mcp.py'}
-        self.assertEqual(output_site_problems(others=others), ['mcp.py: serve.send has 1 unlisted write site(s)'])
+        self.assertEqual(output_site_problems(others=others), ['mcp.py: serve has 1 unlisted sys.stdin site(s)',
+                                                               'mcp.py: serve has 1 unlisted sys.stdout site(s)',
+                                                               'mcp.py: serve.send has 1 unlisted write site(s)'])
         both = {**NOT_A_TERMINAL, ('cli.py', '_write_text', 'print'): (1, 'a socket')}
         self.assertEqual(output_site_problems(others=both),
                          ['cli.py: _write_text print is listed as a terminal site and as a site that reaches no terminal'])
@@ -3129,6 +3370,181 @@ class LeafClassificationTests(unittest.TestCase):
         sweep = Sweep()
         sweep.text('state', 'workbench terminal', (80, 0), '{"status": "ok"}\nRun: kubectl apply PLAN_FILE')
         self.assertEqual(sorted(sweep.net), [('Run', 'PLAN_FILE')])
+
+
+class ReferenceScanTests(unittest.TestCase):
+    """Sol B V3: the scan of the product's output sites flags by reference, not by call shape. Each case puts code into the body of an
+    existing machine leaf's function (cli.doctor, the function of `doctor`, whose leaf the table calls a machine form) or into a module
+    of its own, and the sites that appear beyond the listing must be exactly the ones the case names. Nothing here is run."""
+
+    LINE = 'Run: kubectl apply PLAN_FILE'
+
+    @staticmethod
+    def mutated(snippet, function='doctor', module='cli.py'):
+        """The sources of the product with the statements of a snippet at the start of the body of a function of one module, as
+        ast.unparse writes that module."""
+        sources = package_sources()
+        tree = ast.parse(sources[module])
+        target = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == function)
+        target.body[0:0] = ast.parse(textwrap.dedent(snippet)).body
+        sources[module] = ast.unparse(tree)
+        return sources
+
+    @staticmethod
+    def delta(sources):
+        """{(file, function, kind): references found minus references listed} for every site that differs from the listing."""
+        listed = collections.Counter({site: value[0] for site, value in list(OUTPUT_SITES.items()) + list(NOT_A_TERMINAL.items())})
+        found = output_sites(sources)
+        return {site: found[site] - listed[site] for site in set(found) | set(listed) if found[site] != listed[site]}
+
+    def inside(self, snippet, **expected):
+        """The sites a snippet adds to cli.doctor: kind=count for a site of doctor itself."""
+        added = {('cli.py', 'doctor', kind.replace('__dot__', '.').replace('_sp_', ' ')): count for kind, count in expected.items()}
+        self.assertEqual(self.delta(self.mutated(snippet % {'line': self.LINE})), added)
+
+    def test_the_rewrite_of_the_module_changes_no_site(self):
+        self.assertEqual(self.delta(self.mutated('pass')), {})
+
+    def test_a_print_is_exempt_only_when_the_whole_call_can_emit_one_json_document(self):
+        """Sol V3 finding 1: print(json.dumps({...}), "Run: kubectl apply PLAN_FILE") was exempt because only args[0] was read."""
+        for label, snippet, expected in (
+                ('Sol: a sentence beside the document', 'print(json.dumps({"status": "ok"}), %(line)r)', {'print': 1}),
+                ('a sep that is a sentence', 'print(json.dumps({}), json.dumps({}), sep=%(line)r)', {'print': 1}),
+                ('two documents', 'print(json.dumps({}), json.dumps({}))', {'print': 1}),
+                ('an end that is a sentence', 'print(json.dumps({}), end=%(line)r)', {'print': 1}),
+                ('a stream', 'print(json.dumps({}), file=sys.stderr)', {'print': 1, 'sys__dot__stderr': 1}),
+                ('a starred argument', 'print(*[json.dumps({})])', {'print': 1}),
+                ('keyword options', 'print(json.dumps({}), **{"sep": %(line)r})', {'print': 1}),
+                ('the sentence is the only argument', 'print(%(line)r)', {'print': 1}),
+                ('a document of the product, not of json', 'print(canonical({}).decode())', {'print': 1})):
+            with self.subTest(label):
+                self.inside(snippet, **expected)
+        for label, snippet in (('one document', 'print(json.dumps({"status": "ok"}))'),
+                               ('one document, then a newline', 'print(json.dumps({}), end="\\n")'),
+                               ('one document, flushed', 'print(json.dumps({}), flush=True)')):
+            with self.subTest(label):
+                self.inside(snippet)
+
+    def test_a_write_is_exempt_only_inside_with_open_on_the_name_it_binds(self):
+        """Sol V3 finding 2: a parameter bound to sys.stdout and an unreachable out = open(...) made the write look like a file's."""
+        for label, snippet, expected in (
+                ('Sol: a parameter and an unreachable open', 'def helper(out=sys.stdout):\n    if False:\n        out = open("result.json", "w")\n'
+                                                              '    out.write(%(line)r)', {'doctor.helper': {'sys.stdout': 1, 'write': 1}}),
+                ('a parameter', 'def helper(out):\n    out.write(%(line)r)', {'doctor.helper': {'write': 1}}),
+                ('a file opened outside a with', 'handle = open("result.json", "w")\nhandle.write(%(line)r)', {'doctor': {'write': 1}}),
+                ('the name bound again in the block', 'with open("result.json", "w") as out:\n    out = sys.stdout\n    out.write(%(line)r)',
+                 {'doctor': {'sys.stdout': 1, 'write': 1}}),
+                ('a function between the with and the write', 'with open("result.json", "w") as out:\n    def later():\n'
+                                                              '        out.write(%(line)r)', {'doctor.later': {'write': 1}}),
+                ('a write on another name', 'with open("result.json", "w") as out:\n    other = out\n    other.write(%(line)r)',
+                 {'doctor': {'write': 1}}),
+                ('an attribute of the name', 'with open("result.json", "w") as out:\n    out.buffer.write(%(line)r)', {'doctor': {'write': 1}}),
+                ('a descriptor', 'with open(1, "w") as out:\n    out.write(%(line)r)',
+                 {'doctor': {'write': 1, 'standard descriptor': 1}}),
+                ('a terminal device', 'with open("/dev/tty", "w") as out:\n    out.write(%(line)r)', {'doctor': {'write': 1, 'device path': 1}}),
+                ('os.fdopen of a descriptor', 'with os.fdopen(1, "w") as out:\n    out.write(%(line)r)',
+                 {'doctor': {'os.fdopen': 1, 'write': 1, 'standard descriptor': 1}}),
+                ('a path opened with open()', 'with Path("result.json").open("w") as out:\n    out.write(%(line)r)', {'doctor': {'write': 1}}),
+                ('writelines', 'with open("result.json", "w") as out:\n    pass\nout.writelines([%(line)r])', {'doctor': {'write': 1}})):
+            with self.subTest(label):
+                added = {('cli.py', function, kind): count for function, kinds in expected.items() for kind, count in kinds.items()}
+                self.assertEqual(self.delta(self.mutated(snippet % {'line': self.LINE})), added)
+        for label, snippet in (('a file written in a with', 'with open("result.json", "w") as out:\n    out.write("{}")'),
+                               ('two files', 'with open("a.json", "w") as one, open("b.json", "w") as two:\n    one.write("{}")\n'
+                                             '    two.writelines(["{}"])')):
+            with self.subTest(label):
+                self.inside(snippet)
+
+    def test_the_output_names_are_sites_by_reference_not_by_call(self):
+        """Sol V3 finding 3, and the roads to the same call that a reader of the call shapes would miss."""
+        for label, snippet, expected in (
+                ('Sol: builtins.print', 'import builtins\nbuiltins.print(%(line)r)', {'builtins': 1, 'import builtins': 1}),
+                ('Sol: print imported under an alias', 'from builtins import print as emit\nemit(%(line)r)',
+                 {'builtins': 1, 'import builtins': 1}),
+                ('builtins under an alias', 'import builtins as b\nb.print(%(line)r)', {'builtins': 1, 'import builtins': 1}),
+                ('getattr on builtins', 'import builtins\ngetattr(builtins, "print")(%(line)r)', {'builtins': 1, 'import builtins': 1}),
+                ('__import__', '__import__("builtins").print(%(line)r)', {'__import__': 1}),
+                ('print held under another name', 'p = print\np(%(line)r)', {'print': 1}),
+                ('print handed to a function', 'list(map(print, [%(line)r]))', {'print': 1}),
+                ('sys.__stdout__', 'sys.__stdout__.write(%(line)r)', {'sys.__stdout__': 1, 'write': 1}),
+                ('sys.stdout held under another name', 'out = sys.stdout\nout.write(%(line)r)', {'sys.stdout': 1, 'write': 1}),
+                ('sys under an alias', 'import sys as s\ns.stdout.write(%(line)r)', {'sys.stdout': 1, 'write': 1}),
+                ('stdout imported from sys', 'from sys import stdout\nstdout.write(%(line)r)',
+                 {'import sys.stdout': 1, 'sys.stdout': 1, 'write': 1}),
+                ('sys handed to vars', 'vars(sys)["stdout"].write(%(line)r)', {'sys_sp_as a value': 1, 'write': 1}),
+                ('getattr on sys', 'getattr(sys, "std" + "out").write(%(line)r)', {'sys_sp_as a value': 1, 'write': 1}),
+                ('the dictionary of sys', 'sys.__dict__["stdout"].write(%(line)r)', {'dynamic_sp_access': 1, 'write': 1}),
+                ('sys.modules', 'sys.modules["builtins"].print(%(line)r)', {'sys__dot__modules': 1}),
+                ('importlib', 'importlib.import_module("builtins").print(%(line)r)', {'importlib': 1}),
+                ('os.system', 'os.system("echo " + %(line)r)', {'os__dot__system': 1}),
+                ('os.system by an alias', 'import os as o\no.system("echo " + %(line)r)', {'os__dot__system': 1}),
+                ('system imported from os', 'from os import system\nsystem("echo " + %(line)r)', {'import os.system': 1, 'os__dot__system': 1}),
+                ('getattr on os', 'getattr(os, "sys" + "tem")("echo " + %(line)r)', {'os_sp_as a value': 1}),
+                ('os.popen', 'os.popen("echo " + %(line)r)', {'os__dot__popen': 1}),
+                ('os.dup2 onto the terminal', 'os.dup2(1, 2)', {'os__dot__dup2': 1, 'standard descriptor': 1}),
+                ('os.write', 'os.write(1, %(line)r.encode())', {'os__dot__write': 1, 'standard descriptor': 1}),
+                ('a descriptor given to open', 'open(2, "w").write(%(line)r)', {'standard descriptor': 1, 'write': 1}),
+                ('subprocess', 'import subprocess\nsubprocess.run(["echo", %(line)r])',
+                 {'import subprocess': 1, 'subprocess': 1, 'child on the terminal': 1}),
+                ('a child that inherits standard error', 'import subprocess\nsubprocess.run(["echo"], stdout=subprocess.PIPE)',
+                 {'import subprocess': 1, 'subprocess': 2, 'child on the terminal': 1}),
+                ('a child whose output is taken', 'import subprocess\nsubprocess.run(["echo"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)',
+                 {'import subprocess': 1, 'subprocess': 3}),
+                ('a pseudo-terminal', 'import pty\npty.spawn(["echo", %(line)r])', {'import pty': 1, 'pty': 1}),
+                ('logging', 'import logging\nlogging.warning(%(line)r)', {'import logging': 1, 'logging': 1}),
+                ('exec', 'exec("print(1)")', {'exec': 1}),
+                ('eval', 'eval("print(1)")', {'eval': 1}),
+                ('compile', 'compile("print(1)", "x", "exec")', {'compile': 1}),
+                ('globals', 'globals()["__builtins__"]', {'globals': 1}),
+                ('locals', 'locals()', {'locals': 1}),
+                ('__builtins__', '__builtins__.print(%(line)r)', {'__builtins__': 1}),
+                ('input with a prompt', 'input(%(line)r)', {'input': 1}),
+                ('the text sink of the command line', '_write_text([%(line)r])', {'_write_text': 1}),
+                ('an exit with a sentence', 'sys.exit(%(line)r)', {'exit-text': 1}),
+                ('an exit with a variable', 'message = %(line)r\nsys.exit(message)', {'exit-text': 1}),
+                ('an exit with the status of a call', 'sys.exit(len(sys.argv))', {'exit-text': 1}),
+                ('a path written to', 'Path("result.json").write_text(%(line)r)', {'write': 1}),
+                ('bytes written to a path', 'Path("result.json").write_bytes(b"x")', {'write': 1}),
+                ('a coroutine that starts a process', 'import asyncio\nasyncio.create_subprocess_shell("echo " + %(line)r)',
+                 {'import asyncio': 1, 'asyncio': 1}),
+                ('a child that inherits the terminal', 'import multiprocessing\nmultiprocessing.Process(target=len).start()',
+                 {'import multiprocessing': 1, 'multiprocessing': 1}),
+                ('a raised exit with a sentence', 'raise SystemExit(%(line)r)', {'exit-text': 1}),
+                ('the parser', 'self.error(%(line)r)', {'parser-output': 1}),
+                ('a library loaded by hand', 'import ctypes\nctypes.CDLL(None).write(1, b"x", 1)', {'ctypes__dot__CDLL': 1, 'write': 1})):
+            with self.subTest(label):
+                self.inside(snippet, **expected)
+        for label, snippet in (('a constant of os', 'getattr(os, "O_NOFOLLOW", 0)'), ('a test of os', 'hasattr(os, "fsync")'),
+                               ('sys.exit with a status', 'sys.exit(2)'), ('an exception named', 'isinstance(None, (KeyboardInterrupt, SystemExit))')):
+            with self.subTest(label):
+                self.inside(snippet)
+
+    def test_a_new_module_is_judged_the_same_way(self):
+        """Sol V2's kube leaf: the same line, by every road, in a module of its own."""
+        line = self.LINE
+        for label, source, expected in (
+                ('print', "def kube(args):\n    print(%r)\n", {'print': 1}),
+                ('print to a stream', "import sys\ndef kube(args):\n    print(%r, file=sys.stderr)\n", {'print': 1, 'sys.stderr': 1}),
+                ('sys.stdout.write', "import sys\ndef kube(args):\n    sys.stdout.write(%r)\n", {'sys.stdout': 1, 'write': 1}),
+                ('a stream passed in', "def kube(args, stream):\n    stream.write(%r)\n", {'write': 1}),
+                ('the terminal opened as a file', "import os\ndef kube(args):\n    with os.fdopen(1, 'w') as out:\n        out.write(%r)\n",
+                 {'os.fdopen': 1, 'write': 1, 'standard descriptor': 1}),
+                ('input as a value', "def kube(args, input_fn=input):\n    return input_fn(%r)\n", {'input': 1}),
+                ('print as a value', "def kube(args, output_fn=print):\n    output_fn(%r)\n", {'print': 1}),
+                ('an exit with a sentence', "import sys\ndef kube(args):\n    sys.exit(%r)\n", {'exit-text': 1}),
+                ('the parser', "def kube(parser):\n    parser.error(%r)\n", {'parser-output': 1}),
+                ('a module that writes by itself', "import logging\ndef kube(args):\n    logging.warning(%r)\n", None)):
+            with self.subTest(label):
+                sources = package_sources()
+                sources['kube.py'] = source % line
+                added = self.delta(sources)
+                if expected is None:
+                    self.assertEqual(added, {('kube.py', '<module>', 'import logging'): 1, ('kube.py', 'kube', 'logging'): 1})
+                else:
+                    self.assertEqual(added, {('kube.py', 'kube', kind): count for kind, count in expected.items()})
+        sources = package_sources()
+        sources['kube.py'] = "import json\ndef kube(args):\n    print(json.dumps({'next': %r}))\n" % line       # a JSON document is a machine form
+        self.assertEqual(self.delta(sources), {})
 
 
 class RemainingRouteSweepTests(unittest.TestCase):
