@@ -35,6 +35,8 @@ workspace (r), which shows that same JSON document.
 The allowlist is the :help listing and the help legend (the synopses of workbench.HELP and of the legend's Changes and Workflow map
 rows), and only on a surface that also shows the convention sentence (SYNOPSIS_CONVENTION of test_template_words): words in capitals
 there are metavariables, and the sentence says so. Nothing else is allowed. Until a surface shows the sentence, its synopses fail.
+An argparse usage block (the `usage:` rows of --help and of a usage error) is allowed on the same condition: only in an output that
+itself shows the sentence. The sweep of every route's --help and usage error fails for each output that prints a block without it.
 
 A second check, the independent net, does not use the reader's context rules: a form the reader misses is missed by the renderer
 and by the check above alike. In every row of every surface but the help synopsis surfaces, a token that is a member of
@@ -282,8 +284,16 @@ def usage_rows(rows):
     return found
 
 
+def shows_convention(rows):
+    """True when the rows of one rendered output, read as one text (the wrapping undone), hold SYNOPSIS_CONVENTION: the sentence
+    that says words in capitals stand for values to supply."""
+    return SYNOPSIS_CONVENTION in ' '.join(' '.join(rows).split())
+
+
 def in_usage_block(state, rows, index, previous, token):
-    return index in usage_rows(rows)
+    """A row of an argparse usage block, in an output that also shows the convention sentence (the sentence is what turns the
+    metavariables of the block into a stated notation; without it they are unresolved operands like any other)."""
+    return shows_convention(rows) and index in usage_rows(rows)
 
 
 def id_after_a_noun(state, rows, index, previous, token):
@@ -298,8 +308,9 @@ NET_ALLOWED = (
     ('argparse usage block', ('help', 'usage error'), in_usage_block,
      "argparse writes the parser's own synopsis with each option's metavariable (--root ROOT, --service-root SERVICE_ROOT): the "
      "standard notation of a command line, generated from the parser, printed by --help or after a usage error and never as a "
-     "step to copy. Its choices can even be command words ({simulation,live}). The description and the option list below it are "
-     "still read."),
+     "step to copy. Its choices can even be command words ({simulation,live}). It is excused only in an output that also shows "
+     "the convention sentence (SYNOPSIS_CONVENTION), as a synopsis is on the help page: without the sentence a reader cannot "
+     "tell a metavariable from an operand left unresolved. The description and the option list below it are still read."),
     ('ID after a noun', None, id_after_a_noun,
      "ID right after a plain noun is the abbreviation of identifier in a sentence ('the Intune object ID it manages', 'tenant ID'), "
      "not a placeholder. An ID that is an operand follows an option (--object ID) or a command word (select ID), and stays a hit."),
@@ -1434,23 +1445,50 @@ class NetTests(unittest.TestCase):
         self.assertTrue(NET_ALLOWED)
         for name, states, excuses, reason in NET_ALLOWED:
             self.assertTrue(name and callable(excuses) and len(reason.split()) > 10, name)      # a reason, in words
+        words = SYNOPSIS_CONVENTION.split()
+        sentence = [' '.join(words[:4]), ' '.join(words[4:]) + '.']                    # the sentence, wrapped over two rows
         usage = ['usage: intune-iac workbench init [-h] --root ROOT --tenant TENANT',
                  '                                 [--journey-mode {simulation,live}] [--atmos-executable ATMOS_EXECUTABLE]',
                  '',
                  'Start the store; init takes --root ROOT.',                        # a description row is still read
                  'options:',
-                 '  --root ROOT  the store']
+                 '  --root ROOT  the store', ''] + sentence
         sweep = Sweep()
         sweep.text('help', 'intune-iac workbench init --help', (100, 0), '\n'.join(usage))
         self.assertEqual(sorted(sweep.net), [('init', 'ROOT')])                        # only the description row is a hit
         self.assertEqual(sweep.excused['argparse usage block'], 2)                     # ROOT and ATMOS_EXECUTABLE (TENANT is neither)
         error = Sweep()                                                                # a usage error: no blank row after the block
         error.text('usage error', 'intune-iac workbench init', (100, 0), 'usage: intune-iac workbench init [-h] --root ROOT\n'
-                   'intune-iac workbench init: error: the following arguments are required: --root, --tenant')
+                   'intune-iac workbench init: error: the following arguments are required: --root, --tenant\n' + '\n'.join(sentence))
         self.assertEqual(error.net_failures(), [])
         other = Sweep()                                                                # the same rows anywhere else are hits
         other.text('selected policy', 'm Queue', (100, 0), '\n'.join(usage))
         self.assertEqual(sorted(other.net), [('init', 'ROOT'), ('simulation', 'ATMOS_EXECUTABLE')])
+
+    def test_a_usage_block_is_excused_only_where_the_same_output_shows_the_convention_sentence(self):
+        """The same usage block, with and without the sentence: a help page and a usage error without it fail, with it pass."""
+        block = 'usage: intune-iac workbench init [-h] --root ROOT --service-root SERVICE_ROOT'
+        error = 'intune-iac workbench init: error: the following arguments are required: --root'
+        sentence = 'Note: %s.' % SYNOPSIS_CONVENTION
+        for state, route, text, shown in (
+                ('help', 'intune-iac workbench init --help', block + '\n\noptions:\n  -h, --help  show this help\n', False),
+                ('usage error', 'intune-iac workbench init', block + '\n' + error, False),
+                ('help', 'intune-iac workbench init --help', block + '\n\n' + sentence, True),
+                ('usage error', 'intune-iac workbench init', block + '\n' + error + '\n' + sentence, True),
+                ('usage error', 'intune-iac workbench init', block + '\n' + error + '\nwords in capitals stand for values', False)):
+            with self.subTest(state=state, shown=shown):
+                sweep = Sweep()
+                sweep.text(state, route, (100, 0), text)
+                if shown:
+                    self.assertEqual((sweep.net_failures(), sweep.excused['argparse usage block']), ([], 2))
+                else:
+                    self.assertEqual((sorted(sweep.net), sweep.excused['argparse usage block']),
+                                     ([('init', 'ROOT'), ('init', 'SERVICE_ROOT')], 0))
+        # a sentence on another surface does not excuse a block: the sentence must be in the output that holds the block
+        sweep = Sweep()
+        sweep.text('help', 'intune-iac workbench init --help', (100, 0), block)
+        sweep.text('help', 'intune-iac start --help', (100, 0), sentence)
+        self.assertEqual(sorted(sweep.net), [('init', 'ROOT'), ('init', 'SERVICE_ROOT')])
 
     def test_id_is_excused_only_as_the_abbreviation_in_a_sentence(self):
         sweep = Sweep()
