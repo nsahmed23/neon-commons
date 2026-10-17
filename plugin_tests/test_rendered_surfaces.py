@@ -61,6 +61,12 @@ and a placeholder right after an option (`-f MANIFEST_FILE`, `--root STORE`). On
 excused only inside a synopsis the product writes verbatim, on a page that shows the convention sentence (every page that shows the
 row, for a row two pages repeat). Its other false
 positives are the entries of NET_ALLOWED, each with its reason. Both checks are reported.
+
+Every exception, in both checks, is an exact allowed text matched by span, with the surface or route it holds on: a hit carries its own
+span in the text of its visual block, and it is excused only when that span lies inside the span of the allowed text. Allowed text
+elsewhere in the block, on the screen or in the output excuses nothing (a `--root ROOT  Run: kubectl apply ROOT` row has one allowed
+ROOT and one hit; so has `Run: kubectl inspect object ID. its object ID cannot be read from the repository`). The reader judges a
+synopsis place by place for the same reason (synopsis_verdict).
 """
 import argparse
 import ast
@@ -275,7 +281,11 @@ def placeholder_like(word):
     return word in BARE_PLACEHOLDERS or bool(SHAPED.match(word)) or entry.is_fill_in(word)
 
 
-Hit = collections.namedtuple('Hit', 'index word token previous shown exact')
+Hit = collections.namedtuple('Hit', 'index word token previous shown exact block begin end')
+# A visual block as the net reads it: the rows' indexes, their whitespace-collapsed parts, the parts joined by single spaces (text) and
+# where each part starts in it (bases). Every hit carries its own span in the text of its block, and so does every exception: a hit
+# is excused only when its span lies inside the span of the exact text an exception allows (see NET_ALLOWED).
+Block = collections.namedtuple('Block', 'indexes parts text bases')
 # Two readings of a row that need no table of the product's: what introduces a command in a sentence (`Run: kubectl apply -f FILE`,
 # `type FILE`, `Use PATH`), and an option followed by a placeholder (`--root STORE`, `-f MANIFEST_FILE`). Neither knows a program, so a
 # program the product only prints (kubectl) is still found.
@@ -305,17 +315,9 @@ def visual_blocks(rows):
     return blocks
 
 
-def net_scan(rows, synopses=False):
-    """[Hit] for the rows of one rendered output: each placeholder-like token that has a command word before it.
-
-    The word is carried over the rows of a visual block, so a command wrapped over rows (`Run: collect --root` and then
-    `STORE --service-root SERVICE`) or continued with a backslash is one command, and a token is judged against the nearest command
-    word before it wherever the wrap put that word. A sentence ends the command, wherever in a row it ends, so prose that follows it
-    is not read as the command's operands; the segments of an absolute path are not words. A hit carries the row of its token
-    (index), the word right before it (previous), the rows the command spans as one text (shown) and whether it lies inside a
-    synopsis the product writes verbatim (exact; only looked for when `synopses` is true, which is the help surfaces that show the
-    convention sentence)."""
-    commands, hits = command_words(), []
+def blocks_of(rows):
+    """[Block] for the rows of one rendered output: the visual blocks, each joined as a person reads it (see Block)."""
+    found = []
     for indexes in visual_blocks(rows):
         parts = [' '.join(rows[index].split()) for index in indexes]
         parts = [part[:-1].rstrip() if part.endswith('\\') else part for part in parts]
@@ -323,11 +325,41 @@ def net_scan(rows, synopses=False):
         for part in parts:
             text += (' ' if text else '') + part
             bases.append(len(text) - len(part))
+        found.append(Block(indexes, parts, text, bases))
+    return found
+
+
+def row_span(block, index):
+    """The span in the text of a block of one of its rows."""
+    number = block.indexes.index(index)
+    return block.bases[number], block.bases[number] + len(block.parts[number])
+
+
+def rows_in(block, begin, end):
+    """The indexes of the rows of a block that a span of its text runs over."""
+    return [index for number, index in enumerate(block.indexes)
+            if block.bases[number] < end and block.bases[number] + len(block.parts[number]) > begin]
+
+
+def net_scan(rows, synopses=False):
+    """[Hit] for the rows of one rendered output: each placeholder-like token that has a command word before it.
+
+    The word is carried over the rows of a visual block, so a command wrapped over rows (`Run: collect --root` and then
+    `STORE --service-root SERVICE`) or continued with a backslash is one command, and a token is judged against the nearest command
+    word before it wherever the wrap put that word. A sentence ends the command, wherever in a row it ends, so prose that follows it
+    is not read as the command's operands; the segments of an absolute path are not command words (a placeholder in one still is a
+    hit). A hit carries the row of its token (index), the word right before it (previous), the rows the command spans as one text
+    (shown), its block and its own span in the text of that block (begin, end), and whether that span lies inside a synopsis the
+    product writes verbatim (exact; only looked for when `synopses` is true, which is the help surfaces)."""
+    commands, hits = command_words(), []
+    for block in blocks_of(rows):
+        indexes, parts, text, bases = block
         spans = exact_spans(text) if synopses else ()
         last = before = origin = where = None
         for number, part in enumerate(parts):
             breaks = [found.end() for found in BREAKS.finditer(part)]
-            for found in WORDS.finditer(PATHS.sub(lambda path: ' ' * len(path.group()), part)):
+            paths = [found.span() for found in PATHS.finditer(part)]
+            for found in WORDS.finditer(part):
                 while breaks and found.start() >= breaks[0]:
                     breaks.pop(0)
                     last = before = origin = where = None
@@ -335,11 +367,11 @@ def net_scan(rows, synopses=False):
                 if not word:
                     continue
                 if placeholder_like(word) and (last is not None or OPTION.match(before or '')):
-                    offset = bases[number] + found.start()
+                    begin = bases[number] + found.start() + found.group().find(word)
                     anchor, first = (last, origin) if last is not None else (before, where)
                     hits.append(Hit(indexes[number], anchor, word, before, ' '.join(parts[first:number + 1]),
-                                    any(begin <= offset < end for begin, end in spans)))
-                elif word in commands or word.lower() in LEADS:
+                                    any(a <= begin and begin + len(word) <= b for a, b in spans), block, begin, begin + len(word)))
+                elif (word in commands or word.lower() in LEADS) and not any(a <= found.start() < b for a, b in paths):
                     last, origin = word, number
                 before, where = word, number
             if breaks:
@@ -398,95 +430,134 @@ def first_column(row):
     return re.match(r'\s*(.*?)(?:\s{2,}|\Z)', row).group(1).split()
 
 
-def in_argparse_layout(state, rows, index, previous, token):
-    """A row of an argparse usage block, or the option and metavariable of a row of one of its sections (not the help text beside
-    it), in an output that also shows the convention sentence. The sentence is what turns the metavariables into a stated notation;
-    without it they are unresolved operands like any other."""
+def argparse_spans(rows, block):
+    """The spans an argparse output allows, in an output that also shows the convention sentence (without it the metavariables are
+    unresolved operands like any other): each row of a usage block, whole, and the first column of each row of an option section (the
+    option and its metavariable), and nothing beside the column. The help text after it is still read, so `--root ROOT  Run: kubectl
+    apply ROOT` has one allowed ROOT and one hit."""
     if not shows_convention(rows):
-        return False
-    return index in usage_rows(rows) or (index in section_rows(rows) and token in first_column(rows[index]))
+        return []
+    usage, section = usage_rows(rows), section_rows(rows)
+    spans = []
+    for index in block.indexes:
+        begin, end = row_span(block, index)
+        if index in usage:
+            spans.append((begin, end))
+        elif index in section:
+            spans.append((begin, begin + len(' '.join(first_column(rows[index])))))
+    return spans
 
 
-def block_text(rows, index):
-    """The text of the visual block that holds the row, its rows joined as a person reads them."""
-    block = next(block for block in visual_blocks(rows) if index in block)
-    return ' '.join(' '.join(rows[number].split()) for number in block)
-
-
-def id_in_phrase(noun, phrases):
-    """An entry's predicate: ID as the abbreviation of identifier in one of the exact phrases the product prints (each holds `noun ID`)."""
+def phrase_spans(noun, phrases):
+    """An entry's spans: the ID of `noun ID` inside each occurrence of an exact phrase the product prints. The hit itself must be that
+    ID, so another `noun ID` in the same block, before or after the phrase, is not licensed by it."""
     assert all(noun + ' ID' in phrase for phrase in phrases), (noun, phrases)
 
-    def excuses(state, rows, index, previous, token):
-        return token == 'ID' and previous == noun and any(phrase in block_text(rows, index) for phrase in phrases)
-    return excuses
+    def spans(rows, block):
+        found = []
+        for phrase in phrases:
+            at = phrase.index(noun + ' ID') + len(noun) + 1
+            start = block.text.find(phrase)
+            while start != -1:
+                found.append((start + at, start + at + len('ID')))
+                start = block.text.find(phrase, start + 1)
+        return found
+    return spans
 
 
-def directory_stand_in(state, rows, index, previous, token):
-    """DIRECTORY printed in the place of a directory name the screen does not show, on a screen that says what it stands for: the
-    sentence that defines it (readiness.DIRECTORY_NOT_SHOWN_STEM) starts with it, or the row is the label `Directory: DIRECTORY`."""
+def directory_spans(rows, block):
+    """The spans of DIRECTORY that stand in for a directory name the screen does not show: the word that begins the exact defining
+    sentence (readiness.DIRECTORY_NOT_SHOWN_STEM) where the product starts it, at the start of a row or in a bracket, and the word of
+    a row that is exactly the label `Directory: DIRECTORY`. The same words inside a command row are neither."""
     from intune_iac.readiness import DIRECTORY_NOT_SHOWN_STEM
-    row = ' '.join(rows[index].split())
-    return (token == 'DIRECTORY' and DIRECTORY_NOT_SHOWN_STEM in ' '.join(' '.join(rows).split())
-            and (previous == 'Directory' or bool(re.search(r'\bDIRECTORY(?: is\b|\Z)', row))))
+    found, starts = [], set(block.bases)
+    start = block.text.find(DIRECTORY_NOT_SHOWN_STEM)
+    while start != -1:
+        if start in starts or block.text[start - 1:start] == '(':
+            found.append((start, start + len('DIRECTORY')))
+        start = block.text.find(DIRECTORY_NOT_SHOWN_STEM, start + 1)
+    for part, base in zip(block.parts, block.bases):
+        if part == 'Directory: DIRECTORY':
+            found.append((base + len('Directory: '), base + len(part)))
+    return found
 
 
-def strip_label(state, rows, index, previous, token):
-    """REPO as the strip's own label for the state of the repository (`MODE | TENANT x | POLICY y | OBS fresh | REPO current | OP`),
-    in the strip the help legend prints, or in the line of the states the strip left out at a small size ("Hidden in the strip at
-    this size (+2 more):", then `OBS stale (later collection incomplete) | REPO stale`)."""
-    text = block_text(rows, index)
-    return token == 'REPO' and '| REPO ' in text and ('| TENANT ' in text or 'Hidden in the strip at this size' in text)
+@functools.lru_cache(maxsize=1)
+def strip_patterns():
+    """The strip as the product writes it, for the REPO label: `MODE | TENANT id | POLICY name (id) | OBS word | REPO word | OP word`
+    (the legend's `Line now`, with its optional segments dropped at small sizes), and the line of the states the strip left out
+    (`Hidden in the strip at this size (+2 more):` then `OBS word | REPO word`). The state words are the product's own."""
+    from intune_iac.workbench_screens import HAZARD_STATES, SHORT_STATES
+    from intune_iac.workbench_tui import REPOSITORY_FROM_CHECK, REPOSITORY_FROM_SIGNAL
+    states = set(REPOSITORY_FROM_CHECK.values()) | set(REPOSITORY_FROM_SIGNAL.values()) | set(HAZARD_STATES['REPOSITORY']) | {'not checked'}
+    states |= {SHORT_STATES[state] for state in states if state in SHORT_STATES}
+    word = '(?:%s)' % '|'.join(re.escape(state) for state in sorted(states, key=len, reverse=True))
+    end = r'(?= \||\Z| (?=[A-Z+!]))'
+    head = r'(?<![\w-])(?:Line now )?[A-Z][A-Z -]*? \| (?:TENANT|T) \S+(?: \| (?:POLICY [^|]+?|no policy))?(?: \| OBS [^|]+?)?'
+    return (re.compile(head + r' \| (REPO) ' + word + end),
+            re.compile(r'Hidden in the strip at this size \(\+\d+ more\): (?:OBS [^|]+? \| )?(REPO) ' + word + end))
 
 
-Allowed = collections.namedtuple('Allowed', 'name states surfaces excuses reason')
+def strip_spans(rows, block):
+    """The spans of the word REPO that label the repository state inside a strip the product writes (see strip_patterns): a strip
+    that begins with its mode and tenant and holds only strip segments up to the label. `Run: kubectl apply | REPO stale` is not one."""
+    return [found.span(1) for pattern in strip_patterns() for found in pattern.finditer(block.text)]
 
-# The net's false positives: one entry each. states: the states it applies to, None for any. surfaces: the prefixes of the surfaces it
-# applies to, None for any (a named site). excuses: a function of the screen's rows, the row's index, the word before the token and
-# the token, so an entry excuses only what it names and the rest of the screen is still read. reason: why it is not a defect. There is
-# no other allowance.
+
+Allowed = collections.namedtuple('Allowed', 'name states surfaces spans reason')
+
+# The net's exceptions: one entry each, and every one is an exact allowed text matched by span. states: the states it applies to, None
+# for any. surfaces: the prefixes of the surfaces it applies to, None for any (a named site). spans(rows, block): the spans in the text
+# of a visual block of the exact text it allows. A hit is excused only when its own span lies inside one of them, so allowed text
+# elsewhere in the block, on the screen or in the output excuses nothing. reason: why it is not a defect. There is no other allowance.
 NET_ALLOWED = tuple(Allowed(*entry) for entry in (
-    ('argparse usage and option rows', ('help', 'usage error'), None, in_argparse_layout,
+    ('argparse usage and option rows', ('help', 'usage error'), None, argparse_spans,
      "argparse writes the parser's own synopsis with each option's metavariable (--root ROOT, --service-root SERVICE_ROOT), and "
      "lists each option with its metavariable in its first column: the standard notation of a command line, generated from the "
      "parser, printed by --help or after a usage error and never as a step to copy. Its choices can even be command words "
      "({simulation,live}). It is excused only in an output that also shows the convention sentence (SYNOPSIS_CONVENTION), as a "
-     "synopsis is on the help page: without the sentence a reader cannot tell a metavariable from an operand left unresolved. The "
-     "description and the help text beside each option are still read."),
+     "synopsis is on the help page: without the sentence a reader cannot tell a metavariable from an operand left unresolved. Only "
+     "the span of a usage row or of a first column is allowed; the help text beside each option is still read."),
     ('object ID in the repository entry', None, (':repository-entry',),
-     id_in_phrase('object', ('its object ID cannot be read from the repository', 'the Intune object ID it manages')),
+     phrase_spans('object', ('its object ID cannot be read from the repository', 'the Intune object ID it manages')),
      "The repository-entry candidate whose key does not encode the policy's object says, in two exact sentences of "
      "repository_entry.py:146-148, that `its object ID cannot be read from the repository` and to supply `the Intune object ID it "
-     "manages`: ID is the abbreviation of identifier in a sentence, not a placeholder. Only these phrases, on the repository-entry "
-     "surfaces; any other `... ID`, a `review operation ID` among them, is an operand or a new sentence, and stays a hit."),
+     "manages`: ID is the abbreviation of identifier in a sentence, not a placeholder. Only the ID inside those phrases, on the "
+     "repository-entry surfaces; any other `... ID`, a `review operation ID` among them, is an operand or a new sentence, and stays a hit."),
     ('commit ID in the actions layer', None, ('a Actions',),
-     id_in_phrase('commit', ('the full 40-character commit ID',)),
+     phrase_spans('commit', ('the full 40-character commit ID',)),
      "The actions layer says what the repository refresh needs, `the full 40-character commit ID` (the needs row, and the staged "
-     "instruction of workbench_tui.py:2489): ID is the abbreviation of identifier in a sentence, not a placeholder. Only that phrase, "
-     "on the actions layer; any other `... ID` stays a hit."),
+     "instruction of workbench_tui.py:2489): ID is the abbreviation of identifier in a sentence, not a placeholder. Only the ID inside "
+     "that phrase, on the actions layer; any other `... ID` stays a hit."),
     ('object ID in the refusal for no selection', None, ('evidence-history, refused: no object selected',),
-     id_in_phrase('object', ('Select an exact immutable object ID first',)),
+     phrase_spans('object', ('Select an exact immutable object ID first',)),
      "The typed details of a refusal print the engine's own message, and for selection_required that is `Select an exact immutable "
      "object ID first.` (workbench.py, raised where a link or history command needs a selected policy): ID is the abbreviation of "
-     "identifier in a sentence, not a placeholder. Only that sentence, on the typed details of the refused evidence-history that "
-     "the link sweep drives; any other `... ID` stays a hit."),
-    ('directory stand-in', None, None, directory_stand_in,
-     "A directory whose name the screen must not print (a credential shape, a control character) is named DIRECTORY, and the "
-     "screen says so in a sentence that starts with the word (readiness.DIRECTORY_NOT_SHOWN_STEM) or in the label `Directory:`. The "
-     "word is defined where it is shown; a command that carries it as an operand is not excused, and stays a hit."),
-    ('strip label', None, None, strip_label,
-     "The strip under the tabs names the repository state REPO (`| OBS stale (later collection incomplete) | REPO stale |`), and the "
-     "help legend prints the strip as it reads now. REPO there is the label of a state, not the operand of the word collection "
-     "before it, which is ordinary English there."),
+     "identifier in a sentence, not a placeholder. Only the ID inside that sentence, on the typed details of the refused "
+     "evidence-history that the link sweep drives; any other `... ID` stays a hit."),
+    ('directory stand-in', None, ('start', 'catalog'), directory_spans,
+     "A directory whose name a start or catalog screen must not print (a credential shape, a control character) is named DIRECTORY "
+     "(entry.py:917), and the screen defines the word in the exact sentence readiness.DIRECTORY_NOT_SHOWN_STEM, which begins with it, "
+     "or prints the exact row `Directory: DIRECTORY`. Only the DIRECTORY that begins that sentence where the product starts it, and "
+     "the one in that row, are allowed; a command that carries the word as an operand is a hit, whatever the screen defines."),
+    ('strip label', None, None, strip_spans,
+     "The strip under the tabs names the repository state REPO, and the help legend prints the strip as it reads now and, at a small "
+     "size, the line of the states the strip left out (`OBS stale (later collection incomplete) | REPO stale`). REPO there is the "
+     "label of a state, not the operand of the word collection before it, which is ordinary English there. Only the REPO of a strip "
+     "or of that line, as the product writes them (strip_patterns), is allowed; the same words after a command are a hit."),
 ))
 
 
-def net_excuse(state, surface, rows, index, previous, token):
-    """The name of the allowlist entry that excuses a hit, or None."""
+def net_excuse(state, surface, rows, hit, memo=None):
+    """The name of the exception that allows the span of a hit, or None. memo: a dict that keeps an entry's spans for a block."""
+    memo = {} if memo is None else memo
     for entry in NET_ALLOWED:
-        if ((entry.states is None or state in entry.states) and (entry.surfaces is None or surface.startswith(entry.surfaces))
-                and entry.excuses(state, rows, index, previous, token)):
-            return entry.name
+        if (entry.states is None or state in entry.states) and (entry.surfaces is None or surface.startswith(entry.surfaces)):
+            key = (entry.name, hit.block.indexes[0])
+            if key not in memo:
+                memo[key] = entry.spans(rows, hit.block)
+            if any(begin <= hit.begin and hit.end <= end for begin, end in memo[key]):
+                return entry.name
     return None
 
 
@@ -506,31 +577,40 @@ def is_synopsis(command):
     return ' '.join(command.split()) in synopsis_corpus()
 
 
-def rows_holding(rows, command):
-    """The indexes of the rows that hold the text of a command: found in the visual blocks, joined as a person reads them, so a
-    command wrapped over rows (or pages) is held by each row it runs over; every place it is printed counts."""
+def occurrences(blocks, command):
+    """[(block, begin, end)] for every place the text of a command is printed, found in the visual blocks joined as a person reads
+    them, so a command wrapped over rows (or pages) is one place."""
     wanted = ' '.join(command.split())
-    found = set()
-    for indexes in visual_blocks(rows):
-        parts = [' '.join(rows[index].split()) for index in indexes]
-        parts = [part[:-1].rstrip() if part.endswith('\\') else part for part in parts]
-        text, bases = '', []
-        for part in parts:
-            text += (' ' if text else '') + part
-            bases.append(len(text) - len(part))
-        start = text.find(wanted)
-        while wanted and start != -1:
-            found |= {indexes[number] for number, base in enumerate(bases) if base < start + len(wanted) and base + len(parts[number]) > start}
-            start = text.find(wanted, start + 1)
+    found = []
+    for block in blocks if wanted else ():
+        start = block.text.find(wanted)
+        while start != -1:
+            found.append((block, start, start + len(wanted)))
+            start = block.text.find(wanted, start + 1)
     return found
 
 
-def licensed_command(command, rows, shown, convention):
-    """Whether a synopsis the reader found on a help surface stands only on pages that show the convention sentence: every row that
-    holds it is shown (net_input's flags). Without the flags, or if the rows do not hold it, the surface's own flag (convention:
-    every page shows the sentence)."""
-    holding = rows_holding(rows, command) if shown is not None else set()
-    return all(shown[index] for index in holding) if holding else convention
+def synopsis_verdict(command, blocks, shown, convention, spans=None):
+    """Judge, place by place, a command the reader found on a help surface whose text is part of a synopsis the product writes.
+    'excused': every place it is printed lies inside a synopsis the product writes verbatim (exact_spans), on rows whose pages show
+    the convention sentence (shown, as net_input gives it). 'unlicensed': it lies inside one, on a page without the sentence.
+    'found': some place is not a synopsis at all, an instruction or a sentence that happens to use the same words, or the command
+    cannot be placed in the rows, so it is read like any other. Only a caller that gives no rows' flags (a test of the reader alone)
+    gets the whole screen's judgment (convention). blocks: blocks_of(rows); spans: a dict that keeps exact_spans for a block."""
+    if shown is None:
+        return 'excused' if convention else 'unlicensed'
+    places = occurrences(blocks, command)
+    if not places:
+        return 'found'
+    verdict, spans = 'excused', {} if spans is None else spans
+    for block, begin, end in places:
+        if block.indexes[0] not in spans:
+            spans[block.indexes[0]] = exact_spans(block.text)
+        if not any(a <= begin and end <= b for a, b in spans[block.indexes[0]]):
+            return 'found'
+        if not all(shown[index] for index in rows_in(block, begin, end)):
+            verdict = 'unlicensed'
+    return verdict
 
 
 @functools.lru_cache(maxsize=1)
@@ -595,13 +675,13 @@ class Sweep:
         """The independent net over the rows of one screen, on every surface. On a help surface the synopses the product writes
         verbatim are excused (exact_spans), row by row and only where the page that shows the row shows the convention sentence
         (shown, one flag a row, as net_input gives it; without it, convention for the whole screen); nothing else on it is."""
-        seen = set()
+        seen, memo = set(), {}
         for hit in net_scan(rows, synopses=surface in HELP_SURFACES):
-            if (hit.word, hit.token, hit.shown) in seen:
+            if (hit.index, hit.begin) in seen:                       # an occurrence is judged once, and only on its own account
                 continue
-            seen.add((hit.word, hit.token, hit.shown))
+            seen.add((hit.index, hit.begin))
             licensed = convention if shown is None else shown[hit.index]
-            reason = 'exact synopsis' if hit.exact and licensed else net_excuse(state, surface, rows, hit.index, hit.previous, hit.token)
+            reason = 'exact synopsis' if hit.exact and licensed else net_excuse(state, surface, rows, hit, memo)
             if reason:
                 self.excused[reason] += 1
                 continue
@@ -614,22 +694,24 @@ class Sweep:
     def read(self, state, surface, size, texts, convention=False, rows=(), shown=None):
         """Judge the texts of one screen. convention: every page of the surface shows SYNOPSIS_CONVENTION. rows: the rows as printed,
         for the net; shown: for each row, whether every page that shows it shows the sentence (net_input). Both checks excuse a
-        synopsis by the page it is on, the net row by row and the reader by the rows that hold the command it read; without shown,
-        by convention for the whole screen."""
+        synopsis by the page it is on and only for the occurrence that is one: the net hit by hit (its span inside an exact
+        synopsis, on a shown row), the reader place by place (synopsis_verdict); without shown, by convention for the whole screen."""
         self.coverage[(state, surface, size)] += 1
         self.cast(state, surface, size, rows, convention, shown)
-        seen = set()
+        seen, blocks, spans = set(), None, {}
         for text in texts:
             for command, operands in unresolved(text):
                 if (command, tuple(operands)) in seen:
                     continue
                 seen.add((command, tuple(operands)))
+                verdict = 'found'
                 if surface in HELP_SURFACES and is_synopsis(command):
-                    if licensed_command(command, rows, shown, convention):
-                        continue
-                    self.synopses.setdefault((command, tuple(operands)), set()).add((state, surface, size))
-                else:
-                    self.found.setdefault((command, tuple(operands)), set()).add((state, surface, size))
+                    blocks = blocks_of(rows) if blocks is None else blocks
+                    verdict = synopsis_verdict(command, blocks, shown, convention, spans)
+                if verdict == 'excused':
+                    continue
+                table = self.synopses if verdict == 'unlicensed' else self.found
+                table.setdefault((command, tuple(operands)), set()).add((state, surface, size))
 
     def text(self, state, surface, size, text):
         """Judge a text a route printed (rows as printed; a JSON document is a machine form and is not read)."""
@@ -2117,7 +2199,7 @@ class NetTests(unittest.TestCase):
     def test_every_allowlist_entry_has_a_reason_and_excuses_only_the_rows_it_names(self):
         self.assertTrue(NET_ALLOWED)
         for entry in NET_ALLOWED:
-            self.assertTrue(entry.name and callable(entry.excuses) and len(entry.reason.split()) > 10, entry.name)   # a reason, in words
+            self.assertTrue(entry.name and callable(entry.spans) and len(entry.reason.split()) > 10, entry.name)    # a reason, in words
         words = SYNOPSIS_CONVENTION.split()
         sentence = [' '.join(words[:4]), ' '.join(words[4:]) + '.']                    # the sentence, wrapped over two rows
         usage = ['usage: intune-iac workbench init [-h] --root ROOT --tenant TENANT',
@@ -2244,9 +2326,11 @@ class NetTests(unittest.TestCase):
             sweep = Sweep()
             sweep.read('state', 'start', (80, 0), [], False, rows)
             return sweep.net
-        for rows in (['DIRECTORY | offline | this lists only what this build holds ' + sentence],
-                     ['GOAL READINESS: discover (status: unknown) Directory: DIRECTORY', sentence],
-                     ['this build holds DIRECTORY', 'is the directory this screen is about; its name is not shown here.']):
+        # the rows as the start and catalog screens print them: the sentence begins its own row (and wraps from there), the label is a row
+        for rows in (['DIRECTORY | offline | this lists only what this build holds', sentence],
+                     ['GOAL READINESS: discover (status: unknown)', 'Directory: DIRECTORY', sentence],
+                     ['DIRECTORY | offline | this lists only what this build holds', 'DIRECTORY is the directory this',
+                      'screen is about; its name is not', 'shown here.']):
             with self.subTest(rows=rows):
                 self.assertFalse(net(rows))
         for rows in (['Run: intune-iac catalog DIRECTORY'],                                         # nothing defines the word
@@ -2262,6 +2346,116 @@ class NetTests(unittest.TestCase):
         self.assertFalse(net(hidden))
         self.assertEqual(sorted(net(hidden[1:])), [('collection', 'REPO')])                         # the same row off that page
         self.assertEqual(sorted(net(['Collect again: collection REPO'])), [('collection', 'REPO')])
+
+
+class ExceptionSpanTests(unittest.TestCase):
+    """Sol B V2: an exception is judged per occurrence, by span. Each test below is Sol's breaking input, or the same shape for the
+    other exceptions: the hit that is not inside the exact text an exception allows stays a hit, whatever allowed text is near."""
+
+    @staticmethod
+    def read(rows, surface='2 Inspector', state='state', convention=False, shown=None, texts=()):
+        sweep = Sweep()
+        sweep.read(state, surface, (80, 24), list(texts), convention, rows, shown)
+        return sweep
+
+    def test_help_text_beside_an_option_cannot_hide_an_unresolved_operand(self):
+        """Finding 2. In an output that shows the convention sentence, both ROOT were excused because ROOT is in the first column."""
+        text = '\n'.join(['usage: intune-iac workbench init [-h] --root ROOT', '', 'options:', '  --root ROOT  Run: kubectl apply ROOT', '',
+                          'Note: %s.' % SYNOPSIS_CONVENTION])
+        sweep = Sweep()
+        sweep.text('help', 'intune-iac workbench init --help', (100, 0), text)
+        self.assertEqual(sorted(sweep.net), [('Run', 'ROOT')])                           # the ROOT in the help text is a hit
+        self.assertEqual(sweep.excused['argparse usage and option rows'], 2)              # the one in the usage block and the first column are not
+
+    def test_a_definition_on_the_screen_cannot_excuse_a_command_operand_on_another_row(self):
+        """Finding 3. The defining sentence anywhere on the screen plus a row that ends in DIRECTORY excused the operand."""
+        from intune_iac.readiness import DIRECTORY_NOT_SHOWN_STEM
+        sweep = self.read([DIRECTORY_NOT_SHOWN_STEM + '.', 'Run: kubectl apply DIRECTORY'], surface='start')
+        self.assertEqual(sorted(sweep.net), [('Run', 'DIRECTORY')])
+        sweep = self.read(['Run: kubectl apply Directory: DIRECTORY', DIRECTORY_NOT_SHOWN_STEM + '.'], surface='catalog')
+        self.assertEqual(sorted(sweep.net), [('Run', 'DIRECTORY')])                       # the label is not an escape either, off its own row
+        self.assertFalse(self.read([DIRECTORY_NOT_SHOWN_STEM + '.', 'Run: kubectl apply DIRECTORY'], surface='2 Inspector').excused)
+
+    def test_an_exact_id_phrase_cannot_license_another_id_in_the_same_block(self):
+        """Finding 4. The first `object ID` is an operand; the permitted phrase after it excused it."""
+        for surface, phrase, noun in (
+                (':repository-entry (candidates)', 'its object ID cannot be read from the repository', 'object'),
+                (':repository-entry (candidates)', 'the Intune object ID it manages', 'object'),
+                ('a Actions, action 1 focused', 'the full 40-character commit ID', 'commit'),
+                ('evidence-history, refused: no object selected, typed details', 'Select an exact immutable object ID first', 'object')):
+            with self.subTest(phrase=phrase):
+                sweep = self.read(['Run: kubectl inspect %s ID. %s' % (noun, phrase)], surface=surface)
+                self.assertEqual(sorted(sweep.net), [('inspect', 'ID')])
+                # the phrase itself, with a command word in its own sentence, is still excused at its surface
+                sweep = self.read(['Run: kubectl inspect it. Select it, so %s' % phrase], surface=surface)
+                self.assertEqual(sweep.net_failures(), [])
+
+    def test_the_strip_label_excuse_covers_only_the_label_inside_a_strip(self):
+        """The REPO excuse was judged per block: any `| REPO ` beside a `| TENANT ` was excused."""
+        strip = ('Line now SYNTHETIC | TENANT 11111111 | POLICY Windows Privacy Pilot (22222222) | OBS stale (later collection '
+                 'incomplete) | REPO stale | OP outcome unknown')
+        self.assertFalse(self.read([strip], surface='8 Help').net)
+        for rows in ([strip, 'Run: kubectl apply | REPO stale | TENANT 1'],                      # a second REPO in the strip's block
+                     ['SYNTHETIC | TENANT 11111111 | Run: kubectl apply | REPO stale'],         # a strip-shaped row with a foreign segment
+                     ['Run: kubectl apply | REPO stale | TENANT 1']):
+            with self.subTest(rows=rows):
+                self.assertEqual(sorted(self.read(rows, surface='8 Help').net), [('Run', 'REPO')])
+
+    @staticmethod
+    def entry():
+        """A listing entry both checks read: the net as an exact entry with operands, the reader as a command that is a synopsis."""
+        listing, legend, keys = synopsis_sources()
+        return next(entry for entry in sorted(listing) if len(entry.split()) >= 3 and net_scan(['1. ' + entry])
+                    and unresolved('1. ' + entry) and all(is_synopsis(command) for command, _ in unresolved('1. ' + entry)))
+
+    def test_the_net_excuses_a_synopsis_by_its_own_occurrence_not_by_one_elsewhere(self):
+        """The same row on a licensed page and on a page without the sentence: it was one finding, judged once, and the first
+        occurrence's excuse was the second's. Now each is judged on its own."""
+        entry = self.entry()
+        said = Page(['TITLE', SYNOPSIS_CONVENTION], ['1. ' + entry], [], True, 0)
+        silent = Page(['TITLE'], ['1. ' + entry], [], False, 1)                           # the very same row, on a page without it
+        rows, shown = net_input([said, silent], 'details')
+        sweep = self.read(rows, surface='? Help, typed details (e)', shown=shown)
+        self.assertTrue(sweep.net, 'the second occurrence is a hit')
+        self.assertTrue(sweep.excused['exact synopsis'], 'and the first is still excused')
+        # a hit in the same row as an exact synopsis, outside its text, is a hit (and the row is no longer the exact entry)
+        sweep = self.read(['12. ' + entry + ' Run: kubectl apply PLAN_FILE'], surface='? Help, typed details (e)',
+                          convention=True, shown=[True])
+        self.assertIn('PLAN_FILE', {token for (_, token) in sweep.net})
+
+    def test_the_reader_excuses_a_synopsis_place_by_place(self):
+        """The reader judged a command once by its text, so a place that merely uses the same words took the excuse of a synopsis."""
+        entry = self.entry()
+        said = Page(['TITLE', SYNOPSIS_CONVENTION], ['1. ' + entry], [], True, 0)
+        silent = Page(['TITLE'], ['1. ' + entry], [], False, 1)
+        rows, shown = net_input([said, silent], 'details')
+        sweep = self.read(rows, surface='? Help, typed details (e)', shown=shown, texts=screen_texts([said, silent], 'details'))
+        self.assertTrue(sweep.synopses, 'the synopsis on the page without the sentence is a finding')
+        # an instruction that is only the same words as a synopsis, on a page that shows the sentence, is not a synopsis
+        command = next(command for command, _ in unresolved('1. ' + entry))
+        rows = [SYNOPSIS_CONVENTION, 'Run: ' + command]
+        sweep = self.read(rows, surface='? Help, typed details (e)', convention=True, shown=[True, True], texts=readable(rows))
+        self.assertTrue(sweep.found, 'the reader reads the instruction as a command with an unresolved operand')
+        # the same words in the exact entry and in an instruction, on one licensed page: the instruction keeps the finding
+        rows = [SYNOPSIS_CONVENTION, '', '1. ' + entry, '', 'Run: ' + command]
+        sweep = self.read(rows, surface='? Help, typed details (e)', convention=True, shown=[True] * 5, texts=readable(rows))
+        self.assertTrue(sweep.found)
+        rows = [SYNOPSIS_CONVENTION, '', '1. ' + entry]                                  # the entry alone is clean
+        sweep = self.read(rows, surface='? Help, typed details (e)', convention=True, shown=[True] * 3, texts=readable(rows))
+        self.assertEqual((sweep.found, sweep.synopses), (collections.OrderedDict(), collections.OrderedDict()))
+
+    def test_only_a_whole_json_document_is_a_machine_form(self):
+        sweep = Sweep()
+        sweep.text('state', 'start --json', (80, 0), json.dumps({'next': 'Run: kubectl apply PLAN_FILE'}))
+        self.assertEqual((sweep.net, sweep.found), (collections.OrderedDict(), collections.OrderedDict()))      # the document is not read
+        sweep = Sweep()
+        sweep.text('state', 'workbench companion', (80, 0), 'Run: kubectl apply PLAN_FILE\n' + json.dumps({'mode': 'live'}))
+        self.assertEqual(sorted(sweep.net), [('Run', 'PLAN_FILE')])                         # prose beside a document is read
+
+    def test_a_placeholder_inside_an_absolute_path_is_still_a_hit_and_a_segment_is_not_a_command(self):
+        self.assertEqual(sorted(self.read(['select /ops/OPERATION_DIR']).net), [('select', 'OPERATION_DIR')])
+        self.assertFalse(self.read(['/usr/lib/repository FIELD']).net)                    # `repository` in a path is a name, not a command
+        self.assertFalse(self.read(['collect --output /tmp/tmpab12/review done']).net)
 
 
 class WorkspaceSweepTests(unittest.TestCase):
