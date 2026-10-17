@@ -35,7 +35,7 @@ ALPHABET = ['D', 'I', 'R', 'E', 'C', 'T', 'O', 'Y', 'x', '-', "'", '"', '\\', '\
             '*', '?', '[', ']', '@', '+']
 NOISE = ["'", '"', '\\', '\n', ' ', '\t', '\r', '$""', "$''", '${x}', '$x', '$', '${x-', '}', '$@', '$1', '(', ')', '; ', ',',
          '$?', '$#', '$0', '${0-', '${x:=', '${x=', '${x:?', '${x?', '${x:=}', '${x=}', ' #', '\t#', '\n#', '#', '$*', '${#}',
-         '*', '?', '[', ']', '@', '+', '+(', '@(', '?(', '*(', '!(', '[D]', '*Y']
+         '*', '?', '[', ']', '@', '+', '+(', '@(', '?(', '*(', '!(', '[D]', '*Y', '\\\n', '+\\\n(', '@\\\n(', '\\\n\\\n']
 TOKEN = re.compile(r'(?<![A-Za-z0-9_])DIRECTORY(?![A-Za-z0-9_])')
 GENERATING = frozenset('$`~{}*?[]!^<>')
 SEPARATOR = re.compile(r'( && | \|\| | \| |; )')
@@ -61,7 +61,9 @@ TARGETED = ['DIREC$?TORY', 'DIREC$#TORY', 'DIREC$0TORY', 'DIREC$1TORY', '${0-DIR
             'X (DIRECTORY)', 'X a, DIRECTORY; Y', "X 'a (b; c)' \"d\" DIRECTORY",
             '+(Y|R|O|T|C|E|I|D)', '@(DIRECTORY)', 'D*', '?IRECTORY', 'DIRECTOR[Y]', '+(D|I|R|E|C|T|O|R|Y)', '*', 'X *', 'X ?(D)IRECTORY',
             'X !(a)', 'X @(DIRECTORY|x)', 'X +(DIRECTORY)', 'X D+(I)RECTORY', 'X [D]IRECTORY', 'X DIRECTOR?', 'X *DIRECTORY*',
-            'X a@b.example', 'X 1+1', "X '+(a)'", 'X \\+(a)']
+            'X a@b.example', 'X 1+1', "X '+(a)'", 'X \\+(a)',
+            'command echo +\\\n(Y|R|O|T|C|E|I|D)', 'X @\\\n(DIRECTORY)', 'X +\\\n(DIRECTORY)', 'X ?\\\n(D)IRECTORY', 'X *\\\n(a)',
+            'X D\\\nIRECTORY', 'X DIREC\\\nTORY', 'X D\\\n*', 'X $\\\nx', 'X +\\\n\\\n(D|I|R|E|C|T|O|R|Y)']
 NEIGHBOURS = ('DIRECTORY', 'DIRECTOR', 'IRECTORY', 'directory')
 
 
@@ -146,7 +148,8 @@ def parts_of(text):
 
 
 def part_must_be_replaced(part):
-    """The rule, written again here from the contract."""
+    """The rule, written again here from the contract (a backslash-newline is removed first: bash joins it before tokenizing)."""
+    part = part.replace('\\\n', '')
     letters = iter(part)
     return (any(char in GENERATING for char in part) or '@(' in part or '+(' in part
             or all(letter in letters for letter in 'DIRECTORY'))

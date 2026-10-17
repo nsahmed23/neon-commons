@@ -200,13 +200,16 @@ class StandInRuleTests(unittest.TestCase):
         # the command sentence is chosen on a quote- and backslash-normalized copy and accepts a tab (wording only)
         ('Run: intune-"iac"\tstart DIRECTORY', START), ('Run: intune-iac "start" DIRECTORY', START), ("Run: 'intune-iac' catalog\tDIRECTORY", CATALOG),
         ('Run: intune\\-iac start DIRECTORY', START), ('echo\tDIRECTORY', GENERIC), ('echo DIRECTORY\n', GENERIC),
-        ('echo DIRECTORY;', GENERIC), ('echo (DIRECTORY)', GENERIC), ('echo "DIRECTORY"', GENERIC), ('echo DIREC\\\nTORY', MAY),
+        ('echo DIRECTORY;', GENERIC), ('echo (DIRECTORY)', GENERIC), ('echo "DIRECTORY"', GENERIC), ('echo DIREC\\\nTORY', GENERIC),
         # the letters in order, not spelling the word: over-replacement, the declared cost
         # (the wording reads the normalized copy, where D\IRECTORY is the word: it says "names"; the decision does not depend on it)
         ('echo D\\IRECTORY', GENERIC), ('echo "D\\IRECTORY"', GENERIC), ("echo 'D\\IRECTORY'", GENERIC),
         ('echo D x I y R z E w C v T u O t R s Y', MAY),
         # extended globs: with extglob on, +(Y|R|O|T|C|E|I|D) matches a directory named DIRECTORY
         ('echo +(Y|R|O|T|C|E|I|D)', MAY), ('echo @(a|b)', MAY), ('echo +(a)', MAY), ('echo a@(b)', MAY),
+        # bash joins a backslash-newline before it tokenizes, so a continuation cannot hide an opener
+        ('command echo +\\\n(Y|R|O|T|C|E|I|D)', MAY), ('echo @\\\n(a)', MAY), ('echo +\\\n(a)', MAY), ('echo $\\\nHOME', MAY),
+        ('echo *\\\n(a)', MAY), ('echo D\\\nIRECTORY', GENERIC),
         ('Disk Input Report: Error Count Total Of Rows, Yes', MAY),
         # the letters of DIRECTORY inside two other words (a producer's own REPOSITORY_DIRECTORY): replaced too, the declared cost
         ('Run intune-iac start REPOSITORY_DIRECTORY from a Git checkout', START), ('x DIRECTORYX XDIRECTORY', MAY),
@@ -218,7 +221,7 @@ class StandInRuleTests(unittest.TestCase):
         "intune-iac catalog 'estate dir'",
         'x', '', 'See examples/context.json', "x 'a b' c", 'echo # a', 'echo "a"', 'echo (a)',
         'Run: intune-iac start "--goal" discover', 'Run: intune-iac\tstart\t--goal\tdiscover', 'echo a\\ b', 'echo DIRECT',
-        'echo DIRECTOR', 'echo directory', 'echo YROTCERID', 'echo user@host (x)', 'echo 1+1 (2)', 'echo a+ (b)', 'echo a @ (b)', 'echo DIRECTORY'[:-3].lower(),
+        'echo DIRECTOR', 'echo directory', 'echo YROTCERID', 'echo user@host (x)', 'echo a\\\nb', 'echo user@\\\nhost (x)', 'echo 1+\\\n1 (2)', 'echo 1+1 (2)', 'echo a+ (b)', 'echo a @ (b)', 'echo DIRECTORY'[:-3].lower(),
         'Provide a bounded context JSON (tenant, cloud, stack and component), then run: intune-iac start --goal discover',
         'Put one selectable stack and component from "selectable" into the context JSON (examples/context.json shows the shape)',
         'to enter a repository you maintain, run: intune-iac workbench repository-entry --root STORE --repo REPOSITORY '
@@ -295,6 +298,7 @@ class StandInRuleTests(unittest.TestCase):
         """The rule, written again here from the contract: some part (cut at the separators) has a generating character or the
         letters of DIRECTORY in order."""
         for part in re.split(r'( && | \|\| | \| |; )', text)[::2]:
+            part = part.replace('\\\n', '')          # bash joins a backslash-newline before it tokenizes
             letters = iter(part)
             if (any(char in '$`~{}*?[]!^<>' for char in part) or '@(' in part or '+(' in part
                     or all(letter in letters for letter in 'DIRECTORY')):

@@ -461,6 +461,9 @@ def without_stand_in(step):
     The cost is over-replacement: a part is replaced when the letters happen to appear in order or a generating character is
     present, though it need not name the directory. It can never under-replace.
 
+    Both rules read the part with every backslash-newline pair removed, as bash joins them before it tokenizes (so a continuation
+    cannot split an opener such as plus and an opening parenthesis, or the letters of DIRECTORY).
+
     Scope of the guarantee: bash reading the product's text as written. It assumes that no user alias or function redefines a
     command word (an alias is the user's own shell configuration, outside the product's text, and is NOT covered), and it holds
     with or without extglob and globbing. The test_shell_differential module checks the argument against bash, part by part:
@@ -472,12 +475,14 @@ def without_stand_in(step):
     pieces = _SEPARATOR.split(step)
     for index in range(0, len(pieces), 2):
         part = pieces[index]
-        letters = iter(part)
-        if not (any(char in _GENERATING for char in part) or any(opener in part for opener in _EXTGLOB)
+        # bash joins a backslash-newline before it tokenizes, so the tests read a copy without the pairs
+        joined = part.replace('\\\n', '')
+        letters = iter(joined)
+        if not (any(char in _GENERATING for char in joined) or any(opener in joined for opener in _EXTGLOB)
                 or all(letter in letters for letter in 'DIRECTORY')):
             continue
         # the wording (not the decision) is chosen on a copy with quotes and backslashes removed, so intune-"iac" and a tab count
-        plain = re.sub(r'''['"\\]''', '', part)
+        plain = re.sub(r'''['"\\]''', '', joined)
         command = _COMMAND.search(plain)
         said = (IN_WORDS % command.group(1) if command else
                 NO_NAME_WORDS if _TOKEN.search(plain) else MAY_NAME_WORDS)
