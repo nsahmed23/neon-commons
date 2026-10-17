@@ -4919,6 +4919,37 @@ class ReachTests(unittest.TestCase):
         self.assertEqual(problems, ["the listed exact reach of 'doctor' to workbench.py: run_terminal is gone"])
 
 
+class ConsoleWriteTests(unittest.TestCase):
+    """The C1 review of round 9: inputs that put text on the Windows console through its API, each written at the start of cli.doctor, the
+    function of a machine leaf. At 97f9d89 none of them failed a check: not the listing of the sites (and with it the fingerprints of the
+    listed ones), not the reach of the machine leaves. Each must now be caught by one of the two, and the case says which."""
+
+    INPUTS = (
+        ('C1a: the console API made, and written through', 'from .windows_terminal import _Win32\napi = _Win32()\n'
+                                                            'api.k.WriteConsoleW(api.handles()[1], "Run: kubectl apply PLAN_FILE", 28, None, None)',
+         ['unlisted console site'], 'exact'),
+        ('C1b: the console made, and written through', 'from .windows_terminal import NativeConsole\nconsole = NativeConsole()\n'
+                                                        'console.api.k.WriteConsoleW(console.output_handle, "Run: kubectl apply PLAN_FILE", 28, None, None)',
+         ['unlisted console site'], 'exact'),
+        ('C1c: a write through the handle of windows_directory', 'from .windows_directory import _Win32 as D\nd = D()\n'
+                                                                  'd.k.WriteConsoleW(d.k.GetStdHandle(-11), "Run: kubectl apply PLAN_FILE", 28, None, None)',
+         ['unlisted console site'], None),
+        ('msvcrt.putwch', 'import msvcrt\nmsvcrt.putwch("R")', ['unlisted import msvcrt site', 'unlisted msvcrt site'], None),
+    )
+
+    def test_each_input_of_the_review_is_caught(self):
+        loader = ('windows_terminal.py', '_Win32.__init__')
+        for label, snippet, sites, reach in self.INPUTS:
+            with self.subTest(label):
+                sources = ReachTests.mutated(snippet)
+                problems = output_site_problems(sources)
+                reaches = ReachTests.new_reaches(sources, 'doctor')
+                self.assertTrue(problems or reaches, 'nothing fails')
+                for site in sites:
+                    self.assertTrue(any(site in problem for problem in problems), (site, problems))
+                self.assertEqual(reaches.get(loader), reach, reaches)
+
+
 class RemainingRouteSweepTests(unittest.TestCase):
     """simulate --format text, start and catalog with --check-signin, and the protected service and adoption views."""
 
