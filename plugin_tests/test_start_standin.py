@@ -734,10 +734,10 @@ class DisplayTransformTests(unittest.TestCase):
 class GoalRowTests(unittest.TestCase):
     """Round 3, item 2: the start screen's goal block and the catalog's goal rows print the recorded steps through the transform, on
     every directory, together with the rule for a hidden one."""
-    CAPTURE_FULL = ('apture command using --tenant 11111111-1111-4111-8111-111111111111, naming --policy as the policy id '
+    CAPTURE_FULL = ('The capture command using --tenant 11111111-1111-4111-8111-111111111111, naming --policy as the policy id '
                     '(a GUID), --output as a new folder for the output and --token-env as the name of the environment variable '
                     'that holds the token')
-    CAPTURE_NO_TENANT = ('apture command, naming --tenant as your tenant id, --policy as the policy id (a GUID), --output as a '
+    CAPTURE_NO_TENANT = ('the capture command, naming --tenant as your tenant id, --policy as the policy id (a GUID), --output as a '
                          'new folder for the output and --token-env as the name of the environment variable that holds the token')
     CONTACT = 'The capture command sends the token to graph.microsoft.com in GET requests only'
 

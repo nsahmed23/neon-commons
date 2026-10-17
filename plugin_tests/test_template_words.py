@@ -784,5 +784,13 @@ class ReaderShapeTests(unittest.TestCase):
         self.assertEqual(said('Try (az account show --subscription 1111).'), 'Try (az account show --subscription 1111).')
 
 
+
+class CapitalisationContractTests(unittest.TestCase):
+    def test_no_assertion_drops_the_first_letter_of_the_phrase_it_checks(self):
+        for name in ('test_catalog_wording.py', 'test_start_standin.py'):
+            text = (Path(__file__).resolve().parent / name).read_text(encoding='utf-8')
+            self.assertNotIn("'apture command", text, name)       # "rupture command" would satisfy it
+
+
 if __name__ == '__main__':
     unittest.main()
