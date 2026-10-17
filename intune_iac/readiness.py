@@ -435,9 +435,11 @@ MAY_NAME_WORDS = 'this step may name the directory, which cannot be shown here'
 DIRECTORY_COMMANDS = ('start', 'catalog')
 _SEPARATOR = re.compile(r'( && | \|\| | \| |; )')
 # Characters with which bash can produce text that is not in its input: expansions ($ and the backtick), tilde, braces, globs,
-# history and redirections.
+# history and redirections; and the extended-glob openers @( and +( (the others, ?( *( !(, hold a character above).
 _GENERATING = frozenset('$`~{}*?[]!^<>')
+_EXTGLOB = ('@(', '+(')
 _TOKEN = re.compile(r'(?<![A-Za-z0-9_])DIRECTORY(?![A-Za-z0-9_])')
+_COMMAND = re.compile(r'%s[ \t]+(%s)\b' % (re.escape(PROGRAM), '|'.join(DIRECTORY_COMMANDS)))
 
 
 def without_stand_in(step):
@@ -446,8 +448,9 @@ def without_stand_in(step):
     The producers are the product's own recorded steps: the readiness rows' notes and next actions in this module and the
     catalog's own sentences in catalog.py. A line is cut into parts only at ' && ', ' || ', ' | ' and '; ', and each part is
     judged alone by two rules.
-    1. A part holding a GENERATING character ($ ` ~ { } * ? [ ] ! ^ < >) becomes words: with one, bash can produce text that is
-       not in the input (an expansion, a glob, a tilde, a brace), so nothing about the input can be said.
+    1. A part holding a GENERATING character ($ ` ~ { } * ? [ ] ! ^ < >) or an extended-glob opener (@( or +(; ?( *( !( hold a
+       character above) becomes words: with one, bash can produce text that is not in the input (an expansion, a glob, an
+       extended glob matching a directory named DIRECTORY, a tilde, a brace), so nothing about the input can be said.
     2. Otherwise bash can only DELETE characters (quote removal, backslash removal, comments, word splitting), so every letter it
        outputs appears in the input, in order. The part becomes words if the uppercase letters D I R E C T O R Y appear in it in
        order (case-sensitive, anything between them ignored), which any DIRECTORY bash outputs would require.
@@ -456,21 +459,28 @@ def without_stand_in(step):
     directory when the word is there, and that it may name it when only a generating character or the letters in order are).
 
     The cost is over-replacement: a part is replaced when the letters happen to appear in order or a generating character is
-    present, though it need not name the directory. It can never under-replace. The test_shell_differential module checks the
-    argument against bash: safety is exact (also with $0 and the positional parameters set to DIRECTORY), and no string without a
-    generating character or the letters in order ever has DIRECTORY among bash's words."""
+    present, though it need not name the directory. It can never under-replace.
+
+    Scope of the guarantee: bash reading the product's text as written. It assumes that no user alias or function redefines a
+    command word (an alias is the user's own shell configuration, outside the product's text, and is NOT covered), and it holds
+    with or without extglob and globbing. The test_shell_differential module checks the argument against bash, part by part:
+    safety is exact (also with $0 and the positional parameters set to DIRECTORY, and with extglob on and globbing enabled in a
+    directory that holds a directory named DIRECTORY), no part without a generating character or the letters in order ever has
+    DIRECTORY among bash's words, and the implementation equals the rule."""
     if not step:
         return step
     pieces = _SEPARATOR.split(step)
     for index in range(0, len(pieces), 2):
         part = pieces[index]
         letters = iter(part)
-        if not (any(char in _GENERATING for char in part) or all(letter in letters for letter in 'DIRECTORY')):
+        if not (any(char in _GENERATING for char in part) or any(opener in part for opener in _EXTGLOB)
+                or all(letter in letters for letter in 'DIRECTORY')):
             continue
-        plain = part.replace("'", '').replace('"', '')
-        command = re.search(r'%s +(%s)\b' % (re.escape(PROGRAM), '|'.join(DIRECTORY_COMMANDS)), plain)
+        # the wording (not the decision) is chosen on a copy with quotes and backslashes removed, so intune-"iac" and a tab count
+        plain = re.sub(r'''['"\\]''', '', part)
+        command = _COMMAND.search(plain)
         said = (IN_WORDS % command.group(1) if command else
-                NO_NAME_WORDS if 'DIRECTORY' in part else MAY_NAME_WORDS)
+                NO_NAME_WORDS if _TOKEN.search(plain) else MAY_NAME_WORDS)
         pieces[index] = part[:len(part) - len(part.lstrip(' '))] + said + part[len(part.rstrip(' ')):]
     return ''.join(pieces)
 
