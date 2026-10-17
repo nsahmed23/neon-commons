@@ -415,6 +415,45 @@ def screen_survey(value, next_actions, placeholders):
                 skipped_links=[screen_path(link, placeholders) for link in value.get('skipped_links') or []])
 
 
+STORE_FIRST_STEP = 'Create a store first: %s workbench init --root STORE --tenant TENANT_ID' % PROGRAM
+FALLBACK_STEPS = (
+    'Start from a supported export: %s wizard --session session.json --input EXPORT_JSON --context CONTEXT_JSON '
+    '--output NEW_OUTPUT_DIR' % PROGRAM,
+    'Or start from an Atmos repository you maintain, beginning with a store: %s workbench init --root STORE '
+    '--tenant TENANT_ID' % PROGRAM,
+    'Then list the policies it holds and the exact command to record each: %s workbench repository-entry '
+    '--root STORE --repo REPOSITORY' % PROGRAM)
+# What a screen says in their place: the command and what the person names, never a placeholder.
+FIXED_STEP_WORDS = {
+    STORE_FIRST_STEP: 'Create a store first with the workbench init command, naming its folder and your tenant id.',
+    FALLBACK_STEPS[0]: 'Start from a supported export with the wizard command, naming a new session file, your export file, your '
+                       'context file and a new output folder.',
+    FALLBACK_STEPS[1]: 'Or start from an Atmos repository you maintain, beginning with a store: create it with the workbench init '
+                       'command, naming its folder and your tenant id.',
+    FALLBACK_STEPS[2]: 'Then list the policies it holds and the exact command to record each: use the workbench repository-entry '
+                       'command, naming your store and your repository.'}
+
+
+def placeholder_words(step):
+    """A step whose command still holds a fill-in template (FILL_IN_TEMPLATES) as an operand, said in words: the fixed steps in
+    their own words, any other (a real path beside a placeholder) as its lead and the command, naming the operands it still needs."""
+    if step in FIXED_STEP_WORDS:
+        return FIXED_STEP_WORDS[step]
+    at = step.index(PROGRAM + ' ')
+    words = step[at:].split()[1:]
+    head = words[:next((index for index, word in enumerate(words) if word.startswith('-')), len(words))]
+    flags = [word for word in words if word in ('--journey', '--guided')]
+    return '%s: use the %s command, naming the operands it still needs.' % (step[:at].rstrip(': '), ' '.join(head + flags))
+
+
+def screen_action(step, hidden=False):
+    """A recorded next step of plain data as a screen prints it: shown_step, and in words when its command still holds a template."""
+    if step in FIXED_STEP_WORDS:
+        return FIXED_STEP_WORDS[step]                  # names no path: the same words whether or not the directory is shown
+    shown = shown_step(step, hidden)
+    return placeholder_words(shown) if has_fill_in(shown) else shown
+
+
 def _in_words(lead, kind, step):
     """A next step that would have to write a stand-in (DIRECTORY, PATH) for a path it may not show, said in words: what it does,
     which command it is and what that is run on, and never an operand, because a stand-in is a valid relative path to a shell and
@@ -448,7 +487,12 @@ def _next_actions(items, root=None, relative_to=None, paths=None, fresh=None):
             return
         own_show, own_q, stood_in, _ = fresh()
         text = build(own_show, own_q)
-        actions.append(_in_words(lead, kind, text) if stood_in else text)
+        # a path it may not show, or a placeholder still to be replaced: words, not a command
+        actions.append(_in_words(lead, kind, text) if stood_in else placeholder_words(text) if has_fill_in(text) else text)
+
+    def fixed(text):
+        """A step that holds placeholders by design: recorded as it is, said in words on a screen."""
+        actions.append(text if fresh is None else FIXED_STEP_WORDS[text])
 
     conflicts = {'repository_owned_edit': 'Review the repository-owned edit, or hand it off to the repository workflow',
                  'output_changed': 'Resolve the changed output (new-path, review or cancel)',
@@ -485,7 +529,7 @@ def _next_actions(items, root=None, relative_to=None, paths=None, fresh=None):
                  PROGRAM, q(store['path']), ' --service-root ' + q(service['path']) if service else ''))
     if kinds.get('repository') and not stores:
         # repository-entry reads a store; there is none here to name.
-        actions.append('Create a store first: %s workbench init --root STORE --tenant TENANT_ID' % PROGRAM)
+        fixed(STORE_FIRST_STEP)
     for repository in kinds.get('repository', []):
         recorded =[(store, intent) for store in stores for intent in store.get('intents', [])
                     if intent.get('repository') and Path(intent['repository']).name == _name(root, repository['path'])]
@@ -515,12 +559,9 @@ def _next_actions(items, root=None, relative_to=None, paths=None, fresh=None):
              lambda show, q, operation=operation: 'Follow the operation: %s workbench delivery --operation %s' % (
                  PROGRAM, q(operation['path'])))
     if not items:
-        actions = ['Start from a supported export: %s wizard --session session.json --input EXPORT_JSON --context CONTEXT_JSON '
-                   '--output NEW_OUTPUT_DIR' % PROGRAM,
-                   'Or start from an Atmos repository you maintain, beginning with a store: %s workbench init --root STORE '
-                   '--tenant TENANT_ID' % PROGRAM,
-                   'Then list the policies it holds and the exact command to record each: %s workbench repository-entry '
-                   '--root STORE --repo REPOSITORY' % PROGRAM]
+        actions = []
+        for text in FALLBACK_STEPS:
+            fixed(text)
     return actions
 
 
@@ -944,7 +985,7 @@ def start_lines(value, width, goal=None, goal_hint=False):
     else:
         fields = plain_screen_directory(value.get('directory'))
         placeholders = set()
-        value = screen_survey(value, [shown_step(action, fields['directory_hidden']) for action in value['next_actions']],
+        value = screen_survey(value, [screen_action(action, fields['directory_hidden']) for action in value['next_actions']],
                               placeholders)
         value.update(fields)
     hidden, operand = value['directory_hidden'], value['directory_operand']

@@ -301,43 +301,45 @@ class ProducerStringTests(Estates):
         type(self).counts['readiness.py and catalog.py'] = (len(strings), count)
 
 
-# sha256 (first 16 hex digits) of the screen's rows for an ordinary name, taken on the base of this package (04260b8), before the change.
-# key: route|width|goal. The temporary parent and fixture directories are written PARENT and FIXTURES first, and the readiness view
-# is host-free (host_free). Linux with a temporary directory of /tmp only: a longer path wraps differently.
+# sha256 (first 16 hex digits) of the screen's rows for an ordinary name. Taken on the base of this package (04260b8) before
+# the change; all 33 were taken again in round 2 (PKG-START-STANDIN), because the next step "Start from the export" of this
+# fixture is now said in words (its command held NEW_SESSION.json and NEW_OUTPUT_DIR), and nothing else on the screen changed.
+# key: route|width|goal. The temporary parent and fixture directories are written PARENT and FIXTURES first, and the
+# readiness view is host-free (host_free). Linux with a temporary directory of /tmp only: a longer path wraps differently.
 GOLDEN = {
-    'built|120|-': 'a378d6120b76d906',
-    'built|120|adopt': '08df25b99b104d1d',
-    'built|120|change': '5cb589f43e20aa9f',
-    'built|120|discover': '9e471c49391f738a',
-    'built|120|inspect': '16b417bb3d36ef4f',
-    'built|60|-': '4dd1a37651fe1184',
-    'built|60|adopt': '011ef338f0416c00',
-    'built|60|change': '6b1e29c803c34b9a',
-    'built|60|discover': '7197bf7cdca696bf',
-    'built|60|inspect': '632aafc1873b5204',
-    'built|80|-': 'b8dedd1d4e806713',
-    'built|80|adopt': '9ba55ab31194e532',
-    'built|80|change': '0c99c0468a9f11d8',
-    'built|80|discover': 'c9d2cc4e355b80f7',
-    'built|80|inspect': '9174395b60defe96',
-    'cli|120|-': '13cd9bf05125923d',
-    'cli|60|-': 'bcc756f2b922978d',
-    'cli|80|-': '92f23aa461921b09',
-    'plain|120|-': '089fefbc753d6101',
-    'plain|120|adopt': 'ea2557176a1eeb1e',
-    'plain|120|change': '401a644c07efb973',
-    'plain|120|discover': '8752ce11b44cf056',
-    'plain|120|inspect': '174f7fa1b981102d',
-    'plain|60|-': 'da5e9d61168a82cd',
-    'plain|60|adopt': '4d65eb0a523a01a6',
-    'plain|60|change': '7de75fffd85a1ef6',
-    'plain|60|discover': 'd5aa7a495f1e2dda',
-    'plain|60|inspect': '4ea2be94fc58b73b',
-    'plain|80|-': '56d736abaa814071',
-    'plain|80|adopt': 'd9749a8e20419e30',
-    'plain|80|change': '76b106d5986da03b',
-    'plain|80|discover': 'a0efc3d448b3ca3b',
-    'plain|80|inspect': 'e916c3790f443c86',
+    'built|120|-': '408f5d8deb11b2f3',
+    'built|120|adopt': 'd9e76687a0ee3209',
+    'built|120|change': '9feaf63eac2ad467',
+    'built|120|discover': '2e96a6893e1648e4',
+    'built|120|inspect': 'd6cb074befe6f1e8',
+    'built|60|-': 'd7ecef7a29dc844c',
+    'built|60|adopt': '648ed36df9625d33',
+    'built|60|change': '471a954f01977bef',
+    'built|60|discover': '74c94dbeba3b0e00',
+    'built|60|inspect': 'fa9f05ec9a11fee6',
+    'built|80|-': 'a2d46f429067021e',
+    'built|80|adopt': '9a3f7009034e9749',
+    'built|80|change': '21ef20cc4f64163a',
+    'built|80|discover': 'f1f87aa3c82314d7',
+    'built|80|inspect': '5348da356099d53f',
+    'cli|120|-': '1b346448b55b6f0d',
+    'cli|60|-': '8ce31278ea4f0458',
+    'cli|80|-': '190a13af2934097f',
+    'plain|120|-': '493952215c3b7477',
+    'plain|120|adopt': 'e92da6e362bb7517',
+    'plain|120|change': '665074fe39bbb73f',
+    'plain|120|discover': 'b39b6dc16e5eccd7',
+    'plain|120|inspect': 'aabf7bd2fc85f81a',
+    'plain|60|-': 'c71aad4dcbce1f46',
+    'plain|60|adopt': '5560bb3990fc00a1',
+    'plain|60|change': '8887c0e1fc969d67',
+    'plain|60|discover': '7763603b91fc1439',
+    'plain|60|inspect': '38e65b2841068bdb',
+    'plain|80|-': '553f2eecaffac66e',
+    'plain|80|adopt': '20bc7b8e667de2a2',
+    'plain|80|change': 'ec450c40db817198',
+    'plain|80|discover': '8aca92c77cff7e44',
+    'plain|80|inspect': '1c04e145f7b31865',
 }
 
 
@@ -450,3 +452,116 @@ class SharedTemplateSetTests(unittest.TestCase):
             self.assertTrue(is_fill_in(token), token)
         for token in ('estate dir/store', 'STOREROOM', 'store', 'session.json', '--root'):
             self.assertFalse(is_fill_in(token), token)
+
+
+def unresolved_operands(lines):
+    """Every operand of a printed command that is a fill-in template (entry.FILL_IN_TEMPLATES): a stand-in for a path the screen may
+    not show, or a placeholder the person is to replace. Read as stand_in_operands reads a command."""
+    from intune_iac import entry
+    # the product's own set; the required names stand in for it on a source that does not have one (to show a test red there)
+    names = getattr(entry, 'FILL_IN_TEMPLATES', SharedTemplateSetTests.REQUIRED)
+    pattern = re.compile(r'(?:%s)(?:[/.].*)?\Z' % '|'.join(sorted(names, key=len, reverse=True)), re.DOTALL)
+    is_fill_in = lambda token: bool(pattern.match(token))
+    found = []
+    for row in logical_rows(lines):
+        commands = [row] if row.startswith('intune-iac ') else row.split('intune-iac ')[1:]
+        commands += re.findall(r':repository-entry\s+(.*)', row)
+        for command in commands:
+            command = re.split(r'\s\(|[.;:](?:\s|$)', command)[0]
+            try:
+                tokens = shlex.split(command)
+            except ValueError:
+                tokens = command.split()
+            found += [token for token in tokens if is_fill_in(token)]
+    return found
+
+
+def variant_estate(parent, name, kind):
+    """parent/name holding what makes the start screen print a next step with a placeholder in it."""
+    from intune_iac.workbench_store import WorkbenchStore
+    from plugin_tests.test_catalog_layer import TENANT
+    target = Path(parent) / name
+    if kind == 'empty':                       # nothing recognized: the three fallback steps
+        target.mkdir()
+    elif kind == 'repository':                # a repository and no store: a store first, then repository-entry with STORE
+        shutil.copytree(Fixtures.get()['repository'], target)
+    elif kind == 'export':                    # an export no session used: the wizard with NEW_SESSION.json and NEW_OUTPUT_DIR
+        estate(parent, name)
+        (target / 'session.json').unlink()
+    elif kind == 'emptystore':                # an empty store and no service: collect with SERVICE_ROOT
+        target.mkdir()
+        WorkbenchStore.create(target / 'store', TENANT)
+    return target
+
+
+class PlaceholderCommandTests(unittest.TestCase):
+    """Round 2, item 2: a next step whose command still holds a placeholder the person must replace is said in words, for a hidden
+    directory and an ordinary one alike; a command whose operands are all resolved keeps its exact form."""
+    KINDS = ('empty', 'repository', 'export', 'emptystore')
+    NAMES = {'credential': CREDENTIAL, 'ordinary': ORDINARY}
+    FALLBACKS = (
+        'Start from a supported export with the wizard command, naming a new session file, your export file, your context file '
+        'and a new output folder.',
+        'Or start from an Atmos repository you maintain, beginning with a store: create it with the workbench init command, naming '
+        'its folder and your tenant id.',
+        'Then list the policies it holds and the exact command to record each: use the workbench repository-entry command, naming '
+        'your store and your repository.')
+    STORE_FIRST = 'Create a store first with the workbench init command, naming its folder and your tenant id.'
+    MIXED = {
+        'emptystore': 'Collect into estate dir/store: use the workbench collect command, naming the operands it still needs.',
+        'export': 'Start from the export estate dir/export.json: use the wizard command, naming the operands it still needs.',
+        'repository': 'use the workbench repository-entry command, naming the operands it still needs.'}
+
+    @classmethod
+    def setUpClass(cls):
+        cls.temp = tempfile.TemporaryDirectory()
+        cls.parents = {}
+        for kind in cls.KINDS:
+            parent = Path(cls.temp.name) / kind
+            parent.mkdir()
+            for name in cls.NAMES.values():
+                variant_estate(parent, name, kind)
+            cls.parents[kind] = str(parent)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.temp.cleanup()
+
+    def test_no_next_step_holds_a_placeholder_as_the_operand_of_a_command(self):
+        for kind in self.KINDS:
+            for label, name in self.NAMES.items():
+                for route in ('built', 'plain', 'cli'):
+                    for width in (120, 60):
+                        for goal in (None, 'discover'):
+                            with self.subTest(kind=kind, name=label, route=route, width=width, goal=goal):
+                                lines = render(route, self.parents[kind], name, width, goal)
+                                # the next steps and what precedes them; the goal block's recorded readiness steps (the capture
+                                # command and its placeholders) are readiness.py's, a separate package
+                                stop = next((i for i, row in enumerate(lines) if row.startswith('GOAL READINESS')), len(lines))
+                                self.assertEqual(unresolved_operands(lines[:stop]), [], flat(lines))
+
+    def test_the_fallback_steps_and_the_store_first_step_are_said_in_words(self):
+        for label, name in self.NAMES.items():
+            for route in ('built', 'plain', 'cli'):
+                with self.subTest(name=label, route=route):
+                    empty = flat(render(route, self.parents['empty'], name, 100, None))
+                    for sentence in self.FALLBACKS:
+                        self.assertIn(sentence, empty)
+                    repository = flat(render(route, self.parents['repository'], name, 100, None))
+                    self.assertIn(self.STORE_FIRST, repository)
+
+    def test_a_step_that_mixes_a_real_path_with_a_placeholder_is_said_in_words_for_an_ordinary_directory(self):
+        for kind, sentence in self.MIXED.items():
+            for route in ('built', 'cli'):
+                with self.subTest(kind=kind, route=route):
+                    text = flat(render(route, self.parents[kind], ORDINARY, 100, None))
+                    self.assertIn(sentence, text)
+        plain = flat(render('plain', self.parents['export'], ORDINARY, 100, None))
+        self.assertIn('use the wizard command, naming the operands it still needs.', plain)
+
+    def test_a_command_whose_operands_are_all_resolved_keeps_its_exact_form(self):
+        text = flat(render('built', self.parents['emptystore'], ORDINARY, 100, None))
+        self.assertIn("intune-iac workbench workspace --root 'estate dir/store'", text)
+        text = flat(render('built', self.parents['export'], ORDINARY, 100, None))
+        self.assertIn("intune-iac workbench workspace --root 'estate dir/store'", text)
+        self.assertIn("intune-iac workbench repository-entry --root 'estate dir/store' --repo 'estate dir/repository'", text)

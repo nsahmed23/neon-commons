@@ -46,34 +46,37 @@ class StartStepsTests(unittest.TestCase):
                 self.assertFalse([c for c in text if ord(c) < 0x20 and c != '\n'])
 
     def test_a_step_is_one_sentence_then_its_command(self):
-        code, text = run_cli(str(self.dirs['offline']), width=100)
+        code, text = run_cli(str(self.dirs['full']), width=100)
         lines = next_section(text)
         steps = [i for i, line in enumerate(lines) if re.match(r'  \d\. ', line)]
+        self.assertTrue(steps)
         for index in steps:
-            self.assertTrue(lines[index].rstrip().endswith(':'), lines[index])
-            self.assertTrue(lines[index + 1].strip().startswith('intune-iac '), lines[index:index + 2])
+            if 'intune-iac ' in ' '.join(lines[index:index + 2]):          # a step with a command: a sentence, then the command
+                self.assertTrue(lines[index].rstrip().endswith(':'), lines[index])
+                self.assertTrue(lines[index + 1].strip().startswith('intune-iac '), lines[index:index + 2])
 
-    def test_an_empty_directory_has_a_step_per_command(self):
+    def test_an_empty_directory_has_a_step_per_command_said_in_words(self):
+        # PKG-START-STANDIN round 2: the three steps hold placeholders (EXPORT_JSON, STORE, TENANT_ID ...), so a screen says them in
+        # words and prints no command for them
         code, text = run_cli(str(self.dirs['offline']), width=100)
         lines = next_section(text)
         steps = [line for line in lines if re.match(r'  \d\. ', line)]
         self.assertEqual(len(steps), 3, lines)
-        commands = command_rows(lines)
-        self.assertEqual([c[:2] for c in commands], [['wizard', '--session'], ['workbench', 'init'], ['workbench', 'repository-entry']])
-        for argv in commands:
-            self.parse(argv)
+        self.assertEqual(command_rows(lines), [])
+        said = ' '.join(' '.join(lines).split())
+        for command in ('the wizard command', 'the workbench init command', 'the workbench repository-entry command'):
+            self.assertIn(command, said)
 
     def test_a_repository_with_no_store_says_to_create_one_first(self):
         code, text = run_cli(str(self.dirs['repository']), width=100)
-        commands = command_rows(next_section(text))
-        names = [c[:2] for c in commands]
-        self.assertIn(['workbench', 'init'], names)
-        self.assertLess(names.index(['workbench', 'init']), names.index(['workbench', 'repository-entry']))
-        for argv in commands:
-            self.parse(argv)
+        said = ' '.join(' '.join(next_section(text)).split())
+        first = 'Create a store first with the workbench init command, naming its folder and your tenant id.'
+        self.assertIn(first, said)
+        self.assertLess(said.index(first), said.index('workbench repository-entry command'))
+        self.assertEqual(command_rows(next_section(text)), [])      # both steps hold a placeholder: words, no command
 
     def test_a_wrapped_command_ends_its_rows_with_a_backslash_and_rejoins_to_one_command(self):
-        code, text = run_cli(str(self.dirs['offline']), width=50)
+        code, text = run_cli(str(self.dirs['full']), width=50)
         lines = next_section(text)
         wrapped = [i for i, line in enumerate(lines) if line.endswith(' \\')]
         self.assertTrue(wrapped)
@@ -95,7 +98,7 @@ class StartStepsTests(unittest.TestCase):
                         for argv in commands_in(line.strip()):
                             self.parse(argv)
                             checked += 1
-        self.assertGreater(checked, 8)
+        self.assertGreater(checked, 4)             # the steps with a placeholder are words now, not commands
 
     def test_the_goal_block_still_follows_next(self):
         code, text = run_cli(str(self.dirs['full']), '--goal', 'adopt')
