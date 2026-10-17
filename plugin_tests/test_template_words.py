@@ -519,5 +519,79 @@ class RoundThreeAdditionsTests(unittest.TestCase):
             self.assertNotIn('for the REVISION', path.read_text(encoding='utf-8'), path.name)
 
 
+
+# -- the JSON forms that carry the "it asks for the revision" prose ------------------------------------------------------------
+
+# Digests of the canonical JSON (temporary paths, 64-digit hashes and timestamps masked) of every form that the six REVISION sites
+# feed: the diagnostics result, the Inspector's attention and its next actions, and the repository status, for a stale intent and for a
+# consumer mismatch. They are the forms taken on fa3f022 with the one declared substitution applied ("it asks for the REVISION" becomes
+# "it asks for the revision"); a test showed that substitution to be the only difference. The digests of the forms as they were on fa3f022
+# are kept beside them.
+REVISION_FORMS = {
+    'mismatch attention': ('1ab6ad193cb072be', '6cfd19a520cc04bf'),
+    'mismatch diagnostics': ('f94f5cfdb4a19a83', '29b0e288a61d40ba'),
+    'mismatch next_actions': ('eb3b755597124a31', '11211780fd5cca96'),
+    'stale attention': ('646eae7f9b850622', '727557a61003614b'),
+    'stale diagnostics': ('90498a2cf739ff05', '761da61e692e46cc'),
+    'stale next_actions': ('c3680963be60f1de', 'eb653a08076cb0c1'),
+    'stale repository-status': ('bee2e5dada178d16', 'e7941e167793e298'),
+}
+
+
+def _canonical(value, *masks):
+    text = json.dumps(value, sort_keys=True, indent=1)
+    for mask in masks:
+        text = text.replace(str(mask), 'MASK')
+    text = re.sub(r'[0-9a-f]{64}', 'HEX64', text)
+    return re.sub(r'\d{4}-\d\d-\d\dT[\d:.]+Z', 'TIME', text)
+
+
+def _text_digest(text):
+    return hashlib.sha256(text.encode()).hexdigest()[:16]
+
+
+class RevisionJsonPinsTests(unittest.TestCase):
+    def forms(self):
+        import copy
+        from uuid import UUID
+        import yaml
+        from intune_iac import workbench, workbench_diagnostics, workbench_repository
+        from plugin_tests import test_workbench_diagnostics as d
+        out = {}
+        for scenario in ('stale', 'mismatch'):
+            case = d.DiagnosticsTests('test_a_healthy_policy_has_no_signals_and_says_what_was_checked')
+            case.setUp()
+            try:
+                if scenario == 'stale':
+                    case.import_intent()
+                    case.edit_description('Edited in the repository.')
+                else:
+                    document = yaml.safe_load((case.repo / d.repository_tests.STACK).read_text())
+                    policies = document['components']['terraform']['intune-reference']['vars']['policies']
+                    policies['p_' + UUID(d.TENANT).hex + '_' + 'd' * 32] = copy.deepcopy(policies[d.repository_tests.KEY])
+                    (case.repo / d.repository_tests.STACK).write_text(yaml.safe_dump(document))
+                    case.import_intent()
+                masks = (case.root, case.store.root)
+                out[scenario + ' diagnostics'] = _canonical(workbench_diagnostics.diagnostics(case.store, d.OBJECT), *masks)
+                attention = workbench._attention(case.store, d.OBJECT)
+                out[scenario + ' attention'] = _canonical(attention, *masks)
+                out[scenario + ' next_actions'] = _canonical(workbench._next_actions({}, attention, True), *masks)
+                if scenario == 'stale':
+                    out['stale repository-status'] = _canonical(workbench_repository.status(case.store, d.OBJECT), *masks)
+            finally:
+                case.doCleanups()
+        return out
+
+    def test_the_json_forms_differ_from_fa3f022_only_by_the_declared_substitution(self):
+        found = self.forms()
+        self.assertEqual(sorted(found), sorted(REVISION_FORMS))
+        for form, text in sorted(found.items()):
+            with self.subTest(form=form):
+                self.assertEqual(_text_digest(text), REVISION_FORMS[form][1])
+                self.assertNotIn('the REVISION', text)
+                # undoing the declared substitution gives the form as fa3f022 had it
+                self.assertEqual(_text_digest(text.replace('asks for the revision', 'asks for the REVISION')), REVISION_FORMS[form][0])
+
+
 if __name__ == '__main__':
     unittest.main()
