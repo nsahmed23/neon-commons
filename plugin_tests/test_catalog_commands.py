@@ -172,46 +172,51 @@ class RefusedFileNameTests(unittest.TestCase):
         self.assertIn('Resume: intune-iac wizard --session NEW_SESSION.json --input work/export.json', text)
 
 
-class StandInAllowlistTests(unittest.TestCase):
-    """PKG-CATALOG-6 round 11: on a screen that may not show the directory, a recorded step is read by an ALLOWLIST, not by a
-    shell parser. SIMPLE text is words of [A-Za-z0-9_./:,-] (or single-quoted strings of those and spaces) separated by spaces,
-    and the parts of a line are cut only at ' && ', ' || ', ' | ' and '; '. A simple part with the token DIRECTORY is words; a
-    simple part without it stays byte for byte; anything else (a backslash, a double quote, a dollar, a backtick, a hash, braces,
-    parentheses, a tab or newline, ...) is always words, with or without the token. Earlier rounds kept some non-simple text
-    that held no stand-in unchanged; under this contract it becomes words (each such test says so)."""
+class StandInRuleTests(unittest.TestCase):
+    """PKG-CATALOG-6 round 12: on a screen that may not show the directory, each part of a recorded step (a line is cut at
+    ' && ', ' || ', ' | ' and '; ') is replaced by words when it holds a GENERATING character ($ ` ~ { } * ? [ ] ! ^ < >, which
+    can make bash produce text that is not in the input) or when the uppercase letters D I R E C T O R Y appear in it in order
+    (without generating characters bash can only delete characters, so any DIRECTORY it outputs is such a subsequence of the
+    input). Every other part stays byte for byte: prose with parentheses, double quotes and semicolons included. The cost is
+    over-replacement when the letters happen to appear in order. Round 11 replaced all non-simple text; under this rule that
+    stand-in-free text is kept again (each such test says so)."""
 
     GENERIC = 'this step names the directory, which cannot be shown here'
-    NOT_SHOWN = 'this step is not shown here: the directory cannot be shown'
+    MAY = 'this step may name the directory, which cannot be shown here'
     START = 'the start command with this directory (%s)' % CANNOT
     CATALOG = 'the catalog command with this directory (%s)' % CANNOT
+    GENERATING = tuple('$`~{}*?[]!^<>')
 
-    SIMPLE_WITH_THE_STAND_IN = (
+    REPLACED = (
         ('Run: intune-iac start DIRECTORY', START),
         ("Run: intune-iac start 'DIRECTORY' --goal discover --check-signin azure", START),
         ('Run: intune-iac catalog DIRECTORY --goal discover', CATALOG),
         ('Run: intune-iac start --goal discover DIRECTORY', START),
+        ('Run: intune-iac start "DIRECTORY"', START),
         ('Run: intune-iac start DIRECTORY and pass its result to this check.', START),
         ('Name the tenant as a GUID, then run: intune-iac start DIRECTORY', START),
         ('Run:   intune-iac    start     DIRECTORY     --goal   discover', START),
         ('x DIRECTORY', GENERIC), ("x 'a DIRECTORY'", GENERIC), ('DIRECTORY/store', GENERIC), ('x DIRECTORY.', GENERIC),
+        ('Run: intune-"iac"\tstart DIRECTORY', GENERIC), ('echo\tDIRECTORY', GENERIC), ('echo DIRECTORY\n', GENERIC),
+        ('echo DIRECTORY;', GENERIC), ('echo (DIRECTORY)', GENERIC), ('echo "DIRECTORY"', GENERIC), ('echo DIREC\\\nTORY', MAY),
+        # the letters in order, not spelling the word: over-replacement, the declared cost
+        ('echo D\\IRECTORY', MAY), ('echo "D\\IRECTORY"', MAY), ("echo 'D\\IRECTORY'", MAY), ('echo D x I y R z E w C v T u O t R s Y', MAY),
+        ('Disk Input Report: Error Count Total Of Rows, Yes', MAY),
+        # the letters of DIRECTORY inside two other words (a producer's own REPOSITORY_DIRECTORY): replaced too, the declared cost
+        ('Run intune-iac start REPOSITORY_DIRECTORY from a Git checkout', START), ('x DIRECTORYX XDIRECTORY', GENERIC),
     )
-    SIMPLE_WITHOUT_IT = (
+    # stand-in free, no generating character, letters not in order: byte for byte (prose with parentheses, quotes, semicolons)
+    KEPT = (
         'Run: intune-iac start --goal discover', 'Run: intune-iac catalog --check-signin azure',
         'Run: intune-iac doctor to see the host profiles and which tools are on the search path.',
-        'Run intune-iac start REPOSITORY_DIRECTORY from a Git checkout that holds atmos.yaml', "intune-iac catalog 'estate dir'",
-        'Run: intune-iac capture --tenant 11111111-1111-4111-8111-111111111111 --policy POLICY --output NEW_DIR', 'x', '',
-        'See examples/context.json', 'x DIRECTORYX XDIRECTORY', "x 'a b' c",
-    )
-    # (text, why it is not simple): always words
-    NON_SIMPLE = (
-        'Run: intune-"iac"\tstart DIRECTORY', 'Run: intune\\-iac start DIRECTORY', "Run: $'intune-iac' start DIRECTORY",
-        'Run: intune-iac start "DIRECTORY"', 'Run: intune-iac start DIRECTORY$x', 'echo DIREC${x}TORY', 'echo DIREC$""TORY',
-        'echo $(date)', 'echo `date`', 'echo $0', 'echo "$@"', 'echo D\\IRECTORY', 'echo DIREC\\\nTORY', 'X #a\'b\n$*',
-        'echo ${x:=DIREC} ${x}TORY', 'echo\tDIRECTORY', 'echo DIRECTORY\n', 'echo DIRECTORY;', 'echo (DIRECTORY)',
-        # stand-in free, and unchanged before round 11: now words
-        'echo "D\\IRECTORY"', "echo 'D\\IRECTORY'", 'echo ${x-a}', 'echo $?', 'echo # a', 'Run: intune-iac start "--goal" discover',
-        'Run: $\'intune-iac\' start --goal discover', 'Run: intune-iac\tstart\t--goal\tdiscover', 'echo "a"', 'echo a*',
-        'Provide a bounded context JSON (tenant, cloud), then run: intune-iac start --goal discover',
+        "intune-iac catalog 'estate dir'",
+        'x', '', 'See examples/context.json', "x 'a b' c", 'echo # a', 'echo "a"', 'echo (a)',
+        'Run: intune-iac start "--goal" discover', 'Run: intune-iac\tstart\t--goal\tdiscover', 'echo a\\ b', 'echo DIRECT',
+        'echo DIRECTOR', 'echo directory', 'echo YROTCERID', 'echo DIRECTORY'[:-3].lower(),
+        'Provide a bounded context JSON (tenant, cloud, stack and component), then run: intune-iac start --goal discover',
+        'Put one selectable stack and component from "selectable" into the context JSON (examples/context.json shows the shape)',
+        'to enter a repository you maintain, run: intune-iac workbench repository-entry --root STORE --repo REPOSITORY '
+        '(in the workspace: :repository-entry REPOSITORY)',
     )
     OPERATORS = (
         ('Run: echo ok; intune-iac start DIRECTORY', 'Run: echo ok; ' + START),
@@ -222,31 +227,41 @@ class StandInAllowlistTests(unittest.TestCase):
         ('intune-iac start --goal discover && intune-iac catalog DIRECTORY', 'intune-iac start --goal discover && ' + CATALOG),
         ('intune-iac start --goal discover | intune-iac catalog DIRECTORY', 'intune-iac start --goal discover | ' + CATALOG),
         ('intune-iac start DIRECTORY; intune-iac start --goal discover', START + '; intune-iac start --goal discover'),
-        ('echo ok; echo $(date)', 'echo ok; ' + NOT_SHOWN),
+        ('echo ok; echo $(date)', 'echo ok; ' + MAY),
         ('intune-iac start --goal discover && echo DIRECTORY', 'intune-iac start --goal discover && ' + GENERIC),
         ('echo ok | echo "a DIRECTORY"', 'echo ok | ' + GENERIC),
+        ('Provide a bounded context JSON (tenant, cloud; examples/context.json shows the shape), then run: intune-iac start DIRECTORY',
+         'Provide a bounded context JSON (tenant, cloud; ' + START),
     )
 
-    def test_a_simple_part_with_the_stand_in_is_words(self):
+    def test_a_part_with_the_letters_in_order_or_a_generating_character_is_words(self):
         from intune_iac import readiness
-        for text, expected in self.SIMPLE_WITH_THE_STAND_IN:
+        for text, expected in self.REPLACED:
             with self.subTest(text=text):
                 self.assertEqual(readiness.without_stand_in(text), expected)
 
-    def test_a_simple_part_without_the_stand_in_stays_byte_for_byte(self):
+    def test_every_generating_character_fails_closed_alone(self):
         from intune_iac import readiness
-        for text in self.SIMPLE_WITHOUT_IT:
+        for char in self.GENERATING:
+            for text in ('echo a%sb' % char, 'echo %s' % char, "echo '%s'" % char, 'echo "%s"' % char, 'echo \\%s' % char):
+                with self.subTest(text=text):
+                    self.assertEqual(readiness.without_stand_in(text), self.MAY)
+
+    def test_every_other_part_stays_byte_for_byte_including_the_prose_round_11_replaced(self):
+        from intune_iac import readiness
+        for text in self.KEPT:
             with self.subTest(text=text):
                 self.assertEqual(readiness.without_stand_in(text), text)
 
-    def test_non_simple_text_is_always_words_with_or_without_the_stand_in(self):
+    def test_the_producer_steps_round_11_replaced_are_kept_when_they_hold_no_stand_in(self):
         from intune_iac import readiness
-        for text in self.NON_SIMPLE:
-            with self.subTest(text=text):
-                said = readiness.without_stand_in(text)
-                self.assertNotEqual(said, text)
-                self.assertNotIn('DIRECTORY', said)
-                self.assertIn(said, (self.GENERIC, self.NOT_SHOWN, self.START, self.CATALOG))
+        capture = readiness.with_legend('intune-iac capture --tenant 11111111-1111-4111-8111-111111111111 --policy POLICY '
+                                        '--output NEW_DIR --token-env TOKEN_VARIABLE_NAME')
+        self.assertIn('(POLICY is the policy id, a GUID; NEW_DIR is a folder', capture)
+        self.assertEqual(readiness.without_stand_in(capture), capture)
+        self.assertEqual(readiness.without_stand_in(readiness.with_legend('intune-iac target authenticate --input TARGET_JSON '
+                                                    '--provider-secret-fd FD --backend-secret-fd FD')), readiness.with_legend(
+            'intune-iac target authenticate --input TARGET_JSON --provider-secret-fd FD --backend-secret-fd FD'))
 
     def test_a_line_is_cut_only_at_the_simple_separators_and_each_part_is_read_alone(self):
         from intune_iac import readiness
@@ -267,10 +282,17 @@ class StandInAllowlistTests(unittest.TestCase):
                     found.append(node.value.replace('%s', 'intune-iac'))
         return sorted(set(found))
 
-    # the allowlist, written again here from the contract (not imported from the code under test)
-    SIMPLE_WORD = r"(?:[A-Za-z0-9_./:,-]|'[A-Za-z0-9_./:, -]*')+"
-    SIMPLE_PART = re.compile(r' *(?:%s(?: +%s)*)? *' % (SIMPLE_WORD, SIMPLE_WORD))
     TOKEN = re.compile(r'(?<![A-Za-z0-9_])DIRECTORY(?![A-Za-z0-9_])')
+
+    @staticmethod
+    def must_replace(text):
+        """The rule, written again here from the contract: some part (cut at the separators) has a generating character or the
+        letters of DIRECTORY in order."""
+        for part in re.split(r'( && | \|\| | \| |; )', text)[::2]:
+            letters = iter(part)
+            if any(char in '$`~{}*?[]!^<>' for char in part) or all(letter in letters for letter in 'DIRECTORY'):
+                return True
+        return False
 
     @classmethod
     def variants(cls, text):
@@ -284,37 +306,34 @@ class StandInAllowlistTests(unittest.TestCase):
                 out.append(' '.join(words[:index] + [said] + words[index + 1:]))
         return out
 
-    def test_every_producer_string_and_every_variant_loses_the_stand_in_and_non_simple_ones_are_words(self):
+    def test_every_producer_string_and_every_variant_loses_the_stand_in_and_is_otherwise_kept(self):
         from intune_iac import readiness
         strings = self.producer_strings()
         self.assertGreater(len(strings), 8)           # the walk found the producers (readiness.py and catalog.py)
-        generated, simple_kept = 0, 0
+        generated = kept = 0
         for text in strings:
             for variant in [text] + self.variants(text):
                 generated += 1
                 said = readiness.without_stand_in(variant)
                 with self.subTest(variant=variant):
-                    parts = re.split(r'( && | \|\| | \| |; )', variant)[::2]
                     self.assertIsNone(self.TOKEN.search(said.replace("'", '')), variant)
-                    if all(self.SIMPLE_PART.fullmatch(part) for part in parts):
-                        if not any(self.TOKEN.search(part.replace("'", '')) for part in parts):
-                            self.assertEqual(said, variant)       # simple, stand-in free: byte for byte
-                            simple_kept += 1
+                    if self.must_replace(variant):
+                        self.assertNotEqual(said, variant)
                     else:
-                        self.assertNotEqual(said, variant)        # a non-simple part is words
-        type(self).producer_counts = (len(strings), generated, simple_kept)
+                        self.assertEqual(said, variant)       # kept byte for byte
+                        kept += 1
+        type(self).producer_counts = (len(strings), generated, kept)
         self.assertGreater(generated, 100)
+        self.assertGreater(kept, 5)
 
     def test_the_catalog_applies_it_to_every_recorded_step_of_a_hidden_directory(self):
         from intune_iac import catalog
-        for text, expected in self.SIMPLE_WITH_THE_STAND_IN[:6] + tuple((t, None) for t in self.NON_SIMPLE[:8]):
+        for text, expected in self.REPLACED[:8]:
             goals = [{'goal': 'discover', 'next_action': text, 'blocked': {'next_action': text, 'missing': text}}]
             catalog._shown_goal_steps(goals, 'DIRECTORY', True)
             for said in (goals[0]['next_action'], goals[0]['blocked']['next_action'], goals[0]['blocked']['missing']):
                 with self.subTest(text=text):
-                    self.assertNotIn('DIRECTORY', said)
-                    if expected:
-                        self.assertEqual(said, expected)
+                    self.assertEqual(said, expected)
 
 
 class LayerRouteTests(unittest.TestCase):

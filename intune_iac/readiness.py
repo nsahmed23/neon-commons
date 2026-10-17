@@ -431,46 +431,46 @@ NO_CHECK_HIDDEN = ('No sign-in check was run. To look for an existing Azure sign
 # a valid relative path, so a copied command would address that folder).
 IN_WORDS = 'the %s command with this directory (the directory cannot be shown here)'
 NO_NAME_WORDS = 'this step names the directory, which cannot be shown here'
-NOT_SHOWN_WORDS = 'this step is not shown here: the directory cannot be shown'
+MAY_NAME_WORDS = 'this step may name the directory, which cannot be shown here'
 DIRECTORY_COMMANDS = ('start', 'catalog')
-# The allowlist. SIMPLE text is words of the characters the producers' own steps need, [A-Za-z0-9_./:,-], or single-quoted strings
-# of those and spaces, separated by spaces. Nothing else is simple: no backslash, double quote, dollar, backtick, hash, tab, newline,
-# braces, parentheses, brackets, angle brackets, asterisk, question mark, tilde, exclamation mark, ampersand, semicolon or bar
-# outside the separators below. A line is cut into parts only at the simple separators.
-_SIMPLE_WORD = r"(?:[A-Za-z0-9_./:,-]|'[A-Za-z0-9_./:, -]*')+"
-_SIMPLE_PART = re.compile(r' *(?:%s(?: +%s)*)? *' % (_SIMPLE_WORD, _SIMPLE_WORD))
 _SEPARATOR = re.compile(r'( && | \|\| | \| |; )')
+# Characters with which bash can produce text that is not in its input: expansions ($ and the backtick), tilde, braces, globs,
+# history and redirections.
+_GENERATING = frozenset('$`~{}*?[]!^<>')
 _TOKEN = re.compile(r'(?<![A-Za-z0-9_])DIRECTORY(?![A-Za-z0-9_])')
 
 
 def without_stand_in(step):
-    """A recorded step as a screen that may not show the directory prints it. Safety does not depend on parsing the shell: the
-    text is read by an ALLOWLIST, and anything outside it is replaced.
+    """A recorded step as a screen that may not show the directory prints it. Safety does not depend on parsing the shell.
 
     The producers are the product's own recorded steps: the readiness rows' notes and next actions in this module and the
-    catalog's own sentences in catalog.py. A line is cut into parts only at ' && ', ' || ', ' | ' and '; '. A part that is SIMPLE
-    (_SIMPLE_PART: words of [A-Za-z0-9_./:,-] or single-quoted strings of those and spaces, separated by spaces) is read trivially,
-    by splitting on spaces and stripping the quotes: with the token DIRECTORY in it, the part becomes words (the start or catalog
-    sentence when it holds such a command, else a generic one); without it, the part stays byte for byte. A part that is NOT
-    simple always becomes words, whatever it holds. That is fail closed by grammar: backslashes, other quotes, expansions,
-    substitutions, comments, braces, tabs, newlines and every other construct are not parsed, so none of them can hide a stand-in.
+    catalog's own sentences in catalog.py. A line is cut into parts only at ' && ', ' || ', ' | ' and '; ', and each part is
+    judged alone by two rules.
+    1. A part holding a GENERATING character ($ ` ~ { } * ? [ ] ! ^ < >) becomes words: with one, bash can produce text that is
+       not in the input (an expansion, a glob, a tilde, a brace), so nothing about the input can be said.
+    2. Otherwise bash can only DELETE characters (quote removal, backslash removal, comments, word splitting), so every letter it
+       outputs appears in the input, in order. The part becomes words if the uppercase letters D I R E C T O R Y appear in it in
+       order (case-sensitive, anything between them ignored), which any DIRECTORY bash outputs would require.
+    Every other part stays byte for byte, prose with parentheses, double quotes and semicolons included. A replaced part that holds
+    a start or catalog command is the sentence for it; any other replaced part is a generic sentence (it says the step names the
+    directory when the word is there, and that it may name it when only a generating character or the letters in order are).
 
-    The cost: non-simple text is replaced even when it holds no stand-in, on screens that may not show the directory only (for
-    example a step with a parenthesised legend, such as the capture command's). The test_shell_differential module checks the
-    allowlist against bash: the trivial reading of simple text equals bash's words, safety is exact (also with $0 and the positional
-    parameters set to DIRECTORY), and text that is not simple is always replaced."""
+    The cost is over-replacement: a part is replaced when the letters happen to appear in order or a generating character is
+    present, though it need not name the directory. It can never under-replace. The test_shell_differential module checks the
+    argument against bash: safety is exact (also with $0 and the positional parameters set to DIRECTORY), and no string without a
+    generating character or the letters in order ever has DIRECTORY among bash's words."""
     if not step:
         return step
     pieces = _SEPARATOR.split(step)
     for index in range(0, len(pieces), 2):
         part = pieces[index]
-        simple = _SIMPLE_PART.fullmatch(part)
-        plain = part.replace("'", '')
-        if simple and not _TOKEN.search(plain):
+        letters = iter(part)
+        if not (any(char in _GENERATING for char in part) or all(letter in letters for letter in 'DIRECTORY')):
             continue
+        plain = part.replace("'", '').replace('"', '')
         command = re.search(r'%s +(%s)\b' % (re.escape(PROGRAM), '|'.join(DIRECTORY_COMMANDS)), plain)
-        names = _TOKEN.search(plain) if simple else 'DIRECTORY' in part
-        said = (IN_WORDS % command.group(1) if command else NO_NAME_WORDS) if names else NOT_SHOWN_WORDS
+        said = (IN_WORDS % command.group(1) if command else
+                NO_NAME_WORDS if 'DIRECTORY' in part else MAY_NAME_WORDS)
         pieces[index] = part[:len(part) - len(part.lstrip(' '))] + said + part[len(part.rstrip(' ')):]
     return ''.join(pieces)
 
