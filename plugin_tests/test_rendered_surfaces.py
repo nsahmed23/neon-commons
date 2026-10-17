@@ -23,6 +23,12 @@ workspace (r), which shows that same JSON document.
 The allowlist is the :help listing and the help legend (the synopses of workbench.HELP and of the legend's Changes and Workflow map
 rows), and only on a surface that also shows the convention sentence (SYNOPSIS_CONVENTION of test_template_words): words in capitals
 there are metavariables, and the sentence says so. Nothing else is allowed. Until a surface shows the sentence, its synopses fail.
+
+A second check, the independent net, does not use the reader's context rules: a form the reader misses is missed by the renderer
+and by the check above alike. In every row of every surface but the help synopsis surfaces, a token that is a member of
+entry.FILL_IN_TEMPLATES, or is shaped like a placeholder (capitals and digits with an underscore, or a bare FILE, PATH, ROOT, ID,
+NAME, VALUE, STAGE, FIELD, SERVICE, REVISION, COMMIT, REPO, DIGEST, STORE, POLICY or DIRECTORY), after a word the product's own tables
+name as a command, is a hit. Its false positives are the entries of NET_ALLOWED, each with its reason. Both checks are reported.
 """
 import argparse
 import collections
@@ -77,16 +83,20 @@ def _strings(operand):
 TEMPORARY = re.compile(r'/tmp/tmp\w+|operation-[0-9a-f]{8}-[0-9a-f]{12}')
 
 
+def scrubbed(text):
+    """The text on one line, with the name of a temporary directory or an operation replaced by a fixed word, so one site is one
+    finding in every run."""
+    return TEMPORARY.sub(lambda m: '/tmp/<temp>' if m.group().startswith('/') else 'operation-<id>', ' '.join(text.split()))
+
+
 def unresolved(text):
-    """[(command as the reader reads it, [its unresolved operands])] for the commands readiness.commands_in finds in text. The
-    name of a temporary directory or an operation is replaced by a fixed word, so one site is one finding in every run."""
+    """[(command as the reader reads it, [its unresolved operands])] for the commands readiness.commands_in finds in text."""
     from intune_iac import entry, readiness
     found = []
     for begin, end, head, items in readiness.commands_in(text):
         bad = [string for item in items for string in _strings(item) if entry.is_fill_in(_bare(string))]
         if bad:
-            found.append((TEMPORARY.sub(lambda m: '/tmp/<temp>' if m.group().startswith('/') else 'operation-<id>',
-                                        ' '.join(text[begin:end].split())), bad))
+            found.append((scrubbed(text[begin:end]), bad))
     return found
 
 
@@ -129,6 +139,107 @@ def machine_form(text):
     return bool(text.strip())
 
 
+# -- the independent net -----------------------------------------------------------------------------------------------------------
+#
+# readiness.commands_in decides where a command begins and ends, so a form it does not read is missed by the renderer and by the
+# check above alike (`collect --root STORE --service-root SERVICE` is one; so is a command with a recorded word before its first
+# placeholder). The net judges every row with no context rules at all. After a word the product's own tables name as a command,
+# any token of the same row that is a member of entry.FILL_IN_TEMPLATES, or is shaped like a placeholder, is a hit. No command has
+# to be read: the word and the token only have to share a row. It is run on every surface except the help synopsis surfaces.
+
+# A bare word that is a placeholder whether or not the product has a template for it yet.
+BARE_PLACEHOLDERS = frozenset(('FILE', 'PATH', 'ROOT', 'ID', 'NAME', 'VALUE', 'STAGE', 'FIELD', 'SERVICE', 'REVISION', 'COMMIT',
+                               'REPO', 'DIGEST', 'STORE', 'POLICY', 'DIRECTORY'))
+SHAPED = re.compile(r'[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\Z')              # capitals and digits, with at least one underscore
+# A word of a row. What joins alternatives (a/b, a|b), an option to its value (--root=STORE) or sits around a word does not belong
+# to it, so `back STAGE/edit FIELD VALUE/resume` is the words back, STAGE, edit, FIELD, VALUE and resume.
+WORDS = re.compile(r"[^\s/|=,;()\[\]{}<>\"'`]+")
+
+
+@functools.lru_cache(maxsize=1)
+def command_words():
+    """Every word the product's own tables name as a command: the program, every route of the command line's parser at every depth,
+    and every word the line terminal and the wizard's prompts accept (readiness.dialects). Matched exactly, in lower case."""
+    from intune_iac import readiness
+    shell, typed = readiness.dialects()
+    words, pending = {readiness.PROGRAM} | set(typed), [shell]
+    while pending:
+        for name, sub in pending.pop().items():
+            words.add(name)
+            pending.append(sub)
+    return frozenset(words)
+
+
+def placeholder_like(word):
+    from intune_iac import entry
+    return word in BARE_PLACEHOLDERS or bool(SHAPED.match(word)) or entry.is_fill_in(word)
+
+
+def scan(row):
+    """[(nearest command word before it, token, the word right before the token)] for a row: each placeholder-like token that has
+    a command word before it."""
+    commands, last, before, hits = command_words(), None, None, []
+    for word in (found.strip('.:!?*') for found in WORDS.findall(row)):
+        if not word:
+            continue
+        if last is not None and placeholder_like(word):
+            hits.append((last, word, before))
+        elif word in commands:
+            last = word
+        before = word
+    return hits
+
+
+def net_hits(row):
+    """[(nearest command word before it, token)] for a row."""
+    return [(command, token) for command, token, _ in scan(row)]
+
+
+def usage_rows(rows):
+    """The indexes of the rows of argparse usage blocks: a `usage:` row and the indented rows that continue it."""
+    found, inside = set(), False
+    for index, row in enumerate(rows):
+        if row.lstrip().startswith('usage:'):
+            inside = True
+        elif not (row.strip() and row[:1].isspace()):
+            inside = False
+        if inside:
+            found.add(index)
+    return found
+
+
+def in_usage_block(state, rows, index, previous, token):
+    return index in usage_rows(rows)
+
+
+def id_after_a_noun(state, rows, index, previous, token):
+    """ID right after a plain lowercase word that is not a command word ("object ID", "tenant ID")."""
+    return token == 'ID' and bool(previous) and previous.isalpha() and previous.islower() and previous not in command_words()
+
+
+# The net's false positives: one entry each, (name, the states it applies to or None for any, what it excuses, the reason that is not a
+# defect). What an entry excuses is a function of the screen's rows, the row's index, the word before the token and the token, so an
+# entry excuses only what it names and the rest of the screen is still read. There is no other allowance.
+NET_ALLOWED = (
+    ('argparse usage block', ('help', 'usage error'), in_usage_block,
+     "argparse writes the parser's own synopsis with each option's metavariable (--root ROOT, --service-root SERVICE_ROOT): the "
+     "standard notation of a command line, generated from the parser, printed by --help or after a usage error and never as a "
+     "step to copy. Its choices can even be command words ({simulation,live}). The description and the option list below it are "
+     "still read."),
+    ('ID after a noun', None, id_after_a_noun,
+     "ID right after a plain noun is the abbreviation of identifier in a sentence ('the Intune object ID it manages', 'tenant ID'), "
+     "not a placeholder. An ID that is an operand follows an option (--object ID) or a command word (select ID), and stays a hit."),
+)
+
+
+def net_excuse(state, rows, index, previous, token):
+    """The name of the allowlist entry that excuses a hit, or None."""
+    for name, states, excuses, reason in NET_ALLOWED:
+        if (states is None or state in states) and excuses(state, rows, index, previous, token):
+            return name
+    return None
+
+
 # -- the allowlist: the :help listing and the help legend ---------------------------------------------------------------------------
 
 @functools.lru_cache(maxsize=1)
@@ -163,10 +274,32 @@ class Sweep:
         self.found = collections.OrderedDict()                 # (command, operands) -> {(state, surface, size)}
         self.synopses = collections.OrderedDict()              # a synopsis printed on a surface without the convention sentence
         self.coverage = collections.Counter()                  # (state, surface, size) -> screens read
+        self.net = collections.OrderedDict()                   # (command word, token) -> {'where': {...}, 'rows': {...}}
+        self.excused = collections.Counter()                   # allowlist entry -> hits it excused
 
-    def read(self, state, surface, size, texts, convention=False):
-        """Judge the texts of one screen. convention: the surface shows SYNOPSIS_CONVENTION (all its pages)."""
+    def cast(self, state, surface, size, rows):
+        """The independent net over the rows of one screen (not on the help synopsis surfaces)."""
+        if surface in HELP_SURFACES:
+            return
+        seen = set()
+        for index, row in enumerate(rows):
+            for word, token, previous in scan(row):
+                if (word, token, row) in seen:
+                    continue
+                seen.add((word, token, row))
+                reason = net_excuse(state, rows, index, previous, token)
+                if reason:
+                    self.excused[reason] += 1
+                    continue
+                held = self.net.setdefault((word, token), {'where': set(), 'rows': set()})
+                held['where'].add((state, surface, size))
+                held['rows'].add(scrubbed(row))
+
+    def read(self, state, surface, size, texts, convention=False, rows=()):
+        """Judge the texts of one screen. convention: the surface shows SYNOPSIS_CONVENTION (all its pages). rows: the rows as
+        printed, for the net."""
         self.coverage[(state, surface, size)] += 1
+        self.cast(state, surface, size, rows)
         seen = set()
         for text in texts:
             for command, operands in unresolved(text):
@@ -185,7 +318,19 @@ class Sweep:
         if machine_form(text):
             self.coverage[(state, surface, size, 'machine form')] += 1
             return
-        self.read(state, surface, size, readable(text.split('\n')))
+        self.read(state, surface, size, readable(text.split('\n')), rows=text.split('\n'))
+
+    def net_failures(self):
+        """The net's failure lines: one per (command word, token), with the longest row it was seen in and where."""
+        lines = []
+        for (word, token), held in self.net.items():
+            lines.append('independent net: %r after the command word %r, in the row %r' % (token, word, max(held['rows'], key=len)))
+            places = collections.OrderedDict()
+            for state, surface, size in sorted(held['where']):
+                places.setdefault((surface, state), []).append(size)
+            for (surface, state), sizes in places.items():
+                lines.append('    on %r, in state %r, at %s' % (surface, state, ' '.join(size_word(s) for s in sizes)))
+        return lines
 
     def failures(self):
         """The failure lines: one per command, naming every surface, state and size it was printed on."""
@@ -208,7 +353,12 @@ class Sweep:
         for mine, theirs in ((self.found, other.found), (self.synopses, other.synopses)):
             for item, where in theirs.items():
                 mine.setdefault(item, set()).update(where)
+        for item, held in other.net.items():
+            mine = self.net.setdefault(item, {'where': set(), 'rows': set()})
+            mine['where'] |= held['where']
+            mine['rows'] |= held['rows']
         self.coverage.update(other.coverage)
+        self.excused.update(other.excused)
         return self
 
 
@@ -315,7 +465,8 @@ def drive(root, service_root, plan, state, sweep, schedule=SCHEDULE):
         for size, style in schedule:
             pages, layer = surface_pages(ws, size, style)
             body = ' '.join(' '.join(row for _, part, _, _ in pages for row in part).split())
-            sweep.read(state, label, size, screen_texts(pages, layer), SYNOPSIS_CONVENTION in body)
+            rows = [row for page in pages for part in page[:3] for row in part]
+            sweep.read(state, label, size, screen_texts(pages, layer), SYNOPSIS_CONVENTION in body, rows)
 
     ws = Workspace(root, stdout=io.StringIO(), stdin=io.StringIO(), no_color=True)
     ws.rules = 'unicode'
@@ -610,7 +761,7 @@ def sweep_start_and_catalog():
                         for command, render in (('start', standin.render), ('catalog', standin.render_catalog)):
                             lines = render('cli', parent, name, width, goal)
                             sweep.read(state, command + (' --goal ' + goal if goal else ''), (width, 0),
-                                       readable(lines))
+                                       readable(lines), rows=lines)
     return sweep
 
 
@@ -654,11 +805,15 @@ def sweep_workflow_and_engineering():
     for width in WIDTHS:
         code, text, err = run_cli(['engineering'], width)
         sweep.text('no records configured', 'engineering', (width, 0), text)
+        # a collect with no service root is a session that was started without one (the sentence then has no service to name)
         for during in (None, {'command': 'execute', 'operation_root': '/ops/one'}, {'command': 'reconcile', 'operation_root': '/ops/one'},
-                       {'command': 'collect', 'service_root': '/svc'}, {'command': 'diagnostics'}, {'command': 'review'}):
+                       {'command': 'collect', 'service_root': '/svc'}, {'command': 'collect', 'service_root': None},
+                       {'command': 'diagnostics'}, {'command': 'review'}):
             result = {'status': 'interrupted', 'store_root': '/stores/one', 'interrupted_during': during}
-            sweep.text('interrupted during %s' % (during or {}).get('command', 'nothing'), 'workbench workspace (after Ctrl-C)',
-                       (width, 0), '\n'.join(workbench.interrupted_text(result, width)))
+            sweep.text('interrupted during %s%s' % ((during or {}).get('command', 'nothing'),
+                                                      ' with no service root' if during and during.get('command') == 'collect'
+                                                      and not during.get('service_root') else ''),
+                       'workbench workspace (after Ctrl-C)', (width, 0), '\n'.join(workbench.interrupted_text(result, width)))
     return sweep
 
 
@@ -727,7 +882,7 @@ class Transcript:
 
 def read_transcript(sweep, state, route, transcript):
     for kind, text in transcript.shown:
-        sweep.read(state, '%s (%s)' % (route, kind), (0, 0), readable(text.split('\n')))
+        sweep.read(state, '%s (%s)' % (route, kind), (0, 0), readable(text.split('\n')), rows=text.split('\n'))
 
 
 @functools.lru_cache(maxsize=1)
@@ -856,14 +1011,19 @@ class ReaderTests(unittest.TestCase):
         sweep = Sweep()
         sweep.read('state', 'queue', (80, 24), [':queue-amend FILE none'], True)         # not a synopsis: the sentence does not help
         self.assertEqual(sweep.count(), 1)
-        self.assertIn("':queue-amend FILE'", ' '.join(sweep.failures()))
+        # the parts that matter, not one exact quote: how far the reader reads past the placeholder (a recorded word such as
+        # `none` after it) is the reader's business and may change
+        text = ' '.join(sweep.failures())
+        self.assertIn('queue-amend', text)
+        self.assertIn("unresolved ['FILE']", text)
 
     def test_a_failure_names_the_surface_the_state_the_size_the_command_and_its_operands(self):
         sweep = Sweep()
         sweep.read('lost response', 'm Queue', (40, 12), ['x :queue-amend FILE none'])
         text = '\n'.join(sweep.failures())
-        for part in ("':queue-amend FILE'", "['FILE']", "'m Queue'", "'lost response'", '40x12'):
-            self.assertIn(part, text)
+        for part, what in (('queue-amend', 'the command word'), ("unresolved ['FILE']", 'the unresolved operand'),
+                           ("'m Queue'", 'the surface'), ("'lost response'", 'the state'), ('40x12', 'the size')):
+            self.assertIn(part, text, what)
 
     def test_json_is_a_machine_form_and_is_not_read(self):
         sweep = Sweep()
@@ -873,12 +1033,137 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(sweep.count(), 1)
 
 
+ALWAYS = NUMBERED + LETTERED + ('f Filters', ': command line (empty)', ': command line (typing)', ':catalog')
+
+
+def coverage_problems(name, sweep):
+    """What the sweep of a state did not read: every numbered and lettered surface at every size, and the layers the state's options
+    call for (the actions layer with each action, the workflow map with each stage, the help listing, the repository entry)."""
+    options = STATES[name][1]
+    wanted = list(ALWAYS)
+    if options.get('selected'):
+        wanted += ['a Actions', 'a Actions, action 1 focused', 'a Actions, action 1 staged', ':workflow', ':workflow, stage 12 focused']
+    if options.get('help_surfaces'):
+        wanted += ['? Help', '? Help, typed details (e)']
+    if name.startswith('repository-entry'):
+        wanted += [':repository-entry (candidates)', ':repository-entry (second candidate)']
+    return ['%s at %dx%d' % (surface, size[0], size[1]) for surface in wanted for size in SIZES
+            if not sweep.coverage[(name, surface, size)]]
+
+
+def judge(case, sweep):
+    """The two checks of a sweep, each reported on its own: the product's reader, then the independent net."""
+    with case.subTest('the product reader (readiness.commands_in)'):
+        case.assertEqual(sweep.failures(), [], '\n' + '\n'.join(sweep.failures()))
+    with case.subTest('the independent net (a placeholder after a command word in the same row)'):
+        case.assertEqual(sweep.net_failures(), [], '\n' + '\n'.join(sweep.net_failures()))
+
+
+class NetTests(unittest.TestCase):
+    """The independent net judges a row with no context rules: a placeholder-like token after a command word of the same row."""
+    HITS = (
+        ('collect --root STORE --service-root SERVICE', [('collect', 'STORE'), ('collect', 'SERVICE')]),
+        ('    :queue-review-template ownership_unknown NEW_JSON', [('queue-review-template', 'NEW_JSON')]),
+        ('Journey [continue/UUIDs/generate/plan/approve/execute/reconcile/finish/back STAGE/edit FIELD VALUE/resume/save/cancel]: ',
+         [('back', 'STAGE'), ('edit', 'FIELD'), ('edit', 'VALUE')]),
+        ('Run: intune-iac workbench companion --root STORE --object ID --out FILE',
+         [('companion', 'STORE'), ('companion', 'ID'), ('companion', 'FILE')]),
+        ('start from NEW_SESSION.json, then run review OPERATION_DIR.', [('start', 'NEW_SESSION.json'), ('review', 'OPERATION_DIR')]),
+        ('wizard --session=SESSION', [('wizard', 'SESSION')]),                       # an option joined to its value by =
+        ('intune-iac capture --token-env TOKEN_VARIABLE_NAME', [('capture', 'TOKEN_VARIABLE_NAME')]),
+        ('inspect (the policy DIGEST)', [('inspect', 'DIGEST')]),                   # no punctuation hides a token
+    )
+    CLEAN = (
+        'Select a policy first: 1 (Estate), then Enter.',                           # a capital S is not the command word select
+        "intune-iac workbench workspace --root 'estate dir/store'",
+        'the capture command, naming --tenant as your tenant id and --output as a new folder for the output',
+        'FILE is the file to write; then run companion with it',                    # the token stands before the command word
+        'SYNTHETIC | TENANT 11111111 | POLICY none selected',                       # no command word in the row
+        'review the OBS and OP states',                                             # capitals that are not placeholder-shaped
+    )
+
+    def test_a_token_after_a_command_word_is_a_hit_whether_or_not_a_command_can_be_read(self):
+        for row, expected in self.HITS:
+            with self.subTest(row=row):
+                self.assertEqual(net_hits(row), expected)
+
+    def test_prose_and_resolved_commands_are_not_hits(self):
+        for row in self.CLEAN:
+            with self.subTest(row=row):
+                self.assertEqual(net_hits(row), [])
+
+    def test_the_net_needs_no_command_to_be_read(self):
+        # Forms the product's reader did not read on 2dc278e (no placeholder as the first operand, a word outside its vocabulary).
+        # What the reader reads of them is its own business and may grow; the net hits them either way.
+        for row in ('collect --root STORE --service-root SERVICE', ':queue-review-template ownership_unknown NEW_JSON'):
+            self.assertTrue(net_hits(row), row)
+
+    def test_the_command_words_are_the_product_tables_and_the_placeholder_words_are_the_briefs(self):
+        words = command_words()
+        for word in ('intune-iac', 'workbench', 'companion', 'queue-amend', 'back', 'edit', 'collect', 'init', 'start'):
+            self.assertIn(word, words)
+        for word in ('Select', 'the', 'STORE'):
+            self.assertNotIn(word, words)
+        for word in ('NEW_JSON', 'TOKEN_VARIABLE_NAME', 'SERVICE_ROOT', 'FILE', 'ID', 'NEW_SESSION.json', 'DIRECTORY'):
+            self.assertTrue(placeholder_like(word), word)
+        for word in ('OBS', 'REPO_', 'file', 'Enter', 'UUIDs', 'KEY', '1_2'):
+            self.assertFalse(placeholder_like(word), word)
+
+    def test_the_net_is_not_run_on_the_help_synopsis_surfaces(self):
+        sweep = Sweep()
+        sweep.read('state', '8 Help', (80, 24), [], True, rows=['propose DESIRED_JSON NEW_OPERATION_DIR'])
+        self.assertEqual(sweep.net_failures(), [])
+        sweep.read('state', '2 Inspector', (80, 24), [], True, rows=['propose DESIRED_JSON NEW_OPERATION_DIR'])
+        self.assertEqual(sorted(sweep.net), [('propose', 'DESIRED_JSON'), ('propose', 'NEW_OPERATION_DIR')])
+
+    def test_a_net_failure_names_the_token_the_command_word_the_row_the_surface_the_state_and_the_size(self):
+        sweep = Sweep()
+        sweep.read('queue with items', 'm Queue', (60, 20), [], rows=['  :queue-review-template ownership_unknown NEW_JSON'])
+        text = '\n'.join(sweep.net_failures())
+        for part in ('NEW_JSON', 'queue-review-template', 'ownership_unknown', 'm Queue', 'queue with items', '60x20'):
+            self.assertIn(part, text)
+
+    def test_every_allowlist_entry_has_a_reason_and_excuses_only_the_rows_it_names(self):
+        self.assertTrue(NET_ALLOWED)
+        for name, states, excuses, reason in NET_ALLOWED:
+            self.assertTrue(name and callable(excuses) and len(reason.split()) > 10, name)      # a reason, in words
+        usage = ['usage: intune-iac workbench init [-h] --root ROOT --tenant TENANT',
+                 '                                 [--journey-mode {simulation,live}] [--atmos-executable ATMOS_EXECUTABLE]',
+                 '',
+                 'Start the store; init takes --root ROOT.',                        # a description row is still read
+                 'options:',
+                 '  --root ROOT  the store']
+        sweep = Sweep()
+        sweep.text('help', 'intune-iac workbench init --help', (100, 0), '\n'.join(usage))
+        self.assertEqual(sorted(sweep.net), [('init', 'ROOT')])                        # only the description row is a hit
+        self.assertEqual(sweep.excused['argparse usage block'], 2)                     # ROOT and ATMOS_EXECUTABLE (TENANT is neither)
+        error = Sweep()                                                                # a usage error: no blank row after the block
+        error.text('usage error', 'intune-iac workbench init', (100, 0), 'usage: intune-iac workbench init [-h] --root ROOT\n'
+                   'intune-iac workbench init: error: the following arguments are required: --root, --tenant')
+        self.assertEqual(error.net_failures(), [])
+        other = Sweep()                                                                # the same rows anywhere else are hits
+        other.text('selected policy', 'm Queue', (100, 0), '\n'.join(usage))
+        self.assertEqual(sorted(other.net), [('init', 'ROOT'), ('simulation', 'ATMOS_EXECUTABLE')])
+
+    def test_id_is_excused_only_as_the_abbreviation_in_a_sentence(self):
+        sweep = Sweep()
+        sweep.read('state', '9 Repository', (80, 24), [], rows=['select the object ID you want',
+                                                                 'It cannot be read from the repository. Supply the Intune object ID.'])
+        self.assertEqual((sweep.net_failures(), sweep.excused['ID after a noun']), ([], 2))
+        for row in ('select ID', 'inspect --object ID', 'workbench workflow --root ROOT --policy ID', 'review the run ID'):
+            other = Sweep()
+            other.read('state', '9 Repository', (80, 24), [], rows=[row])
+            self.assertTrue(other.net, row)                                              # an operand, or after a command word
+
+
 class WorkspaceSweepTests(unittest.TestCase):
     """Each state of a store, every surface, layer and prompt, every size: no command with an unresolved operand."""
 
     def check(self, name):
         sweep = sweep_state(name)
-        self.assertEqual(sweep.failures(), [], '\n' + '\n'.join(sweep.failures()))
+        # a pass is not a sweep that saw nothing: first, that every surface the state calls for was read at every size
+        self.assertEqual(coverage_problems(name, sweep), [], 'the sweep did not read these')
+        judge(self, sweep)
 
 
 def _state_test(name):
@@ -889,42 +1174,7 @@ for _number, _name in enumerate(STATES):
     setattr(WorkspaceSweepTests, 'test_state_%02d_%s' % (_number, re.sub(r'\W+', '_', _name).strip('_')), _state_test(_name))
 
 
-class WorkspaceCoverageTests(unittest.TestCase):
-    """The sweep reads what it says it reads: every state, every surface, every size (a pass is not a sweep that saw nothing)."""
-    ALWAYS = NUMBERED + LETTERED + ('f Filters', ': command line (empty)', ': command line (typing)', ':catalog')
-
-    def test_every_state_reads_every_surface_at_every_size(self):
-        for name in STATES:
-            coverage = sweep_state(name).coverage
-            for surface in self.ALWAYS:
-                for size in SIZES:
-                    with self.subTest(state=name, surface=surface, size=size):
-                        self.assertGreater(coverage[(name, surface, size)], 0)
-
-    def test_the_selected_states_read_the_actions_layer_with_each_action_and_the_workflow_map_with_each_stage(self):
-        for name, (_, options) in STATES.items():
-            if not options.get('selected'):
-                continue
-            coverage = sweep_state(name).coverage
-            for size in SIZES:
-                with self.subTest(state=name, size=size):
-                    self.assertGreater(coverage[(name, 'a Actions', size)], 0)
-                    self.assertGreater(coverage[(name, 'a Actions, action 1 focused', size)], 0)
-                    self.assertGreater(coverage[(name, 'a Actions, action 1 staged', size)], 0)
-                    self.assertGreater(coverage[(name, ':workflow', size)], 0)
-                    self.assertGreater(coverage[(name, ':workflow, stage 12 focused', size)], 0)
-
-    def test_the_help_and_its_listing_are_read_where_they_are_asked_for(self):
-        for name, (_, options) in STATES.items():
-            if options.get('help_surfaces'):
-                for size in SIZES:
-                    self.assertGreater(sweep_state(name).coverage[(name, '? Help, typed details (e)', size)], 0, (name, size))
-
-    def test_the_repository_entry_candidates_are_read(self):
-        for name in ('repository-entry: needs an object', 'repository-entry: needs a commit', 'repository-entry: other tenant'):
-            for size in SIZES:
-                self.assertGreater(sweep_state(name).coverage[(name, ':repository-entry (candidates)', size)], 0, (name, size))
-
+class StateListTests(unittest.TestCase):
     def test_the_states_are_the_ones_the_brief_names(self):
         words = ' | '.join(STATES)
         for needle in ('empty store', 'no selection', 'selected policy', 'awaiting review', 'awaiting execute', 'lost response',
@@ -934,7 +1184,7 @@ class WorkspaceCoverageTests(unittest.TestCase):
 
 class CommandLineSweepTests(unittest.TestCase):
     def check(self, sweep):
-        self.assertEqual(sweep.failures(), [], '\n' + '\n'.join(sweep.failures()))
+        judge(self, sweep)
 
     def test_start_and_the_catalog_with_no_goal_and_with_each_goal(self):
         sweep = sweep_start_and_catalog()
@@ -988,7 +1238,7 @@ class CommandLineSweepTests(unittest.TestCase):
 class WizardSweepTests(unittest.TestCase):
     def test_the_prompts_and_lines_of_the_wizard_the_guided_workflow_and_the_journey(self):
         sweep = sweep_wizards()
-        self.assertEqual(sweep.failures(), [], '\n' + '\n'.join(sweep.failures()))
+        judge(self, sweep)
         states = {state for (state, *_) in sweep.coverage}
         for name in ('wizard, first run', 'wizard, repository-owned edit handed off', 'wizard, output conflict',
                      'guided workflow, repository-owned edit handed off', 'journey, a whole run',
