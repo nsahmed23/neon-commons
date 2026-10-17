@@ -400,7 +400,7 @@ def _guide(session_path, state, input_fn, output_fn, fresh, guard):
             if edits:
                 output_fn(placeholders_in_words('Enter handoff to end this session in the repository workflow, or edit output VALUE for a fresh staging directory.'))
             prompt = ('Cancelled session [continue/save/cancel]: ' if cancelled else
-                      'Guided ' + step + ' [' + ('handoff/' if edits else '') + 'UUIDs/continue/generate/finish/cohort RING UUIDs/edit stack|component|output VALUE/save/cancel]: ')
+                      'Guided ' + step + ' [' + ('handoff/' if edits else '') + 'UUIDs/continue/generate/finish/cohort (then a ring and UUIDs)/edit (then stack, component or output, and its value)/save/cancel]: ')
             answer = _answer(prompt, input_fn)
             guard()
             command, _, argument = answer.partition(' ')

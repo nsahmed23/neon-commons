@@ -91,7 +91,7 @@ class RendererTests(unittest.TestCase):
 
     def test_an_option_and_its_placeholder_outside_a_command_is_described_too(self):
         self.assertEqual(said('with --serve instead of --out FILE it serves'),
-                         'with --serve instead of --out (the file to write the page to) it serves')
+                         'with --serve instead of --out (the file you name) it serves')
 
     def test_resolved_commands_and_plain_prose_are_unchanged(self):
         for text in ("Run: intune-iac workbench workspace --root 'estate dir/store'", 'No action needed.',
@@ -145,7 +145,7 @@ class RenderedSurfaceTests(unittest.TestCase):
         text = said(workbench.ACTION_EFFECTS['companion'])
         self.assertEqual(unresolved(text), [])
         self.assertNotIn('--out FILE', text)
-        self.assertIn('--out as the file to write the page to', text)
+        self.assertIn('--out as the file you name', text)
         source = (PACKAGE / 'companion_page.py').read_text(encoding='utf-8')
         self.assertIn('status = placeholders_in_words(status)', source)
         screens = (PACKAGE / 'workbench_screens.py').read_text(encoding='utf-8')
@@ -180,7 +180,7 @@ SYNOPSIS = {
     ('workbench_screens.py', ":workflow draws the selected policy's change path"),
     ('workbench_screens.py', 'propose DESIRED_JSON NEW_OPERATION_DIR or propose-from-intent'),
 }
-SYNOPSIS_CONVENTION = 'words in capitals stand for values you supply'
+SYNOPSIS_CONVENTION = 'words in capitals stand for values you supply'      # the help legend's sentence contains it
 
 # Rendered at the human-text boundary by the renderer, each with a test above: the recorded text stays as it is for the JSON forms.
 RENDERED = {
@@ -197,10 +197,13 @@ RENDERED = {
     ('workflow.py', 'Enter handoff to end this session in the repository workflow, or edit '),
 }
 
-# NOT CLOSED in this package (reported): prompts and hints whose text also reaches JSON or whose display path was not found in time.
-OPEN = {
-    ('journey.py', 'Preserved prior artifacts. Restore the original evidence, or use edit '),
-    ('journey.py', 'Completed; inspect evidence, back STAGE, edit, or save.'),
+# Nothing is open: every constant that holds a command with a placeholder operand is a synopsis, rendered at the boundary where it is
+# displayed (a rendered test below), or not a command a person reads at all (named). The list is asserted empty.
+OPEN = set()
+
+# Rendered where the screens display them (workbench_screens.step_rows and _labelled_steps render a whole step; the others render the
+# string where it is built), each exercised in RenderedEverywhereTests.
+RENDERED |= {
     ('repository_entry.py', 'commit the change, then repository-refresh COMMIT records it'),
     ('repository_entry.py', 'The key encodes tenant %s; this store holds tenant %s. Record it into '),
     ('workbench.py', ' Command:\n  propose-from-intent NEW_OPERATION_DIR'), ('workbench.py', ' Command:\n  propose DESIRED_JSON NEW_OPERATION_DIR'),
@@ -210,7 +213,8 @@ OPEN = {
     ('workbench_repository.py', 'The repository still matches this intent. propose-from-intent NEW_OPER'),
     ('workbench_repository.py', 'The repository changed since this intent was recorded. Review the diff'),
     ('workbench_screens.py', 'none recorded; repository-entry REPOSITORY finds where this policy is '),
-    ('workbench_screens.py', '  :repository-entry REPOSITORY'), ('workbench_screens.py', '    :queue-amend FILE %s'),
+    ('workbench_screens.py', ':repository-entry REPOSITORY'), ('workbench_screens.py', '    :queue-review-template %s NEW_JSON'),
+    ('workbench_screens.py', '  :queue-review-template %s NEW_JSON'), ('workbench_screens.py', '    :queue-amend FILE %s'),
     ('workbench_tui.py', 'No active operation: review one first (5, or :review OPERATION_DIR).'),
 }
 
@@ -244,6 +248,9 @@ class IntroductionGuardTests(unittest.TestCase):
         self.assertEqual([(f, v[:80]) for f, v in unnamed], [], 'a command with a placeholder operand that no test names')
         stale = sorted(item for item in known if not any(item[0] == f and v.startswith(item[1]) for f, v in found))
         self.assertEqual(stale, [], 'named, but no longer a constant with a placeholder operand: remove it from the list')
+
+    def test_nothing_is_open(self):
+        self.assertEqual(OPEN, set())
 
     def test_the_synopsis_allowlist_is_only_the_help_listing_and_the_help_legend(self):
         self.assertEqual({f for f, _ in SYNOPSIS}, {'workbench.py', 'workbench_screens.py'})
@@ -280,6 +287,169 @@ class RecordedTextPinsTests(unittest.TestCase):
             'workbench.HELP': digest(workbench.HELP),
         }
         self.assertEqual(now, PINS)
+
+
+
+# -- end to end: the human text each site really prints ------------------------------------------------------------------------
+
+class RenderedEverywhereTests(unittest.TestCase):
+    def test_the_help_legend_says_what_capitals_mean(self):
+        from intune_iac import workbench_screens
+        text = ' '.join(' '.join(workbench_screens.help_lines(100)).split())
+        self.assertIn(SYNOPSIS_CONVENTION, text)
+        self.assertIn(workbench_screens.SYNOPSIS_CONVENTION, text)
+        self.assertIn('propose DESIRED_JSON NEW_OPERATION_DIR', text)       # the allowlisted synopsis is there, with its convention
+
+    def test_the_journey_and_the_guided_workflow_print_words_in_their_messages_and_prompts(self):
+        import tempfile
+        from plugin_tests import test_journey_completion as tj, test_workflow as tw
+        # journey
+        case = tj.JourneyCompletionTests('test_contract_is_closed_and_executable')
+        case.setUp()
+        try:
+            case.complete()
+            case.edit_policy_description()
+            prompts = []
+            queue = iter(['handoff'])
+
+            def read(prompt):
+                prompts.append(prompt)
+                value = next(queue, None)
+                if value is None:
+                    raise EOFError()
+                return value
+            case.api().run_journey(case.session, input_fn=read, output_fn=case.messages.append)
+            messages = '\n'.join(case.messages)
+            for text in (messages, '\n'.join(prompts)):
+                self.assertEqual(unresolved(text), [], text)
+            self.assertIn('--revision as the Git commit that holds the edited project', messages)
+            self.assertIn('--root as your store folder', messages)
+            self.assertTrue(any('back (then a stage)' in prompt for prompt in prompts), prompts)
+        finally:
+            case.doCleanups()
+        # guided workflow
+        case = tw.WorkflowTests('test_guided_entrypoint_reaches_real_generated_handoff')
+        case.setUp()
+        try:
+            case.run_flow([tw.POLICY, 'generate', 'finish'])
+            case.edit_policy_description()
+            case.messages.clear()
+            del case.prompts[:]
+            case.run_flow(['handoff'], supplied=False)
+            messages = '\n'.join(case.messages)
+            for text in (messages, '\n'.join(case.prompts)):
+                self.assertEqual(unresolved(text), [], text)
+            self.assertIn('the edit output command, naming the value to set', ' '.join(messages.split()))
+            self.assertIn('--revision as the Git commit that holds the edited project', messages)
+            self.assertTrue(any('cohort (then a ring and UUIDs)' in prompt for prompt in case.prompts), case.prompts)
+        finally:
+            case.doCleanups()
+
+    def test_the_companion_page_status_is_words(self):
+        from plugin_tests import test_companion_page as tc
+        tc.StructureTests.setUpClass()
+        case = tc.StructureTests('test_a_static_page_says_plainly_that_it_does_not_update_itself')
+        try:
+            status = tc.section(case.page(), 'live')
+            self.assertEqual(unresolved(status), [], status)
+            self.assertIn('--object as the exact object id of the policy', status)
+            self.assertIn('--out', status)
+            self.assertNotIn('--out FILE', status)
+        finally:
+            tc.StructureTests.tearDownClass()
+
+    def test_the_actions_screen_describes_the_companion_in_words(self):
+        from intune_iac import workbench, workbench_screens
+        action = {'label': 'Write the companion page', 'available': True, 'effects': workbench.ACTION_EFFECTS['companion'],
+                  'summary': 'x', 'command': 'companion'}
+        text = ' '.join(' '.join(workbench_screens.actions_lines([action], 0, 100, 'P', 'o' * 8 + '-1111-4111-8111-' + '1' * 12)).split())
+        self.assertEqual(unresolved(text), [], text)
+        self.assertIn('--out as the file you name', text)
+
+    def test_the_other_tenant_explanation_and_the_repository_next_actions_are_words(self):
+        from intune_iac import workbench_diagnostics, workbench_repository, workbench_screens
+        explanation = ('The key encodes tenant T1; this store holds tenant T2. Record it into a store for that tenant '
+                       '(workbench init --root STORE --tenant T1).')
+        value = {'repository': '/work/repository', 'revision': 'c' * 40, 'tenant_id': 'T2', 'status': 'discovered',
+                 'components': [], 'next_action': 'One policy.', 'candidates': [{
+                     'number': 1, 'stack': 's', 'component': 'c', 'policy_key': 'p_a', 'object_id': '2' * 8 + '-2222-4222-8222-' + '2' * 12,
+                     'observed': {'present': False}, 'state': 'other_tenant', 'backend': 'local', 'backend_source': 'none_declared',
+                     'resource_address': None, 'explanation': explanation}]}
+        text = ' '.join(' '.join(workbench_screens.repository_entry_lines(value, 100)).split())
+        self.assertEqual(unresolved(text), [], text)
+        self.assertIn('--root as your store folder', text)
+        self.assertIn('--tenant T1', text)
+        for step in (workbench_repository.NEXT_ACTIONS['current'], workbench_repository.NEXT_ACTIONS['stale'],
+                     workbench_diagnostics.LINE_COMMAND):
+            rows = ' '.join(' '.join(workbench_screens.step_rows(step, 100)).split())
+            self.assertEqual(unresolved(rows), [], rows)
+        rows = ' '.join(workbench_screens._labelled_steps('Next', workbench_diagnostics.LINE_COMMAND, 100, 10))
+        self.assertIn('the repository-refresh command, naming the Git revision to record', ' '.join(rows.split()))
+
+    def test_the_inspector_next_actions_and_the_interrupted_diagnostics_line_are_words(self):
+        from intune_iac import workbench, workbench_screens
+        steps = workbench._next_actions({'selected_repository': {'artifact_id': 'a'}}, {'signals': [], 'status': 'ok'}, True)
+        steps += workbench._next_actions({}, {'signals': [], 'status': 'ok'}, True)
+        rows = ' '.join(' '.join(workbench_screens._labelled_steps('  ', step['step'], 100, 2)) for step in steps)
+        self.assertEqual(unresolved(rows), [], rows)
+        self.assertIn('propose-from-intent command, naming a new folder for the operation', rows)
+        self.assertIn('propose command, naming your desired-policy JSON file and a new folder for the operation', rows)
+        lines = workbench.interrupted_lines({'store_root': '/s', 'during': {'command': 'other'}, 'interrupted': True})
+        self.assertEqual(unresolved('\n'.join(map(str, lines))), [], lines)
+
+    def test_the_reconcile_recovery_and_the_review_notice_are_words(self):
+        for module, needle in (('workbench_tui.py', "placeholders_in_words( 'Use :reconcile OPERATION_DIR"),
+                               ('workbench_tui.py', "placeholders_in_words('No active operation: review one first (5, or :review OPERATION_DIR).')"),
+                               ('workbench_screens.py', "placeholders_in_words('    :queue-amend FILE %s' % prior)"),
+                               ('workbench_screens.py', "placeholders_in_words(':repository-entry REPOSITORY')"),
+                               ('workbench_screens.py', "placeholders_in_words('none recorded; repository-entry REPOSITORY finds")):
+            source = ' '.join((PACKAGE / module).read_text(encoding='utf-8').split())
+            self.assertIn(' '.join(needle.split()), source, (module, needle))
+        for text in (':queue-amend FILE x', ':repository-entry REPOSITORY', 'No active operation: review one first (5, or :review OPERATION_DIR).',
+                     'none recorded; repository-entry REPOSITORY finds where this policy is maintained'):
+            self.assertEqual(unresolved(said(text)), [], text)
+
+
+# -- the JSON forms of repository-entry and output classify -------------------------------------------------------------------
+
+# digests of the JSON forms of `workbench repository-entry` and of the generated-output classification, taken on fa3f022 (the temporary
+# directories are masked): the renderer never touches a recorded text.
+JSON_PINS = {
+    'output classify edited': '4811257a0e921d26',
+    'output classify unchanged': '07caae44eeae0c63',
+    'repository entry': '0f184a802cf1d72c',
+}
+
+
+def _digest(value, *masks):
+    text = json.dumps(value, sort_keys=True)
+    for mask in masks:
+        text = text.replace(str(mask), 'MASK')
+    return hashlib.sha256(text.encode()).hexdigest()[:16]
+
+
+class JsonPinsTests(unittest.TestCase):
+    def test_the_json_of_repository_entry_and_output_classify_is_what_it_was(self):
+        found = {}
+        from plugin_tests import test_output_edit as o
+        case = o.OutputEditTests('test_unchanged_output_is_unchanged')
+        case.setUp()
+        try:
+            found['output classify unchanged'] = _digest(case.classify(), case.root)
+            case.stack.write_text(case.stack.read_text().replace(o.OBSERVED, o.EDITED))
+            found['output classify edited'] = _digest(case.classify(), case.root)
+        finally:
+            case.doCleanups()
+        from plugin_tests import test_repository_entry as r
+        case = r.RepositoryEntryTests('test_a_generated_repository_offers_its_policy_with_every_value_derived')
+        case.setUp()
+        try:
+            r.commit(case.repo)
+            found['repository entry'] = _digest(case.survey(), case.repo, case.store.root if hasattr(case.store, 'root') else '',
+                                                Path(str(case.repo)).parent)
+        finally:
+            case.doCleanups()
+        self.assertEqual(found, JSON_PINS)
 
 
 if __name__ == '__main__':

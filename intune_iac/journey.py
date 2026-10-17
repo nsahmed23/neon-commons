@@ -721,8 +721,8 @@ def _run(session, state, fresh, input_fn, output_fn, guard):
                 approval = None
                 if state['in_flight'] is None: _invalidate(session, 'approval')
                 output_fn('Source or target evidence is unavailable: ' + getattr(error, 'code', 'local_observation_failed'))
-                output_fn('Preserved prior artifacts. Restore the original evidence, or use edit input PATH / edit context PATH; no operation is authorized.')
-                answer = input_fn('Journey [edit FIELD VALUE/resume/save/cancel]: ').strip()
+                output_fn('Preserved prior artifacts. Restore the original evidence, or use edit input and a path, or edit context and a path; no operation is authorized.')
+                answer = input_fn('Journey [edit (then a field and its value)/resume/save/cancel]: ').strip()
                 if len(answer) > 8192: raise AppError('journey_input_limit', 'Command exceeds bounded input limits.')
                 command, _, argument = answer.partition(' '); command = command.lower(); guard()
                 if command in ('save', 'cancel'): return finish('suspended' if command == 'save' else 'cancelled')
@@ -751,7 +751,7 @@ def _run(session, state, fresh, input_fn, output_fn, guard):
                 for line in edit['next_steps'][1:]: output_fn('Next: ' + placeholders_in_words(line))
             if edits: output_fn(placeholders_in_words('Enter handoff to end this journey in the repository workflow, or back STAGE, or edit to change course.'))
             output_fn('Action reads/writes and recovery: ' + (str(action_contract()['actions'][STAGES.index(step)]) if step in STAGES else 'Review completed evidence or reconcile an uncertain local operation.'))
-            answer = input_fn('Journey [' + ('handoff/' if edits else '') + 'continue/UUIDs/generate/plan/approve/execute/reconcile/finish/back STAGE/edit FIELD VALUE/resume/save/cancel]: ').strip()
+            answer = input_fn('Journey [' + ('handoff/' if edits else '') + 'continue/UUIDs/generate/plan/approve/execute/reconcile/finish/back (then a stage)/edit (then a field and its value)/resume/save/cancel]: ').strip()
             if len(answer) > 8192: raise AppError('journey_input_limit', 'Command exceeds bounded input limits.')
             guard(); command, _, argument = answer.partition(' '); command = command.lower()
             if command in ('save', 'cancel'): return finish('suspended' if command == 'save' else 'cancelled')
@@ -786,7 +786,7 @@ def _run(session, state, fresh, input_fn, output_fn, guard):
                     _edit(session, state, argument); approval = None
                 elif step == 'complete_simulation':
                     if command == 'finish': return finish('complete_simulation')
-                    output_fn('Completed; inspect evidence, back STAGE, edit, or save.')
+                    output_fn('Completed; inspect evidence, back and a stage name, edit, or save.')
                 elif step == 'selection':
                     state['selected_ids'] = _selected_ids([item.strip() for item in answer.split(',')])
                     output_fn('Working: verifying the selected identities and preservation evidence.')

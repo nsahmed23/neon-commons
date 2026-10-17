@@ -2916,7 +2916,7 @@ class Workspace:
                     self.notice = 'Select an exact identity from Estate first.'
                 elif char == 'v':
                     if self.active_operation is not None: return self._send('delivery ' + shlex.quote(self.active_operation))
-                    self.notice = 'No active operation: review one first (5, or :review OPERATION_DIR).'
+                    self.notice = __import__('intune_iac.readiness', fromlist=['x']).placeholders_in_words('No active operation: review one first (5, or :review OPERATION_DIR).')
                 elif char == 'l': return self._send('lineage')
                 elif char == 'o': return self._send('estate-overview')
                 elif char in ('e', 'r'):

@@ -101,6 +101,8 @@ def command_names(text):
 _PROSE = frozenset(('and', 'or', 'then', 'from', 'with', 'to', 'for', 'in', 'as', 'the', 'a', 'is', 'it', 'its', 'pass', 'shows',
                     'see', 'run', 'of', 'on', 'by', 'when', 'that', 'this', 'at', 'prepares', 'never', 'where', 'where'))
 _SUBCOMMAND = re.compile(r'[a-z][a-z-]*\Z')
+# a resolved typed argument that is a recorded identifier (ownership_unknown, p_ab12), never an English word
+_IDENTIFIER_ARG = re.compile(r'[a-z0-9]+(?:_[a-z0-9]+)+|[0-9a-f]{16,}|none')
 
 
 # A word of a printed command: a quote opens a quoted run only at the start of a word, so the apostrophe in o'connor (a name in a
@@ -236,7 +238,8 @@ def commands_in(step):
             items, end, ahead = [], None, probe
             while ahead < len(words):
                 raw, word, arg = tidy(words[ahead])
-                if not (is_fill_in(arg) or word.startswith("'") or ('/' in arg and len(arg.strip('/')) > 1) or arg.isdigit()):
+                if not (is_fill_in(arg) or word.startswith("'") or ('/' in arg and len(arg.strip('/')) > 1) or arg.isdigit()
+                        or _IDENTIFIER_ARG.fullmatch(arg)):
                     break
                 items.append((None, word))
                 end, ahead = _end_of(words[ahead], word), ahead + 1
@@ -281,7 +284,8 @@ TEMPLATE_WORDS = {
     'SESSION': 'a session file',
     'STACK': 'the stack name',
     'COMPONENT': 'the component name',
-    'FILE': 'the file to write the page to',
+    'FILE': 'the file you name',
+    'NEW_JSON': 'a new JSON file for the review form',
     'COMMIT': 'the Git commit that holds the edited project',
     'NAME': 'the name of the account you signed in with',
     'OBJECT_ID': 'the exact object id of the policy',

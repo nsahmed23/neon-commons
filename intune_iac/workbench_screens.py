@@ -729,7 +729,7 @@ def state_lines(states, width, heading='STATE', prefixes=None, reviewing=None, s
     lines = [''] + word_wrap(heading, width) + _labelled('  Observation', '; '.join(parts), width, 15)
     intent = states.get('intent') if isinstance(states.get('intent'), dict) else {}
     if intent.get('status') in (None, 'none'):
-        text = 'none recorded; repository-entry REPOSITORY finds where this policy is maintained'
+        text = __import__('intune_iac.readiness', fromlist=['x']).placeholders_in_words('none recorded; repository-entry REPOSITORY finds where this policy is maintained')
     else:
         scope = intent.get('scope') if isinstance(intent.get('scope'), dict) else {}
         revision = intent.get('source_revision')
@@ -1166,7 +1166,7 @@ def review_lines(value, width):
         return lines
     if value.get('status') != 'recorded':
         return (word_wrap('[REVIEW] No review recorded for %s of this policy. Write the form to fill with:' % finding, width)
-                + word_wrap('  :queue-review-template %s NEW_JSON' % value.get('finding'), width))
+                + word_wrap(__import__('intune_iac.readiness', fromlist=['x']).placeholders_in_words('  :queue-review-template %s NEW_JSON' % value.get('finding')), width))
     def flag(when, state, yes, no):
         return 'none' if when is None else '%s (%s)' % (_when(when), yes if state else no if state is False else 'unknown')
     lines = word_wrap('[REVIEW] %s, version %s, recorded %s' % (finding, value.get('version'), _when(value.get('recorded_at'))), width)
@@ -1307,8 +1307,9 @@ COMMAND_BREAK = '\n'
 def step_rows(text, width, label=''):
     """The rows of a step whose text may hold commands after line breaks: each part wraps by itself (a command wraps
     between its arguments, never inside a quoted path), and only the first part carries the label."""
+    from .readiness import placeholders_in_words
     rows = []
-    for index, part in enumerate(str(text).split(COMMAND_BREAK)):
+    for index, part in enumerate(placeholders_in_words(str(text)).split(COMMAND_BREAK)):
         rows += word_wrap((label if index == 0 else '') + part, width)
     return rows
 
@@ -1316,8 +1317,9 @@ def step_rows(text, width, label=''):
 def _labelled_steps(label, text, width, size=13):
     """_labelled for a step that may hold commands after line breaks: the label leads the first part, every part's rows
     sit under the text column, and a command keeps its own indent."""
+    from .readiness import placeholders_in_words
     rows = []
-    for index, part in enumerate(str(text).split(COMMAND_BREAK)):
+    for index, part in enumerate(placeholders_in_words(str(text)).split(COMMAND_BREAK)):
         rows += _labelled(label if index == 0 else '', part, width, size)
     return rows
 
@@ -1864,6 +1866,8 @@ HELP_KEYS = (
     ('q', 'exit the workbench'),
     ('Ctrl-C', 'stop a running call; the session ends'),
 )
+# The one sentence that licenses a usage synopsis: where a screen shows command syntax with words in capitals, it says what they are.
+SYNOPSIS_CONVENTION = 'In command syntax, words in capitals stand for values you supply.'
 # The words the screens use, then how changes and the session work.
 HELP_WORDS = (
     ('Mode', 'The first word of the line under the tabs says where the evidence comes from: SYNTHETIC (a modeled '
@@ -1904,6 +1908,7 @@ HELP_WORDS = (
     ('Session', 'The next start reopens the last read-only view of the selected policy; Delivery and '
                 'repository-entry views, which hold paths, are not reopened. :clear-selection clears the selected '
                 'policy. Between commands nothing is running, so :cancel cancels nothing.'),
+    ('Notation', SYNOPSIS_CONVENTION),
 )
 
 
@@ -3058,8 +3063,8 @@ def queue_lines(value, width, selected=None):
                                               '; none means this finding has no earlier review to replace.' if prior == 'none'
                                               else '.'), width)
                        + (word_wrap('    :select %s' % item.get('object_id'), width) if other else [])
-                       + word_wrap('    :queue-review-template %s NEW_JSON' % item.get('finding'), width)
-                       + word_wrap('    :queue-amend FILE %s' % prior, width), False))
+                       + word_wrap(__import__('intune_iac.readiness', fromlist=['x']).placeholders_in_words('    :queue-review-template %s NEW_JSON' % item.get('finding')), width)
+                       + word_wrap(__import__('intune_iac.readiness', fromlist=['x']).placeholders_in_words('    :queue-amend FILE %s' % prior), width), False))
         compatibility = item.get('compatibility') if isinstance(item.get('compatibility'), dict) else None
         if compatibility:
             blocks.append(('compatibility', word_wrap('  Compatibility %s | native provider %squalified' % (
@@ -3542,7 +3547,7 @@ REFUSALS = {
         'work without one.',
         'To manage it from a repository: generate or adopt it with the wizard, copy the project into the repository '
         'you maintain and commit it, then run this command to list its policies and fill in the exact '
-        'repository-import command for review (s shows what exists here):' + COMMAND_BREAK + '  :repository-entry REPOSITORY'),
+        'repository-import command for review (s shows what exists here):' + COMMAND_BREAK + '  ' + __import__('intune_iac.readiness', fromlist=['x']).placeholders_in_words(':repository-entry REPOSITORY')),
     'selection_required': (
         'This view belongs to one policy, and none is selected.',
         'press 1 for Estate and Enter on a policy, then try again.'),
@@ -4097,7 +4102,7 @@ def repository_lines(status, width, prefixes=None, next_step=True):
     elif state == 'unavailable':
         lines += word_wrap('Reason ' + str(freshness.get('reason', 'unknown')), width)
     if status.get('next_action') and next_step:
-        lines += word_wrap('Next: ' + str(status['next_action']), width)
+        lines += word_wrap(__import__('intune_iac.readiness', fromlist=['x']).placeholders_in_words('Next: ' + str(status['next_action'])), width)
     return lines
 
 

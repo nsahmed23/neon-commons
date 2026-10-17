@@ -389,8 +389,8 @@ class EstateScreensTests(unittest.TestCase):
         # Run 9 (frame 47): each command stands on its own row, so the rows say the sentence and then the commands.
         self.assertIn("This finding's review: write the form with the first command, then record it with the second "
                       '(an annotation, never approval). The last word of the second command is the earlier review it '
-                      'replaces. :queue-review-template ownership_unknown NEW_JSON '
-                      ':queue-amend FILE ' + 'c' * 64, text)
+                      'replaces. The :queue-review-template command using ownership_unknown, naming a new JSON file for the review '
+                      'form The :queue-amend command using ' + 'c' * 64 + ', naming the file you name', text)
 
     def test_review_results_read_as_words(self):
         from intune_iac.workbench_screens import review_lines
@@ -1460,13 +1460,14 @@ class RunEightScreensTests(unittest.TestCase):
                                      selected=POLICY_ID))
         for finding in ('reporting_incomplete', 'ownership_unknown'):
             self.assertIn("This finding's review: write the form with the first command", text)
-            self.assertIn('\n    :queue-review-template %s NEW_JSON\n' % finding, text + '\n')
+            self.assertIn('\n    The :queue-review-template command using %s, naming a new JSON file for the review form\n' % finding,
+                          text + '\n')
             self.assertIn('review  %s (%s)  ' % (finding.replace('_', ' '), finding), text)
         self.assertNotIn('  Review: :queue-review-template', text)
         self.assertIn('State review required (review_required)', text)
         self.assertIn('Compatibility synthetic windows settings catalog (synthetic_windows_settings_catalog)', text)
         # The same-object line comes before the finding's own route, and the route says it is this finding's.
-        self.assertLess(text.index('Same object details'), text.index('    :queue-review-template ownership_unknown'))
+        self.assertLess(text.index('Same object details'), text.index('    The :queue-review-template command using ownership_unknown'))
 
     # Item 7 (frames 65, 70, 72, 73): each fact once.
     def test_the_approval_close_is_said_once_in_delivery_and_in_the_plan_next(self):
