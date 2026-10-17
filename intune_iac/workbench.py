@@ -1329,7 +1329,8 @@ def interrupted_lines(result):
     if during:
         return ['Interrupted while running %s.' % (_known_command(during.get('command')) or 'a command'),
                 'Next: diagnostics name anything it left unfinished. Run:',
-                '  intune-iac workbench diagnostics --root %s --object ID' % store, others]
+                __import__('intune_iac.readiness', fromlist=['x']).placeholders_in_words(
+                    '  intune-iac workbench diagnostics --root %s --object ID' % store), others]
     return ['Interrupted while waiting for a command. Nothing was running.', others]
 
 

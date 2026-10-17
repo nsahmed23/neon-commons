@@ -579,7 +579,7 @@ class CaptureContactTests(Base):
             entry = next_action_entries(lines)['discover']
             self.assertTrue(flat(entry).endswith(self.SENTENCE), flat(entry))
             # the legend of the command comes first, the sentence follows it
-            self.assertLess(flat(entry).index('the capture command, naming'), flat(entry).index(self.SENTENCE))
+            self.assertLess(flat(entry).index('apture command'), flat(entry).index(self.SENTENCE))
 
     def test_a_goal_that_prints_no_capture_command_says_nothing_about_it(self):
         for goal in ('inspect', 'adopt', 'change'):

@@ -151,14 +151,14 @@ class WordingTests(unittest.TestCase):
         joined = '\n'.join(block)
         self.assertTrue(block[0].lstrip('0123456789. ').startswith('Stop and report'), block[0])
         self.assertIn('printed the access token', block[0])
-        self.assertLess(joined.index('Stop and report'), joined.index('intune-iac signin collect'))
+        self.assertLess(joined.index('Stop and report'), joined.index('the signin collect command'))
         self.assertNotIn('then run', joined)
 
     def test_text_that_is_not_the_whole_token_does_not_claim_the_token_was_printed(self):
         text = run_text('collect_withheld_shape')[1]
         self.assertNotIn('Stop and report', text)
         self.assertNotIn('printed the access token', text)
-        self.assertIn('intune-iac signin collect', text)
+        self.assertIn('the signin collect command', text)
 
     def test_a_partial_result_attributes_the_expiry_to_the_collecting_command_without_a_joined_sentence(self):
         text = run_text('collect_partial_expired')[1]
@@ -177,10 +177,11 @@ class WordingTests(unittest.TestCase):
         self.assertNotIn('then To', text)
 
     def test_the_rerun_names_a_new_folder_and_the_account_only_when_one_was_given(self):
-        rerun = 'intune-iac signin collect --tenant %s --policy %s --output NEW_DIR' % (TENANT_A, POLICY)
-        self.assertIn(rerun + ' (a folder that does not exist yet)', ' '.join(run_text('collect_partial_expired')[1].split()))
+        rerun = 'the signin collect command using --tenant %s, --policy %s, naming --output as a new folder for the output' % (
+            TENANT_A, POLICY)
+        self.assertIn(rerun, ' '.join(run_text('collect_partial_expired')[1].split()))
         text = ' '.join(run_text('collect_partial_expired', extra=['--account', 'alex@example.test'])[1].split())
-        self.assertIn('--account NAME (the account you named)', text)
+        self.assertIn('--account as the name of the account you signed in with', text)
         self.assertNotIn('alex@example.test', text)
 
     def test_the_binding_refusal_names_which_reason_applied(self):
@@ -258,7 +259,7 @@ class OutputPathDisplayTests(unittest.TestCase):
             self.assertNotIn(canary[:30], text + err, name)
             self.assertIn('<the output path is not shown>', ' '.join(text.split()), name)
         # the rerun command never held the path: it names a placeholder folder
-        self.assertIn('--output NEW_DIR', ' '.join(self.shown(lambda scratch: canary, 'collect_partial_expired')[1].split()))
+        self.assertIn('--output as a new folder for the output', ' '.join(self.shown(lambda scratch: canary, 'collect_partial_expired')[1].split()))
 
     def test_a_credential_shaped_component_or_prefix_is_not_shown(self):
         for path in ('ghp_abc1234', 'a1' * 20, 'eyJhbGciOiJub25lIn0'):

@@ -311,46 +311,46 @@ class ProducerStringTests(Estates):
 
 
 # sha256 (first 16 hex digits) of the screen's rows for an ordinary name. Taken on the base of this package (04260b8) before
-# the change, and taken again where a screen changed on purpose: round 2 (the step "Start from the export" in words), round 3
-# (the goal block's recorded commands in words) and round 4, which routes the next steps through the one transform
-# (readiness.placeholders_in_words) so that the same step now describes each operand from readiness.TEMPLATE_WORDS. All 33
-# changed in round 4, because that step is on every screen of this fixture and nothing else on them changed.
+# the change, and taken again where a screen changed on purpose (rounds 2 to 4 of START-STANDIN, and PKG-TEMPLATE-WORDS, whose
+# renderer keeps the resolved operands of a command said in words and names the option of every unresolved one). All 33 changed
+# in PKG-TEMPLATE-WORDS: "Start from the export" is on every screen of this fixture and, for the goals, so are the goal
+# block's recorded commands.
 # key: route|width|goal. The temporary parent and fixture directories are written PARENT and FIXTURES first, and the
 # readiness view is host-free (host_free). Linux with a temporary directory of /tmp only: a longer path wraps differently.
 GOLDEN = {
-    'built|120|-': '7c2cd51d03a89e17',
-    'built|120|adopt': '75ba3de828ed411e',
-    'built|120|change': '55ff2a7d8760faf5',
-    'built|120|discover': '1b2041dc222fcdd9',
-    'built|120|inspect': '0d528f7b89e8396c',
-    'built|60|-': '69987efd1f648f2f',
-    'built|60|adopt': 'c99f1068896c0155',
-    'built|60|change': '39da1bd40cb23f7d',
-    'built|60|discover': 'b362f6f206427b19',
-    'built|60|inspect': '91c1734b5d88cb89',
-    'built|80|-': '5cffba962628686f',
-    'built|80|adopt': '215dfaa9317e2234',
-    'built|80|change': '820c3eca3df0cc42',
-    'built|80|discover': '94f6f56b56913312',
-    'built|80|inspect': 'f4c7626393b42943',
-    'cli|120|-': '61242f00ecb3f77d',
-    'cli|60|-': 'febc80b09bb71595',
-    'cli|80|-': '7f0de19b6a129b31',
-    'plain|120|-': 'af0d91bcbf1d7f36',
-    'plain|120|adopt': '3db86cb1b739fd4e',
-    'plain|120|change': 'e56cbed4531880a7',
-    'plain|120|discover': '00599f2f0f674f8c',
-    'plain|120|inspect': 'c3b56586900c238b',
-    'plain|60|-': '37f16056f037466a',
-    'plain|60|adopt': 'e95b6dc3d0232271',
-    'plain|60|change': '9cd2e745e8831815',
-    'plain|60|discover': '7947546a3ef2b5bb',
-    'plain|60|inspect': '1f8ffdbb455383b8',
-    'plain|80|-': '1dc47487dcb7f69e',
-    'plain|80|adopt': '632be0fd1ae7bc2f',
-    'plain|80|change': 'af1b3bbcd35d2f38',
-    'plain|80|discover': '730677928655e789',
-    'plain|80|inspect': 'd9f72665760a8d4f',
+    'built|120|-': '95155f2d5bf7568c',
+    'built|120|adopt': '082654dc2724a485',
+    'built|120|change': 'e43ecabeda39cc48',
+    'built|120|discover': '17c10e5d3eaa930d',
+    'built|120|inspect': 'e938f7aabceed04f',
+    'built|60|-': 'b39f23b98d57b32d',
+    'built|60|adopt': '2c4e6fd32eea5ad8',
+    'built|60|change': '2031ceaff6e596d2',
+    'built|60|discover': '641775d660b95b0f',
+    'built|60|inspect': '7e5cb4ee200b9c71',
+    'built|80|-': '8c94954e01ee204e',
+    'built|80|adopt': '651c05589b5bd3a8',
+    'built|80|change': 'd984abbdce38b0b7',
+    'built|80|discover': 'e9077c77655222a7',
+    'built|80|inspect': '40c4b2b76f244991',
+    'cli|120|-': '369b3bbe29270e5b',
+    'cli|60|-': '5ec59d0b35e960cb',
+    'cli|80|-': '1e44bb124832c88c',
+    'plain|120|-': '242db18740245f43',
+    'plain|120|adopt': '88ae24b05f58636e',
+    'plain|120|change': '22499772a231d192',
+    'plain|120|discover': 'e8198e0e65096b6d',
+    'plain|120|inspect': 'a6f2a58ffef31a8c',
+    'plain|60|-': '6799749a0b17b71d',
+    'plain|60|adopt': '05880222223128bc',
+    'plain|60|change': '15144634d06607b2',
+    'plain|60|discover': 'c2f9646c5dc9b844',
+    'plain|60|inspect': '8dd961c2b16c7247',
+    'plain|80|-': '844eedc257078244',
+    'plain|80|adopt': 'f6290706a6f876df',
+    'plain|80|change': '6bb5e5ceafa53eae',
+    'plain|80|discover': '67b7f936db261c29',
+    'plain|80|inspect': '484d96f4a962f307',
 }
 
 
@@ -503,17 +503,21 @@ class PlaceholderCommandTests(unittest.TestCase):
     KINDS = ('empty', 'repository', 'export', 'emptystore')
     NAMES = {'credential': CREDENTIAL, 'ordinary': ORDINARY}
     FALLBACKS = (
-        'Start from a supported export: the wizard command, naming your export file, your context file and a new output folder',
-        'Or start from an Atmos repository you maintain, beginning with a store: the workbench init command, naming your store '
-        'folder and your tenant id',
+        'Start from a supported export: the wizard command using --session session.json, naming --input as your export file, '
+        '--context as your context file and --output as a new output folder',
+        'Or start from an Atmos repository you maintain, beginning with a store: the workbench init command, naming --root as '
+        'your store folder and --tenant as your tenant id',
         'Then list the policies it holds and the exact command to record each: the workbench repository-entry command, naming '
-        'your store folder and your repository folder')
-    STORE_FIRST = 'Create a store first: the workbench init command, naming your store folder and your tenant id'
+        '--root as your store folder and --repo as your repository folder')
+    STORE_FIRST = ('Create a store first: the workbench init command, naming --root as your store folder and --tenant as your '
+                   'tenant id')
     MIXED = {
-        'emptystore': 'Collect into estate dir/store: the workbench collect command, naming your service folder',
-        'export': 'Start from the export estate dir/export.json: the wizard command, naming a new session file and a new output '
-                  'folder',
-        'repository': 'the workbench repository-entry command, naming your store folder'}
+        'emptystore': "Collect into estate dir/store: the workbench collect command using --root 'estate dir/store', naming "
+                      '--service-root as your service folder',
+        'export': "Start from the export estate dir/export.json: the wizard command using --input 'estate dir/export.json', "
+                  "--context 'estate dir/context.json', naming --session as a new session file and --output as a new output folder",
+        'repository': "the workbench repository-entry command using --repo 'estate dir/repository', naming --root as your store "
+                      'folder'}
 
     @classmethod
     def setUpClass(cls):
@@ -557,7 +561,7 @@ class PlaceholderCommandTests(unittest.TestCase):
                     text = flat(render(route, self.parents[kind], ORDINARY, 100, None))
                     self.assertIn(sentence, text)
         plain = flat(render('plain', self.parents['export'], ORDINARY, 100, None))
-        self.assertIn('the wizard command, naming a new session file and a new output folder', plain)
+        self.assertIn('naming --session as a new session file and --output as a new output folder', plain)
 
     def test_a_command_whose_operands_are_all_resolved_keeps_its_exact_form(self):
         text = flat(render('built', self.parents['emptystore'], ORDINARY, 100, None))
@@ -595,7 +599,7 @@ class CheckerTests(unittest.TestCase):
                         text = flat(lines)
                         steps = [row for row in lines if re.match(r'  \d\. ', row)]
                         self.assertEqual(len(steps), 3, lines)                   # the three fallback steps are there ...
-                        self.assertIn('naming your store folder and your tenant id', text)  # ... in words
+                        self.assertIn('naming --root as your store folder and --tenant as your tenant id', text)  # ... in words
                         self.assertEqual(stand_in_operands(lines), [])
                         # the reader does see the templates of the old step, so [] above is not blindness
                         old = 'intune-iac workbench init --root STORE --tenant TENANT_ID'
@@ -675,17 +679,18 @@ class DisplayTransformTests(unittest.TestCase):
 
     def test_a_capture_step_is_its_lead_the_command_and_what_to_name(self):
         self.assertEqual(self.words(self.CAPTURE),
-                         'Provide the read token only to this one command: the capture command, naming your tenant id, the policy '
-                         'id (a GUID), a new folder for the output and the name of the environment variable that holds the token '
-                         '(through the environment variable that flag names; never on a command line)')
+                         'Provide the read token only to this one command: the capture command, naming --tenant as your tenant id, '
+                         '--policy as the policy id (a GUID), --output as a new folder for the output and --token-env as the name of '
+                         'the environment variable that holds the token (through the environment variable that flag names; never '
+                         'on a command line)')
 
     def test_a_legend_that_only_explained_the_placeholders_goes(self):
         from intune_iac import readiness
         step = readiness.with_legend('intune-iac target authenticate --input TARGET_JSON --provider-secret-fd FD')
         self.assertIn('TARGET_JSON is', step)
         self.assertEqual(self.words('Run: ' + step),
-                         'Run: the target authenticate command, naming the path of your target JSON file and a file descriptor '
-                         'number your shell has open on the secret')
+                         'Run: the target authenticate command, naming --input as the path of your target JSON file and '
+                         '--provider-secret-fd as a file descriptor number your shell has open on the secret')
 
     def test_a_resolved_command_and_a_part_without_a_placeholder_stay_as_they_are(self):
         for step in ('Run: intune-iac doctor and pass its result, with the host report, to this check.',
@@ -705,15 +710,17 @@ class DisplayTransformTests(unittest.TestCase):
                  '--atmos-executable PATH --tofu-executable PATH, or intune-iac repository native --root REPOSITORY --stack STACK '
                  '--component COMPONENT --executable PATH; then run: intune-iac doctor')
         said = self.words(route)
-        self.assertEqual(said, 'If you rely on a pinned executable, pass it with the wizard command, naming a session file, your '
-                               'repository folder and the path of the executable, or the repository native command, naming your '
-                               'repository folder, the stack name, the component name and the path of the executable; then run: '
-                               'intune-iac doctor')
+        self.assertEqual(said, 'If you rely on a pinned executable, pass it with the wizard command using --journey, naming --session '
+                               'as a session file, --repo as your repository folder, --atmos-executable as the path of the executable '
+                               'and --tofu-executable as the path of the executable, or the repository native command, naming --root '
+                               'as your repository folder, --stack as the stack name, --component as the component name and '
+                               '--executable as the path of the executable; then run: intune-iac doctor')
         entry_step = ('See the policies: intune-iac workbench repository-entry --root STORE --repo REPOSITORY '
                       '(in the workspace: :repository-entry REPOSITORY)')
         self.assertEqual(self.words(entry_step),
-                         'See the policies: the workbench repository-entry command, naming your store folder and your repository '
-                         'folder (in the workspace: the :repository-entry command, naming your repository folder)')
+                         'See the policies: the workbench repository-entry command, naming --root as your store folder and '
+                         '--repo as your repository folder (in the workspace: the :repository-entry command, naming your '
+                         'repository folder)')
 
     def test_the_transform_is_stable_and_the_table_has_a_description_for_every_template(self):
         from intune_iac import entry, readiness
@@ -727,10 +734,11 @@ class DisplayTransformTests(unittest.TestCase):
 class GoalRowTests(unittest.TestCase):
     """Round 3, item 2: the start screen's goal block and the catalog's goal rows print the recorded steps through the transform, on
     every directory, together with the rule for a hidden one."""
-    CAPTURE_FULL = ('the capture command, naming the policy id (a GUID), a new folder for the output and the name of the '
-                    'environment variable that holds the token')
-    CAPTURE_NO_TENANT = ('the capture command, naming your tenant id, the policy id (a GUID), a new folder for the output and the '
-                         'name of the environment variable that holds the token')
+    CAPTURE_FULL = ('apture command using --tenant 11111111-1111-4111-8111-111111111111, naming --policy as the policy id '
+                    '(a GUID), --output as a new folder for the output and --token-env as the name of the environment variable '
+                    'that holds the token')
+    CAPTURE_NO_TENANT = ('apture command, naming --tenant as your tenant id, --policy as the policy id (a GUID), --output as a '
+                         'new folder for the output and --token-env as the name of the environment variable that holds the token')
     CONTACT = 'The capture command sends the token to graph.microsoft.com in GET requests only'
 
     @classmethod
@@ -756,7 +764,7 @@ class GoalRowTests(unittest.TestCase):
                         text = flat(render(route, self.parents[kind], name, 100, 'discover'))
                         self.assertIn(capture, text)
                         self.assertIn(self.CONTACT, text)                          # the sentence about the token stays
-                        self.assertNotIn('--token-env', text)
+                        self.assertNotIn('--token-env TOKEN_VARIABLE_NAME', text)
                         self.assertNotIn('TOKEN_VARIABLE_NAME', text)
                         self.assertIn('never on a command line', text)             # a legend's note is kept
 
@@ -775,7 +783,7 @@ class GoalRowTests(unittest.TestCase):
                         if kind == 'repository' and name == CREDENTIAL:    # the rule for a hidden directory says it, not the table
                             said = 'the start command with this directory (the directory cannot be shown here)'
                         self.assertIn(said, text)
-                        for command in ('--token-env', 'TOKEN_VARIABLE_NAME', 'start DIRECTORY'):
+                        for command in ('--token-env TOKEN_VARIABLE_NAME', 'TOKEN_VARIABLE_NAME ', 'start DIRECTORY'):
                             self.assertNotIn(command, text)
 
     def test_the_catalogs_resume_command_with_placeholders_is_words(self):
@@ -785,7 +793,8 @@ class GoalRowTests(unittest.TestCase):
                     text = flat(render_catalog(route, self.parents['repository'], name, 100, None))
                     self.assertNotIn('--tenant TENANT_ID', text)
                     if route != 'plain':
-                        self.assertIn('Resume with the workbench init command, naming your store folder and your tenant id.', text)
+                        self.assertIn('Resume with the workbench init command, naming --root as your store folder and --tenant as your tenant '
+                                      'id.', text)
 
 
 # sha256 (first 16 hex digits) of the JSON forms, taken on 9687896 before round 3: `start --json` and `catalog --json` of the four
@@ -957,7 +966,8 @@ class OneTransformTests(unittest.TestCase):
     def test_the_steps_with_a_placeholder_by_design_are_described_from_the_one_table(self):
         from intune_iac import entry, readiness
         self.assertEqual(entry.screen_action(entry.STORE_FIRST_STEP),
-                         'Create a store first: the workbench init command, naming your store folder and your tenant id')
+                         'Create a store first: the workbench init command, naming --root as your store folder and --tenant as '
+                         'your tenant id')
         for text in entry.FALLBACK_STEPS:
             said = entry.screen_action(text)
             with self.subTest(text=text):
@@ -978,7 +988,7 @@ class OneTransformTests(unittest.TestCase):
         self.assertIn(readiness.placeholders_in_words(note), text)
         self.assertEqual(template_beside_command(text), [])
 
-    def test_there_is_one_table_of_operand_descriptions(self):
+    def test_there_is_one_human_operand_description_table(self):
         import ast
         from intune_iac import entry, readiness
         root = Path(__file__).resolve().parents[1] / 'intune_iac'
@@ -989,7 +999,8 @@ class OneTransformTests(unittest.TestCase):
                     keys = {key.value for key in node.value.keys if isinstance(key, ast.Constant) and isinstance(key.value, str)}
                     if len(keys & set(getattr(entry, 'FILL_IN_TEMPLATES', ()))) >= 3:
                         tables[node.targets[0].id] = module
-        # the description table, and the legend wording the JSON forms record (frozen, and used only to write and to strip a legend)
+        # the one human operand-description table, and the legend wording the JSON forms record (a different, frozen contract, used only
+        # to write and to strip a legend)
         self.assertEqual(tables, {'TEMPLATE_WORDS': 'readiness.py', 'PLACEHOLDER_MEANINGS': 'readiness.py'})
         self.assertTrue(set(readiness.PLACEHOLDER_MEANINGS) <= set(readiness.TEMPLATE_WORDS))
         self.assertFalse(hasattr(entry, 'placeholder_words'))

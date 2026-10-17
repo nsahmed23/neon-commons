@@ -27,6 +27,7 @@ per-operation scopes, CI identity), the row says so in words.
 """
 from __future__ import annotations
 
+import functools
 import re
 
 VERSION = 'workbench-readiness/1'
@@ -96,10 +97,15 @@ def command_names(text):
             if word == PROGRAM and (index == 0 or words[index - 1].endswith(':'))]
 
 
-# Words that end a command: a lowercase word after the program word that is prose, not a subcommand.
+# Words that end a command: a lowercase word that is prose, not a subcommand or a value.
 _PROSE = frozenset(('and', 'or', 'then', 'from', 'with', 'to', 'for', 'in', 'as', 'the', 'a', 'is', 'it', 'its', 'pass', 'shows',
-                    'see', 'run', 'of', 'on', 'by', 'when', 'that', 'this', 'at'))
+                    'see', 'run', 'of', 'on', 'by', 'when', 'that', 'this', 'at', 'prepares', 'never', 'where', 'where'))
 _SUBCOMMAND = re.compile(r'[a-z][a-z-]*\Z')
+
+
+# A word of a printed command: a quote opens a quoted run only at the start of a word, so the apostrophe in o'connor (a name in a
+# sentence) is a letter, and 'a'\\''b' is read as the shell reads it.
+_COMMAND_WORD = re.compile(r"(?:(?<!\w)'[^']*'|[^\s])+")
 
 
 def _bare(word):
@@ -107,62 +113,157 @@ def _bare(word):
     return word.strip("\\'\"$")
 
 
+@functools.lru_cache(maxsize=1)
+def dialects():
+    """The command tables of the product itself, from which a printed command is recognized (never a list kept here).
+
+    (shell, typed): shell is the tree of subcommands of the command line, read from its parser ({'workbench': {'init': {}, ...}});
+    typed is the set of words the workbench line terminal and the wizard's prompts accept as a typed command (the line terminal's
+    help table and its command groups, the journey's and the guided workflow's answer words)."""
+    import argparse
+    from . import cli, journey, observation_jobs, workbench, workbench_queue, workbench_views, workflow
+
+    def walk(parser):
+        tree = {}
+        for action in parser._actions:
+            if isinstance(action, argparse._SubParsersAction):
+                for name, sub in action.choices.items():
+                    tree[name] = walk(sub)
+        return tree
+    words = set(journey.ANSWER_COMMANDS) | set(workflow.ANSWER_COMMANDS)
+    for entries in workbench.HELP.values():
+        if isinstance(entries, list):
+            words.update(entry.split()[0] for entry in entries)
+    for table in (workbench_queue.COMMANDS, observation_jobs.COMMANDS, workbench_views.COMMANDS):
+        words.update(str(name).split()[0] for name in table)
+    return walk(cli.parser()), frozenset(words)
+
+
+def _end_of(match, word):
+    return match.start() + len(word)
+
+
 def commands_in(step):
-    """Each `intune-iac` command a printed step holds, as (begin, end, head, operands): where it starts and ends in the text, its
-    subcommand words (at most two) and its operands (the values of flags and a lone positional operand, in order). A command runs
-    from the program word, as a word of its own, to the last word that belongs to it: a flag, the value after a flag, a positional
-    operand that is a placeholder, a quoted path or a path, or a leading subcommand word; the first prose word, an opening
-    parenthesis or a word that ends in sentence punctuation (which that word still belongs to) ends it. The reading is for the
-    steps the product records, not for a shell."""
+    """Each command a printed step holds, as (begin, end, head, items): where it starts and ends in the text, its command words and
+    its operands as (option, value) pairs (an option with no value, or a value with no option, has None for the other). Three
+    dialects are read, each from the product's own table (see dialects): a shell command, which starts at the program word or at a
+    bare `workbench` followed by one of its subcommands; a command typed in the workbench line terminal, with or without the
+    leading colon; and a command typed at the journey's or the guided workflow's prompt. A typed command is only taken when a
+    placeholder is its first operand (after at most one lowercase sub-word, as in `edit output VALUE`), so a word that is also
+    prose is not read as a command. A command runs to the last word that belongs to it: a flag, the value after a flag, a
+    placeholder, a quoted word or a path, or a leading command word; a prose word, an opening parenthesis or a word that ends in
+    sentence punctuation (which that word still belongs to) ends it. A parenthesis in the middle of a command (before the next flag)
+    is the legend of the operand before it and belongs to the command. The reading is for the steps the product records, not for a
+    shell."""
     from .entry import is_fill_in
-    words = list(_WORD.finditer(step))
+    shell, typed = dialects()
+    words = list(_COMMAND_WORD.finditer(step))
     found, index = [], 0
+
+    def tidy(match):
+        raw = match.group()
+        if step[match.end():match.end() + 1] == "'":      # 'a'\''b' ends in a quote that the word pattern leaves behind
+            raw += "'"
+        word = raw.rstrip(',;.:)') if len(raw) > 1 else raw
+        return raw, word, _bare(word)
+
     while index < len(words):
-        if _bare(words[index].group()) != PROGRAM:
-            index += 1
+        raw, word, bare = tidy(words[index])
+        lead = len(word) - len(word.lstrip('('))                  # a command opened by a parenthesis: (workbench init ...)
+        bare = bare.lstrip('(')
+        following = tidy(words[index + 1])[2] if index + 1 < len(words) else ''
+        begin, head, start = words[index].start() + lead, None, index + 1
+        if bare == PROGRAM:
+            head, tree = [], shell
+            while start < len(words) and len(head) < 2:
+                candidate = tidy(words[start])[2]
+                if candidate in tree and not tidy(words[start])[1].startswith('-'):
+                    head.append(candidate)
+                    tree = tree[candidate]
+                    start += 1
+                else:
+                    break
+            if not head and start < len(words):          # a subcommand this parser does not know: read it by its shape
+                candidate = tidy(words[start])[2]
+                if _SUBCOMMAND.match(candidate) and candidate not in _PROSE:
+                    head, start = [candidate], start + 1
+        elif bare == 'workbench' and following in shell.get('workbench', {}) and not (index and tidy(words[index - 1])[2] == PROGRAM):
+            head, start = ['workbench', following], index + 2
+        if head is not None:
+            items, option, index = [], None, start
+            end = _end_of(words[start - 1], tidy(words[start - 1])[1])
+            while index < len(words):
+                raw, word, bare = tidy(words[index])
+                if not word:
+                    break
+                if word.startswith('('):
+                    # a legend in the middle of a command (another flag follows it) explains the operand before it
+                    close = next((j for j in range(index, len(words)) if words[j].group().endswith(')')), None)
+                    if (close is not None and close + 1 < len(words) and tidy(words[close + 1])[2].startswith('-')
+                            and items and is_fill_in(_bare(items[-1][1] or ''))):
+                        end, index = words[close].end(), close + 1
+                        continue
+                    break
+                if bare.startswith('-'):
+                    if option is not None:
+                        items.append((option, None))
+                    option = bare
+                elif option is not None and bare not in _PROSE:
+                    items.append((option, word))             # the value as the command prints it, quotes included
+                    option = None
+                elif is_fill_in(bare) or word.startswith("'") or ('/' in bare and len(bare.strip('/')) > 1):
+                    items.append((None, word))
+                else:
+                    break
+                end, index = _end_of(words[index], word), index + 1
+                if word != raw:
+                    break                                # the sentence ends with this word
+            if option is not None:
+                items.append((option, None))
+            while end < len(step) and step[end] == "'":          # the closing quote of a word the shell spells 'a'\''b'
+                end += 1
+            found.append((begin, end, head, items))
             continue
-        begin, end, head, operands, after_flag = words[index].start(), words[index].end(), [], [], False
+        # a command typed in the line terminal or at a prompt
+        name = bare.lstrip(':')
+        if name in typed and following:
+            probe, head = index + 1, [bare]
+            sub = tidy(words[probe])[2]
+            if (_SUBCOMMAND.match(sub) and sub not in _PROSE and probe + 1 < len(words)
+                    and is_fill_in(tidy(words[probe + 1])[2])):
+                head.append(sub)
+                probe += 1
+            items, end, ahead = [], None, probe
+            while ahead < len(words):
+                raw, word, arg = tidy(words[ahead])
+                if not (is_fill_in(arg) or word.startswith("'") or ('/' in arg and len(arg.strip('/')) > 1) or arg.isdigit()):
+                    break
+                items.append((None, word))
+                end, ahead = _end_of(words[ahead], word), ahead + 1
+                if word != raw:
+                    break
+            if any(is_fill_in(_bare(value)) for _, value in items):
+                found.append((begin, end, head, items))
+                index = ahead
+                continue
         index += 1
-        while index < len(words):
-            raw = words[index].group()
-            word = raw.rstrip(',;.:') if len(raw) > 1 else raw
-            if not word or word.startswith('('):
-                break
-            quoted, word_end = word, len(word)
-            word = _bare(word)                       # a word the shell reads the same however it is quoted
-            if word.startswith('-'):
-                take, after_flag = True, True
-            elif after_flag:
-                take, after_flag = True, False
-                operands.append(word)
-            elif not operands and len(head) < 2 and _SUBCOMMAND.match(word) and word not in _PROSE:
-                take = True
-                head.append(word)
-            elif is_fill_in(word) or quoted.startswith("'") or '/' in word:
-                take = True
-                operands.append(word)
-            else:
-                break
-            end = words[index].start() + word_end
-            index += 1
-            if quoted != raw:
-                break                                    # the sentence ends with this word
-        found.append((begin, end, head, operands))
     return found
 
 
 def command_operands(step):
     """The operands of every command in a printed step (see commands_in)."""
-    return [operand for _, _, _, operands in commands_in(step) for operand in operands]
+    return [_bare(value) for _, _, _, items in commands_in(step) for _, value in items if value is not None]
 
 
-# What each placeholder in a printed command asks the person to name, for a screen that says the command in words. One table for the
-# start screen and the catalog; entry.FILL_IN_TEMPLATES has an entry here for every placeholder (a test checks it).
+# What each placeholder in a printed command asks the person to name, for a screen that says the command in words. ONE human
+# operand-description table for every human text form (the start screen, the catalog, the companion page, the prompts); the legend
+# the JSON forms record (PLACEHOLDER_MEANINGS) is a different, frozen contract. entry.FILL_IN_TEMPLATES has an entry here for every
+# placeholder and the reverse (a test checks both).
 TEMPLATE_WORDS = {
     'DIRECTORY': 'the directory to survey',
     'PATH': 'the path of the executable',
     'ROOT': 'the folder',
-    'ID': 'the id',
+    'ID': 'the exact object id of the policy',
     'SERVICE_ROOT': 'your service folder',
     'TENANT_ID': 'your tenant id',
     'STORE': 'your store folder',
@@ -180,42 +281,66 @@ TEMPLATE_WORDS = {
     'SESSION': 'a session file',
     'STACK': 'the stack name',
     'COMPONENT': 'the component name',
+    'FILE': 'the file to write the page to',
+    'COMMIT': 'the Git commit that holds the edited project',
+    'NAME': 'the name of the account you signed in with',
+    'OBJECT_ID': 'the exact object id of the policy',
+    'DIGEST': 'the digest that the review shows',
+    'NEW_OPERATION_DIR': 'a new folder for the operation',
+    'DESIRED_JSON': 'your desired-policy JSON file',
+    'OPERATION_DIR': 'the operation folder',
+    'REVISION': 'the Git revision to record',
+    'RESOLUTION_SHA256': 'the resolution_sha256 that repository-status shows',
+    'STAGE': 'the stage to go back to',
+    'VALUE': 'the value to set',
 }
 _PLACEHOLDER_NAME = re.compile(r'[A-Z][A-Z0-9_]*[A-Z0-9]')
 _LEGEND = re.compile(r' \(([^()]*)\)')
-_WORKSPACE_ENTRY = re.compile(r'(:repository-entry) ([A-Z][A-Z0-9_]*[A-Z0-9])(?=\)|\s|\Z)')
 
 
-def _described(operands):
-    """The descriptions of the placeholders among the operands, each once, as one phrase."""
+def _described(token):
+    return TEMPLATE_WORDS[_PLACEHOLDER_NAME.match(token).group()]
+
+
+def command_in_words(head, items):
+    """A command that has a placeholder as an operand, said in words, or '' when it has none. Every resolved operand keeps its option
+    and its value as the command prints it; every unresolved one keeps its option (or its position) and is described from
+    TEMPLATE_WORDS, so a person can type the command from the words alone."""
     from .entry import is_fill_in
-    said = []
-    for operand in operands:
-        if is_fill_in(operand):
-            text = TEMPLATE_WORDS[_PLACEHOLDER_NAME.match(operand).group()]
-            if text not in said:
-                said.append(text)
-    if len(said) < 2:
-        return said[0] if said else ''
-    return ', '.join(said[:-1]) + ' and ' + said[-1]
+    kept, named = [], []
+    for option, value in items:
+        if value is not None and is_fill_in(_bare(value)):
+            said = _described(_bare(value))
+            named.append('%s as %s' % (option, said) if option else said)
+        else:
+            kept.append(' '.join(part for part in (option, value) if part))
+    if not named:
+        return ''
+    text = 'the %s command' % ' '.join(head)
+    if kept:
+        text += ' using ' + ', '.join(kept)
+    return text + ', naming ' + (named[0] if len(named) == 1 else ', '.join(named[:-1]) + ' and ' + named[-1])
 
 
 def placeholders_in_words(step):
     """A recorded step as a human text form prints it: every command of it that has a placeholder as an operand (entry.
-    FILL_IN_TEMPLATES) is said in words, because a placeholder in a command is a name to a shell (STORE or POLICY is a valid
-    relative path) or makes the command fail when it is copied. The step's own lead stays; the command becomes "the <command>
-    command, naming" and one description per placeholder (TEMPLATE_WORDS); the legend after it that only explained the placeholders
-    goes, because the descriptions carry it, and anything else in that legend stays. A command with no placeholder, and every
-    other part of the step, is unchanged. The machine forms (the JSON of start and the catalog) keep the recorded step: this is
-    for the human text only, and it is applied after without_stand_in, which says a command for a hidden directory."""
+    FILL_IN_TEMPLATES) is said in words (command_in_words), because a placeholder in a command is a name to a shell (STORE or POLICY
+    is a valid relative path) or makes the command fail when it is copied. The step's own lead stays; the command becomes "the
+    <command> command using <resolved operands>, naming <unresolved operands as described>"; the legend after it that only explained
+    the placeholders goes, because the descriptions carry it, and anything else in that legend stays. A command with no placeholder,
+    and every other part of the step, is unchanged. The machine forms (the JSON of start and the catalog) keep the recorded step:
+    this is for the human text only, and it is applied after without_stand_in, which says a command for a hidden directory."""
     if not step:
         return step
     out, at = [], 0
-    for begin, end, head, operands in commands_in(step):
-        said = _described(operands)
+    for begin, end, head, items in commands_in(step):
+        said = command_in_words(head, items)
         if not said or begin < at:
             continue
-        out += [step[at:begin], 'the %s command, naming %s' % (' '.join(head) or 'named', said)]
+        before = step[at:begin]
+        if not (''.join(out) + before).strip() or (''.join(out) + before).rstrip().endswith(('.', '!', '?')):
+            said = said[0].upper() + said[1:]              # a command that opens a sentence
+        out += [before, said]
         at = end
         legend = _LEGEND.match(step, at)
         if legend:
@@ -228,14 +353,23 @@ def placeholders_in_words(step):
         if re.match(r' [a-z]', step[at:]):
             out.append(',')
     out.append(step[at:])
-    return _WORKSPACE_ENTRY.sub(lambda m: 'the %s command, naming %s' % (m.group(1), _described([m.group(2)])) if m.group(2) in TEMPLATE_WORDS
-                                else m.group(0), ''.join(out))
+    return _loose_option.sub(_describe_loose, ''.join(out))
+
+
+# An option and its placeholder in a sentence that is not a command ("instead of --out FILE"): the option keeps its place and the
+# placeholder is described in brackets after it.
+_loose_option = re.compile(r'(?<![\w-])(--[a-z][a-z-]*) ([A-Z][A-Z0-9_]*[A-Z0-9])(?![\w])')
+
+
+def _describe_loose(match):
+    from .entry import is_fill_in
+    return '%s (%s)' % (match.group(1), TEMPLATE_WORDS[match.group(2)]) if is_fill_in(match.group(2)) else match.group(0)
 
 
 def capture_contact(text):
     """The sentence that says where capture sends the token, for a printed step that runs the capture command (as command_names
     reads it, never a substring of the text); '' for any other step."""
-    if 'capture' not in command_names(text) and 'the capture command, naming' not in text:    # as printed, or said in words
+    if 'capture' not in command_names(text) and not re.search(r'\bthe capture command(?: using|,)', text, re.I):    # printed, or in words
         return ''
     from urllib.parse import urlsplit
     from .capture import GRAPH_ROOT

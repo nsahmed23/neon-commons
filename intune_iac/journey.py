@@ -23,6 +23,7 @@ from .pin_profiles import CURRENT as _PIN_CURRENT, LEGACY as _PIN_LEGACY, contex
 def tools_legacy_version():
     return _pin_tools(_PIN_LEGACY)['engine_version']
 from .io import AppError, canonical, digest, file_sha, load_json, write_json, sync_directory, mkdir_durable
+from .readiness import placeholders_in_words
 
 VERSION = 'journey/1.0'
 STAGES = ('discovery', 'target', 'inventory', 'selection', 'preservation', 'mapping',
@@ -31,6 +32,10 @@ STAGES = ('discovery', 'target', 'inventory', 'selection', 'preservation', 'mapp
 LIVE_BLOCKERS = ('provider_not_qualified', 'authenticated_target_missing',
                  'state_backend_not_observed', 'single_writer_not_verified',
                  'protected_cloud_approval_unavailable', 'cloud_executor_unavailable')
+# The words the journey's prompt accepts as a typed answer (a test reads them back from the prompt, so the two cannot drift); the
+# renderer of readiness.py recognizes a typed command by this list.
+ANSWER_COMMANDS = ('handoff', 'continue', 'generate', 'plan', 'approve', 'execute', 'reconcile', 'finish', 'back', 'edit',
+                   'resume', 'save', 'cancel')
 COMMANDS = {'generation': 'generate', 'plan': 'plan', 'approval': 'approve',
             'execute': 'execute', 'reconcile': 'reconcile', 'handoff': 'finish'}
 DESCRIPTIONS = {
@@ -743,8 +748,8 @@ def _run(session, state, fresh, input_fn, output_fn, guard):
                 output_fn('Generated output for ' + policy_id + ' changed only in ' + edit['stack_file'] + ', inside ' + edit['pointer'] +
                           ': a repository-owned edit of the desired policy. Its verification is now stale; the journey will not '
                           'regenerate over it or call it verified.')
-                for line in edit['next_steps'][1:]: output_fn('Next: ' + line)
-            if edits: output_fn('Enter handoff to end this journey in the repository workflow, or back STAGE / edit to change course.')
+                for line in edit['next_steps'][1:]: output_fn('Next: ' + placeholders_in_words(line))
+            if edits: output_fn(placeholders_in_words('Enter handoff to end this journey in the repository workflow, or back STAGE, or edit to change course.'))
             output_fn('Action reads/writes and recovery: ' + (str(action_contract()['actions'][STAGES.index(step)]) if step in STAGES else 'Review completed evidence or reconcile an uncertain local operation.'))
             answer = input_fn('Journey [' + ('handoff/' if edits else '') + 'continue/UUIDs/generate/plan/approve/execute/reconcile/finish/back STAGE/edit FIELD VALUE/resume/save/cancel]: ').strip()
             if len(answer) > 8192: raise AppError('journey_input_limit', 'Command exceeds bounded input limits.')

@@ -17,6 +17,11 @@ from uuid import UUID
 
 from . import engine, runner
 from .io import AppError, digest, file_sha, load_json, write_json
+from .readiness import placeholders_in_words
+
+# The words the guided workflow's prompt accepts as a typed answer (a test reads them back from the prompt); the renderer of
+# readiness.py recognizes a typed command by this list.
+ANSWER_COMMANDS = ('handoff', 'continue', 'generate', 'finish', 'cohort', 'edit', 'save', 'cancel')
 
 VERSION = '2.1.0'
 ALGORITHM = 'local-cohort/1.0.0'
@@ -391,9 +396,9 @@ def _guide(session_path, state, input_fn, output_fn, fresh, guard):
                           ': a repository-owned edit of the desired policy. Its verification is now stale; this flow will not '
                           'regenerate over it or call it verified.')
                 for line in edit['next_steps'][1:]:
-                    output_fn('Next: ' + line)
+                    output_fn('Next: ' + placeholders_in_words(line))
             if edits:
-                output_fn('Enter handoff to end this session in the repository workflow, or edit output VALUE for a fresh staging directory.')
+                output_fn(placeholders_in_words('Enter handoff to end this session in the repository workflow, or edit output VALUE for a fresh staging directory.'))
             prompt = ('Cancelled session [continue/save/cancel]: ' if cancelled else
                       'Guided ' + step + ' [' + ('handoff/' if edits else '') + 'UUIDs/continue/generate/finish/cohort RING UUIDs/edit stack|component|output VALUE/save/cancel]: ')
             answer = _answer(prompt, input_fn)

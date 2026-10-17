@@ -14,6 +14,7 @@ from uuid import UUID, uuid4
 
 from . import engine, runner
 from .io import AppError, digest, file_sha, load_json, write_json
+from .readiness import placeholders_in_words
 
 _STEPS = {"stack", "component", "policy", "source", "context", "output", "inspect", "preview", "review", "conflict"}
 _CONTEXT_KEYS = {
@@ -684,7 +685,7 @@ class _WizardSession:
         else:
             self.output_fn("  No value changed (formatting or comments only).")
         for step in edit["next_steps"]:
-            self.output_fn("Next: " + step)
+            self.output_fn("Next: " + placeholders_in_words(step))
         return edit
 
     def prompt(self, step):

@@ -170,7 +170,8 @@ class RefusedFileNameTests(unittest.TestCase):
         parent = self.workspace('export.json')
         text = ' '.join(run_catalog_text(parent, 'work').replace(' \\', '').split())
         # PKG-START-STANDIN round 3: the resume command still holds placeholders (a new session, a new output folder)
-        self.assertIn('Resume with the wizard command, naming a new session file and a new output folder.', text)
+        self.assertIn('Resume with the wizard command using --input work/export.json, --context work/context.json, naming --session as '
+                      'a new session file and --output as a new output folder.', text)
         self.assertNotIn('NEW_SESSION.json', text)
 
 

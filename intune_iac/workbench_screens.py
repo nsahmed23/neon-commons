@@ -954,7 +954,8 @@ def _execute_forms(operation):
     """Where the plan review's execute is typed, as Delivery frames its commands: the workspace's command bar, or a
     shell with the complete program form. DIGEST stays a placeholder: the engineer copies the digest from the review
     they approve, and it is never filled in (run 12, frames 18, 31, 53, 63, 64)."""
-    return ('In the workspace:' + COMMAND_BREAK + '  execute %s DIGEST' % operation + COMMAND_BREAK + 'From a shell:'
+    from .readiness import placeholders_in_words
+    return placeholders_in_words('In the workspace:' + COMMAND_BREAK + '  execute %s DIGEST' % operation + COMMAND_BREAK + 'From a shell:'
             + COMMAND_BREAK + '  intune-iac workbench execute --operation %s --approve-digest DIGEST' % operation
             + COMMAND_BREAK + 'The shell form takes no --root: the operation directory names its store.')
 
@@ -1764,7 +1765,8 @@ def actions_lines(actions, focus, width, name=None, object_id=None, submit='Ente
         # One description per entry: the essential effect, or for the focused entry the full text that includes it, so
         # the effect is stated once (run 11, frames 21, 37, 62, 80); then the exact command or the reason it is blocked.
         described = (action.get('effects') if focused else None) or action.get('summary') or action.get('effects')
-        lines += _labelled('', str(described), width, 5)
+        from .readiness import placeholders_in_words
+        lines += _labelled('', placeholders_in_words(str(described)), width, 5)
         if action.get('available') and not focused:
             names = ' and '.join(str(need).split(':')[0] for need in action.get('needs') or [])
             if names:
@@ -3416,7 +3418,8 @@ def repository_entry_lines(value, width, focus=0, staged=False):
             # The flags are named by the engine's explanation; what they are is said here, where they are shown (run 12).
             explanation += (' --git-executable is the path of the git program to run and --git-sha256 that program\'s SHA-256; '
                             'give both or neither.')
-        lines += _labelled('', explanation, width, 5)
+        from .readiness import placeholders_in_words
+        lines += _labelled('', placeholders_in_words(explanation), width, 5)
         if pinned and not staged:
             # The workspace's repository-import parses no pins, so the pinned form is a shell command (review 34).
             lines += _labelled('', 'The pins work only from a shell; the workspace repository-import cannot take them. '

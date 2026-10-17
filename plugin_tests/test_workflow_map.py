@@ -603,7 +603,7 @@ class RealStoreTests(unittest.TestCase):
                           'not_recorded', 'not_recorded', 'not_recorded'])
         self.assertEqual(flow['position'], 'approve_execute')
         self.assertEqual(stages['approve_execute']['continuation'], lifecycle_next(4, maintenance.review(self.operation), 0.0, None))
-        self.assertIn('execute %s DIGEST' % self.operation, stages['approve_execute']['continuation'])
+        self.assertIn('the execute command using %s, naming the digest that the review shows' % self.operation, stages['approve_execute']['continuation'])
         self.assertNotIn(review['approval_digest'], str(flow))
         self.assertEqual(flow['operation']['operation_id'], review['operation_id'])
 
@@ -825,8 +825,8 @@ class WorkflowMapLinesTests(unittest.TestCase):
         head = lifecycle_next(4, state_sets()['waiting']['review'], 0.0, None).split('\n')[0]
         self.assertIn(head[:40], text)
         # Commands in a step stand on their own rows, as every screen prints them.
-        self.assertTrue(any(str(row).strip().startswith('execute /w/operation DIGEST') for row in lines), lines)
-        self.assertTrue(any(str(row).startswith('        ') and 'execute /w/operation DIGEST' in str(row) for row in lines), lines)
+        self.assertTrue(any(str(row).strip().startswith('the execute command using /w/operation') for row in lines), lines)
+        self.assertTrue(any(str(row).startswith('        ') and 'the execute command using /w/operation' in str(row) for row in lines), lines)
 
     def test_the_detail_rows_read_in_order_identity_basis_recorded_then_the_step(self):
         lines = [str(row) for row in lines_of(flows()['waiting'], 76, focus='approve_execute')]
@@ -835,7 +835,7 @@ class WorkflowMapLinesTests(unittest.TestCase):
                  for word in ('FOCUS', 'basis', 'recorded', 'next')}
         self.assertEqual(sorted(first, key=first.get), ['FOCUS', 'basis', 'recorded', 'next'])
         # The commands the step prints come after its sentence, each on a row of its own.
-        self.assertGreater(next(index for index, row in enumerate(below) if row.strip().startswith('execute /w/operation')),
+        self.assertGreater(next(index for index, row in enumerate(below) if row.strip().startswith('the execute command using /w/operation')),
                            first['next'])
 
     def test_a_reason_is_shown_as_the_recorded_code_and_an_absent_one_is_said(self):
@@ -1319,7 +1319,7 @@ class CommandTests(LayerFixture):
         flat = ' '.join(text.split())
         self.assertIn('Position: approve, execute', flat)
         self.assertIn('approve and run it with the review digest', flat)
-        self.assertIn('execute %s DIGEST' % self.operation, flat)
+        self.assertIn('the execute command using %s, naming the digest that the review shows' % self.operation, flat)
         self.assertIn('operation ' + self.read_operation_prefix() + ' delivery stage approval', flat)
         self.assertTrue(flat.endswith(READ_ONLY), flat[-120:])                # said last, once
         self.assertEqual(flat.count(READ_ONLY), 1)

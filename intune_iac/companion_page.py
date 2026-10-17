@@ -651,6 +651,8 @@ def render_page(graph, *, mode_class=None, tenant=None, observed_at=None, tree_l
                   'prints its secret address.'
                   % (revision[:12], ('observed ' + _t(when)) if when else 'observation time unknown',
                      COMPANION_WRITE, COMPANION_SERVE))
+        from .readiness import placeholders_in_words
+        status = placeholders_in_words(status)
         note = 'This file was written once; nothing on it reads the workbench again.'
         body_live = ''
     lines = _bounded(tree_lines if tree_lines is not None else _tree(graph))

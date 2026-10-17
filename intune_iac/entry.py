@@ -314,7 +314,10 @@ FILL_IN_TEMPLATES = frozenset((DIRECTORY_PLACEHOLDER, PATH_PLACEHOLDER, 'ROOT', 
                                # the placeholders of the recorded steps in readiness.py (the goal rows of the start screen and the
                                # catalog): the capture, target and repository commands
                                'POLICY', 'NEW_DIR', 'TOKEN_VARIABLE_NAME', 'TARGET_JSON', 'FD', 'REPOSITORY_DIRECTORY', 'SESSION',
-                               'STACK', 'COMPONENT'))
+                               'STACK', 'COMPONENT',
+                               # the shell actions and typed commands of the workbench, the sign-in rerun and the companion
+                               'FILE', 'COMMIT', 'NAME', 'OBJECT_ID', 'DIGEST', 'NEW_OPERATION_DIR', 'DESIRED_JSON',
+                               'OPERATION_DIR', 'REVISION', 'RESOLUTION_SHA256', 'STAGE', 'VALUE'))
 _FILL_IN = re.compile(r'(?:%s)(?:[/.].*)?\Z' % '|'.join(sorted(FILL_IN_TEMPLATES, key=len, reverse=True)), re.DOTALL)
 
 

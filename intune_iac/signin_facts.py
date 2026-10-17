@@ -867,7 +867,8 @@ def _collect_why(result, shown):
 def _collect_steps(result, shown):
     """The next steps, one sentence each and none of them joined to another: [] when nothing is left to do."""
     status, rerun = result.get('status'), shown.get('rerun') or 'intune-iac signin collect'
-    again = 'To collect again, run: %s.' % rerun
+    from .readiness import placeholders_in_words
+    again = placeholders_in_words('To collect again, run: %s.' % rerun)
     if status == 'blocked':
         return [(result.get('signin') or {}).get('next_step') or '']
     if status == 'output_conflict':
@@ -886,7 +887,7 @@ def _collect_steps(result, shown):
         look = 'If you need to know what is at the output folder, look at it yourself (this command did not open it).'
         if result.get('token_match') == 'full_token':
             return ['Stop and report this: the collecting command printed the access token.', look,
-                    'Only after it is reported, to collect again, run: %s.' % rerun]
+                    placeholders_in_words('Only after it is reported, to collect again, run: %s.' % rerun)]
         return [look, again]
     if status == 'failed':
         return [again]
@@ -920,7 +921,8 @@ def collect_lines(result, width, code, shown=None):
         for item in inner['coverage']:
             note = ' (%s)' % _printable(item['reason']) if item.get('reason') else ''
             lines.append('    %s: %s%s' % (_printable(item['kind']), _printable(item['coverage']), note))
-    why = _collect_why(result, shown)
+    from .readiness import placeholders_in_words
+    why = placeholders_in_words(_collect_why(result, shown))
     if why:
         lines.append('Why:')
         lines += _wrap(why, width, '    ', '    ')
@@ -928,7 +930,7 @@ def collect_lines(result, width, code, shown=None):
         lines.append('Note:')
         lines += _wrap('This command did not open or remove the output folder and cannot say who created or changed anything in '
                        'it; a new run needs a new folder.', width, '    ', '    ')
-    steps = [step for step in _collect_steps(result, shown) if step]
+    steps = [placeholders_in_words(step) for step in _collect_steps(result, shown) if step]
     if steps:
         lines.append('Next step:')
         for number, step in enumerate(steps, 1):
