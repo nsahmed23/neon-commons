@@ -1800,6 +1800,166 @@ NOT_A_TERMINAL = {
     ('workflow.py', 'run_guided_workflow', 'os.fdopen'): (1, REASON_FDOPEN, 'bd45e44b8aeb'),
     ('workflow.py', 'run_guided_workflow', 'write'): (1, REASON_FDWRITE, '062e09ebb4b0'),
 }
+# The digest of the normalized AST of every module of the product (module_digest), pinned beside the site inventory: a change anywhere
+# in the product fails package_problems until the listings above, the reach listing and the leaf table are re-reviewed and these are updated.
+PACKAGE_DIGESTS = {
+    '__init__.py': '8cc53307de5df4dc',
+    'adoption_cli.py': '21640409612bd224',
+    'approval_authority.py': 'c273fe6548b7fa96',
+    'artifact_vault.py': '4d49c9f89c482c7f',
+    'atmos.py': '623f90cfaaa504a8',
+    'azure_backend.py': 'eaa0c8b1b4bb99af',
+    'blob_lease.py': 'c237a14691915847',
+    'build_identity.py': '04e282a460210c48',
+    'capture.py': '0d80735f7a81084e',
+    'capture_adapter.py': '9ffcf4c0610b0d6e',
+    'catalog.py': '33cb4595a987cad3',
+    'cli.py': '82ef934b759acc5c',
+    'clock.py': 'cdc8db1badc2acf5',
+    'companion.py': '9562a0aa3f535043',
+    'companion_live.py': 'd758e753086fb2ca',
+    'companion_page.py': '40f6e1226e5e101e',
+    'engine.py': '459ae1531cd03b4f',
+    'engineering_view.py': 'efc0964056b9f6f8',
+    'entry.py': '7aaac99f73c6c77a',
+    'execution.py': 'b41236b275f31a4e',
+    'families.py': '5a89e713e00b4da6',
+    'graph.py': '2cae7568284b6638',
+    'graph_contract.py': 'a9b6bc33b01d170e',
+    'graph_projection.py': 'f52d9b896ea4dd5b',
+    'graph_validation.py': '075b499d7f644410',
+    'host_capabilities.py': '0bf070d54407a542',
+    'identity_binding.py': '437926d18b2ead38',
+    'implementation_history.py': '27fd0f62d7e2de00',
+    'integration_manifest.py': 'afe9eacacd817256',
+    'io.py': '818c34e7e3e3c1cb',
+    'journey.py': '215d08d741b7efdb',
+    'journey_native_atmos.py': 'a8dcd7ad0cbc8cde',
+    'judge.py': 'e52ba6620befd84c',
+    'maintenance.py': '4e0d47273ab1f58c',
+    'mcp.py': '00cbdd496f8fab3f',
+    'modeled_service.py': '03531a46c1f0e51b',
+    'native_atmos.py': '810130bce7bb56c5',
+    'native_context.py': '001fae452d4170e0',
+    'native_pins.py': '34123661273f2f47',
+    'observation_contract.py': '8b525fc72fa04d7c',
+    'observation_jobs.py': '3088d1dc9dc305ec',
+    'observation_reader.py': '480cdf152e908d4d',
+    'orchestration_contract.py': '4c6e31f7f3aae17e',
+    'orchestration_export.py': 'abc674f3386843c7',
+    'orchestration_reducer.py': '75462abc8358de63',
+    'output_edit.py': '2cedb915790ed5ce',
+    'pin_profiles.py': '6eb8d5df21b21886',
+    'production.py': '1f4b858f7050848f',
+    'production_oracle.py': '474acdda24419b57',
+    'protected.py': '87a2b05fce47c61a',
+    'protected_worker.py': '94ad3e75b87608af',
+    'provider_execution.py': 'd4b2105411e49ef9',
+    'provider_journey.py': 'c253513b154717a9',
+    'readiness.py': '1285d11a28b0e4fa',
+    'reconciliation.py': '82928b03aa71a70a',
+    'repository.py': '957a9a80e5231451',
+    'repository_entry.py': 'e248c002e644cc08',
+    'runner.py': '8a98fcfb275bd96f',
+    'service_cli.py': 'ec4cd9cd03728d5b',
+    'signin.py': '6acae4df926da75b',
+    'signin_facts.py': '88c8737c4a5423c7',
+    'sim_cli.py': '72b9913e7f6f5827',
+    'sim_eval.py': '2fc65d0b2da767a5',
+    'sim_filters.py': '276991973ddfb88f',
+    'sim_fixture.py': '9eef767c54992664',
+    'sim_model.py': '6409b2f469926383',
+    'sim_profile.py': '7b577da4a1344f9b',
+    'sim_render.py': 'ed1d4378eeafa772',
+    'sim_result.py': 'c61247ac5dbf4ba3',
+    'sim_settings.py': '41132a7cd0011d69',
+    'synthetic.py': 'a320aa01bf217f0a',
+    'system_map_projection.py': '9ec6ab775fd7ff39',
+    'system_map_screen.py': '762ab9ebfbbab303',
+    'target.py': '2a79610ea0d0af8d',
+    'validity.py': '5e41eb85b9e05778',
+    'windows_capture.py': 'e8a36114d4edb1c0',
+    'windows_capture_writer.py': '4fe4f85096e09d0c',
+    'windows_directory.py': '6358e895128ab4f5',
+    'windows_observation.py': 'ef33257b5c032989',
+    'windows_observation_jobs.py': '6b71e1df453ecbe8',
+    'windows_observer_credentials.py': '84681807a913040f',
+    'windows_repository.py': 'f9161827cdce37fb',
+    'windows_source.py': 'b0eca5ea4a12f820',
+    'windows_source_edit.py': '7a84bc76b50cb57e',
+    'windows_sqlite.py': '9976f33dd2c5828d',
+    'windows_storage.py': '0f5295b8f688cf47',
+    'windows_terminal.py': '52a08524b21159a3',
+    'windows_views.py': '51a11a883e32fa5b',
+    'windows_workbench.py': 'cbe629d1a3747f46',
+    'windows_worker_evidence.py': '5a535f0dc9417a30',
+    'windows_worker_evidence_store.py': '0d6e3f173aa9e487',
+    'windows_workspace_binding.py': '47ad3ad077259777',
+    'windows_workspace_context.py': 'efcc4c66fbd77fc8',
+    'wizard.py': 'c1d1f7ec2ee4caa4',
+    'workbench.py': 'c865747c8f80c675',
+    'workbench_adoption.py': '8e9ae1fe5e1d1a51',
+    'workbench_adoption_views.py': '758c33653e3ee82a',
+    'workbench_delivery.py': '7601e285d4cecc69',
+    'workbench_diagnostics.py': '2642e8a091c76a44',
+    'workbench_diff.py': '47c2818463b5aadc',
+    'workbench_evidence_views.py': '9fbc8ba5b07e9292',
+    'workbench_health.py': 'f6f4a5898cf93874',
+    'workbench_overview.py': '97ff4c22486ba906',
+    'workbench_parsers.py': '81fd330e1b0682ee',
+    'workbench_provenance.py': '3dcf9914e92edfc7',
+    'workbench_queue.py': 'dee1315bcdcf4074',
+    'workbench_repository.py': 'e20780979f2e6a68',
+    'workbench_revision.py': '0f181bf619b8be20',
+    'workbench_scheduler.py': '3cff312bc1e766be',
+    'workbench_schema.py': '9670a425f8513d9d',
+    'workbench_screens.py': '940a88413b617aaa',
+    'workbench_semantics.py': 'b1e627d0ec500205',
+    'workbench_service_views.py': '8920bd35b5d84ec9',
+    'workbench_store.py': 'e057007b443fd471',
+    'workbench_tui.py': '37892cc59784d808',
+    'workbench_views.py': 'fbc783d55628db88',
+    'worker_adoption.py': 'd628f39a76c1064d',
+    'worker_adoption_disposition.py': '313ab6ba9fd02946',
+    'worker_adoption_ownership.py': '4d27a15f863f6e17',
+    'worker_adoption_plan_observation.py': 'b08dab8f19ce2ec6',
+    'worker_adoption_plan_phase.py': '3baf30fe3fd695f8',
+    'worker_adoption_plan_recovery.py': 'aad31abdc8bcf35d',
+    'worker_adoption_projection.py': '54ff76a74dab1c11',
+    'worker_adoption_provider.py': '6c0a0781a50a0a3c',
+    'worker_adoption_reconcile.py': '5981ff395031639b',
+    'worker_adoption_recovery.py': '2e16a2a9c941567f',
+    'worker_adoption_state.py': 'f87a9e8686af397e',
+    'worker_broker.py': '7bb3876c3b94d5a0',
+    'worker_committed_description.py': 'f16b0092d02b1302',
+    'worker_committed_readback.py': 'd12a15e3ac37e2ad',
+    'worker_committed_recovery.py': 'ec81ca528b865dda',
+    'worker_committed_state.py': '2bc8769abe1fdbcc',
+    'worker_completed_readback.py': 'b0c5d552d3aef219',
+    'worker_evidence.py': '77727c86bae62cb6',
+    'worker_evidence_domain_posix.py': 'df3c6ee2fc113226',
+    'worker_evidence_domains.py': 'e05c8c90f75e3f0d',
+    'worker_evidence_observation.py': 'c8b2cae5a9fda2aa',
+    'worker_evidence_phase.py': 'bc15dd6dc36b2538',
+    'worker_evidence_posix.py': 'af76ed8f9b38b09d',
+    'worker_host.py': '638a8dabfed6d917',
+    'worker_lease_recovery.py': 'bb5e3f9dc9ece8c5',
+    'worker_partial_recovery.py': '9ad99bdea3332a86',
+    'worker_plan_content.py': '309d9063e644997c',
+    'worker_plan_evidence.py': 'a8fd1bf036f92274',
+    'worker_precondition.py': '46de7140eae09b6c',
+    'worker_provider.py': 'dd424ee0e278ba1d',
+    'worker_recovery.py': '3567a82b6acff7df',
+    'worker_runtime_identity.py': '1d6c2898aa8edf91',
+    'worker_service.py': '95dabdda1d94c555',
+    'worker_service_readback.py': '0bff54c29bda8a6d',
+    'worker_source_intent.py': 'fa07778a2a763ff7',
+    'worker_state.py': '2334de2f8d0491cc',
+    'worker_state_recovery.py': '16c84238158f88de',
+    'worker_successor.py': '01c45717c0cfdc68',
+    'workflow.py': 'bfea897bfbd23078',
+    'workflow_projection.py': '7f3c541387ff98ad',
+}
 SCAN_NAMES = frozenset(('print', 'input', 'exec', 'eval', 'compile', '__import__', 'globals', 'locals', '__builtins__', 'breakpoint',
                         '_write_text'))
 BUILTINS_SCANNED = SCAN_NAMES | {'SystemExit', 'exit', 'quit'}                # names a load stands for even where the file imports nothing
@@ -2250,6 +2410,35 @@ def output_fingerprints(sources=None):
         for (function, kind), _, codes in file_sites(source):
             found[(name, function, kind)] = hashlib.sha256('\n'.join((name, function, kind) + codes).encode('utf-8')).hexdigest()[:12]
     return found
+
+
+@functools.lru_cache(maxsize=None)
+def module_digest(source):
+    """A digest of the normalized AST of one module (canon: the class of each node and the fields that are set, no line or column): a comment,
+    a blank line or a reformatting changes nothing, and any change of the code does."""
+    return hashlib.sha256(canon(ast.parse(source)).encode('utf-8')).hexdigest()[:16]
+
+
+def package_digests(sources=None):
+    """{file: digest} for the modules of the product (or of these sources)."""
+    return {name: module_digest(source) for name, source in (package_sources() if sources is None else sources).items()}
+
+
+def package_problems(sources=None, pinned=None):
+    """[str]: one message when a module of the product is not the one that was reviewed (its digest is not the pinned one, it is new, or it is
+    gone), naming the modules and what to do. The fingerprints of the sites cover the code of a site and of what it reads, not the body of a
+    function it calls, so a helper that now returns a command with an unresolved operand changes no site, no reach and no leaf: only this."""
+    pinned = PACKAGE_DIGESTS if pinned is None else pinned
+    found = package_digests(sources)
+    parts = [('changed', sorted(name for name in found if name in pinned and found[name] != pinned[name])),
+             ('added', sorted(set(found) - set(pinned))), ('removed', sorted(set(pinned) - set(found)))]
+    parts = ['%s: %s' % (kind, ', '.join(names)) for kind, names in parts if names]
+    if not parts:
+        return []
+    return ['the product is not the one that was reviewed (%s). The digests of its modules are pinned beside the site inventory '
+            '(PACKAGE_DIGESTS) because a change outside a site can still change what a listed site prints: re-review the listing of the sites '
+            '(OUTPUT_SITES, NOT_A_TERMINAL), the reach listing (EXACT_REACHES, NAME_REACHES) and the leaf table (LEAF_TABLE) against the change, '
+            'then update PACKAGE_DIGESTS' % '; '.join(parts)]
 
 
 def output_site_problems(sources=None, listed=None, table=None, others=None):
@@ -5126,6 +5315,54 @@ class ConsoleWriteTests(unittest.TestCase):
                 for site in sites:
                     self.assertTrue(any(site in problem for problem in problems), (site, problems))
                 self.assertEqual(reaches.get(loader), reach, reaches)
+
+
+class PackageDigestTests(unittest.TestCase):
+    """Sol V5 finding 4: the fingerprint of a site covers its code and what it reads, not the body of a function it calls. A listed print can be
+    left as it was while a helper it calls now returns a command with an unresolved operand, and no site, no reach and no leaf changes. The
+    normalized AST of every module of the product is pinned (PACKAGE_DIGESTS), so any change of the product fails until it is reviewed."""
+
+    @staticmethod
+    def helper_returns_a_command():
+        """sim_cli.text_lines builds the text of simulate, and cli._write_text prints it. The print is not touched, and neither is the one site
+        text_lines holds (the line that asks sys.stdout whether it is a terminal): only its return changes."""
+        sources = package_sources()
+        tree = ast.parse(sources['sim_cli.py'])
+        helper = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef) and node.name == 'text_lines')
+        helper.body[-1] = ast.parse('return ["Run: kubectl apply PLAN_FILE"]').body[0]
+        sources['sim_cli.py'] = ast.unparse(tree)
+        return sources
+
+    def test_the_product_is_the_one_that_was_reviewed(self):
+        self.assertEqual(package_problems(), [])
+        self.assertEqual(set(PACKAGE_DIGESTS), set(package_sources()))
+
+    def test_a_helper_that_returns_a_command_fails_though_every_site_and_every_reach_is_as_listed(self):
+        sources = self.helper_returns_a_command()
+        self.assertEqual(output_site_problems(sources), [])
+        self.assertEqual(reach_problems(sources), [])
+        problems = package_problems(sources)
+        self.assertEqual(len(problems), 1)
+        for word in ('changed: sim_cli.py', 'PACKAGE_DIGESTS', 'OUTPUT_SITES', 'NOT_A_TERMINAL', 'EXACT_REACHES', 'NAME_REACHES', 'LEAF_TABLE',
+                     're-review'):
+            self.assertIn(word, problems[0])
+        self.assertNotIn('added', problems[0])
+
+    def test_a_comment_or_a_blank_line_changes_nothing_and_a_changed_literal_does(self):
+        sources = package_sources()
+        sources['cli.py'] += '\n\n# a comment\n\n'
+        self.assertEqual(package_problems(sources), [])
+        sources = package_sources()
+        sources['cli.py'] = sources['cli.py'].replace("'Unknown command.'", "'Unknown command!'")
+        self.assertNotEqual(sources['cli.py'], package_sources()['cli.py'])
+        self.assertIn('changed: cli.py', package_problems(sources)[0])
+
+    def test_a_module_that_is_added_or_gone_is_named(self):
+        sources = package_sources()
+        sources['one_more.py'] = 'X = 1\n'
+        del sources['sim_cli.py']
+        self.assertIn('added: one_more.py', package_problems(sources)[0])
+        self.assertIn('removed: sim_cli.py', package_problems(sources)[0])
 
 
 class RemainingRouteSweepTests(unittest.TestCase):
