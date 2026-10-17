@@ -1472,6 +1472,9 @@ def leaf_table_problems(parser, table=None, drivers=None):
 # (`p = print`, `functools.partial(print)`, `builtins.print`, an alias imported from builtins, `getattr(builtins, "print")`), and so is
 # a primitive that reaches one by name. Each site is listed below by file, function and kind with its number of references, and with
 # the leaf it serves or the reason it reaches no terminal; an unlisted site, another number, and a listed site that is gone all fail.
+# What a name stands for is every binding it has anywhere in the file, in any scope (an import of it, an assignment to it from a name, a
+# chain on a name or a choice between such), and a load is a site if any one of them makes it one: `import os as channel` is not undone
+# by `import json as channel` elsewhere in the file, and a builtin keeps its meaning whatever else its name is bound to.
 # The kinds, one per reference:
 #   print, input, exec, eval, compile, __import__, globals, locals, __builtins__, breakpoint, _write_text    the name, in load context
 #   sys.stdout, sys.stderr, sys.stdin, sys.__stdout__, sys.__stderr__, sys.__stdin__, sys.modules          the attribute (aliases resolved)
@@ -1520,17 +1523,25 @@ OUTPUT_SITES = {
     ('wizard.py', '_run_wizard', 'print'): (1, 'wizard'),
     ('wizard.py', 'run_wizard', 'input'): (1, 'wizard'),
     ('wizard.py', 'run_wizard', 'print'): (1, 'wizard'),
-    ('workbench.py', '_run_terminal', 'input'): (1, 'workbench terminal'),
-    ('workbench.py', '_run_terminal', 'print'): (1, 'workbench terminal'),
+    ('workbench.py', '_render', 'print'): (1, 'workbench terminal'),
+    ('workbench.py', '_run_terminal', 'input'): (4, 'workbench terminal'),
+    ('workbench.py', '_run_terminal', 'print'): (3, 'workbench terminal'),
+    ('workbench.py', '_run_terminal.present', 'print'): (1, 'workbench terminal'),
     ('workbench.py', 'command', 'print'): (2, 'workbench companion'),
-    ('workbench.py', 'run_terminal', 'print'): (1, 'workbench terminal'),
-    ('workbench_tui.py', 'Workspace.__init__', 'sys.stdin'): (1, 'workbench workspace'),
-    ('workbench_tui.py', 'Workspace.__init__', 'sys.stdout'): (1, 'workbench workspace'),
+    ('workbench.py', 'run_terminal', 'input'): (1, 'workbench terminal'),
+    ('workbench.py', 'run_terminal', 'print'): (4, 'workbench terminal'),
+    ('workbench_tui.py', 'Workspace.__init__', 'sys.stdin'): (3, 'workbench workspace'),
+    ('workbench_tui.py', 'Workspace.__init__', 'sys.stdout'): (3, 'workbench workspace'),
     ('workbench_tui.py', 'Workspace.draw', 'write'): (1, 'workbench workspace'),
-    ('workbench_tui.py', 'run_workspace', 'sys.stdin'): (1, 'workbench workspace'),
-    ('workbench_tui.py', 'run_workspace', 'sys.stdout'): (1, 'workbench workspace'),
+    ('workbench_tui.py', 'run_workspace', 'sys.stdin'): (6, 'workbench workspace'),
+    ('workbench_tui.py', 'run_workspace', 'sys.stdout'): (6, 'workbench workspace'),
+    ('workbench_tui.py', 'run_workspace.read_line', 'sys.stdin'): (2, 'workbench workspace'),
+    ('workbench_tui.py', 'run_workspace.read_line', 'sys.stdout'): (2, 'workbench workspace'),
     ('workbench_tui.py', 'run_workspace.read_line', 'write'): (1, 'workbench workspace'),
     ('workbench_tui.py', 'run_workspace.write_line', 'print'): (1, 'workbench workspace'),
+    ('workbench_tui.py', 'run_workspace.write_line', 'sys.stdout'): (1, 'workbench workspace'),
+    ('workbench_tui.py', 'terminal_session', 'sys.stdin'): (1, 'workbench workspace'),
+    ('workbench_tui.py', 'terminal_session', 'sys.stdout'): (4, 'workbench workspace'),
     ('workbench_tui.py', 'terminal_session', 'write'): (2, 'workbench workspace'),
     ('workflow.py', 'run_guided_workflow', 'input'): (1, 'wizard'),
     ('workflow.py', 'run_guided_workflow', 'print'): (1, 'wizard'),
@@ -1577,8 +1588,9 @@ NOT_A_TERMINAL = {
     ('journey.py', 'run_journey', 'os.fdopen'): (1, REASON_FDOPEN),
     ('journey.py', 'run_journey', 'write'): (1, REASON_FDWRITE),
     ('journey_native_atmos.py', '_tool', 'os.fdopen'): (1, REASON_FDOPEN),
-    ('mcp.py', 'serve', 'sys.stdin'): (1, 'the MCP server input stream (JSON-RPC lines), a protocol'),
+    ('mcp.py', 'serve', 'sys.stdin'): (2, 'the MCP server input stream (JSON-RPC lines), a protocol'),
     ('mcp.py', 'serve', 'sys.stdout'): (1, 'the MCP server output stream (JSON-RPC lines), a protocol'),
+    ('mcp.py', 'serve.send', 'sys.stdout'): (2, 'the MCP server output stream (JSON-RPC lines), a protocol'),
     ('mcp.py', 'serve.send', 'write'): (1, 'the MCP protocol: one JSON message per line on the server stream'),
     ('native_atmos.py', 'resolve_native_atmos', 'write'): (1, 'writes a file of the native snapshot at a path under its directory (Path.write_bytes)'),
     ('orchestration_export.py', '<module>', 'os as a value'): (1, 'hasattr(os, name) over a fixed tuple of constants: a capability probe'),
@@ -1647,6 +1659,8 @@ NOT_A_TERMINAL = {
     ('workbench_tui.py', 'Workspace._plan_record', 'dynamic access'): (1, 'the instance dictionary as a cache: setdefault of a private key'),
     ('workbench_tui.py', 'Workspace._strip_note', 'dynamic access'): (1, 'the instance dictionary as a cache: setdefault of a private key'),
     ('workbench_tui.py', 'Workspace.input', '__import__'): (1, REASON_READINESS),
+    ('workbench_tui.py', 'visual_supported', 'sys.stdin'): (2, 'asks whether stdin and stdout are terminals that can be put in raw mode; writes nothing'),
+    ('workbench_tui.py', 'visual_supported', 'sys.stdout'): (1, 'asks whether stdin and stdout are terminals that can be put in raw mode; writes nothing'),
     ('workbench_views.py', 'propose_source_acceptance', 'os.fdopen'): (1, REASON_FDOPEN),
     ('workbench_views.py', 'propose_source_acceptance', 'write'): (1, REASON_FDWRITE),
     ('worker_adoption.py', '_authenticate', 'os.dup'): (1, REASON_DUP),
@@ -1695,6 +1709,7 @@ NOT_A_TERMINAL = {
 }
 SCAN_NAMES = frozenset(('print', 'input', 'exec', 'eval', 'compile', '__import__', 'globals', 'locals', '__builtins__', 'breakpoint',
                         '_write_text'))
+BUILTINS_SCANNED = SCAN_NAMES | {'SystemExit', 'exit', 'quit'}                # names a load stands for even where the file imports nothing
 SCAN_STREAMS = ('sys.stdout', 'sys.stderr', 'sys.stdin', 'sys.__stdout__', 'sys.__stderr__', 'sys.__stdin__', 'sys.modules')
 SCAN_OS = re.compile(r'(?:write|writev|pwrite|pwritev|sendfile|copy_file_range|splice|fdopen|dup|dup2|system|popen|startfile|openpty|forkpty|fork|exec\w*'
                      r'|spawn\w*|posix_spawn\w*)\Z')
@@ -1723,19 +1738,56 @@ def not_a_status(node):
 
 def site_nodes(source):
     """[(function chain, kind, node)] for every site in the source of one module (see the note above); the chain is the names of the
-    functions and classes around the node. Names that an import binds are resolved first, in every scope, so an alias is the thing it
-    stands for: `from builtins import print as p` makes every p a builtins site, `import os as o` makes o.system an os.system site."""
+    functions and classes around the node. What a name stands for is every binding it has anywhere in the file, in any scope: each
+    import of it and each assignment to it whose value is a name, a chain on a name, or a choice between such. A load is judged against
+    all of them and is a site if any one makes it a site, so a name bound to os in one function and to json in another is both:
+    `import os as channel` is not undone by an `import json as channel` elsewhere. A builtin keeps its builtin meaning whatever else
+    the name is bound to."""
     tree = ast.parse(source)
     parents = {child: node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)}
-    aliases = {}
+    bindings = collections.defaultdict(set)
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
-                aliases[alias.asname or alias.name.split('.')[0]] = alias.name if alias.asname else alias.name.split('.')[0]
+                bindings[alias.asname or alias.name.split('.')[0]].add(alias.name if alias.asname else alias.name.split('.')[0])
         elif isinstance(node, ast.ImportFrom):
             base = '.' * node.level + (node.module or '')
             for alias in node.names:
-                aliases[alias.asname or alias.name] = base + ('' if base.endswith('.') else '.') + alias.name
+                bindings[alias.asname or alias.name].add(base + ('' if base.endswith('.') else '.') + alias.name)
+
+    def possible(name):
+        """Every qualified name a load of this name may stand for."""
+        return bindings[name] | ({name} if name in BUILTINS_SCANNED else set())
+
+    def dotted(node):
+        """Every qualified name a chain rooted at a name may stand for: the root taken as each of its bindings, o.system as os.system."""
+        parts = []
+        while isinstance(node, ast.Attribute):
+            parts.append(node.attr)
+            node = node.value
+        return {'.'.join([root] + parts[::-1]) for root in possible(node.id)} if isinstance(node, ast.Name) else set()
+
+    def flows(expression):
+        """What an expression may evaluate to, when it is a name, a chain on a name, or a choice between such."""
+        if isinstance(expression, ast.IfExp):
+            return flows(expression.body) | flows(expression.orelse)
+        if isinstance(expression, ast.BoolOp):
+            return set().union(*(flows(item) for item in expression.values))
+        if isinstance(expression, ast.NamedExpr):
+            return flows(expression.value)
+        return dotted(expression) if isinstance(expression, (ast.Name, ast.Attribute)) else set()
+
+    for _ in range(5):                                             # an assignment from a name that an assignment bound: to a fixed point
+        before = sum(len(names) for names in bindings.values())
+        for node in ast.walk(tree):
+            pairs = ([(target, node.value) for target in node.targets] if isinstance(node, ast.Assign)
+                     else [(node.target, node.value)] if isinstance(node, (ast.AnnAssign, ast.NamedExpr)) and node.value is not None
+                     else [])
+            for target, value in pairs:
+                if isinstance(target, ast.Name):
+                    bindings[target.id] |= flows(value)
+        if sum(len(names) for names in bindings.values()) == before:
+            break
 
     def where(node):
         names = []
@@ -1744,14 +1796,6 @@ def site_nodes(source):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                 names.append(node.name)
         return '.'.join(reversed(names)) or '<module>'
-
-    def dotted(node):
-        """The qualified name of a chain rooted at a name, the root resolved through the imports: o.system is os.system."""
-        parts = []
-        while isinstance(node, ast.Attribute):
-            parts.append(node.attr)
-            node = node.value
-        return '.'.join([aliases[node.id]] + parts[::-1]) if isinstance(node, ast.Name) and node.id in aliases else None
 
     def route(qualified):
         """The kind of site a qualified name is, or None."""
@@ -1767,9 +1811,19 @@ def site_nodes(source):
             return 'ctypes.' + parts[1]
         return None
 
+    def classify(qualified):
+        """The kind of site a qualified name is, or None: a builtin or the text sink by its bare name, or a route of the standard library."""
+        if qualified in SCAN_NAMES:
+            return qualified
+        return route(qualified)
+
+    def kinds_of(names):
+        return {classify(name) for name in names} - {None}
+
     def machine_print(call):
-        """The whole call can emit exactly one JSON document and nothing else."""
-        if len(call.args) != 1 or not isinstance(call.args[0], ast.Call) or dotted(call.args[0].func) != 'json.dumps':
+        """The whole call can emit exactly one JSON document and nothing else, and print is the builtin and nothing else."""
+        if (len(call.args) != 1 or not isinstance(call.args[0], ast.Call) or dotted(call.args[0].func) != {'json.dumps'}
+                or bindings['print']):
             return False
         for keyword in call.keywords:
             end = keyword.arg == 'end' and isinstance(keyword.value, ast.Constant) and isinstance(keyword.value.value, str) \
@@ -1802,7 +1856,7 @@ def site_nodes(source):
     def inside_open(call):
         """The call is a write lexically inside `with open(...) as name:` on that name, with no function between the two."""
         receiver, child, node = call.func.value, call, parents.get(call)
-        if not isinstance(receiver, ast.Name) or 'open' in aliases:
+        if not isinstance(receiver, ast.Name) or bindings['open']:
             return False
         while node is not None:
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda, ast.ClassDef)):
@@ -1819,34 +1873,32 @@ def site_nodes(source):
 
     found = []
     for node in ast.walk(tree):
-        parent, kinds = parents.get(node), []
+        parent, kinds = parents.get(node), set()
         in_call = isinstance(parent, ast.Call) and parent.func is node
+        is_root = isinstance(parent, ast.Attribute) and parent.value is node
         if isinstance(node, ast.Import):
-            kinds = ['import ' + alias.name.split('.')[0] for alias in node.names if alias.name.split('.')[0] in SCAN_MODULES]
+            kinds = {'import ' + alias.name.split('.')[0] for alias in node.names if alias.name.split('.')[0] in SCAN_MODULES}
         elif isinstance(node, ast.ImportFrom) and not node.level:
             root = (node.module or '').split('.')[0]
             if root in SCAN_MODULES:
-                kinds = ['import ' + root]
+                kinds = {'import ' + root}
             elif root in ('sys', 'os', 'ctypes'):
-                kinds = ['import %s.%s' % (root, alias.name) for alias in node.names
-                         if alias.name == '*' or route('%s.%s' % (root, alias.name))]
+                kinds = {'import %s.%s' % (root, alias.name) for alias in node.names
+                         if alias.name == '*' or route('%s.%s' % (root, alias.name))}
         elif isinstance(node, ast.Constant) and isinstance(node.value, str) and DEVICE_PATH.search(node.value):
-            kinds = ['device path']
+            kinds = {'device path'}
         elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
-            qualified = aliases.get(node.id)
-            if isinstance(parent, ast.Attribute) and parent.value is node and qualified is not None:
-                pass                                                    # an imported root of a chain: judged with the chain
-            elif qualified is None and node.id in SCAN_NAMES:
-                if not (node.id == 'print' and in_call and machine_print(parent)):
-                    kinds = [node.id]
-            elif qualified in ('sys', 'os'):
-                probe = (isinstance(parent, ast.Call) and isinstance(parent.func, ast.Name) and parent.func.id in ('getattr', 'hasattr')
-                         and parent.args[:1] == [node] and len(parent.args) > 1 and isinstance(parent.args[1], ast.Constant)
-                         and isinstance(parent.args[1].value, str) and not route('%s.%s' % (qualified, parent.args[1].value)))
-                kinds = [] if probe else [qualified + ' as a value']
-            elif route(qualified):
-                kinds = [route(qualified)]
-            elif qualified is None and node.id in ('SystemExit', 'exit', 'quit'):
+            if node.id in SCAN_NAMES and not (node.id == 'print' and in_call and machine_print(parent)):
+                kinds.add(node.id)                                     # the builtin, whatever else the name is bound to
+            if not is_root:                                            # the root of a chain is judged with the chain
+                kinds |= kinds_of(bindings[node.id])
+                for module in sorted({'sys', 'os'} & bindings[node.id]):
+                    probe = (isinstance(parent, ast.Call) and isinstance(parent.func, ast.Name) and parent.func.id in ('getattr', 'hasattr')
+                             and parent.args[:1] == [node] and len(parent.args) > 1 and isinstance(parent.args[1], ast.Constant)
+                             and isinstance(parent.args[1].value, str) and not route('%s.%s' % (module, parent.args[1].value)))
+                    if not probe:
+                        kinds.add(module + ' as a value')
+            if node.id in ('SystemExit', 'exit', 'quit'):
                 holder = parent
                 while isinstance(holder, (ast.Tuple, ast.List)):
                     holder = parents.get(holder)
@@ -1855,37 +1907,36 @@ def site_nodes(source):
                                    or (isinstance(holder, ast.ExceptHandler) and holder.type is not None)
                                    or (isinstance(holder, ast.Raise) and holder.exc is node))
                 if not in_call and not names_the_class:
-                    kinds = ['exit-text']                               # handed on: what it carries is not seen here
+                    kinds.add('exit-text')                              # handed on: what it carries is not seen here
         elif isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Load):
-            qualified = dotted(node)
             if node.attr in SCAN_DUNDERS:
-                kinds.append('dynamic access')
-            if not (isinstance(parent, ast.Attribute) and parent.value is node) and route(qualified):
-                kinds.append(route(qualified))                          # the outermost link of a chain names the site once
-            elif node.attr in PARSER_OUTPUT and not (isinstance(parent, ast.Attribute) and parent.value is node):
-                kinds.append('parser-output')
+                kinds.add('dynamic access')
+            if not is_root and kinds_of(dotted(node)):
+                kinds |= kinds_of(dotted(node))                         # the outermost link of a chain names the site once
+            elif node.attr in PARSER_OUTPUT and not is_root:
+                kinds.add('parser-output')
             if node.attr == 'exit' and not in_call:
-                kinds.append('exit-text')
+                kinds.add('exit-text')
         elif isinstance(node, ast.Call):
             func = node.func
+            called = dotted(func) if isinstance(func, (ast.Attribute, ast.Name)) else set()
             if isinstance(func, ast.Attribute) and func.attr in ('write', 'writelines', 'write_text', 'write_bytes'):
-                if not inside_open(node) and not (route(dotted(func)) or '').startswith('os.'):
-                    kinds.append('write')                               # os.write is its own kind
-            if ((isinstance(func, ast.Name) and func.id in ('SystemExit', 'exit', 'quit') and func.id not in aliases)
+                if not inside_open(node) and not any((classify(name) or '').startswith('os.') for name in called):
+                    kinds.add('write')                                  # os.write is its own kind
+            if ((isinstance(func, ast.Name) and func.id in ('SystemExit', 'exit', 'quit'))
                     or (isinstance(func, ast.Attribute) and func.attr == 'exit')) and any(not_a_status(item) for item in node.args):
-                kinds.append('exit-text')
-            called = dotted(func) if isinstance(func, (ast.Attribute, ast.Name)) else None
-            if called in DESCRIPTOR_CALLS or (isinstance(func, ast.Name) and func.id == 'open' and 'open' not in aliases):
+                kinds.add('exit-text')
+            if called & DESCRIPTOR_CALLS or (isinstance(func, ast.Name) and func.id == 'open' and not bindings['open']):
                 given = node.args[:2] + [keyword.value for keyword in node.keywords if keyword.arg in ('fd', 'file', 'out_fd', 'dst')]
                 if any(isinstance(item, ast.Constant) and isinstance(item.value, int) and not isinstance(item.value, bool)
                        and item.value in (0, 1, 2) for item in given):
-                    kinds.append('standard descriptor')                   # the terminal itself, however it is opened or copied to
-            if called in CHILD_CALLS:
+                    kinds.add('standard descriptor')                    # the terminal itself, however it is opened or copied to
+            if called & CHILD_CALLS:
                 ends = {keyword.arg: dotted(keyword.value) for keyword in node.keywords if keyword.arg in ('stdout', 'stderr')}
-                if not (ends.get('stdout') in ('subprocess.PIPE', 'subprocess.DEVNULL')
-                        and ends.get('stderr') in ('subprocess.PIPE', 'subprocess.DEVNULL', 'subprocess.STDOUT')):
-                    kinds.append('child on the terminal')                 # a child whose output is not taken writes where it likes
-        found += [(where(node), kind, node) for kind in kinds]
+                if not (ends.get('stdout') and ends['stdout'] <= {'subprocess.PIPE', 'subprocess.DEVNULL'}
+                        and ends.get('stderr') and ends['stderr'] <= {'subprocess.PIPE', 'subprocess.DEVNULL', 'subprocess.STDOUT'}):
+                    kinds.add('child on the terminal')                  # a child whose output is not taken writes where it likes
+        found += [(where(node), kind, node) for kind in sorted(kinds)]
     return found
 
 
@@ -3276,7 +3327,7 @@ class LeafClassificationTests(unittest.TestCase):
         self.assertEqual(output_site_problems(), [])
         found = output_sites()
         self.assertEqual(dict(found), {site: value[0] for site, value in list(OUTPUT_SITES.items()) + list(NOT_A_TERMINAL.items())})
-        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (31, 156, 187, 235))
+        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (39, 159, 198, 276))
         self.assertIn(('cli.py', '_write_text', 'print'), found)                                   # the scan reads the product
         self.assertTrue(all(isinstance(reason, str) and reason for _, reason in NOT_A_TERMINAL.values()))      # each has its reason
 
@@ -3308,9 +3359,10 @@ class LeafClassificationTests(unittest.TestCase):
         self.assertEqual(sorted(output_site_problems(sources)), gone)
         # a site that reaches no terminal is listed too, and a site is not listed as both
         others = {site: value for site, value in NOT_A_TERMINAL.items() if site[0] != 'mcp.py'}
-        self.assertEqual(output_site_problems(others=others), ['mcp.py: serve has 1 unlisted sys.stdin site(s)',
-                                                               'mcp.py: serve has 1 unlisted sys.stdout site(s)',
-                                                               'mcp.py: serve.send has 1 unlisted write site(s)'])
+        gone = ['mcp.py: %s has %d unlisted %s site(s)' % (site[1], count, site[2])
+                for site, count in sorted(output_sites().items()) if site[0] == 'mcp.py']
+        self.assertEqual(len(gone), 4)
+        self.assertEqual(output_site_problems(others=others), gone)
         both = {**NOT_A_TERMINAL, ('cli.py', '_write_text', 'print'): (1, 'a socket')}
         self.assertEqual(output_site_problems(others=both),
                          ['cli.py: _write_text print is listed as a terminal site and as a site that reaches no terminal'])
@@ -3433,7 +3485,7 @@ class ReferenceScanTests(unittest.TestCase):
                 ('a parameter', 'def helper(out):\n    out.write(%(line)r)', {'doctor.helper': {'write': 1}}),
                 ('a file opened outside a with', 'handle = open("result.json", "w")\nhandle.write(%(line)r)', {'doctor': {'write': 1}}),
                 ('the name bound again in the block', 'with open("result.json", "w") as out:\n    out = sys.stdout\n    out.write(%(line)r)',
-                 {'doctor': {'sys.stdout': 1, 'write': 1}}),
+                 {'doctor': {'sys.stdout': 2, 'write': 1}}),
                 ('a function between the with and the write', 'with open("result.json", "w") as out:\n    def later():\n'
                                                               '        out.write(%(line)r)', {'doctor.later': {'write': 1}}),
                 ('a write on another name', 'with open("result.json", "w") as out:\n    other = out\n    other.write(%(line)r)',
@@ -3464,10 +3516,10 @@ class ReferenceScanTests(unittest.TestCase):
                 ('builtins under an alias', 'import builtins as b\nb.print(%(line)r)', {'builtins': 1, 'import builtins': 1}),
                 ('getattr on builtins', 'import builtins\ngetattr(builtins, "print")(%(line)r)', {'builtins': 1, 'import builtins': 1}),
                 ('__import__', '__import__("builtins").print(%(line)r)', {'__import__': 1}),
-                ('print held under another name', 'p = print\np(%(line)r)', {'print': 1}),
+                ('print held under another name', 'emit = print\nemit(%(line)r)', {'print': 2}),
                 ('print handed to a function', 'list(map(print, [%(line)r]))', {'print': 1}),
                 ('sys.__stdout__', 'sys.__stdout__.write(%(line)r)', {'sys.__stdout__': 1, 'write': 1}),
-                ('sys.stdout held under another name', 'out = sys.stdout\nout.write(%(line)r)', {'sys.stdout': 1, 'write': 1}),
+                ('sys.stdout held under another name', 'out = sys.stdout\nout.write(%(line)r)', {'sys.stdout': 2, 'write': 1}),
                 ('sys under an alias', 'import sys as s\ns.stdout.write(%(line)r)', {'sys.stdout': 1, 'write': 1}),
                 ('stdout imported from sys', 'from sys import stdout\nstdout.write(%(line)r)',
                  {'import sys.stdout': 1, 'sys.stdout': 1, 'write': 1}),
@@ -3516,6 +3568,41 @@ class ReferenceScanTests(unittest.TestCase):
                 self.inside(snippet, **expected)
         for label, snippet in (('a constant of os', 'getattr(os, "O_NOFOLLOW", 0)'), ('a test of os', 'hasattr(os, "fsync")'),
                                ('sys.exit with a status', 'sys.exit(2)'), ('an exception named', 'isinstance(None, (KeyboardInterrupt, SystemExit))')):
+            with self.subTest(label):
+                self.inside(snippet)
+
+    def test_a_name_is_judged_by_every_binding_it_has_in_the_file(self):
+        """Sol V4 finding 1: `import os as channel` in doctor and `import json as channel` in a function of the same file made
+        channel.system(...) json.system, because the last binding of the name won. A load is judged against every binding its name has
+        anywhere in the file, imports and assignments alike, and is a site if any one of them makes it one."""
+        for label, snippet, expected in (
+                ('Sol: the nested import comes last', 'import os as channel\nchannel.system("echo " + %(line)r)\n\ndef harmless():\n'
+                                                      '    import json as channel\n', {'os.system': 1}),
+                ('the nested import comes first', 'def harmless():\n    import json as channel\n\nimport os as channel\n'
+                                                   'channel.system("echo " + %(line)r)', {'os.system': 1}),
+                ('both imports in the function', 'import json as channel\nimport os as channel\nchannel.system("echo " + %(line)r)',
+                 {'os.system': 1}),
+                ('a from-import under the same name', 'from os import system as channel\nchannel("echo " + %(line)r)\n\ndef harmless():\n'
+                                                       '    from json import dumps as channel\n',
+                 {'import os.system': 1, 'os.system': 1}),
+                ('an assignment under the same name', 'channel = os\nchannel.system("echo " + %(line)r)\n\ndef harmless():\n'
+                                                       '    channel = json\n', {'os as a value': 1, 'os.system': 1}),
+                ('an assignment from an assignment', 'first = os\nsecond = first\nsecond.system("echo " + %(line)r)',
+                 {'os as a value': 2, 'os.system': 1}),
+                ('a choice between a stream and None', 'out = sys.stdout if %(line)r else None\nout.write(%(line)r)',
+                 {'sys.stdout': 2, 'write': 1}),
+                ('print bound to something else elsewhere', 'def harmless():\n    from json import dumps as print\n\nprint(%(line)r)',
+                 {'print': 1}),
+                ('print bound elsewhere, and a document printed', 'def harmless():\n    from json import dumps as print\n\n'
+                                                                  'print(json.dumps({}))', {'print': 1})):
+            with self.subTest(label):
+                added = {('cli.py', 'doctor', kind): count for kind, count in expected.items()}
+                if 'print' in expected and 'dumps as print' in snippet:
+                    added[('cli.py', 'main', 'print')] = 1             # main's own JSON print is the builtin's no longer: print is rebound
+                self.assertEqual(self.delta(self.mutated(snippet % {'line': self.LINE})), added)
+        for label, snippet in (('two modules under one name, none of them an output route',
+                                'import json as channel\nchannel.dumps({})\n\ndef harmless():\n    import re as channel\n'),
+                               ('an assignment to a module that is no route', 'channel = json\nchannel.dumps({})')):
             with self.subTest(label):
                 self.inside(snippet)
 
