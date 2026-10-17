@@ -299,3 +299,111 @@ class ProducerStringTests(Estates):
                 with self.subTest(variant=variant[:120]):
                     self.check(variant)
         type(self).counts['readiness.py and catalog.py'] = (len(strings), count)
+
+
+# sha256 (first 16 hex digits) of the screen's rows for an ordinary name, taken on the base of this package (04260b8), before the change.
+# key: route|width|goal. The temporary parent and fixture directories are written PARENT and FIXTURES first, and the readiness view
+# is host-free (host_free). Linux with a temporary directory of /tmp only: a longer path wraps differently.
+GOLDEN = {
+    'built|120|-': 'a378d6120b76d906',
+    'built|120|adopt': '08df25b99b104d1d',
+    'built|120|change': '5cb589f43e20aa9f',
+    'built|120|discover': '9e471c49391f738a',
+    'built|120|inspect': '16b417bb3d36ef4f',
+    'built|60|-': '4dd1a37651fe1184',
+    'built|60|adopt': '011ef338f0416c00',
+    'built|60|change': '6b1e29c803c34b9a',
+    'built|60|discover': '7197bf7cdca696bf',
+    'built|60|inspect': '632aafc1873b5204',
+    'built|80|-': 'b8dedd1d4e806713',
+    'built|80|adopt': '9ba55ab31194e532',
+    'built|80|change': '0c99c0468a9f11d8',
+    'built|80|discover': 'c9d2cc4e355b80f7',
+    'built|80|inspect': '9174395b60defe96',
+    'cli|120|-': '13cd9bf05125923d',
+    'cli|60|-': 'bcc756f2b922978d',
+    'cli|80|-': '92f23aa461921b09',
+    'plain|120|-': '089fefbc753d6101',
+    'plain|120|adopt': 'ea2557176a1eeb1e',
+    'plain|120|change': '401a644c07efb973',
+    'plain|120|discover': '8752ce11b44cf056',
+    'plain|120|inspect': '174f7fa1b981102d',
+    'plain|60|-': 'da5e9d61168a82cd',
+    'plain|60|adopt': '4d65eb0a523a01a6',
+    'plain|60|change': '7de75fffd85a1ef6',
+    'plain|60|discover': 'd5aa7a495f1e2dda',
+    'plain|60|inspect': '4ea2be94fc58b73b',
+    'plain|80|-': '56d736abaa814071',
+    'plain|80|adopt': 'd9749a8e20419e30',
+    'plain|80|change': '76b106d5986da03b',
+    'plain|80|discover': 'a0efc3d448b3ca3b',
+    'plain|80|inspect': 'e916c3790f443c86',
+}
+
+
+def digest(text, parent):
+    """The 16 hex digits of the screen's text with the two temporary directories (of equal length every time) named."""
+    text = text.replace(parent, 'PARENT').replace(str(Fixtures.get()['full'].parent), 'FIXTURES')
+    return hashlib.sha256(text.encode('utf-8')).hexdigest()[:16]
+
+
+class SweepTests(Estates):
+    """Item 3: hidden names (credential-shaped, a control character, too wide for the row, a combining mark) at 120, 80 and 60
+    columns, through the builders, the plain data and the command line."""
+    names = dict(HIDDEN_NAMES, ordinary=ORDINARY)
+    ROUTES = ('built', 'plain', 'cli')
+
+    def test_no_row_holds_a_stand_in_as_a_command_operand(self):
+        count = 0
+        for label, name in HIDDEN_NAMES.items():
+            for route in self.ROUTES:
+                for width in WIDTHS:
+                    for goal in GOALS:
+                        with self.subTest(name=label, route=route, width=width, goal=goal):
+                            lines = render(route, self.parent, name, width, goal)
+                            count += 1
+                            self.assertEqual(stand_in_operands(lines), [], flat(lines))
+                            text = '\n'.join(lines)
+                            # nothing of the name: not whole, not as the escape a terminal guard would write for it
+                            for fragment in (name, name.replace(chr(27), '\\u001b'), name.replace(chr(0x301), '\\u0301'), 'd' * 20):
+                                if label != 'long' and fragment == 'd' * 20:
+                                    continue
+                                self.assertNotIn(fragment, text)
+        self.assertEqual(count, len(HIDDEN_NAMES) * len(self.ROUTES) * len(WIDTHS) * len(GOALS))
+
+    def test_each_notice_appears_whole_on_every_screen_that_has_its_command(self):
+        from intune_iac import readiness
+        said = readiness.DIRECTORY_NOT_SHOWN_SENTENCE
+        pointer = 'Catalog of what this build supports and where each goal stands: ' + readiness.IN_WORDS % 'catalog'
+        for label, name in HIDDEN_NAMES.items():
+            for route in self.ROUTES:
+                for width in WIDTHS:
+                    for goal in GOALS:
+                        with self.subTest(name=label, route=route, width=width, goal=goal):
+                            text = flat(render(route, self.parent, name, width, goal))
+                            ordinary = flat(render(route, self.parent, ORDINARY, width, goal))
+                            self.assertEqual(text.count(said), 1, text)         # once, under the header
+                            self.assertIn(pointer, text)                        # the screen has a catalog pointer, said whole
+                            if 'No sign-in check was run. To look for an existing Azure sign-in, run:' in ordinary:
+                                self.assertIn(readiness.NO_CHECK_HIDDEN % goal, text)
+                            if route == 'plain':
+                                self.assertIn('A next step names a path whose name is not shown here.', text)
+                            else:
+                                self.assertIn('Open the workspace with the workbench workspace command using this saved store; '
+                                              'its path cannot be shown here.', text)
+                                self.assertIn('Resume with the wizard command using this saved session; its path cannot be '
+                                              'shown here.', text)
+
+    @unittest.skipUnless(os.name == 'posix' and tempfile.gettempdir() == '/tmp', 'the goldens were taken with paths under /tmp')
+    def test_an_ordinary_name_prints_byte_for_byte_what_it_printed_before(self):
+        seen = 0
+        for route in self.ROUTES:
+            for width in WIDTHS:
+                for goal in GOALS:
+                    if route == 'cli' and goal:
+                        continue                  # the command line reads the host itself: no golden for the goal block
+                    with self.subTest(route=route, width=width, goal=goal):
+                        text = '\n'.join(render(route, self.parent, ORDINARY, width, goal))
+                        seen += 1
+                        self.assertEqual(digest(text, self.parent), GOLDEN['%s|%d|%s' % (route, width, goal or '-')])
+        self.assertEqual(seen, len(GOLDEN))
