@@ -95,7 +95,11 @@ def logical_rows(lines):
 
 
 def is_stand_in(token):
-    return token in STAND_INS or any(token.startswith(word + '/') for word in STAND_INS)
+    """An operand that is a fill-in template: every member of the product's shared set (entry.FILL_IN_TEMPLATES), alone or at the
+    start of a path (DIRECTORY/store, NEW_SESSION.json)."""
+    from intune_iac import entry
+    names = getattr(entry, 'FILL_IN_TEMPLATES', STAND_INS)
+    return any(token == name or token.startswith((name + '/', name + '.')) for name in names)
 
 
 def stand_in_operands(lines):
@@ -455,25 +459,8 @@ class SharedTemplateSetTests(unittest.TestCase):
 
 
 def unresolved_operands(lines):
-    """Every operand of a printed command that is a fill-in template (entry.FILL_IN_TEMPLATES): a stand-in for a path the screen may
-    not show, or a placeholder the person is to replace. Read as stand_in_operands reads a command."""
-    from intune_iac import entry
-    # the product's own set; the required names stand in for it on a source that does not have one (to show a test red there)
-    names = getattr(entry, 'FILL_IN_TEMPLATES', SharedTemplateSetTests.REQUIRED)
-    pattern = re.compile(r'(?:%s)(?:[/.].*)?\Z' % '|'.join(sorted(names, key=len, reverse=True)), re.DOTALL)
-    is_fill_in = lambda token: bool(pattern.match(token))
-    found = []
-    for row in logical_rows(lines):
-        commands = [row] if row.startswith('intune-iac ') else row.split('intune-iac ')[1:]
-        commands += re.findall(r':repository-entry\s+(.*)', row)
-        for command in commands:
-            command = re.split(r'\s\(|[.;:](?:\s|$)', command)[0]
-            try:
-                tokens = shlex.split(command)
-            except ValueError:
-                tokens = command.split()
-            found += [token for token in tokens if is_fill_in(token)]
-    return found
+    """Every operand of a printed command that is a fill-in template (see is_stand_in)."""
+    return stand_in_operands(lines)
 
 
 def variant_estate(parent, name, kind):
@@ -565,3 +552,39 @@ class PlaceholderCommandTests(unittest.TestCase):
         text = flat(render('built', self.parents['export'], ORDINARY, 100, None))
         self.assertIn("intune-iac workbench workspace --root 'estate dir/store'", text)
         self.assertIn("intune-iac workbench repository-entry --root 'estate dir/store' --repo 'estate dir/repository'", text)
+
+
+class CheckerTests(unittest.TestCase):
+    """Round 2, item 3: the reader of printed commands knows every member of the shared set, so an empty result means the screen
+    has none and not that the reader could not see them."""
+
+    def test_the_reader_finds_every_template_of_the_shared_set_as_an_operand(self):
+        from intune_iac import entry
+        names = getattr(entry, 'FILL_IN_TEMPLATES', frozenset())
+        self.assertGreaterEqual(len(names), 12)
+        for name in sorted(names):
+            with self.subTest(name=name):
+                self.assertEqual(stand_in_operands(['intune-iac workbench workspace --root %s' % name]), [name])
+                self.assertEqual(stand_in_operands(['  intune-iac workbench workspace --root \\', '      %s/store' % name]),
+                                 [name + '/store'])
+        self.assertEqual(stand_in_operands(['intune-iac wizard --session NEW_SESSION.json --output NEW_OUTPUT_DIR']),
+                         ['NEW_SESSION.json', 'NEW_OUTPUT_DIR'])
+        self.assertEqual(stand_in_operands(["intune-iac workbench init --root STORE --tenant TENANT_ID"]), ['STORE', 'TENANT_ID'])
+        self.assertEqual(stand_in_operands(["intune-iac workbench workspace --root 'estate dir/store'"]), [])
+
+    def test_a_hidden_directory_with_nothing_recognized_prints_none_because_it_prints_words(self):
+        with tempfile.TemporaryDirectory() as parent:
+            Path(parent, CREDENTIAL).mkdir()
+            for route in ('built', 'plain', 'cli'):
+                for goal in (None, 'discover'):
+                    with self.subTest(route=route, goal=goal):
+                        lines = render(route, parent, CREDENTIAL, 100, goal)
+                        text = flat(lines)
+                        steps = [row for row in lines if re.match(r'  \d\. ', row)]
+                        self.assertEqual(len(steps), 3, lines)                   # the three fallback steps are there ...
+                        self.assertIn('naming its folder and your tenant id', text)  # ... in words
+                        self.assertEqual(stand_in_operands(lines[:next((i for i, r in enumerate(lines)
+                                                                       if r.startswith('GOAL READINESS')), len(lines))]), [])
+                        # the reader does see the templates of the old step, so [] above is not blindness
+                        old = 'intune-iac workbench init --root STORE --tenant TENANT_ID'
+                        self.assertEqual(stand_in_operands([old]), ['STORE', 'TENANT_ID'])
