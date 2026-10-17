@@ -403,7 +403,9 @@ class ActionStagingTests(unittest.TestCase):
                   'cursor': len('propose '), 'needs': ['DESIRED_JSON: a file holding the desired policy body'],
                   'effects': 'Writes a new operation directory.', 'available': True, 'blocked': None, 'binding': {}}
         joined = '\n'.join(actions_lines([action], 0, 100))
-        self.assertIn("command  propose DESIRED_JSON '/w x/op'", joined)
+        # The resolved operation directory keeps its place; the missing input is described where it goes (no stand-in).
+        self.assertIn("command  The propose command using '/w x/op', naming your desired-policy JSON file", joined)
+        self.assertNotIn('DESIRED_JSON', joined)
         self.assertNotIn(' ...', joined)
 
     def test_a_opens_the_actions_with_what_each_does(self):

@@ -32,12 +32,17 @@ class QueueRoutesActOnTheFindingsPolicyTests(unittest.TestCase):
     def test_a_finding_of_another_policy_selects_it_before_the_review_commands(self):
         rows = [row.strip() for row in self.queue(OTHER, SELECTED)]
         self.assertIn(':select ' + OTHER, rows)
-        self.assertLess(rows.index(':select ' + OTHER), rows.index(':queue-review-template reporting_incomplete NEW_JSON'))
+        self.assertLess(rows.index(':select ' + OTHER), rows.index(self.REVIEW_COMMAND))
+        self.assertNotIn(':queue-review-template reporting_incomplete NEW_JSON', rows)
+
+    # The review command as the queue says it: the resolved finding keeps its place, the new file is described.
+    REVIEW_COMMAND = 'The :queue-review-template command using reporting_incomplete, naming a new JSON file for the review form'
 
     def test_a_finding_of_the_selected_policy_prints_no_select(self):
         rows = [row.strip() for row in self.queue(SELECTED, SELECTED)]
         self.assertNotIn(':select ' + SELECTED, rows)
-        self.assertIn(':queue-review-template reporting_incomplete NEW_JSON', rows)
+        self.assertIn(self.REVIEW_COMMAND, rows)
+        self.assertNotIn(':queue-review-template reporting_incomplete NEW_JSON', rows)
 
     def test_with_no_selection_the_finding_is_selected_first(self):
         self.assertIn(':select ' + OTHER, [row.strip() for row in self.queue(OTHER, None)])

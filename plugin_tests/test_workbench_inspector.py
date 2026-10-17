@@ -129,7 +129,8 @@ class InspectorSummaryTests(unittest.TestCase):
                           next_actions=[{'source': 'no_repository_intent', 'step': 'repository-entry REPOSITORY shows how.'}])
         joined = '\n'.join(self.lines(value))
         self.assertIn('%s' % 'No signal in the areas checked', joined)
-        self.assertIn('repository-entry REPOSITORY shows how.', joined)
+        self.assertIn('The repository-entry command, naming your repository folder, shows how.', joined)
+        self.assertNotIn('REPOSITORY', joined)
 
     def test_attention_and_next_come_before_a_long_settings_list(self):
         many = [{'id': str(number), 'settingInstance': {'@odata.type': '#microsoft.graph.deviceManagementConfigurationSimpleSettingInstance',

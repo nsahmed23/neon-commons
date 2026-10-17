@@ -134,9 +134,11 @@ class PlanReviewFirstViewportTests(Fixture):
         ws, rows, text = self.screen((120, 40), self.review())
         self.assertIn('Next: Nothing to apply: the desired body equals the observed body.', text)
         self.assertIn('In the workspace:', text)
-        self.assertIn("execute '%s' DIGEST" % self.OPERATION, text)
+        self.assertIn("the execute command using '%s', naming the digest that the review shows" % self.OPERATION, text)
         self.assertIn('From a shell:', text)
-        self.assertIn("intune-iac workbench execute --operation '%s' --approve-digest DIGEST" % self.OPERATION, text)
+        self.assertIn("the workbench execute command using --operation '%s', naming --approve-digest as the digest that the review shows"
+                      % self.OPERATION, text)
+        self.assertNotIn('DIGEST', text)  # no DIGEST stand-in is printed
         summary = ' '.join(' '.join(ws._summary_lines(118)).split())
         self.assertIn("under the execution plan's equality (assignments, technologies and role scope tags match in any order",
                       summary)  # the definition is kept at its first use
@@ -146,7 +148,9 @@ class PlanReviewFirstViewportTests(Fixture):
         ws, rows, text = self.screen((120, 40), self.review(changes=['description_changed'], no_configuration_change=False,
                                                            field_changes={'status': 'changed', 'changes': [
                                                                {'field': 'description', 'kind': 'changed', 'before': 'a', 'after': 'b'}]}))
-        self.assertIn("intune-iac workbench execute --operation '%s' --approve-digest DIGEST" % self.OPERATION, text)
+        self.assertIn("the workbench execute command using --operation '%s', naming --approve-digest as the digest that the review shows"
+                      % self.OPERATION, text)
+        self.assertNotIn('--approve-digest DIGEST', text)
 
     def test_the_review_digest_is_still_on_the_review(self):
         ws, rows, text = self.screen((120, 40), self.review())

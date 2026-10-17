@@ -479,12 +479,15 @@ class CompanionEntryTests(companion_tests.Fixture):
         last = len(actions) - 1
         self.assertEqual(actions[last]['kind'], 'companion')
         _, rows = self.lines(last)
-        self.assertIn('command  companion FILE', rows)
-        self.assertTrue(any(row.startswith('needs  FILE') for row in rows), rows)
+        # The command is said in words (the shared renderer); the FILE stand-in is not printed.
+        self.assertIn('command  The companion command, naming the file you name', rows)
+        self.assertNotIn('command  companion FILE', rows)
+        self.assertTrue(any(row.startswith('needs  the file you name') for row in rows), rows)
+        self.assertFalse(any('FILE' in row for row in rows), rows)
         # Unfocused, it keeps the short form, as every other available entry does.
         _, others = self.lines(0)
-        self.assertNotIn('command  companion FILE', others)
-        self.assertIn('needs  FILE', others)
+        self.assertNotIn('command  The companion command, naming the file you name', others)
+        self.assertIn('needs  FILE', others)  # the short form names the input by its label (not a command), unchanged
 
     def test_every_focused_available_entry_shows_a_command_row(self):
         actions, _ = self.lines(0)

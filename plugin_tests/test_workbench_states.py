@@ -112,7 +112,8 @@ class StateRenderingTests(unittest.TestCase):
     def test_no_intent_and_no_operation_are_said_plainly(self):
         states = dict(self.STATES, intent={'status': 'none'}, operation=None)
         text = self.lines(states)
-        self.assertIn('none recorded; repository-entry REPOSITORY finds where this policy is maintained', text)
+        self.assertIn('none recorded; the repository-entry command, naming your repository folder, finds where this policy is maintained', text)
+        self.assertNotIn('REPOSITORY', text)
         self.assertIn('none recorded for this policy', text)
 
     def test_readable_time(self):
@@ -283,11 +284,14 @@ class LifecycleTests(unittest.TestCase):
                                 'expires_at': time.time() + 200})
         # PKG-PRES-RUN4 item 17: Delivery has no surface number, so it is named as the key that opens it.
         self.assertIn('Lifecycle: 9 Repository > 5 Plan (here) > 6 Execution > Delivery (v opens it)', text)
-        # Run 9 (frame 18): the placeholder template stands on its own row after the sentence, so a copied row carries
-        # no words; the sentence and the template are both still said.
+        # Run 9 (frame 18): the command stands on its own row after the sentence. Both forms have an unresolved operand, so
+        # each is said in words (readiness.placeholders_in_words) and no stand-in is printed.
         self.assertIn('Next: approve and run it with the review digest (6 Execution shows the result). In the workspace: '
-                      'execute OPERATION_DIR DIGEST From a shell: intune-iac workbench execute --operation OPERATION_DIR '
-                      '--approve-digest DIGEST', text)  # run 12 item 3
+                      'the execute command, naming the operation folder and the digest that the review shows From a shell: '
+                      'the workbench execute command, naming --operation as the operation folder and --approve-digest as the '
+                      'digest that the review shows', text)  # run 12 item 3
+        self.assertNotIn('OPERATION_DIR', text)
+        self.assertNotIn('DIGEST', text)
 
     def test_the_repository_and_execution_surfaces_say_it_too(self):
         text = self.summary(8, {'schema_version': 'workbench-repository-status/1', 'object_id': OBJECT,

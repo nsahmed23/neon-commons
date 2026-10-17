@@ -75,7 +75,11 @@ class ReadableRefusalTests(unittest.TestCase):
         self.assertTrue(block[0].startswith('    1. '), block)
         self.assertTrue(any(line.startswith('    2. ') for line in block), block)
         words = flat(' '.join(block))
-        self.assertIn('intune-iac signin collect --tenant %s --policy %s --output NEW_DIR' % (TENANT_A, POLICY), words)
+        # The command is said in words (readiness.placeholders_in_words): the resolved operands keep their option and
+        # value, the unresolved one is described, and no NEW_DIR stand-in is printed.
+        self.assertIn('the signin collect command using --tenant %s, --policy %s, naming --output as a new folder for the output'
+                      % (TENANT_A, POLICY), words)
+        self.assertNotIn('NEW_DIR', words)
 
     def test_the_last_line_is_the_exit_code_row_and_explains_exit_4(self):
         for path_of in (existing_folder, symlinked_ancestor, long_name):

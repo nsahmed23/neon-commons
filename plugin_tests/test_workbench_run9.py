@@ -85,8 +85,10 @@ class DeliveryCommandRowTests(CommandRows, unittest.TestCase):
 
     def test_the_approve_and_reconcile_steps_print_their_command_alone(self):
         waiting = next_step(approval={'status': 'waiting', 'closes_at': 1791980997}, record=None)
-        self.assert_command_alone(self.rows(waiting, approval={'status': 'waiting', 'closes_at': 1791980997}),
-                                  'execute /w/op EXACT_REVIEW_DIGEST')
+        rows = self.rows(waiting, approval={'status': 'waiting', 'closes_at': 1791980997})
+        # The real path stays in the command; the digest is described, never filled in and never printed as EXACT_REVIEW_DIGEST.
+        self.assert_command_alone(rows, 'the execute command using /w/op, naming the digest that the review shows')
+        self.assertNotIn('EXACT_REVIEW_DIGEST', text_of(rows))
         required = next_step(reconciliation={'status': 'required'})
         self.assert_command_alone(self.rows(required, reconciliation={'status': 'required'}), 'reconcile /w/op')
         pending = next_step(reconciliation={'status': 'pending'})
@@ -97,13 +99,17 @@ class PlaceholderTemplateTests(CommandRows, unittest.TestCase):
     """Item 1 (frames 18, 31, 53, 64, 68 and 47, 48): a placeholder template is a command on its own row too."""
     surface = states_tests.RefusalCauseTests.workspace
 
-    def test_the_plan_lifecycle_prints_the_execute_template_alone(self):
+    def test_the_plan_lifecycle_prints_the_execute_command_in_words_alone(self):
         import time
         from intune_iac.workbench_screens import lifecycle_lines
         value = {'operation_id': 'a' * 32, 'object_id': OBJECT, 'status': 'prepared', 'expires_at': time.time() + 200}
         for width in (80, 118):
             rows = lifecycle_lines(4, width, value)
-            self.assert_command_alone(rows, 'execute OPERATION_DIR DIGEST')
+            self.assert_command_alone(rows, 'the execute command, naming the operation folder and the digest that the review shows')
+            self.assert_command_alone(rows, 'the workbench execute command, naming --operation as the operation folder and '
+                                            '--approve-digest as the digest that the review shows')
+            self.assertNotIn('OPERATION_DIR', text_of(rows))
+            self.assertNotIn('DIGEST', text_of(rows))
             self.assertIn('Lifecycle: 9 Repository > 5 Plan (here) > 6 Execution > Delivery (v opens it)', text_of(rows))
 
     def test_each_queue_finding_prints_its_review_commands_alone(self):
@@ -111,11 +117,14 @@ class PlaceholderTemplateTests(CommandRows, unittest.TestCase):
         value = screens_tests.QueueRun7Tests().value('reporting_incomplete', 'ownership_unknown')
         rows = queue_lines(value, 160)
         for finding in ('reporting_incomplete', 'ownership_unknown'):
-            self.assert_command_alone(rows, ':queue-review-template %s NEW_JSON' % finding)
-        self.assert_command_alone(rows, ':queue-amend FILE none')
+            self.assert_command_alone(rows, 'The :queue-review-template command using %s, naming a new JSON file for the review '
+                                            'form' % finding)
+        self.assert_command_alone(rows, 'The :queue-amend command using none, naming the file you name')
+        self.assertNotIn('NEW_JSON', text_of(rows))
+        self.assertNotIn(':queue-amend FILE', text_of(rows))
         recorded = screens_tests.QueueRun7Tests().value('ownership_unknown')
         recorded['findings'][0]['review_record'] = {'status': 'recorded', 'artifact_id': 'c' * 64}
-        self.assert_command_alone(queue_lines(recorded, 160), ':queue-amend FILE ' + 'c' * 64)
+        self.assert_command_alone(queue_lines(recorded, 160), 'The :queue-amend command using %s, naming the file you name' % ('c' * 64))
 
     def test_the_written_review_form_prints_the_record_command_alone(self):
         from intune_iac.workbench_screens import review_lines
@@ -125,9 +134,12 @@ class PlaceholderTemplateTests(CommandRows, unittest.TestCase):
         self.assert_command_alone(rows, "queue-amend '/w/queue review.json' none")
         self.assertIn('A review is an annotation, never approval or execution.', text_of(rows))
         missing = {'status': 'unknown', 'reason': 'review_not_recorded', 'finding': 'ownership_unknown', 'object_id': OBJECT}
-        self.assert_command_alone(review_lines(missing, 118), ':queue-review-template ownership_unknown NEW_JSON')
+        rows = review_lines(missing, 118)
+        self.assert_command_alone(rows, 'The :queue-review-template command using ownership_unknown, naming a new JSON file for the review '
+                                        'form')
+        self.assertNotIn('NEW_JSON', text_of(rows))
 
-    def test_a_refusal_next_prints_its_template_alone(self):
+    def test_a_refusal_next_prints_its_command_in_words_alone(self):
         from intune_iac.workbench_screens import refusal_lines
         value = {'status': 'error', 'error': {'code': 'workbench_repository_stale', 'message': 'Refused.'}}
         rows = refusal_lines(value, 118)
@@ -136,18 +148,23 @@ class PlaceholderTemplateTests(CommandRows, unittest.TestCase):
         rows = refusal_lines(value, 118, known=('The component no longer consumes this policy.', 'consumer_changed'))
         self.assertIn('choose Refresh the repository intent (a: actions)', ' '.join(' '.join(rows).split()))
         missing = {'status': 'error', 'error': {'code': 'workbench_repository_intent_missing', 'message': 'None.'}}
-        self.assert_command_alone(refusal_lines(missing, 118), ':repository-entry REPOSITORY')
+        rows = refusal_lines(missing, 118)
+        self.assert_command_alone(rows, 'The :repository-entry command, naming your repository folder')
+        self.assertNotIn('REPOSITORY', text_of(rows))
 
-    def test_the_inspector_next_steps_print_their_template_alone(self):
+    def test_the_inspector_next_steps_print_their_command_in_words_alone(self):
         from intune_iac.workbench import _next_actions
         from intune_iac.workbench_screens import _attention_lines
         steps = _next_actions({'selected_repository': {'artifact_id': 'a' * 64}}, {'signals': [], 'status': 'ok'}, True)
         rows = _attention_lines({'next_actions': steps}, 118)
-        self.assert_command_alone(rows, 'propose-from-intent NEW_OPERATION_DIR')
+        self.assert_command_alone(rows, 'the propose-from-intent command, naming a new folder for the operation')
+        self.assertNotIn('NEW_OPERATION_DIR', text_of(rows))
         steps = _next_actions({}, {'signals': [], 'status': 'ok'}, True)
         rows = _attention_lines({'next_actions': steps}, 118)
-        self.assert_command_alone(rows, 'repository-entry REPOSITORY')
-        self.assert_command_alone(rows, 'propose DESIRED_JSON NEW_OPERATION_DIR')
+        self.assert_command_alone(rows, 'the repository-entry command, naming your repository folder')
+        self.assert_command_alone(rows, 'the propose command, naming your desired-policy JSON file and a new folder for the operation')
+        for stand_in in ('REPOSITORY', 'DESIRED_JSON', 'NEW_OPERATION_DIR'):
+            self.assertNotIn(stand_in, text_of(rows))
 
 
 class DiagnosticsCommandRowTests(CommandRows, unittest.TestCase):

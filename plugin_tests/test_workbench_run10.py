@@ -47,7 +47,13 @@ class TreeCountTests(MapTruth):
         self.assertIn('7 relationships, 1 repository', next(line for line in lines if '| coverage' in line))
 
 
-WRITE_COMMAND = 'intune-iac workbench companion --root STORE --object ID --out FILE'
+# The command as the human surfaces say it (readiness.placeholders_in_words): the options keep their place and each
+# unresolved operand is described; STORE, ID and FILE are not printed.
+WRITE_COMMAND = ('the workbench companion command, naming --root as your store folder, --object as the exact object id of the '
+                 'policy and --out as the file you name')
+SERVE_COMMAND = ('the workbench companion command using --serve, naming --root as your store folder and --object as the exact '
+                 'object id of the policy')
+STAND_INS = ('--root STORE', '--object ID', '--out FILE')
 
 
 class CompanionWordingTests(companion_tests.Fixture):
@@ -65,6 +71,8 @@ class CompanionWordingTests(companion_tests.Fixture):
         action, rendered = self.entry()
         self.assertEqual(action['kind'], 'companion')
         self.assertIn(WRITE_COMMAND, rendered)
+        for stand_in in STAND_INS:
+            self.assertNotIn(stand_in, rendered)
         self.assertIn('--serve', rendered)
         self.assertNotIn('"companion serve"', rendered)
 
@@ -84,7 +92,9 @@ class CompanionWordingTests(companion_tests.Fixture):
         html = render_page(project(self.value, freshness='fresh'), mode_class='synthetic_local_process_only')
         page = ' '.join(re.sub(r'<[^>]+>', ' ', re.sub(r'(?s)<(script|style).*?</\1>', ' ', html)).split())
         self.assertIn(WRITE_COMMAND, page)
-        self.assertIn('workbench companion --root STORE --object ID --serve', page)
+        self.assertIn(SERVE_COMMAND, page)
+        for stand_in in STAND_INS:
+            self.assertNotIn(stand_in, page)
         self.assertNotIn('the same workbench companion command', page)
         self.assertRegex(page, r'--serve[^.]*prints? (the|its) (secret )?address')
 
@@ -252,6 +262,10 @@ class DeliveryFirstActionTests(unittest.TestCase):
 
 
 OPERATION_DIRECTORY = '/w/journey 28 run 10/operation-22222222-132179e8da71'
+# The execute rows as the plan review says them: the real path stays quoted in its option, the digest is described.
+EXECUTE_IN_WORDS = "the execute command using '%s', naming the digest that the review shows"
+EXECUTE_SHELL_IN_WORDS = ("the workbench execute command using --operation '%s', naming --approve-digest as the digest "
+                          "that the review shows")
 
 
 class PlanDirectoryTests(CommandRows, unittest.TestCase):
@@ -279,19 +293,23 @@ class PlanDirectoryTests(CommandRows, unittest.TestCase):
     def test_the_execute_row_carries_the_real_path_alone(self):
         for width in (80, 118):
             rows = self.rows(self.review(), width)
-            self.assert_command_alone(rows, "execute '%s' DIGEST" % OPERATION_DIRECTORY)
+            self.assert_command_alone(rows, EXECUTE_IN_WORDS % OPERATION_DIRECTORY)
+            self.assert_command_alone(rows, EXECUTE_SHELL_IN_WORDS % OPERATION_DIRECTORY)
             self.assertNotIn('OPERATION_DIR', text_of(rows), width)
+            self.assertNotIn('DIGEST', text_of(rows), width)  # the stand-in is not printed
 
     def test_a_path_with_a_line_break_cannot_start_a_row_of_its_own(self):
         rows = self.rows(self.review(operation_root='/w/op\n  rm -rf /'))
         self.assertEqual([row for row in rows if row.lstrip().startswith('rm -rf')], [])
 
-    def test_a_review_without_a_directory_keeps_the_template_and_prints_no_row(self):
+    def test_a_review_without_a_directory_says_the_folder_in_words_and_prints_no_row(self):
         value = self.review()
         del value['operation_root']
         rows = self.rows(value)
         self.assertNotIn('Operation directory', text_of(rows))
-        self.assert_command_alone(rows, 'execute OPERATION_DIR DIGEST')
+        self.assert_command_alone(rows, 'the execute command, naming the operation folder and the digest that the review shows')
+        self.assertNotIn('OPERATION_DIR', text_of(rows))
+        self.assertNotIn('DIGEST', text_of(rows))
 
 
 class NoChangePlanTests(CommandRows, unittest.TestCase):
@@ -314,7 +332,10 @@ class NoChangePlanTests(CommandRows, unittest.TestCase):
 
     def test_the_command_row_is_still_alone_with_the_real_path(self):
         for width in (80, 118):
-            self.assert_command_alone(lifecycle_rows(self.no_change(), width), "execute '%s' DIGEST" % OPERATION_DIRECTORY)
+            rows = lifecycle_rows(self.no_change(), width)
+            self.assert_command_alone(rows, EXECUTE_IN_WORDS % OPERATION_DIRECTORY)
+            self.assert_command_alone(rows, EXECUTE_SHELL_IN_WORDS % OPERATION_DIRECTORY)
+            self.assertNotIn('DIGEST', text_of(rows), width)
 
     def test_a_plan_with_a_change_is_unchanged(self):
         text = self.next_text(self.review(changes=['description'], no_configuration_change=False))

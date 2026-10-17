@@ -372,7 +372,9 @@ class FrameTests(unittest.TestCase):
                                (MINIMUM, 'New intent only; no commit/approve/apply')):
             workspace, rows = self.staged_frame(size)
             index = next(i for i, row in enumerate(rows) if row.rstrip() == boundary)
-            self.assertIn('REVISION', rows[index + 1], (size, rows[index + 1]))  # what to type; the key line has Esc (run 12 item 7)
+            # what to type, said in words (the capitalised REVISION stand-in is not printed); the key line has Esc (run 12 item 7)
+            self.assertIn('commit hash', rows[index + 1], (size, rows[index + 1]))
+            self.assertNotIn('REVISION', rows[index + 1], (size, rows[index + 1]))
             self.assertEqual(sum('Esc cancels' in row for row in rows), 1, (size, rows))
             self.assertTrue(rows[index + 2].startswith(':repository-refresh'), (size, rows[index + 2]))
             self.assertEqual(len(rows), size[1], size)

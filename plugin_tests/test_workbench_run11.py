@@ -219,7 +219,11 @@ class OneNextTests(unittest.TestCase):
         prepared = {'operation_id': 'a' * 32, 'object_id': OBJECT, 'status': 'prepared', 'expires_at': 4102444800,
                     'operation_root': '/w/op'}
         text = self.banded(4, prepared)
-        self.assertIn("execute /w/op DIGEST", text)
+        self.assertIn("In the workspace: the execute command using /w/op, naming the digest that the review shows", text)
+        self.assertIn("From a shell: the workbench execute command using --operation /w/op, naming --approve-digest as the digest "
+                      "that the review shows", text)
+        self.assertNotIn("execute /w/op DIGEST", text)
+        self.assertNotIn("DIGEST", text)
 
 
 class OneDescriptionTests(unittest.TestCase):
@@ -242,11 +246,23 @@ class OneDescriptionTests(unittest.TestCase):
         return ' '.join(' '.join(line.strip() for line in actions_lines([self.entry(kind, available)], 0, width)).split())
 
     def test_the_focused_entry_prints_one_description_block(self):
+        from intune_iac.readiness import placeholders_in_words
         from intune_iac.workbench import ACTION_EFFECTS, ACTION_SUMMARY
         for kind in ACTION_SUMMARY:
             for available in (True, False):
                 text = self.focused(kind, available)
-                self.assertIn(' '.join(ACTION_EFFECTS[kind].split()), text, kind)
+                # The description is printed as the shared renderer says it: a command in it that has an unresolved
+                # operand is said in words, so the recorded text with its stand-ins is not what is printed.
+                said = ' '.join(placeholders_in_words(ACTION_EFFECTS[kind]).split())
+                recorded = ' '.join(ACTION_EFFECTS[kind].split())
+                self.assertIn(said, text, kind)
+                if said != recorded:
+                    self.assertNotIn(recorded, text, kind)
+                if kind == 'companion':
+                    self.assertIn('the same command is the workbench companion command, naming --root as your store folder, '
+                                  '--object as the exact object id of the policy and --out as the file you name; with --serve '
+                                  'instead of --out (the file you name) it serves the page on this machine only', text, kind)
+                    self.assertNotIn('--out FILE', text, kind)
                 if ACTION_SUMMARY[kind] not in ACTION_EFFECTS[kind]:
                     self.assertNotIn(' '.join(ACTION_SUMMARY[kind].split()), text, kind)
 
@@ -413,7 +429,8 @@ class QueueNoneTests(unittest.TestCase):
     def test_the_queue_names_what_none_means_beside_the_command(self):
         from intune_iac.workbench_screens import queue_lines
         text = ' '.join(' '.join(queue_lines({'findings': [self.FINDING], 'scope': {}}, 118)).split())
-        self.assertIn(':queue-amend FILE none', text)
+        self.assertIn('The :queue-amend command using none, naming the file you name', text)
+        self.assertNotIn(':queue-amend FILE', text)
         self.assertIn(self.MEANING, text)
 
     def test_a_finding_with_an_earlier_review_names_that_review_instead(self):
@@ -421,7 +438,8 @@ class QueueNoneTests(unittest.TestCase):
         prior = 'f' * 64
         finding = dict(self.FINDING, review_record={'status': 'recorded', 'artifact_id': prior})
         text = ' '.join(' '.join(queue_lines({'findings': [finding], 'scope': {}}, 118, selected='o' * 8)).split())
-        self.assertIn(':queue-amend FILE ' + prior, text)
+        self.assertIn('The :queue-amend command using %s, naming the file you name' % prior, text)
+        self.assertNotIn(':queue-amend FILE', text)
         self.assertNotIn(self.MEANING, text)
         self.assertIn('The last word of the second command is the earlier review it replaces.', text)
 
