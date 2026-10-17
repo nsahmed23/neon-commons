@@ -1479,7 +1479,8 @@ def leaf_table_problems(parser, table=None, drivers=None):
 # product's own that is a scan name (the text sink _write_text) is a site however it is reached: from .cli import _write_text as emit,
 # cli._write_text, intune_iac.cli._write_text, or the string "_write_text", and so is the relative import that brings it. The native
 # routes that can reach a terminal or run code by a road of their own (fcntl, termios, signal, pickle, marshal, shelve, readline, tty,
-# code, pdb, curses and the rest of SCAN_MODULES) are sites at the import and at every use; the product uses fcntl, termios and signal.
+# code, pdb, curses, msvcrt, _winapi and the rest of SCAN_MODULES) are sites at the import and at every use; the product uses fcntl,
+# termios and signal.
 # The kinds, one per reference:
 #   print, input, exec, eval, compile, __import__, globals, locals, __builtins__, breakpoint, _write_text    the name, in load context
 #   sys.stdout, sys.stderr, sys.stdin, sys.__stdout__, sys.__stderr__, sys.__stdin__, sys.modules          the attribute (aliases resolved)
@@ -1792,7 +1793,7 @@ SCAN_OS = re.compile(r'(?:write|writev|pwrite|pwritev|sendfile|copy_file_range|s
 SCAN_MODULES = frozenset(('builtins', 'subprocess', 'pty', 'importlib', 'logging', 'warnings', 'traceback', 'getpass', 'curses', 'cmd',
                           'code', 'pdb', 'pprint', 'rich', 'click', 'typer', 'tqdm', 'colorama', 'webbrowser', 'asyncio',
                           'multiprocessing', 'concurrent', 'runpy', 'imp', 'fcntl', 'termios', 'signal', 'pickle', 'marshal',
-                          'shelve', 'readline', 'tty'))
+                          'shelve', 'readline', 'tty', 'msvcrt', '_winapi'))
 SCAN_LOADERS = frozenset(('CDLL', 'cdll', 'PyDLL', 'pythonapi', 'windll', 'WinDLL', 'oledll', 'OleDLL'))      # ctypes: loads a native library
 SCAN_DUNDERS = frozenset(('__dict__', '__globals__', '__builtins__', '__subclasses__', '__getattribute__', '__loader__', '__code__',
                           '__closure__', '__mro__', '__bases__', '__base__'))
@@ -4490,6 +4491,31 @@ class ReferenceScanTests(unittest.TestCase):
                                ('a longer name that only starts like one', 'k.GetStdHandleCount(1)')):
             with self.subTest(label):
                 self.inside(snippet)
+
+    def test_the_windows_console_modules_are_in_the_fail_closed_module_set(self):
+        """msvcrt.putwch and putwch_nowait write a character to the console, and _winapi.WriteFile and GetStdHandle reach any handle, the
+        console's included. Both are modules of SCAN_MODULES, at the import and at every use; the product uses neither. The snippets are
+        parsed, never run."""
+        for label, snippet, expected in (
+                ('the review: msvcrt.putwch', 'import msvcrt\nmsvcrt.putwch("R")', {'import msvcrt': 1, 'msvcrt': 1}),
+                ('msvcrt.putwch_nowait', 'import msvcrt\nmsvcrt.putwch_nowait("R")', {'import msvcrt': 1, 'msvcrt': 1}),
+                ('msvcrt.putch', 'import msvcrt\nmsvcrt.putch(b"R")', {'import msvcrt': 1, 'msvcrt': 1}),
+                ('msvcrt imported from', 'from msvcrt import putwch\nputwch("R")', {'import msvcrt': 1, 'msvcrt': 1}),
+                ('msvcrt under an alias', 'import msvcrt as console\nconsole.putwch("R")', {'import msvcrt': 1, 'msvcrt': 1}),
+                ('_winapi.WriteFile', 'import _winapi\n_winapi.WriteFile(1, b"R")', {'import _winapi': 1, '_winapi': 1}),
+                ('_winapi.GetStdHandle (also a console name, whatever the receiver)', 'import _winapi\n_winapi.GetStdHandle(-11)',
+                 {'import _winapi': 1, '_winapi': 1, 'console': 1}),
+                ('_winapi imported from', 'from _winapi import WriteFile\nWriteFile(1, b"R")', {'import _winapi': 1, '_winapi': 1})):
+            with self.subTest(label):
+                self.inside(snippet, **expected)
+        with self.subTest('a nested import'):
+            self.assertEqual(self.delta(self.mutated('def later():\n    import msvcrt\n    return msvcrt.getwch()')),
+                             {('cli.py', 'doctor.later', 'import msvcrt'): 1, ('cli.py', 'doctor.later', 'msvcrt'): 1})
+        for label, snippet in (('a module that only starts like one', 'import msvcrt_stand_in'), ('the name as a sentence', 'note = "msvcrt is not used"')):
+            with self.subTest(label):
+                self.inside(snippet)
+        kinds = {site[2] for site in output_sites()}
+        self.assertEqual({'msvcrt', 'import msvcrt', '_winapi', 'import _winapi'} & kinds, set())
 
     def test_a_namespace_of_its_own_or_a_route_value_stored_is_a_site(self):
         """What the route conditions of the reachability check read as the command line's: a handler that makes a namespace of its own, or stores
