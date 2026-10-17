@@ -170,17 +170,28 @@ class RenderedSurfaceTests(unittest.TestCase):
 
 # -- the introduction guard ---------------------------------------------------------------------------------------------------
 
-# Genuine usage synopses: the :help listing of the line terminal and the command-syntax part of the help legend. Allowed where the
-# screen says that words in capitals stand for values the person supplies; SYNOPSIS_CONVENTION is that sentence.
-SYNOPSIS = {
-    ('workbench.py', 'companion FILE | serve | stop'), ('workbench.py', 'repository-entry REPOSITORY (the policies'),
-    ('workbench.py', 'repository-refresh REVISION [RESOLUTION_SHA256]'), ('workbench.py', 'propose-from-intent NEW_OPERATION_DIR (selected'),
-    ('workbench.py', 'propose DESIRED_JSON OUTPUT_DIR [CONTEXT_JSON]'), ('workbench.py', 'review OPERATION_DIR'),
-    ('workbench.py', 'delivery OPERATION_DIR (read-only'), ('workbench.py', 'execute OPERATION_DIR EXPLICIT_REVIEW_DIGEST'),
-    ('workbench.py', 'reconcile OPERATION_DIR'), ('workbench.py', 'deployment-record OPERATION_DIR INTENT_ID'),
-    ('workbench_screens.py', ":workflow draws the selected policy's change path"),
-    ('workbench_screens.py', 'propose DESIRED_JSON NEW_OPERATION_DIR or propose-from-intent'),
-}
+# Genuine usage synopses: derived exactly from the two help tables, never listed here by prefix. The permitted set is the string
+# constants of workbench.HELP (the :help listing of the line terminal) and the command-syntax entries of workbench_screens.HELP_WORDS
+# (the help legend). A constant that merely starts like one of them is not a synopsis.
+def synopsis_constants():
+    """{(file, exact constant)} of the permitted synopses, read from the source of the two tables with ast."""
+    from intune_iac import entry, readiness
+    found = set()
+    tree = ast.parse((PACKAGE / 'workbench.py').read_text(encoding='utf-8'))
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == 'HELP' for target in node.targets):
+            found |= {('workbench.py', leaf.value) for leaf in ast.walk(node.value) if isinstance(leaf, ast.Constant) and isinstance(leaf.value, str)}
+    tree = ast.parse((PACKAGE / 'workbench_screens.py').read_text(encoding='utf-8'))
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == 'HELP_WORDS' for target in node.targets):
+            for entry_node in ast.walk(node.value):
+                if isinstance(entry_node, ast.Tuple) and len(entry_node.elts) == 2 and all(isinstance(e, ast.Constant) for e in entry_node.elts):
+                    text = entry_node.elts[1].value
+                    if any(entry.is_fill_in(operand) for operand in readiness.command_operands(text)):
+                        found.add(('workbench_screens.py', text))
+    return found
+
+
 SYNOPSIS_CONVENTION = 'words in capitals stand for values you supply'      # the help legend's sentence contains it
 
 # Rendered at the human-text boundary by the renderer, each with a test above: the recorded text stays as it is for the JSON forms.
@@ -247,9 +258,11 @@ class IntroductionGuardTests(unittest.TestCase):
         return found
 
     def test_every_constant_with_a_placeholder_operand_is_named_and_none_is_new(self):
-        known = SYNOPSIS | RENDERED | OPEN
+        known = RENDERED | OPEN
+        permitted = synopsis_constants()
         found = self.flagged()
-        unnamed = [item for item in found if not any(item[0] == f and item[1].startswith(k) for f, k in known)]
+        unnamed = [item for item in found if item not in permitted
+                   and not any(item[0] == f and item[1].startswith(k) for f, k in known)]
         self.assertEqual([(f, v[:80]) for f, v in unnamed], [], 'a command with a placeholder operand that no test names')
         stale = sorted(item for item in known if not any(item[0] == f and v.startswith(item[1]) for f, v in found))
         self.assertEqual(stale, [], 'named, but no longer a constant with a placeholder operand: remove it from the list')
@@ -257,10 +270,32 @@ class IntroductionGuardTests(unittest.TestCase):
     def test_nothing_is_open(self):
         self.assertEqual(OPEN, set())
 
-    def test_the_synopsis_allowlist_is_only_the_help_listing_and_the_help_legend(self):
-        self.assertEqual({f for f, _ in SYNOPSIS}, {'workbench.py', 'workbench_screens.py'})
-        self.assertTrue(all(k.startswith(('companion', 'repository-', 'propose', 'review', 'delivery', 'execute', 'reconcile',
-                                          'deployment-record', ':workflow')) for _, k in SYNOPSIS))
+    def test_the_synopsis_allowlist_is_exact_and_comes_from_the_two_help_tables(self):
+        permitted = synopsis_constants()
+        self.assertTrue({f for f, _ in permitted} == {'workbench.py', 'workbench_screens.py'})
+        self.assertGreater(len(permitted), 50)
+        found = set(self.flagged())
+        # the help tables' own synopses are all there, exactly
+        self.assertTrue({item for item in found if item[0] == 'workbench.py' and item in permitted})
+        # a new constant that only starts like a synopsis is not one
+        self.assertNotIn(('workbench.py', 'review OPERATION_DIR immediately'), permitted)
+        self.assertNotIn(('workbench.py', 'review OPERATION_DIR (read-only) and more'), permitted)
+
+    def test_every_permitted_synopsis_is_shown_on_a_page_that_also_shows_the_convention(self):
+        from intune_iac import workbench, workbench_screens
+        pages = [' '.join(' '.join(workbench_screens.details_lines(workbench.HELP, 100, synopsis=True)).split()),
+                 ' '.join(' '.join(workbench_screens.help_lines(100)).split())]
+        shown = 0
+        for file, text in sorted(synopsis_constants()):
+            wanted = ' '.join(text.split())
+            holders = [page for page in pages if wanted in page]
+            if not holders:
+                continue                     # a constant of HELP that is not a command syntax entry (a heading, a sentence): not shown as one
+            shown += 1
+            for page in holders:
+                with self.subTest(synopsis=wanted[:60]):
+                    self.assertIn(workbench_screens.SYNOPSIS_CONVENTION, page)
+        self.assertGreater(shown, 50)
 
 
 # -- the JSON forms stay -----------------------------------------------------------------------------------------------------
@@ -525,28 +560,57 @@ class RoundThreeAdditionsTests(unittest.TestCase):
 
 # -- the JSON forms that carry the "it asks for the revision" prose ------------------------------------------------------------
 
-# Digests of the canonical JSON (temporary paths, 64-digit hashes and timestamps masked) of every form that the six REVISION sites
-# feed: the diagnostics result, the Inspector's attention and its next actions, and the repository status, for a stale intent and for a
-# consumer mismatch. They are the forms taken on fa3f022 with the one declared substitution applied ("it asks for the REVISION" becomes
-# "it asks for the revision"); a test showed that substitution to be the only difference. The digests of the forms as they were on fa3f022
-# are kept beside them.
+# Digests of the canonical JSON of every form that the six REVISION sites feed: the diagnostics result, the Inspector's attention and its
+# next actions, and the repository status, for a stale intent and for a consumer mismatch. Only the fields shown to vary between runs are
+# masked, each by its path (VOLATILE_PATHS below), and the temporary directories by name; every other hash and value is pinned exactly.
+# The digests are the forms taken on fa3f022 with the one declared substitution applied ("it asks for the REVISION" becomes "it asks for
+# the revision"); a test shows that substitution to be the only difference. The digests of the forms as they were on fa3f022 are beside them.
 REVISION_FORMS = {
-    'mismatch attention': ('1ab6ad193cb072be', '6cfd19a520cc04bf'),
-    'mismatch diagnostics': ('f94f5cfdb4a19a83', '29b0e288a61d40ba'),
+    'mismatch attention': ('7dca140efd4cb0ee', '8304920b9c2305a2'),
+    'mismatch diagnostics': ('d2c0fdeec026ec73', '91f0f6f6f008ae5d'),
     'mismatch next_actions': ('eb3b755597124a31', '11211780fd5cca96'),
-    'stale attention': ('646eae7f9b850622', '727557a61003614b'),
-    'stale diagnostics': ('90498a2cf739ff05', '761da61e692e46cc'),
+    'stale attention': ('755986f54aaed12f', 'dc8b581055af068e'),
+    'stale diagnostics': ('7c5e7c49eb559e26', 'f56b23dc20455cd6'),
     'stale next_actions': ('c3680963be60f1de', 'eb653a08076cb0c1'),
-    'stale repository-status': ('bee2e5dada178d16', 'e7941e167793e298'),
+    'stale repository-status': ('1e7f012212a05bd2', '32f5eff381224bd6'),
+}
+# the fields that differ between two runs of the same code (the intent id hashes the clock and the temporary path, the resolution digest
+# the temporary path, and the record carries the time it was made), by path, for each form; no other field is masked
+VOLATILE_KEYS = ('repository_intent_id', 'resolution_sha256', 'recorded_at')
+VOLATILE_PATHS = {
+    'mismatch attention': ['/signals/0/evidence/repository_intent_id'],
+    'mismatch diagnostics': ['/signals/0/evidence/repository_intent_id'],
+    'mismatch next_actions': [],
+    'stale attention': ['/signals/0/evidence/repository_intent_id'],
+    'stale diagnostics': ['/signals/0/evidence/repository_intent_id'],
+    'stale next_actions': [],
+    'stale repository-status': ['/freshness/resolution_sha256', '/recorded_at', '/repository_intent_id'],
 }
 
 
-def _canonical(value, *masks):
-    text = json.dumps(value, sort_keys=True, indent=1)
-    for mask in masks:
-        text = text.replace(str(mask), 'MASK')
-    text = re.sub(r'[0-9a-f]{64}', 'HEX64', text)
-    return re.sub(r'\d{4}-\d\d-\d\dT[\d:.]+Z', 'TIME', text)
+def _mask(value, path, masked, temps):
+    if isinstance(value, dict):
+        out = {}
+        for key, child in value.items():
+            here = path + '/' + str(key)
+            if key in VOLATILE_KEYS:
+                masked.append(here)
+                out[key] = 'VARIES'
+            else:
+                out[key] = _mask(child, here, masked, temps)
+        return out
+    if isinstance(value, list):
+        return [_mask(child, '%s/%d' % (path, i), masked, temps) for i, child in enumerate(value)]
+    if isinstance(value, str):
+        for temp in temps:
+            value = value.replace(str(temp), 'TEMP')
+    return value
+
+
+def _canonical(value, *temps):
+    masked = []
+    out = _mask(value, '', masked, temps)
+    return json.dumps(out, sort_keys=True, indent=1), sorted(set(masked))
 
 
 def _text_digest(text):
@@ -585,11 +649,22 @@ class RevisionJsonPinsTests(unittest.TestCase):
                 case.doCleanups()
         return out
 
+    def test_a_hash_that_is_not_volatile_is_pinned_exactly(self):
+        # changing one stable 64-digit value to another changes the digest: the pin no longer hides every hash
+        found = self.forms()
+        text, _ = found['stale diagnostics']
+        hashes = re.findall(r'[0-9a-f]{64}', text)
+        self.assertTrue(hashes or 'VARIES' in text)
+        if hashes:
+            changed = text.replace(hashes[0], '0' * 64)
+            self.assertNotEqual(_text_digest(changed), REVISION_FORMS['stale diagnostics'][1])
+
     def test_the_json_forms_differ_from_fa3f022_only_by_the_declared_substitution(self):
         found = self.forms()
         self.assertEqual(sorted(found), sorted(REVISION_FORMS))
-        for form, text in sorted(found.items()):
+        for form, (text, masked) in sorted(found.items()):
             with self.subTest(form=form):
+                self.assertEqual(masked, VOLATILE_PATHS[form])        # only these fields are masked, each by its path
                 self.assertEqual(_text_digest(text), REVISION_FORMS[form][1])
                 self.assertNotIn('the REVISION', text)
                 # undoing the declared substitution gives the form as fa3f022 had it
