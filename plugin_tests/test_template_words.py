@@ -731,5 +731,58 @@ class RecordedTextStaysTests(unittest.TestCase):
         self.assertNotIn('Use :reconcile OPERATION_DIR', details)
 
 
+
+# -- round 6, items 2 and 3: option arity and strict heads ---------------------------------------------------------------------
+
+class ReaderShapeTests(unittest.TestCase):
+    def test_the_value_of_an_option_is_whatever_follows_it_even_a_word_that_is_also_prose(self):
+        self.assertEqual(said('Run: intune-iac wizard --input for --output NEW_DIR.'),
+                         'Run: the wizard command using --input for, naming --output as a new folder for the output.')
+        self.assertEqual(said('Run: intune-iac wizard --input and --output NEW_DIR'),
+                         'Run: the wizard command using --input and, naming --output as a new folder for the output')
+
+    def test_the_arity_comes_from_the_command_line_parser(self):
+        import argparse
+        from intune_iac import cli, readiness
+        table = getattr(readiness, 'option_values', lambda: {})()
+        self.assertTrue(table, 'no arity table')
+        self.assertIs(table[('workbench', 'init')]['--root'], True)
+        flags = []
+        pending = [(cli.parser(), ())]
+        while pending:
+            parser, path = pending.pop()
+            for action in parser._actions:
+                if isinstance(action, argparse._SubParsersAction):
+                    pending += [(sub, path + (name,)) for name, sub in action.choices.items()]
+                elif action.option_strings and path:
+                    for option in action.option_strings:
+                        if option.startswith('--'):
+                            self.assertIs(table[path][option], action.nargs != 0, (path, option))
+                            if action.nargs == 0:
+                                flags.append((path, option))
+        self.assertTrue(flags, 'the parser has options that take no value')
+        path, option = flags[0]
+        self.assertIs(table[path][option], False)
+
+    def test_a_valueless_option_does_not_take_the_next_word(self):
+        from intune_iac import readiness
+        table = getattr(readiness, 'option_values', lambda: {})()
+        path, option = next(((p, o) for p, opts in table.items() for o, takes in opts.items() if takes is False), (None, None))
+        self.assertIsNotNone(path)
+        text = 'Run: intune-iac %s %s and then use --root STORE' % (' '.join(path), option)
+        self.assertEqual(readiness.commands_in(text)[0][3][0], (option, None))
+
+    def test_a_product_command_head_is_known_to_the_parser_or_it_is_not_a_command(self):
+        sentence = 'The documentation says intune-iac supports --output FILE.'
+        self.assertNotIn('the supports command', said(sentence))
+        from intune_iac import readiness
+        self.assertEqual(readiness.commands_in(sentence), [])
+
+    def test_an_external_command_in_brackets_is_read(self):
+        self.assertEqual(said('Try (az account show --subscription SUBSCRIPTION).'),
+                         'Try (the az account show command, naming --subscription as the subscription id or name).')
+        self.assertEqual(said('Try (az account show --subscription 1111).'), 'Try (az account show --subscription 1111).')
+
+
 if __name__ == '__main__':
     unittest.main()

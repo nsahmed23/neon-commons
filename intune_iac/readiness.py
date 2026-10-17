@@ -125,6 +125,29 @@ def external_programs():
 
 
 @functools.lru_cache(maxsize=1)
+def option_values():
+    """Which options of each command of the product take a value, read from the command line's own parser:
+    {('workbench', 'init'): {'--root': True, '--journey': False, ...}, ...}. An option that takes no value (a flag) is False."""
+    import argparse
+    from . import cli
+    table = {}
+
+    def walk(parser, path):
+        options = {}
+        for action in parser._actions:
+            if isinstance(action, argparse._SubParsersAction):
+                for name, sub in action.choices.items():
+                    walk(sub, path + (name,))
+            else:
+                for option in action.option_strings:
+                    options[option] = action.nargs != 0
+        if path:
+            table[path] = options
+    walk(cli.parser(), ())
+    return table
+
+
+@functools.lru_cache(maxsize=1)
 def dialects():
     """The command tables of the product itself, from which a printed command is recognized (never a list kept here).
 
@@ -194,13 +217,11 @@ def commands_in(step):
                     start += 1
                 else:
                     break
-            if not head and start < len(words):          # a subcommand this parser does not know: read it by its shape
-                candidate = tidy(words[start])[2]
-                if _SUBCOMMAND.match(candidate) and candidate not in _PROSE:
-                    head, start = [candidate], start + 1
+            if not head:
+                head = None                      # a head the command line's parser does not know is not a command
         elif bare == 'workbench' and following in shell.get('workbench', {}) and not (index and tidy(words[index - 1])[2] == PROGRAM):
             head, start = ['workbench', following], index + 2
-        elif bare in external_programs() and not word.startswith('(') and (index == 0 or tidy(words[index - 1])[2] != 'intune-iac'):
+        elif bare in external_programs() and (index == 0 or tidy(words[index - 1])[2] != 'intune-iac'):
             # another program: its lowercase subcommand words (at most three), then its options and operands as for the shell
             head = [bare]
             while start < len(words) and len(head) < 4:
@@ -212,6 +233,12 @@ def commands_in(step):
         if head is not None:
             items, option, index = [], None, start
             end = _end_of(words[start - 1], tidy(words[start - 1])[1])
+            arity = option_values().get(tuple(head), {}) if head[0] == 'workbench' or head[0] not in external_programs() else None
+
+            def takes_value(name):
+                """True when the option takes the next word whatever it is; False for a flag; None when the table does not know it.
+                Another program's options each take a value (the shapes the product prints: --subscription X, --output json)."""
+                return True if arity is None else arity.get(name)
             while index < len(words):
                 raw, word, bare = tidy(words[index])
                 if not word:
@@ -228,7 +255,10 @@ def commands_in(step):
                     if option is not None:
                         items.append((option, None))
                     option = bare
-                elif option is not None and bare not in _PROSE:
+                    if takes_value(bare) is False:
+                        items.append((option, None))
+                        option = None
+                elif option is not None and (bare not in _PROSE or takes_value(option) is True):
                     items.append((option, word))             # the value as the command prints it, quotes included
                     option = None
                 elif is_fill_in(bare) or word.startswith("'") or ('/' in bare and len(bare.strip('/')) > 1):
