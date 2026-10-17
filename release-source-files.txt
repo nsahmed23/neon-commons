@@ -877,7 +877,9 @@ plugin_tests/fixtures/system_map/stale_link.json
 plugin_tests/fixtures/system_map/unknown_observation.json
 plugin_tests/fixtures/system_map/unsupported_schema.json
 plugin_tests/fixtures/worker_service_tls_client.c
+plugin_tests/link_presentation_fixtures.py
 plugin_tests/orchestration_fixtures.py
+plugin_tests/service_presentation_fixtures.py
 plugin_tests/signin_5b_common.py
 plugin_tests/signin_capture_launcher.py
 plugin_tests/signin_collector.py
@@ -1000,6 +1002,7 @@ plugin_tests/test_release_checks.py
 plugin_tests/test_release_git_binding.py
 plugin_tests/test_release_hardening.py
 plugin_tests/test_release_transfer_r4.py
+plugin_tests/test_rendered_surfaces.py
 plugin_tests/test_repository.py
 plugin_tests/test_repository_entry.py
 plugin_tests/test_repository_interfaces.py
@@ -1061,6 +1064,7 @@ plugin_tests/test_synthetic_completion.py
 plugin_tests/test_system_map_projection.py
 plugin_tests/test_system_map_screen.py
 plugin_tests/test_target.py
+plugin_tests/test_template_words.py
 plugin_tests/test_terminal_interrupt_r4.py
 plugin_tests/test_terminal_security_epoch.py
 plugin_tests/test_text_guard.py
