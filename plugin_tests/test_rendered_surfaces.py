@@ -1488,7 +1488,9 @@ def leaf_table_problems(parser, table=None, drivers=None):
 #   builtins, subprocess, pty, importlib, logging, ctypes, ...                                              a module of SCAN_MODULES, any reference
 #   import M, import sys.stdout, import os.fdopen                  the import of one of those, or of a flagged name from sys or os
 #   sys as a value, os as a value       the module kept or handed on instead of reading an attribute of it (getattr(sys, name))
-#   dynamic access                      an attribute that opens the interpreter's own tables (SCAN_DUNDERS)
+#   dynamic access                      an attribute that opens the interpreter's own tables (SCAN_DUNDERS), and a lookup by a name that is not
+#                                       written as a string, whatever the receiver: getattr, inspect.getattr_static, operator.attrgetter,
+#                                       operator.methodcaller, vars(x)[name] and vars(x).get(name), or one of those handed on
 #   device path                         a string that names a terminal device or the process table
 #   standard descriptor                 fd 0, 1 or 2, given as a number to open, os.fdopen, os.dup, os.dup2, os.write and the like
 #   child on the terminal               subprocess.Popen, run, call, check_call or check_output without stdout and stderr taken by pipes
@@ -1523,6 +1525,8 @@ REASON_SELFINT = 'sends SIGINT to its own process when the worker it monitors ha
 REASON_KILLGROUP = 'SIGKILL to the process group of a child it started'
 REASON_IMPORTFCNTL = 'imports fcntl for the advisory locks of this module (see its fcntl sites)'
 REASON_IMPORTSIGNAL = 'imports signal for the process control of this module (see its signal sites)'
+REASON_ACTION = "getattr(job, action)(): the method of the job that a declared action names; the action was checked against ACTIONS, a fixed tuple of the job's review and recovery methods, on an earlier line"
+REASON_PROTOTYPES = 'sets the argument and result types of the functions of the native library that the keys of its signature table name: getattr(library, name) over the table, whose names are written in it'
 OUTPUT_SITES = {
     ('cli.py', '_Parser.error', 'exit-text'): (1, None, '26b92f33aeff'),
     ('cli.py', '_Parser.error', 'parser-output'): (1, None, '7e52ea8290dd'),
@@ -1538,6 +1542,7 @@ OUTPUT_SITES = {
     ('windows_terminal.py', 'NativeConsole.write', 'write'): (1, 'workbench workspace', 'ca6d6e7eb425'),
     ('windows_terminal.py', '_Win32.__init__', 'console'): (2, 'workbench workspace', 'a603dab5bd21'),  # the signature table names GetStdHandle and WriteConsoleW as strings, to give them their argument and result types
     ('windows_terminal.py', '_Win32.__init__', 'ctypes.WinDLL'): (1, 'workbench workspace', '4a6c32409595'),  # kernel32 for the console: the API of NativeConsole, which makes it and nothing else does (windows_directory has a class of the same name, for the storage layer)
+    ('windows_terminal.py', '_Win32.__init__', 'dynamic access'): (1, 'workbench workspace', '83d26fb82caa'),  # getattr(self.k, name) over the signature table, whose keys include GetStdHandle and WriteConsoleW
     ('windows_terminal.py', '_Win32.handles', 'console'): (2, 'workbench workspace', '9ae07c41d2fe'),  # GetStdHandle for the input and output handles of the console, which it reads and writes through
     ('windows_terminal.py', '_Win32.write', 'console'): (1, 'workbench workspace', 'fead57fd021a'),  # WriteConsoleW: the one call that writes text to the console
     ('wizard.py', '_run_wizard', 'input'): (1, 'wizard', 'de76bcd7d16d'),
@@ -1570,6 +1575,8 @@ OUTPUT_SITES = {
     ('workflow.py', 'run_guided_workflow', 'print'): (1, 'wizard', '2ea9571341e1'),
 }
 NOT_A_TERMINAL = {
+    ('adoption_cli.py', 'invoke', 'dynamic access'): (1, REASON_ACTION, '0541db56acc4'),
+    ('adoption_cli.py', 'invoke_plan', 'dynamic access'): (1, REASON_ACTION, '122d98596cac'),
     ('approval_authority.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL, '393427b28453'),
     ('approval_authority.py', 'ApprovalAuthority._verify', 'os.dup'): (1, REASON_DUP, 'cedbfd560e41'),
     ('approval_authority.py', 'ApprovalAuthority._verify', 'os.fdopen'): (2, REASON_FDOPEN, '331097a528bf'),
@@ -1578,6 +1585,7 @@ NOT_A_TERMINAL = {
     ('approval_authority.py', '_validator', 'ctypes.CDLL'): (1, 'loads the copy of the approved native validator library', '6d35fa56281b'),
     ('approval_authority.py', '_validator', 'os.fdopen'): (2, REASON_FDOPEN, '738e5cef3cbf'),
     ('approval_authority.py', '_validator', 'write'): (1, REASON_FDWRITE, '488ef32ad94e'),
+    ('artifact_vault.py', '_library', 'dynamic access'): (1, 'looks up three constants of the pinned libsodium by name, a fixed prefix and one of three fixed suffixes (keybytes, npubbytes, abytes)', '90e75dc2af39'),
     ('artifact_vault.py', '_read', 'os.fdopen'): (1, REASON_FDOPEN, 'd69c7bef3771'),
     ('artifact_vault.py', '_write_new', 'os.fdopen'): (1, REASON_FDOPEN, 'c7281f385745'),
     ('artifact_vault.py', '_write_new', 'write'): (1, REASON_FDWRITE, '855bf42b4c65'),
@@ -1592,6 +1600,7 @@ NOT_A_TERMINAL = {
     ('cli.py', '_lf_only', 'sys.stderr'): (1, 'sets the line ending of the two streams; writes nothing', '778db188df4c'),
     ('cli.py', '_lf_only', 'sys.stdout'): (1, 'sets the line ending of the two streams; writes nothing', '40d856f1901c'),
     ('cli.py', 'doctor', 'importlib'): (3, 'asks whether a dependency is installed and its version; prints nothing itself', 'a3d061fbebed'),
+    ('cli.py', 'execute', 'dynamic access'): (2, 'reads the optional context and atmos_root options of the graph build by name, over a list of those two names', 'fb1fa1bd6251'),
     ('cli.py', 'execute.progress', 'print'): (1, REASON_JSONERR, '952fc6495858'),
     ('cli.py', 'execute.progress', 'sys.stderr'): (1, REASON_JSONERR, '243fb0fd2963'),
     ('cli.py', 'main', 'namespace'): (1, 'the parse that gives the route: the command line of the leaf itself, which the route conditions of the reachability check read', 'd12542958194'),
@@ -1671,6 +1680,7 @@ NOT_A_TERMINAL = {
     ('runner.py', '_dispatch', 'write'): (1, REASON_FDWRITE, 'cda85d7c787a'),
     ('runner.py', 'run', 'os.fdopen'): (1, REASON_FDOPEN, 'e39ec6c7329a'),
     ('runner.py', 'run', 'write'): (1, REASON_FDWRITE, 'a0392b1c8b70'),
+    ('service_cli.py', 'invoke', 'dynamic access'): (1, REASON_ACTION, '035346b2efc0'),
     ('signin.py', '<module>', 'import signal'): (1, REASON_IMPORTSIGNAL, '12a6a2fcbcd2'),
     ('signin.py', '<module>', 'import subprocess'): (1, REASON_CHILDMODULE, '8db6dc17950c'),
     ('signin.py', '_bounded', 'subprocess'): (5, REASON_CHILD, 'cbed676779c3'),
@@ -1679,16 +1689,22 @@ NOT_A_TERMINAL = {
     ('sim_cli.py', 'text_lines', 'sys.stdout'): (1, REASON_PROBE, '47415ec2ecdb'),
     ('sim_fixture.py', '<module>', 'exit-text'): (1, 'raise SystemExit(main()): the status main returns, when the module runs as a script', '04d89e0f6d85'),
     ('sim_fixture.py', 'main', 'namespace'): (1, 'the parse of a separate program (python -m intune_iac.sim_fixture) with a command line of its own; cli.main never calls it, and a machine leaf that did is walked by the reach check like any function', 'b46536bf23cc'),
+    ('sim_model.py', '_unique', 'dynamic access'): (1, 'reads the identifier field of each row of a model table, by the field name the caller passes; checks the identifiers are unique', '86980f54de8f'),
     ('synthetic.py', 'write_estate', 'write'): (1, 'writes a synthetic estate file (Path.write_text)', '161549ab81e5'),
     ('validity.py', '<module>', 'import fcntl'): (1, REASON_IMPORTFCNTL, '4c72edfd437e'),
     ('validity.py', 'critical', 'fcntl'): (2, REASON_FLOCK, '5641776858a0'),
     ('windows_directory.py', '_Win32.__init__', 'ctypes.WinDLL'): (2, 'kernel32 and advapi32, for directory and file calls: the base of the Windows storage classes (windows_storage, windows_observer_credentials), not the console API', 'd6b3b50af8b6'),
+    ('windows_directory.py', '_Win32.__init__', 'dynamic access'): (1, REASON_PROTOTYPES, '3e16fc98bf70'),
     ('windows_observation_jobs.py', '_IO.publish', 'write'): (1, 'a file of the observer store, through its Windows file API', '038416f0508c'),
     ('windows_observation_jobs.py', '_create_job', 'write'): (2, 'files of the observer store, through its Windows file API', 'be9ab9517fe5'),
+    ('windows_observation_jobs.py', '_note_failure', 'dynamic access'): (2, 'copies the storage_outcome and observation_outcome fields of an error into the failure record, over a fixed pair of names', '8c1842cfe52d'),
     ('windows_observation_jobs.py', 'scheduler_artifacts', 'import subprocess'): (1, 'imports subprocess for list2cmdline only', '50126ff26b38'),
     ('windows_observation_jobs.py', 'scheduler_artifacts', 'subprocess'): (1, 'list2cmdline quotes an argument of the task file; starts nothing', 'cbd6ed60cc4c'),
     ('windows_observation_jobs.py', 'scheduler_artifacts', 'write'): (2, 'files of the observer store, through its Windows file API', '732fcf064e8f'),
+    ('windows_source_edit.py', '_NativeAPI.__init__', 'dynamic access'): (1, REASON_PROTOTYPES, 'fe7762fd5140'),
+    ('windows_storage.py', '_Win32Storage.__init__', 'dynamic access'): (1, REASON_PROTOTYPES, '9d493b7fc4df'),
     ('windows_storage.py', '_create_file', 'write'): (1, 'the Windows file API: a handle the function created', 'c1600b6921ce'),
+    ('windows_worker_evidence.py', '_NativeAPI.__init__', 'dynamic access'): (1, REASON_PROTOTYPES, '97eb40519a11'),
     ('windows_workspace_context.py', '_ContextCore._validate', 'namespace'): (1, 'a stand-in with one field, store, handed to Workspace._validate_context; not a namespace of the command line', '0a9499f7b1a1'),
     ('wizard.py', '_WizardSession.handle_restart', 'write'): (1, 'writes the copy of the session file kept before a restart, at a path it builds (open(candidate, "xb"))', 'b919a38ebfa3'),
     ('wizard.py', 'run_wizard', 'os.fdopen'): (1, REASON_FDOPEN, '4c983a7cc5c6'),
@@ -1797,6 +1813,7 @@ SCAN_MODULES = frozenset(('builtins', 'subprocess', 'pty', 'importlib', 'logging
 SCAN_LOADERS = frozenset(('CDLL', 'cdll', 'PyDLL', 'pythonapi', 'windll', 'WinDLL', 'oledll', 'OleDLL'))      # ctypes: loads a native library
 SCAN_DUNDERS = frozenset(('__dict__', '__globals__', '__builtins__', '__subclasses__', '__getattribute__', '__loader__', '__code__',
                           '__closure__', '__mro__', '__bases__', '__base__'))
+LOOKUPS = frozenset(('operator.attrgetter', 'operator.methodcaller', 'inspect.getattr_static'))     # look an attribute up by a name they are given
 PARSER_OUTPUT = ('print_usage', 'print_help', 'error')
 NAMESPACES = ('Namespace', 'SimpleNamespace')                    # an object that can carry route values of its own
 PARSE_CALLS = ('parse_args', 'parse_known_args', 'parse_intermixed_args', 'parse_known_intermixed_args')    # argparse: a namespace from an argv
@@ -1958,6 +1975,24 @@ def site_nodes(source):
         return (len(arguments) == 1 and isinstance(arguments[0], ast.Constant) and isinstance(arguments[0].value, str)
                 and not DEVICE_PATH.search(arguments[0].value))
 
+    def literal_name(item):
+        return isinstance(item, ast.Constant) and isinstance(item.value, str)
+
+    def computed_lookup(call, called):
+        """The call looks an attribute up by a name that is not written in the source as a string: getattr(x, name), inspect.getattr_static(x,
+        name), operator.attrgetter(name, ...), operator.methodcaller(name, ...), vars(x).get(name). A starred argument hides the name too."""
+        func, args = call.func, call.args
+        starred = any(isinstance(item, ast.Starred) for item in args)
+        if (isinstance(func, ast.Name) and func.id == 'getattr') or 'inspect.getattr_static' in called:
+            return starred or (len(args) >= 2 and not literal_name(args[1]))
+        if 'operator.attrgetter' in called:
+            return starred or any(not literal_name(item) for item in args)
+        if 'operator.methodcaller' in called:
+            return starred or (len(args) >= 1 and not literal_name(args[0]))
+        return (isinstance(func, ast.Attribute) and func.attr in ('get', 'pop', 'setdefault', '__getitem__') and isinstance(func.value, ast.Call)
+                and isinstance(func.value.func, ast.Name) and func.value.func.id == 'vars'
+                and (starred or (len(args) >= 1 and not literal_name(args[0]))))
+
     def rebinds(body, name):
         """The block binds the name again: an assignment, a loop or with target, a handler, an import, a def, a parameter, a global."""
         for statement in body:
@@ -2108,6 +2143,8 @@ def site_nodes(source):
                 kinds.add('namespace')
             if SCAN_CONSOLE.match(node.id):
                 kinds.add('console')
+            if not in_call and (node.id in ('getattr', 'vars') or bindings[node.id] & LOOKUPS):
+                kinds.add('dynamic access')                              # a lookup handed on: what it is called with is not seen here
             if not is_root:                                            # the root of a chain is judged with the chain
                 kinds |= kinds_of(bindings[node.id])
                 for module in sorted({'sys', 'os'} & bindings[node.id]):
@@ -2139,6 +2176,8 @@ def site_nodes(source):
                 kinds.add('namespace')
             if SCAN_CONSOLE.match(node.attr):
                 kinds.add('console')                                    # of anything: api.k.WriteConsoleW, d.k.GetStdHandle
+            if not in_call and not is_root and dotted(node) & LOOKUPS:
+                kinds.add('dynamic access')                              # operator.attrgetter handed on
             if node.attr in SCAN_DUNDERS:
                 kinds.add('dynamic access')
             if not is_root and kinds_of(dotted(node)):
@@ -2150,6 +2189,8 @@ def site_nodes(source):
         elif isinstance(node, ast.Call):
             func = node.func
             called = dotted(func) if isinstance(func, (ast.Attribute, ast.Name)) else set()
+            if computed_lookup(node, called):
+                kinds.add('dynamic access')                             # getattr(target, name)(...): the name is built, not written
             if isinstance(func, ast.Name) and func.id in ('setattr', 'vars') and node.args and (
                     (isinstance(node.args[0], ast.Name) and node.args[0].id == 'args')
                     or (func.id == 'setattr' and len(node.args) > 1 and isinstance(node.args[1], ast.Constant)
@@ -2171,6 +2212,10 @@ def site_nodes(source):
                 if not (ends.get('stdout') and ends['stdout'] <= {'subprocess.PIPE', 'subprocess.DEVNULL'}
                         and ends.get('stderr') and ends['stderr'] <= {'subprocess.PIPE', 'subprocess.DEVNULL', 'subprocess.STDOUT'}):
                     kinds.add('child on the terminal')                  # a child whose output is not taken writes where it likes
+        elif isinstance(node, ast.Subscript):
+            if (isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name) and node.value.func.id == 'vars'
+                    and not literal_name(node.slice)):
+                kinds.add('dynamic access')                             # vars(x)[name]
         if kinds:
             code = code_of(node)
             found += [(where(node), kind, node, code) for kind in sorted(kinds)]
@@ -4166,7 +4211,7 @@ class LeafClassificationTests(unittest.TestCase):
         self.assertEqual(output_site_problems(), [])
         found = output_sites()
         self.assertEqual(dict(found), {site: value[0] for site, value in list(OUTPUT_SITES.items()) + list(NOT_A_TERMINAL.items())})
-        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (44, 213, 257, 417))
+        self.assertEqual((len(OUTPUT_SITES), len(NOT_A_TERMINAL), len(found), sum(found.values())), (45, 224, 269, 431))
         self.assertIn(('cli.py', '_write_text', 'print'), found)                                   # the scan reads the product
         self.assertTrue(all(isinstance(value[1], str) and value[1] for value in NOT_A_TERMINAL.values()))      # each has its reason
 
@@ -4366,14 +4411,14 @@ class ReferenceScanTests(unittest.TestCase):
                 ('stdout imported from sys', 'from sys import stdout\nstdout.write(%(line)r)',
                  {'import sys.stdout': 1, 'sys.stdout': 1, 'write': 1}),
                 ('sys handed to vars', 'vars(sys)["stdout"].write(%(line)r)', {'sys_sp_as a value': 1, 'write': 1}),
-                ('getattr on sys', 'getattr(sys, "std" + "out").write(%(line)r)', {'sys_sp_as a value': 1, 'write': 1}),
+                ('getattr on sys', 'getattr(sys, "std" + "out").write(%(line)r)', {'sys_sp_as a value': 1, 'write': 1, 'dynamic_sp_access': 1}),
                 ('the dictionary of sys', 'sys.__dict__["stdout"].write(%(line)r)', {'dynamic_sp_access': 1, 'write': 1}),
                 ('sys.modules', 'sys.modules["builtins"].print(%(line)r)', {'sys__dot__modules': 1}),
                 ('importlib', 'importlib.import_module("builtins").print(%(line)r)', {'importlib': 1}),
                 ('os.system', 'os.system("echo " + %(line)r)', {'os__dot__system': 1}),
                 ('os.system by an alias', 'import os as o\no.system("echo " + %(line)r)', {'os__dot__system': 1}),
                 ('system imported from os', 'from os import system\nsystem("echo " + %(line)r)', {'import os.system': 1, 'os__dot__system': 1}),
-                ('getattr on os', 'getattr(os, "sys" + "tem")("echo " + %(line)r)', {'os_sp_as a value': 1}),
+                ('getattr on os', 'getattr(os, "sys" + "tem")("echo " + %(line)r)', {'os_sp_as a value': 1, 'dynamic_sp_access': 1}),
                 ('os.popen', 'os.popen("echo " + %(line)r)', {'os__dot__popen': 1}),
                 ('os.dup2 onto the terminal', 'os.dup2(1, 2)', {'os__dot__dup2': 1, 'standard descriptor': 1}),
                 ('os.write', 'os.write(1, %(line)r.encode())', {'os__dot__write': 1, 'standard descriptor': 1}),
@@ -4540,6 +4585,44 @@ class ReferenceScanTests(unittest.TestCase):
                 self.inside(snippet)
         kinds = {site[2] for site in output_sites()}
         self.assertEqual({'msvcrt', 'import msvcrt', '_winapi', 'import _winapi'} & kinds, set())
+
+    def test_a_lookup_by_a_name_that_is_not_written_as_a_string_is_a_dynamic_access_site(self):
+        """Sol V5 finding 3: the sink was named by a string built from parts, its operand from bytes, and getattr(target, sink_name)(...) printed
+        the command with every check silent, because only a literal "_write_text" was a site. A lookup whose attribute name is not a string
+        written in the source is a site whatever the receiver: getattr, inspect.getattr_static, operator.attrgetter, operator.methodcaller,
+        vars(x)[name] and vars(x).get(name), and any of them handed on. The product has twelve sites (fourteen references), each listed with its reason. Parsed, never run."""
+        site = {'dynamic access': 1}
+        for label, snippet, expected in (
+                ('Sol: a sink name built from parts, and an operand built from bytes',
+                 'from . import cli as target\nsink_name = "_" + "write" + "_text"\n'
+                 'operand = bytes((80, 76, 65, 78, 95, 70, 73, 76, 69)).decode("ascii")\n'
+                 'getattr(target, sink_name)(["Run: kubectl apply " + operand])', site),
+                ('getattr with a default', 'getattr(target, name, None)', site),
+                ('getattr with a starred pair', 'getattr(*pair)', site),
+                ('getattr on a call', 'getattr(make(), name)', site),
+                ('inspect.getattr_static', 'import inspect\ninspect.getattr_static(target, name)', site),
+                ('getattr_static imported', 'from inspect import getattr_static as peek\npeek(target, name)', site),
+                ('operator.attrgetter', 'import operator\noperator.attrgetter(name)(target)', site),
+                ('operator.attrgetter, a dotted name built', 'import operator\noperator.attrgetter("a." + name)(target)', site),
+                ('attrgetter imported', 'from operator import attrgetter as pick\npick(name)(target)', site),
+                ('operator.methodcaller', 'import operator\noperator.methodcaller(name, 1)(target)', site),
+                ('vars subscripted', 'vars(target)[name]', site),
+                ('vars().get', 'vars(target).get(name)', site),
+                ('getattr handed on', 'lookup = getattr', site),
+                ('vars handed on', 'inspect_it = vars', site),
+                ('attrgetter handed on', 'import operator\npicker = operator.attrgetter', site)):
+            with self.subTest(label):
+                self.inside(snippet, **expected)
+        for label, snippet in (('getattr with a written name', 'getattr(target, "name")'),
+                               ('getattr with a written name and a default', 'getattr(target, "name", None)'),
+                               ('attrgetter with written names', 'import operator\noperator.attrgetter("a.b", "c")(target)'),
+                               ('methodcaller with a written name', 'import operator\noperator.methodcaller("run", 1)(target)'),
+                               ('getattr_static with a written name', 'import inspect\ninspect.getattr_static(target, "name")'),
+                               ('vars subscripted by a written name', 'vars(target)["name"]'),
+                               ('vars().get with a written name', 'vars(target).get("name")'),
+                               ('a dictionary subscripted by a name', 'table[name]')):
+            with self.subTest(label):
+                self.inside(snippet)
 
     def test_a_namespace_of_its_own_or_a_route_value_stored_is_a_site(self):
         """What the route conditions of the reachability check read as the command line's: a handler that makes a namespace of its own, or stores
