@@ -387,27 +387,58 @@ def screen_survey(value, next_actions, placeholders):
                 skipped_links=[screen_path(link, placeholders) for link in value.get('skipped_links') or []])
 
 
-def _next_actions(items, root=None, relative_to=None, paths=None):
-    """The next steps for what the survey found; paths is (show, q) from json_paths (the default) or text_paths."""
+def _in_words(lead, kind, step):
+    """A next step that would have to write a stand-in (DIRECTORY, PATH) for a path it may not show, said in words: what it does,
+    which command it is and what that is run on, and never an operand, because a stand-in is a valid relative path to a shell and
+    a copied command would run on another folder. The wording is the catalog's own for a resume command that it may not print
+    (catalog._resume_words): 'Resume with the workbench workspace command using this saved store; its path cannot be shown here.'"""
+    from .catalog import RESUME_NOUNS
+    words = step[step.index(PROGRAM + ' '):].split()[1:]
+    head = words[:next((index for index, word in enumerate(words) if word.startswith('-')), len(words))]
+    flags = [word for word in words if word in ('--journey', '--guided')]
+    return '%s the %s command using this %s; its path cannot be shown here.' % (
+        lead, ' '.join(head + flags), RESUME_NOUNS.get(kind, 'saved item'))
+
+
+def _next_actions(items, root=None, relative_to=None, paths=None, fresh=None):
+    """The next steps for what the survey found; paths is (show, q) from json_paths (the default) or text_paths.
+
+    fresh, for a screen, is a function that returns the writer of text_paths for this survey. Each next step is then written by a
+    writer of its own, and a step that had to write a stand-in for any operand (DIRECTORY for a directory the screen may not show,
+    PATH for a path it may not show) is not printed as a command: it is said in words (_in_words). The JSON form has no fresh and
+    keeps the recorded commands."""
     show, q = paths if paths is not None else json_paths(root, relative_to)
     kinds = {}
     for item in items:
         kinds.setdefault(item['kind'], []).append(item)
     actions = []
+
+    def step(lead, kind, build):
+        """One next step, built from the writer (show, q) it is given; said in words when its own writer wrote a stand-in."""
+        if fresh is None:
+            actions.append(build(show, q))
+            return
+        own_show, own_q, stood_in, _ = fresh()
+        text = build(own_show, own_q)
+        actions.append(_in_words(lead, kind, text) if stood_in else text)
+
     conflicts = {'repository_owned_edit': 'Review the repository-owned edit, or hand it off to the repository workflow',
                  'output_changed': 'Resolve the changed output (new-path, review or cancel)',
                  'output_conflict': 'Resolve the output conflict (new-path, review or cancel)',
                  'outcome_unknown': 'Review the uncertain generation outcome before any retry'}
     for item in kinds.get('wizard_session', []):
         if item.get('valid') and item.get('step') != 'complete':
-            lead = conflicts.get(item.get('conflict_reason'), 'Resume the wizard session') if item.get('step') == 'conflict' else 'Resume the wizard session'
-            actions.append('%s: %s wizard --session %s' % (lead, PROGRAM, q(item['path'])))
+            said = conflicts.get(item.get('conflict_reason'), 'Resume the wizard session') if item.get('step') == 'conflict' else 'Resume the wizard session'
+            step('Resume with', 'wizard_session',
+                 lambda show, q, item=item, said=said: '%s: %s wizard --session %s' % (said, PROGRAM, q(item['path'])))
     for item in kinds.get('journey_session', []):
         if item.get('valid') and item.get('lifecycle') not in ('complete_simulation',):
-            actions.append('Resume the journey: %s wizard --journey --session %s' % (PROGRAM, q(item['path'])))
+            step('Resume with', 'journey_session',
+                 lambda show, q, item=item: 'Resume the journey: %s wizard --journey --session %s' % (PROGRAM, q(item['path'])))
     for item in kinds.get('guided_session', []):
         if item.get('valid') and item.get('lifecycle') != 'complete_local':
-            actions.append('Resume the guided session: %s wizard --guided --session %s' % (PROGRAM, q(item['path'])))
+            step('Resume with', 'guided_session',
+                 lambda show, q, item=item: 'Resume the guided session: %s wizard --guided --session %s' % (PROGRAM, q(item['path'])))
     for item in kinds.get('generated_project', []):
         if item.get('classification') == 'repository_owned_policy_edit':
             actions.append('The generated project %s holds a repository-owned policy edit: reopen its session and use handoff, '
@@ -418,10 +449,12 @@ def _next_actions(items, root=None, relative_to=None, paths=None):
         service = next((s for s in services if s.get('tenant_id') == store.get('tenant_id')), None)
         if not store['states']['configured']:
             # An empty store shows nothing until something is collected into it.
-            actions.append('Collect into %s: %s workbench collect --root %s --service-root %s' % (
-                show(store['path']), PROGRAM, q(store['path']), q(service['path']) if service else 'SERVICE_ROOT'))
-        actions.append('Open the workspace: %s workbench workspace --root %s%s' % (
-            PROGRAM, q(store['path']), ' --service-root ' + q(service['path']) if service else ''))
+            step('Collect into this store with', 'store',
+                 lambda show, q, store=store, service=service: 'Collect into %s: %s workbench collect --root %s --service-root %s' % (
+                     show(store['path']), PROGRAM, q(store['path']), q(service['path']) if service else 'SERVICE_ROOT'))
+        step('Open the workspace with', 'store',
+             lambda show, q, store=store, service=service: 'Open the workspace: %s workbench workspace --root %s%s' % (
+                 PROGRAM, q(store['path']), ' --service-root ' + q(service['path']) if service else ''))
     if kinds.get('repository') and not stores:
         # repository-entry reads a store; there is none here to name.
         actions.append('Create a store first: %s workbench init --root STORE --tenant TENANT_ID' % PROGRAM)
@@ -430,21 +463,29 @@ def _next_actions(items, root=None, relative_to=None, paths=None):
                     if intent.get('repository') and Path(intent['repository']).name == _name(root, repository['path'])]
         if recorded:
             store, intent = recorded[-1]
-            actions.append('Check the repository against its recorded intent: %s workbench repository-status --root %s --object %s' % (
-                PROGRAM, q(store['path']), intent['object_id']))
+            step('Check the repository against its recorded intent with', 'store',
+                 lambda show, q, store=store, intent=intent:
+                 'Check the repository against its recorded intent: %s workbench repository-status --root %s --object %s' % (
+                     PROGRAM, q(store['path']), intent['object_id']))
             continue
-        actions.append('See the policies the repository %s holds and the exact command to record each: %s workbench '
-                       'repository-entry --root %s --repo %s (in the workspace: :repository-entry %s)' % (
-                           show(repository['path']), PROGRAM, q(stores[0]['path']) if stores else 'STORE', q(repository['path']),
-                           q(repository['path'])))
+        step('See the policies the repository holds with', 'repository',
+             lambda show, q, repository=repository:
+             'See the policies the repository %s holds and the exact command to record each: %s workbench '
+             'repository-entry --root %s --repo %s (in the workspace: :repository-entry %s)' % (
+                 show(repository['path']), PROGRAM, q(stores[0]['path']) if stores else 'STORE', q(repository['path']),
+                 q(repository['path'])))
     used = {item.get('input') for item in kinds.get('wizard_session', [])}
     contexts = kinds.get('context', [])
     for export in kinds.get('export', []):
         if export['path'] not in used:
-            actions.append('Start from the export %s: %s wizard --session NEW_SESSION.json --input %s --context %s --output NEW_OUTPUT_DIR' % (
-                show(export['path']), PROGRAM, q(export['path']), q(contexts[0]['path']) if contexts else 'CONTEXT_JSON'))
+            step('Start from this export with', 'export',
+                 lambda show, q, export=export:
+                 'Start from the export %s: %s wizard --session NEW_SESSION.json --input %s --context %s --output NEW_OUTPUT_DIR' % (
+                     show(export['path']), PROGRAM, q(export['path']), q(contexts[0]['path']) if contexts else 'CONTEXT_JSON'))
     for operation in kinds.get('operation', []):
-        actions.append('Follow the operation: %s workbench delivery --operation %s' % (PROGRAM, q(operation['path'])))
+        step('Follow the operation with', 'operation',
+             lambda show, q, operation=operation: 'Follow the operation: %s workbench delivery --operation %s' % (
+                 PROGRAM, q(operation['path'])))
     if not items:
         actions = ['Start from a supported export: %s wizard --session session.json --input EXPORT_JSON --context CONTEXT_JSON '
                    '--output NEW_OUTPUT_DIR' % PROGRAM,
@@ -503,7 +544,8 @@ def survey(directory, relative_to=None):
                      'truncated': truncated, 'execution_authorized': False, 'cloud_authority': False})
     # The same next steps, built from the same items and the same relative_to with the screen's path operands (text_paths).
     show, q, placeholders, directory = text_paths(root, relative_to)
-    built = screen_survey(result, _next_actions(items, root, relative_to, (show, q)), placeholders)
+    built = screen_survey(result, _next_actions(items, root, relative_to, (show, q), lambda: text_paths(root, relative_to)),
+                          placeholders)
     built.update(screen_directory(str(root), directory()))
     result.text_build = built
     result.text_placeholders = frozenset(placeholders)
@@ -793,9 +835,10 @@ def _goal_lines(view, width, operand=None):
     from .readiness import capture_contact, directory_hidden, screen_note
     from .workbench_screens import word_wrap
     host = view['host']
+    hidden = directory_hidden(view['directory'])
     lines = [goal_summary(view)]
     # A refused name prints as DIRECTORY; start_lines said once, under its header, that the name is not shown.
-    lines += _flow('Directory: %s' % ('DIRECTORY' if directory_hidden(view['directory']) else view['directory']), width, '', '    ')
+    lines += _flow('Directory: %s' % ('DIRECTORY' if hidden else view['directory']), width, '', '    ')
     lines += _flow('Host: os %s, platform %s, machine %s, Python %s' % (host['os_name'], host['sys_platform'], host['machine'],
                                                                        host['python_version']), width, '', '    ')
     lines += _flow('Supported profiles: %s' % (', '.join(host['supported_profiles']) or 'none'), width, '', '    ')
@@ -824,7 +867,7 @@ def _goal_lines(view, width, operand=None):
         else:
             lines.append('    %s:' % ('Could not check' if row['state'] == 'unknown' else 'Missing'))
             for note in row['missing']:
-                said = screen_note(note, operand)
+                said = screen_note(note, operand, hidden=hidden)
                 # a recorded note (one screen_note did not write) is printed only when no word in it is refused
                 lines += _flow(said if said != note else shown_step(note), width, '      - ', '        ', commands=True)
         lines.append('    Next action (%s):' % row['owner_role'])
@@ -850,7 +893,7 @@ def start_lines(value, width, goal=None, goal_hint=False):
     goal is the result of goal_readiness and adds that goal's readiness after the survey; goal_hint adds the one closing line
     that names the goals and the flag. The workspace screen passes neither.
     """
-    from .readiness import DIRECTORY_NOT_SHOWN_SENTENCE
+    from .readiness import DIRECTORY_NOT_SHOWN_SENTENCE, IN_WORDS
     from .workbench_screens import word_wrap
     lines = ['INTUNE WORKBENCH: START']
     # The directory is user input: a name the output-path rule of signin collect refuses prints as DIRECTORY, here, in the
@@ -910,8 +953,10 @@ def start_lines(value, width, goal=None, goal_hint=False):
     if goal or goal_hint:
         # One pointer, not a copy: the catalog holds what each goal needs and the saved projects. Its directory is the path
         # writer's operand (a refused name is DIRECTORY there), like every other command on the screen.
-        lines += _flow('Catalog of what this build supports and where each goal stands: intune-iac catalog%s' % (
-            ' ' + operand if operand else ''), width, '', '    ', commands=True)
+        # A directory the screen may not show is said in words, as the catalog says its own start command: DIRECTORY would be a
+        # real folder to a shell.
+        where = IN_WORDS % 'catalog' if hidden else 'intune-iac catalog%s' % (' ' + operand if operand else '')
+        lines += _flow('Catalog of what this build supports and where each goal stands: ' + where, width, '', '    ', commands=True)
     if goal:
         # The goal block is longer than a 40-row pane, which then shows only the tail of the screen: the verdict closes the
         # screen too. It is a short fixed line and is never wrapped, so a pane always shows it whole.

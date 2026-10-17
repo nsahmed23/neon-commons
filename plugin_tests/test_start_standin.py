@@ -1,0 +1,213 @@
+"""PKG-START-STANDIN: the start screen prints no stand-in (DIRECTORY, ROOT, ID, PATH) as the operand of a copyable command.
+
+A directory, or a path inside it, that a screen may not show (readiness.display_refused) is said in words on the start screen,
+exactly as the catalog says it (PKG-CATALOG-6); a name that can be shown keeps its real, quoted operand. The hostile names are
+built at run time, so no source line holds a credential shape or a control character.
+"""
+import contextlib
+import hashlib
+import io
+import json
+import os
+import re
+import shlex
+import shutil
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+from plugin_tests.test_start_goal import Fixtures
+
+# assembled here, never written as a literal
+CREDENTIAL = 'tok' + 'en_' + 'gh' + 'p_' + 'A1b2C3d4' * 5
+HIDDEN_NAMES = {'credential': CREDENTIAL, 'control': 'bad' + chr(27) + 'name', 'long': 'd' * 70,
+                'combining': 'cafe' + chr(0x301)}
+ORDINARY = 'estate dir'
+WIDTHS = (120, 80, 60)
+GOALS = (None, 'inspect', 'discover', 'adopt', 'change')
+STAND_INS = ('DIRECTORY', 'ROOT', 'ID', 'PATH')
+CANNOT = 'the directory cannot be shown here'
+
+
+def estate(parent, name, rename=None):
+    """A copy of the start tests' full estate (a store, a service, a session, a repository ...) at parent/name. rename maps a
+    path inside it to a new name (a surveyed path the screen may not show)."""
+    target = Path(parent) / name
+    shutil.copytree(Fixtures.get()['full'], target)
+    for old, new in (rename or {}).items():
+        (target / old).rename(target / new)
+    return target
+
+
+def in_directory(parent, call):
+    old = os.getcwd()
+    os.chdir(parent)
+    try:
+        return call()
+    finally:
+        os.chdir(old)
+
+
+def render(route, parent, name, width, goal):
+    """The start screen's rows for the surveyed parent/name, typed from parent. route: built (the builders' own value), plain
+    (the same value after a JSON round trip, which has no text build) or cli (main(['start', ...]))."""
+    from intune_iac import cli, entry
+
+    def run():
+        if route == 'cli':
+            out = io.StringIO()
+            argv = ['start', name] + (['--goal', goal] if goal else [])
+            with patch('shutil.get_terminal_size', return_value=os.terminal_size((width, 40))), contextlib.redirect_stdout(out):
+                assert cli.main(argv) == 0
+            return out.getvalue().split('\n')
+        survey = entry.survey(name, relative_to=os.getcwd())
+        view = host_free(entry.goal_readiness(survey, goal)) if goal else None
+        if route == 'plain':
+            survey = json.loads(json.dumps(survey))
+            view = json.loads(json.dumps(view)) if view else None
+        return entry.start_lines(survey, width, view, goal_hint=view is None)
+    return in_directory(parent, run)
+
+
+def host_free(view):
+    """The readiness view with this machine's own facts (operating system, platform, machine, Python) replaced by fixed words, so
+    that a golden does not depend on the host the test runs on."""
+    import platform
+    import sys
+    text = json.dumps(view)
+    facts = {os.name: 'posix', sys.platform: 'linux', platform.machine(): 'x86_64', '%d.%d.%d' % sys.version_info[:3]: '3.12.3'}
+    for real, fixed in facts.items():
+        text = text.replace('"%s"' % real, '"%s"' % fixed)
+    return json.loads(text)
+
+
+def logical_rows(lines):
+    """The rows with every backslash continuation joined, as a shell reads a copied command."""
+    rows, held = [], ''
+    for line in lines:
+        if line.endswith(' \\'):
+            held += line[:-1].strip() + ' '
+            continue
+        rows.append((held + line.strip()).strip())
+        held = ''
+    return rows + ([held.strip()] if held else [])
+
+
+def is_stand_in(token):
+    return token in STAND_INS or any(token.startswith(word + '/') for word in STAND_INS)
+
+
+def stand_in_operands(lines):
+    """Every operand of a printed command that is a stand-in: DIRECTORY, ROOT, ID or PATH alone or at the start of a path. A
+    command is a row that starts with the program name, or the program name inside a sentence up to the sentence's end; the
+    workspace's own :repository-entry command is read the same way."""
+    found = []
+    for row in logical_rows(lines):
+        commands = [row] if row.startswith('intune-iac ') else row.split('intune-iac ')[1:]
+        commands += re.findall(r':repository-entry\s+(.*)', row)
+        for command in commands:
+            command = re.split(r'\s\(|[.;:](?:\s|$)', command)[0]
+            try:
+                tokens = shlex.split(command)
+            except ValueError:
+                tokens = command.split()
+            found += [token for token in tokens if is_stand_in(token)]
+    return found
+
+
+def flat(lines):
+    return ' '.join(' '.join(lines).replace(' \\ ', ' ').split())
+
+
+def tearDownModule():
+    Fixtures.release()
+
+
+class Estates(unittest.TestCase):
+    """A parent directory holding one copy of the estate per name, built once per class."""
+    names = {}
+    rename = None
+
+    @classmethod
+    def setUpClass(cls):
+        cls.temp = tempfile.TemporaryDirectory()
+        cls.parent = cls.temp.name
+        for name in cls.names.values():
+            estate(cls.parent, name, cls.rename)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.temp.cleanup()
+
+
+class HiddenDirectoryCommandTests(Estates):
+    """Item 1: a directory the screen may not show is never the operand of a start-screen command; it is said in words."""
+    names = dict(HIDDEN_NAMES, ordinary=ORDINARY)
+    ROUTES = ('built', 'plain', 'cli')
+
+    def test_no_start_command_has_a_stand_in_operand_for_a_hidden_directory(self):
+        for label, name in HIDDEN_NAMES.items():
+            for route in self.ROUTES:
+                for goal in GOALS:
+                    with self.subTest(name=label, route=route, goal=goal):
+                        lines = render(route, self.parent, name, 100, goal)
+                        self.assertEqual(stand_in_operands(lines), [], flat(lines))
+
+    def test_the_next_steps_say_the_command_and_what_it_is_run_on_in_words(self):
+        for label, name in HIDDEN_NAMES.items():
+            with self.subTest(name=label):
+                text = flat(render('built', self.parent, name, 100, None))
+                self.assertIn('Resume with the wizard command using this saved session; its path cannot be shown here.', text)
+                self.assertIn('Open the workspace with the workbench workspace command using this saved store; '
+                              'its path cannot be shown here.', text)
+                self.assertNotIn('workbench workspace --root', text)
+
+    def test_the_sign_in_note_and_the_catalog_pointer_are_the_catalogs_own_sentences(self):
+        from intune_iac import readiness
+        pointer = ('Catalog of what this build supports and where each goal stands: '
+                   + readiness.IN_WORDS % 'catalog')
+        self.assertIn(CANNOT, pointer)
+        for label, name in HIDDEN_NAMES.items():
+            for route in self.ROUTES:
+                with self.subTest(name=label, route=route):
+                    text = flat(render(route, self.parent, name, 100, 'discover'))
+                    self.assertIn(pointer, text)
+                    self.assertIn(readiness.NO_CHECK_HIDDEN % 'discover', text)
+                    self.assertNotIn('--goal discover --check-signin azure (it runs', text)
+                    hint = flat(render(route, self.parent, name, 100, None))
+                    self.assertIn(pointer, hint)
+
+    def test_a_displayable_directory_keeps_its_real_quoted_operand_in_every_command(self):
+        for route in self.ROUTES:
+            with self.subTest(route=route):
+                text = flat(render(route, self.parent, ORDINARY, 120, 'discover'))
+                # plain data has no relative_to: the directory in full, quoted; the builders and the command line write it
+                # relative to where the command is typed
+                operand = shlex.quote(str(Path(self.parent) / ORDINARY)) if route == 'plain' else "'estate dir'"
+                self.assertIn("intune-iac catalog %s" % operand, text)
+                self.assertIn("intune-iac start %s --goal discover --check-signin azure" % operand, text)
+                if route != 'plain':
+                    self.assertIn("intune-iac workbench workspace --root 'estate dir/store' --service-root 'estate dir/service'",
+                                  text)
+                self.assertNotIn(CANNOT, text)
+                self.assertEqual(stand_in_operands(render(route, self.parent, ORDINARY, 120, 'discover')), [])
+
+
+class HiddenPathCommandTests(Estates):
+    """A path inside a displayable directory that the screen may not show is not a command operand either."""
+    names = {'ordinary': ORDINARY}
+    rename = {'session.json': CREDENTIAL + '.json'}
+
+    def test_a_surveyed_path_the_screen_may_not_show_is_never_a_stand_in_operand(self):
+        for route in ('built', 'plain', 'cli'):
+            for goal in GOALS:
+                with self.subTest(route=route, goal=goal):
+                    lines = render(route, self.parent, ORDINARY, 100, goal)
+                    self.assertEqual(stand_in_operands(lines), [], flat(lines))
+                    self.assertNotIn(CREDENTIAL, '\n'.join(lines))
+
+    def test_the_commands_for_the_paths_that_can_be_shown_are_unchanged(self):
+        text = flat(render('built', self.parent, ORDINARY, 100, None))
+        self.assertIn("intune-iac workbench workspace --root 'estate dir/store' --service-root 'estate dir/service'", text)
+        self.assertIn('Resume with the wizard command using this saved session; its path cannot be shown here.', text)
