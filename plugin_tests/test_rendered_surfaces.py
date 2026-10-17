@@ -17,6 +17,17 @@ What it covers
     cli.parser(). A test counts the text branches of cli.main, so a route that prints text and is not driven here fails.
   * The wizard, the guided workflow and the journey: every prompt handed to the person and every line printed, scripted through
     the answers a person types, with and without a repository-owned edit of the generated output.
+  * simulate --format text, with the snapshot and revision documents test_sim_render_cli builds. start and catalog with
+    --check-signin, with az and gh stubbed as the sign-in tests stub them (FakeClis; no real tool, no network). The views behind
+    the service, adoption and adoption-plan navigation (review, status, attach, cancel, recover), with the hand-authored
+    presentation fixtures of their TUI tests.
+
+Not driven, and why: service-link, adoption-link, evidence-link and evidence-history, and the real protected journals behind the
+service views. Their fixtures are test_worker_service_r4.WorkerServiceR4Tests, test_worker_service_readback_r4 and
+test_worker_evidence_r4 (used by test_workbench_service_views_r4, test_workbench_service_tui_r4.ServiceEntrypointTests and
+test_workbench_evidence_views_r4), which import the pinned docker and relay of scripts/qualification_tools and build a TLS probe
+with /usr/bin/gcc; the real adoption recovery plan fixture (test_worker_adoption_plan_recovery_r4) refuses the controller's
+standard-library links on this machine.
 It excludes only machine forms: --json output, the non-terminal JSON document of the line terminal and the raw record layer of the
 workspace (r), which shows that same JSON document.
 
@@ -276,6 +287,8 @@ class Sweep:
         self.coverage = collections.Counter()                  # (state, surface, size) -> screens read
         self.net = collections.OrderedDict()                   # (command word, token) -> {'where': {...}, 'rows': {...}}
         self.excused = collections.Counter()                   # allowlist entry -> hits it excused
+        self.printed = collections.Counter()                   # (state, route) -> rows a route printed (a route that prints nothing
+                                                               # is not a sweep)
 
     def cast(self, state, surface, size, rows):
         """The independent net over the rows of one screen (not on the help synopsis surfaces)."""
@@ -318,6 +331,7 @@ class Sweep:
         if machine_form(text):
             self.coverage[(state, surface, size, 'machine form')] += 1
             return
+        self.printed[(state, surface)] += sum(1 for row in text.split('\n') if row.strip())
         self.read(state, surface, size, readable(text.split('\n')), rows=text.split('\n'))
 
     def net_failures(self):
@@ -456,17 +470,22 @@ def key(char):
     return ('text', char)
 
 
+def read_screen(sweep, ws, state, label, schedule=SCHEDULE):
+    """Read the surface the workspace shows now, at every size of the schedule (in its rule style), with both checks."""
+    for size, style in schedule:
+        pages, layer = surface_pages(ws, size, style)
+        body = ' '.join(' '.join(row for _, part, _, _ in pages for row in part).split())
+        rows = [row for page in pages for part in page[:3] for row in part]
+        sweep.read(state, label, size, screen_texts(pages, layer), SYNOPSIS_CONVENTION in body, rows)
+
+
 def drive(root, service_root, plan, state, sweep, schedule=SCHEDULE):
     """Run the real engine behind a Workspace fed by plan; at every Look read the screen at every size (in its rule style)."""
     from intune_iac.workbench import run_terminal
     from intune_iac.workbench_tui import Workspace
 
     def look(ws, label):
-        for size, style in schedule:
-            pages, layer = surface_pages(ws, size, style)
-            body = ' '.join(' '.join(row for _, part, _, _ in pages for row in part).split())
-            rows = [row for page in pages for part in page[:3] for row in part]
-            sweep.read(state, label, size, screen_texts(pages, layer), SYNOPSIS_CONVENTION in body, rows)
+        read_screen(sweep, ws, state, label, schedule)
 
     ws = Workspace(root, stdout=io.StringIO(), stdin=io.StringIO(), no_color=True)
     ws.rules = 'unicode'
@@ -947,6 +966,221 @@ def sweep_wizards():
     return sweep
 
 
+# -- simulate, --check-signin, and the protected service and adoption views ------------------------------------------------------------
+
+@functools.lru_cache(maxsize=1)
+def sweep_simulate():
+    """simulate --format text, with the documents test_sim_render_cli builds: its scenario (a conflict between two policies), a
+    snapshot with an unbounded group, one with an incomplete collection, a complete one with no findings, and the estate and
+    population route; plus a possible membership under an exclude-mode filter and a group exclusion beside a filter (test_sim_cases).
+    Through cli.main with the documents as files (the route writes 100 columns when it is piped) and through the renderer at 60, 80
+    and 120 columns."""
+    from intune_iac import sim_profile, sim_render
+    from intune_iac.synthetic import generate_estate
+    from plugin_tests import sim_support as s
+    from plugin_tests.sim_cases import simulate
+    from plugin_tests.test_sim_render_cli import scenario
+    sweep = Sweep()
+    default = sim_profile.load_profile({})                     # the profile the command uses when none is given
+    one = s.revision_doc([s.policy('p', [s.include('gA')], settings=[])])
+    cases = collections.OrderedDict([
+        ('a conflict between two policies', scenario()),
+        ('an unbounded group and an incomplete device collection', (
+            s.snapshot_doc(devices=[s.device('a'), s.device('b')], groups=[s.group('gA', complete=False)],
+                           memberships=[s.member('gA', 'a')], collections={'devices': {'complete': False, 'reason': 'query_ceiling'}}),
+            s.revision_doc([s.policy('p', [s.include('gA')], settings=[])]))),
+        ('an incomplete policy collection', (
+            s.snapshot_doc(devices=[s.device('a')], groups=[s.group('gA')], memberships=[s.member('gA', 'a')],
+                           collections={'policies': {'complete': False, 'reason': 'query_ceiling'}}), one)),
+        ('a complete snapshot with no findings', (
+            s.snapshot_doc(devices=[s.device('a')], groups=[s.group('gA')], memberships=[s.member('gA', 'a')]), one)),
+        ('a possible membership under an exclude-mode filter', (
+            s.snapshot_doc(devices=[s.device('a', model='M1'), s.device('b', model='M1')], groups=[s.group('gA'), s.group('gB')],
+                           memberships=[s.member('gA', 'a'), s.member('gA', 'b'), s.member('gB', 'a', certainty='possible')],
+                           filters=[s.filt('m1', 'device.model -eq "M1"')]),
+            s.revision_doc([s.policy('p', [s.include('gA'), s.include('gB', 'exclude', 'm1')])]))),
+        ('a group exclusion beside an exclude-mode filter', (
+            s.snapshot_doc(devices=[s.device('a', model='M1'), s.device('b', model='M2'), s.device('c', model='M2')],
+                           groups=[s.group('gA'), s.group('gB')],
+                           memberships=[s.member('gA', 'a'), s.member('gA', 'b'), s.member('gA', 'c'), s.member('gB', 'b')],
+                           filters=[s.filt('m1', 'device.model -eq "M1"')]),
+            s.revision_doc([s.policy('p', [s.include('gA', 'exclude', 'm1'), s.exclude('gB')])]))),
+    ])
+    with tempfile.TemporaryDirectory() as temp:
+        folder = Path(temp)
+
+        def write(name, value):
+            path = folder / name
+            path.write_text(json.dumps(value), encoding='utf-8')
+            return str(path)
+        for name, (doc, revision) in cases.items():
+            code, text, err = run_cli(['simulate', '--snapshot', write('snapshot.json', doc), '--revision',
+                                       write('revision.json', revision), '--format', 'text'], 100)
+            sweep.text(name, 'simulate --format text', (100, 0), text)
+            sweep.text(name, 'simulate --format text (stderr)', (100, 0), err)
+            _, out = simulate(doc, revision, default)
+            for width in (60, 80, 120):
+                sweep.text(name, 'simulate --format text (renderer)', (width, 0), '\n'.join(sim_render.render_text(out, width)))
+        estate = generate_estate(seed=7, policy_count=1)
+        g0, g1, g2 = estate['truth']['groups']
+        population = {'devices': [s.device('a'), s.device('b')], 'group_domains': {g0: 'device', g1: 'device', g2: 'device'},
+                      'complete_groups': [g0, g1, g2],
+                      'memberships': [{'group_id': g1, 'member_id': s.uid('device/a'), 'member_kind': 'device', 'certainty': 'known'}]}
+        removal = s.revision_doc()
+        removal['removed_policy_ids'] = [estate['truth']['policies'][0]['id']]
+        code, text, err = run_cli(['simulate', '--estate', write('estate.json', estate), '--population', write('population.json', population),
+                                   '--revision', write('removal.json', removal), '--format', 'text'], 100)
+        sweep.text('a synthetic estate and a population', 'simulate --format text', (100, 0), text)
+        sweep.text('a synthetic estate and a population', 'simulate --format text (stderr)', (100, 0), err)
+    return sweep
+
+
+def signin_cases(context):
+    """(label, provider, canned az answer, canned gh answer, a phrase the screen must show) for start and catalog --check-signin. The
+    answers are the ones the sign-in tests give their fake az and gh (plugin_tests/signin_fakes.py); nothing real runs."""
+    from plugin_tests.signin_fakes import azure_account, azure_list, github_hosts
+    other = '55555555-5555-4555-8555-555555555555'
+
+    def az(*accounts, **extra):
+        return dict(out=azure_list(*accounts), **extra)
+
+    def gh(*entries, **extra):
+        return dict(out=github_hosts(*entries), **extra)
+    octo = ('github.com', 'octo-user', 'success', True)
+    return (
+        ('azure: signed in to the context tenant', 'azure', az(azure_account(tenant=context)), None, 'Signed in to tenant'),
+        ('azure: signed in to another tenant', 'azure', az(azure_account(tenant=other)), None, 'Sign in to the tenant the context names'),
+        ('azure: several accounts in the tenant', 'azure',
+         az(azure_account(tenant=context), azure_account(tenant=context, user='sam@example.test', default=False)), None,
+         'Several accounts are signed in'),
+        ('azure: not signed in', 'azure', az(), None, 'Not signed in to Azure'),
+        ('azure: an answer that is not a listing', 'azure', dict(out='this is not json'), None, 'could not be determined'),
+        ('azure: only an expired subscription', 'azure', az(azure_account(tenant=context, state='Expired')), None, 'subscription'),
+        ('azure: the CLI fails', 'azure', None, None, 'command_failed'),
+        ('github: signed in', 'github', None, gh(octo), 'Signed in to github.com'),
+        ('github: several accounts', 'github', None, gh(octo, ('github.com', 'other-user', 'success', False)), None),
+        ('github: an error state', 'github', None, gh(('github.com', 'octo-user', 'error', True)), None),
+        ('github: not logged in', 'github', None, dict(out='', err='You are not logged into any GitHub hosts.', code=1),
+         'Not signed in to GitHub'),
+        ('both: signed in to each', 'all', az(azure_account(tenant=context)), gh(octo), 'GitHub CLI sign-in'),
+        ('both: another tenant and not logged in', 'all', az(azure_account(tenant=other)),
+         dict(out='', err='You are not logged into any GitHub hosts.', code=1), 'Not signed in to GitHub'),
+    )
+
+
+@functools.lru_cache(maxsize=1)
+def sweep_check_signin():
+    """start --goal G --check-signin P and catalog --check-signin P (with and without a goal), with the az and gh the sign-in tests
+    stub (FakeClis: canned answers on a temporary search path, no real tool, no network), for every answer in signin_cases, in a
+    directory that holds the example context and in one that holds none, at two widths. sweep.unmet lists a case whose screen does
+    not show its phrase (the stub was not in effect)."""
+    from plugin_tests.signin_fakes import FakeClis
+    sweep = Sweep()
+    sweep.unmet = []
+    root = Path(__file__).resolve().parents[1]
+    context = json.loads((root / 'examples/context.json').read_text())['tenant_id']
+    with tempfile.TemporaryDirectory() as temp:
+        with_context, bare = Path(temp) / 'estate dir', Path(temp) / 'bare'
+        with_context.mkdir()
+        bare.mkdir()
+        shutil.copyfile(root / 'examples/context.json', with_context / 'context.json')
+        for index, (label, provider, azure, github, phrase) in enumerate(signin_cases(context)):
+            fakes = FakeClis()
+            try:
+                for tool, first, second, answer in (('az', 'account', 'list', azure), ('gh', 'auth', 'status', github)):
+                    if answer is not None:
+                        fakes.answer(tool, first, second, **answer)
+                shown = []
+                with patch.dict(os.environ, {'PATH': fakes.path_entry() + os.pathsep + os.environ.get('PATH', '')}):
+                    for folder, name in ((with_context, 'a context'), (bare, 'no context')):
+                        if folder is bare and index > 1:
+                            continue                       # the directory with no context is read for the first two answers only
+                        runs = [(['start', str(folder), '--goal', goal, '--check-signin', provider], 'start --goal %s' % goal)
+                                for goal in ('discover', 'adopt')]
+                        runs += [(['catalog', str(folder), '--check-signin', provider], 'catalog'),
+                                 (['catalog', str(folder), '--goal', 'discover', '--check-signin', provider], 'catalog --goal discover')]
+                        for argv, route in runs:
+                            for width in (120, 60):
+                                code, text, err = run_cli(argv, width)
+                                sweep.text('%s; %s' % (label, name), '%s --check-signin %s' % (route, provider), (width, 0), text)
+                                sweep.text('%s; %s' % (label, name), '%s --check-signin %s (stderr)' % (route, provider), (width, 0), err)
+                                shown.append(' '.join(text.split()))
+            finally:
+                fakes.cleanup()
+            if phrase and not any(phrase in text for text in shown):
+                sweep.unmet.append((label, phrase))
+    return sweep
+
+
+@functools.lru_cache(maxsize=1)
+def service_presentation():
+    """ServicePresentationTests of test_workbench_service_tui_r4, the hand-authored responses of the protected service. That module
+    imports test_worker_service_r4 at its top, and that imports the pinned docker and relay of scripts/qualification_tools (and its
+    tests build a TLS probe with /usr/bin/gcc), none of which is on every machine. Only ServiceEntrypointTests uses it, so the import
+    is given a stand-in for the time it takes and nothing of the stand-in stays in sys.modules."""
+    import importlib
+    import sys
+    import types
+    import plugin_tests
+    name = 'plugin_tests.test_workbench_service_tui_r4'
+    stand_in = types.ModuleType('plugin_tests.test_worker_service_r4')
+    with patch.dict(sys.modules, {'plugin_tests.test_worker_service_r4': stand_in}):
+        sys.modules.pop(name, None)
+        module = importlib.import_module(name)
+    if hasattr(plugin_tests, 'test_workbench_service_tui_r4'):
+        delattr(plugin_tests, 'test_workbench_service_tui_r4')
+    return module.ServicePresentationTests
+
+
+@functools.lru_cache(maxsize=1)
+def sweep_protected_views():
+    """The views behind the service, adoption and adoption-plan navigation, as the workspace shows them: for each of review, status,
+    attach, cancel and recover, the command sent and the response received, with the hand-authored responses (presentation
+    fixtures) of ServicePresentationTests, AdoptionPresentationTests and RecoveryPlanPresentation, in the summary and in the typed
+    details, plus an error response and the adoption history. The real protected journals need the pinned docker and a TLS probe
+    built with gcc (test_worker_service_r4.WorkerServiceR4Tests, test_worker_service_readback_r4, test_worker_evidence_r4), which this
+    machine does not have, so service-link, adoption-link and evidence-link/-history are not driven (see the module docstring)."""
+    from plugin_tests.test_workbench_adoption_recovery_tui_r4 import RecoveryPlanPresentation
+    from plugin_tests.test_workbench_adoption_tui_r4 import AdoptionPresentationTests
+    sweep = Sweep()
+    outcome = {'operation_outcome': 'host_completed_service_unverified', 'independent_service_readback': 'required', 'primary_error': None}
+    error = {'status': 'error', 'error': {'code': 'service_workspace_target_mismatch'}}
+    domains = (
+        ('protected service', service_presentation(), 'test_service_review_presents_manifest_and_approval_scope',
+         lambda case, action: case.response(action, **({'cancel_requested': True} if action in ('status', 'cancel', 'recover') else
+                                                       {'outcome': outcome} if action == 'attach' else {}))),
+        ('protected adoption', AdoptionPresentationTests, 'test_state_only_presentation_preserves_uncertainty',
+         lambda case, action: case.result(action)),
+        ('adoption recovery plan', RecoveryPlanPresentation, 'test_unknown_original_and_planonly_restriction_displayed',
+         lambda case, action: case.result(action)),
+    )
+    for domain, cls, method, reply in domains:
+        prefix = {'protected service': 'service', 'protected adoption': 'adoption', 'adoption recovery plan': 'adoption-plan'}[domain]
+        case = cls(method)
+        case.setUp()
+        try:
+            case.ui.rules = 'unicode'
+            for action in ('review', 'status', 'attach', 'cancel', 'recover'):
+                case.ui._send(case.command(action))
+                case.ui.receive(reply(case, action))
+                for layer in ('summary', 'details'):
+                    case.ui.layer, case.ui.scroll = layer, 0
+                    read_screen(sweep, case.ui, domain, '%s-%s (%s%s)' % (prefix, action, 'Plan' if case.ui.tab == 4 else 'Execution',
+                                                                           ', typed details' if layer == 'details' else ''))
+                case.ui.layer = 'summary'
+            case.ui._send(case.command('review'))
+            case.ui.receive(error)
+            read_screen(sweep, case.ui, domain, '%s-review (an error response)' % prefix)
+            if prefix == 'adoption':
+                case.ui.selected = OBJECT
+                case.ui._send('adoption-history')
+                case.ui.receive({'operations': []})
+                read_screen(sweep, case.ui, domain, 'adoption-history (no operations)')
+        finally:
+            case.doCleanups()
+    return sweep
+
+
 # -- the tests --------------------------------------------------------------------------------------------------------------------
 
 def tearDownModule():
@@ -1233,6 +1467,45 @@ class CommandLineSweepTests(unittest.TestCase):
         self.assertTrue(text_routes <= found, sorted(text_routes - found))
         # the other routes print the JSON document of cli.main (a machine form); their --help and usage errors are read above
         self.assertGreater(len(found - text_routes), 100)
+
+
+class RemainingRouteSweepTests(unittest.TestCase):
+    """simulate --format text, start and catalog with --check-signin, and the protected service and adoption views."""
+
+    def test_simulate_text_with_the_documents_its_own_tests_build(self):
+        sweep = sweep_simulate()
+        judge(self, sweep)
+        states = {state for (state, *_) in sweep.coverage}
+        self.assertEqual(len(states), 7)                                              # six snapshot documents and the estate route
+        for state in states:
+            self.assertGreater(sweep.printed[(state, 'simulate --format text')], 10, state)       # the route printed its screen
+            self.assertEqual(sweep.printed[(state, 'simulate --format text (stderr)')], 0, state)
+        widths = {size[0] for (_, route, size) in sweep.coverage if route == 'simulate --format text (renderer)'}
+        self.assertEqual(widths, {60, 80, 120})
+
+    def test_start_and_catalog_with_check_signin_against_the_stubbed_az_and_gh(self):
+        sweep = sweep_check_signin()
+        judge(self, sweep)
+        self.assertEqual(sweep.unmet, [], 'a canned answer whose verdict the screen did not show: the stub was not in effect')
+        routes_read = {route for (_, route, *_) in sweep.coverage}
+        for provider in ('azure', 'github', 'all'):
+            for route in ('start --goal discover', 'start --goal adopt', 'catalog', 'catalog --goal discover'):
+                self.assertIn('%s --check-signin %s' % (route, provider), routes_read)
+        self.assertGreaterEqual(len({state for (state, *_) in sweep.coverage}), len(signin_cases('c')))
+
+    def test_the_views_behind_the_service_adoption_and_adoption_plan_navigation(self):
+        sweep = sweep_protected_views()
+        judge(self, sweep)
+        for domain, prefix in (('protected service', 'service'), ('protected adoption', 'adoption'),
+                               ('adoption recovery plan', 'adoption-plan')):
+            for action in ('review', 'status', 'attach', 'cancel', 'recover'):
+                tab = 'Plan' if action == 'review' else 'Execution'
+                for suffix in ('', ', typed details'):
+                    for size in SCHEDULE:
+                        label = '%s-%s (%s%s)' % (prefix, action, tab, suffix)
+                        self.assertGreater(sweep.coverage[(domain, label, size[0])], 0, (domain, label, size))
+            for size in SCHEDULE:
+                self.assertGreater(sweep.coverage[(domain, '%s-review (an error response)' % prefix, size[0])], 0, (domain, size))
 
 
 class WizardSweepTests(unittest.TestCase):
