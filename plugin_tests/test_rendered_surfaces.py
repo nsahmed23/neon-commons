@@ -401,9 +401,19 @@ def in_argparse_layout(state, rows, index, previous, token):
     return index in usage_rows(rows) or (index in section_rows(rows) and token in first_column(rows[index]))
 
 
-def id_after_a_noun(state, rows, index, previous, token):
-    """ID right after a plain lowercase word that is not a command word ("object ID", "tenant ID")."""
-    return token == 'ID' and bool(previous) and previous.isalpha() and previous.islower() and previous not in command_words()
+def block_text(rows, index):
+    """The text of the visual block that holds the row, its rows joined as a person reads them."""
+    block = next(block for block in visual_blocks(rows) if index in block)
+    return ' '.join(' '.join(rows[number].split()) for number in block)
+
+
+def id_in_phrase(noun, phrases):
+    """An entry's predicate: ID as the abbreviation of identifier in one of the exact phrases the product prints (each holds `noun ID`)."""
+    assert all(noun + ' ID' in phrase for phrase in phrases), (noun, phrases)
+
+    def excuses(state, rows, index, previous, token):
+        return token == 'ID' and previous == noun and any(phrase in block_text(rows, index) for phrase in phrases)
+    return excuses
 
 
 def directory_stand_in(state, rows, index, previous, token):
@@ -415,48 +425,60 @@ def directory_stand_in(state, rows, index, previous, token):
             and (previous == 'Directory' or bool(re.search(r'\bDIRECTORY(?: is\b|\Z)', row))))
 
 
-def block_text(rows, index):
-    """The text of the visual block that holds the row, its rows joined as a person reads them."""
-    block = next(block for block in visual_blocks(rows) if index in block)
-    return ' '.join(' '.join(rows[number].split()) for number in block)
-
-
 def strip_label(state, rows, index, previous, token):
     """REPO as the strip's own label for the state of the repository (`MODE | TENANT x | POLICY y | OBS fresh | REPO current | OP`)."""
     text = block_text(rows, index)
     return token == 'REPO' and '| REPO ' in text and '| TENANT ' in text
 
 
-# The net's false positives: one entry each, (name, the states it applies to or None for any, what it excuses, the reason that is not a
-# defect). What an entry excuses is a function of the screen's rows, the row's index, the word before the token and the token, so an
-# entry excuses only what it names and the rest of the screen is still read. There is no other allowance.
-NET_ALLOWED = (
-    ('argparse usage and option rows', ('help', 'usage error'), in_argparse_layout,
+Allowed = collections.namedtuple('Allowed', 'name states surfaces excuses reason')
+
+# The net's false positives: one entry each. states: the states it applies to, None for any. surfaces: the prefixes of the surfaces it
+# applies to, None for any (a named site). excuses: a function of the screen's rows, the row's index, the word before the token and
+# the token, so an entry excuses only what it names and the rest of the screen is still read. reason: why it is not a defect. There is
+# no other allowance.
+NET_ALLOWED = tuple(Allowed(*entry) for entry in (
+    ('argparse usage and option rows', ('help', 'usage error'), None, in_argparse_layout,
      "argparse writes the parser's own synopsis with each option's metavariable (--root ROOT, --service-root SERVICE_ROOT), and "
      "lists each option with its metavariable in its first column: the standard notation of a command line, generated from the "
      "parser, printed by --help or after a usage error and never as a step to copy. Its choices can even be command words "
      "({simulation,live}). It is excused only in an output that also shows the convention sentence (SYNOPSIS_CONVENTION), as a "
      "synopsis is on the help page: without the sentence a reader cannot tell a metavariable from an operand left unresolved. The "
      "description and the help text beside each option are still read."),
-    ('ID after a noun', None, id_after_a_noun,
-     "ID right after a plain noun is the abbreviation of identifier in a sentence ('the Intune object ID it manages', 'tenant ID'), "
-     "not a placeholder. An ID that is an operand follows an option (--object ID) or a command word (select ID), and stays a hit."),
-    ('directory stand-in', None, directory_stand_in,
+    ('object ID in the repository entry', None, (':repository-entry',),
+     id_in_phrase('object', ('its object ID cannot be read from the repository', 'the Intune object ID it manages')),
+     "The repository-entry candidate whose key does not encode the policy's object says, in two exact sentences of "
+     "repository_entry.py:146-148, that `its object ID cannot be read from the repository` and to supply `the Intune object ID it "
+     "manages`: ID is the abbreviation of identifier in a sentence, not a placeholder. Only these phrases, on the repository-entry "
+     "surfaces; any other `... ID`, a `review operation ID` among them, is an operand or a new sentence, and stays a hit."),
+    ('commit ID in the actions layer', None, ('a Actions',),
+     id_in_phrase('commit', ('the full 40-character commit ID',)),
+     "The actions layer says what the repository refresh needs, `the full 40-character commit ID` (the needs row, and the staged "
+     "instruction of workbench_tui.py:2489): ID is the abbreviation of identifier in a sentence, not a placeholder. Only that phrase, "
+     "on the actions layer; any other `... ID` stays a hit."),
+    ('object ID in the refusal for no selection', None, ('evidence-history, refused: no object selected',),
+     id_in_phrase('object', ('Select an exact immutable object ID first',)),
+     "The typed details of a refusal print the engine's own message, and for selection_required that is `Select an exact immutable "
+     "object ID first.` (workbench.py, raised where a link or history command needs a selected policy): ID is the abbreviation of "
+     "identifier in a sentence, not a placeholder. Only that sentence, on the typed details of the refused evidence-history that "
+     "the link sweep drives; any other `... ID` stays a hit."),
+    ('directory stand-in', None, None, directory_stand_in,
      "A directory whose name the screen must not print (a credential shape, a control character) is named DIRECTORY, and the "
      "screen says so in a sentence that starts with the word (readiness.DIRECTORY_NOT_SHOWN_STEM) or in the label `Directory:`. The "
      "word is defined where it is shown; a command that carries it as an operand is not excused, and stays a hit."),
-    ('strip label', None, strip_label,
+    ('strip label', None, None, strip_label,
      "The strip under the tabs names the repository state REPO (`| OBS stale (later collection incomplete) | REPO stale |`), and the "
      "help legend prints the strip as it reads now. REPO there is the label of a state, not the operand of the word collection "
      "before it, which is ordinary English there."),
-)
+))
 
 
-def net_excuse(state, rows, index, previous, token):
+def net_excuse(state, surface, rows, index, previous, token):
     """The name of the allowlist entry that excuses a hit, or None."""
-    for name, states, excuses, reason in NET_ALLOWED:
-        if (states is None or state in states) and excuses(state, rows, index, previous, token):
-            return name
+    for entry in NET_ALLOWED:
+        if ((entry.states is None or state in entry.states) and (entry.surfaces is None or surface.startswith(entry.surfaces))
+                and entry.excuses(state, rows, index, previous, token)):
+            return entry.name
     return None
 
 
@@ -542,7 +564,7 @@ class Sweep:
             if (hit.word, hit.token, hit.shown) in seen:
                 continue
             seen.add((hit.word, hit.token, hit.shown))
-            reason = 'exact synopsis' if hit.exact else net_excuse(state, rows, hit.index, hit.previous, hit.token)
+            reason = 'exact synopsis' if hit.exact else net_excuse(state, surface, rows, hit.index, hit.previous, hit.token)
             if reason:
                 self.excused[reason] += 1
                 continue
@@ -1895,8 +1917,8 @@ class NetTests(unittest.TestCase):
 
     def test_every_allowlist_entry_has_a_reason_and_excuses_only_the_rows_it_names(self):
         self.assertTrue(NET_ALLOWED)
-        for name, states, excuses, reason in NET_ALLOWED:
-            self.assertTrue(name and callable(excuses) and len(reason.split()) > 10, name)      # a reason, in words
+        for entry in NET_ALLOWED:
+            self.assertTrue(entry.name and callable(entry.excuses) and len(entry.reason.split()) > 10, entry.name)   # a reason, in words
         words = SYNOPSIS_CONVENTION.split()
         sentence = [' '.join(words[:4]), ' '.join(words[4:]) + '.']                    # the sentence, wrapped over two rows
         usage = ['usage: intune-iac workbench init [-h] --root ROOT --tenant TENANT',
@@ -1948,15 +1970,47 @@ class NetTests(unittest.TestCase):
         sweep.text('help', 'intune-iac start --help', (100, 0), sentence)
         self.assertEqual(sorted(sweep.net), [('init', 'ROOT'), ('init', 'SERVICE_ROOT')])
 
-    def test_id_is_excused_only_as_the_abbreviation_in_a_sentence(self):
-        sweep = Sweep()
-        sweep.read('state', '9 Repository', (80, 24), [], rows=['select the object ID you want',
-                                                                 'It cannot be read from the repository: supply the Intune object ID.'])
-        self.assertEqual((sweep.net_failures(), sweep.excused['ID after a noun']), ([], 2))
-        for row in ('select ID', 'inspect --object ID', 'workbench workflow --root ROOT --policy ID', 'review the run ID'):
-            other = Sweep()
-            other.read('state', '9 Repository', (80, 24), [], rows=[row])
-            self.assertTrue(other.net, row)                                              # an operand, or after a command word
+    def test_id_is_excused_only_in_the_phrases_the_product_prints_and_only_where_it_prints_them(self):
+        """`review operation ID` is a hit: a lowercase word before ID does not make it prose. The two phrases the sweeps meet are
+        excused at their own surfaces and nowhere else."""
+        commit = 'The repository-refresh command needs the full 40-character commit ID; it is recorded as stated.'
+        object_phrase = 'This key does not encode the policy: select it, so its object ID cannot be read from the repository.'
+
+        def net(rows, surface):
+            sweep = Sweep()
+            sweep.read('state', surface, (80, 24), [], rows=rows)
+            return sweep
+        for rows, surface, name in (([commit], 'a Actions, action 1 focused', 'commit ID in the actions layer'),
+                                    ([object_phrase], ':repository-entry (candidates)', 'object ID in the repository entry'),
+                                    (['select it: supply the Intune object ID it manages'], ':repository-entry (second candidate)',
+                                     'object ID in the repository entry'),
+                                    (['status error message Select an exact immutable object ID first.'],
+                                     'evidence-history, refused: no object selected, typed details',
+                                     'object ID in the refusal for no selection')):
+            with self.subTest(rows=rows, surface=surface):
+                sweep = net(rows, surface)
+                self.assertEqual((sweep.net_failures(), sweep.excused[name]), ([], 1))
+        for rows, surface in (([commit], '2 Inspector'),                                   # the phrase, off its surface
+                              ([commit], ':repository-entry (candidates)'),
+                              ([object_phrase], 'a Actions, action 1 focused'),
+                              (['status error message Select an exact immutable object ID first.'], '9 Repository, typed details (e)'),
+                              (['review operation ID'], 'a Actions, action 1 focused'),    # a lowercase word before ID is not enough
+                              (['review operation ID'], ':repository-entry (candidates)'),
+                              (['The repository-refresh command needs the commit ID'], 'a Actions, action 1 focused'),      # not the phrase
+                              (['select the object ID you want'], ':repository-entry (candidates)'),
+                              (['select ID'], '9 Repository'), (['inspect --object ID'], '9 Repository'),
+                              (['workbench workflow --root ROOT --policy ID'], '9 Repository'), (['review the run ID'], '9 Repository')):
+            with self.subTest(rows=rows, surface=surface):
+                self.assertTrue(net(rows, surface).net, rows)
+
+    def test_every_phrase_an_id_entry_names_is_still_printed_by_the_product(self):
+        """An entry that names a phrase the product no longer prints is stale: it would excuse nothing, and a reworded sentence would
+        come back as a hit. So each phrase is looked for in the strings of the product's source."""
+        strings = [' '.join(text.split()) for text in package_strings()]
+        phrases = ('its object ID cannot be read from the repository', 'the Intune object ID it manages',
+                   'the full 40-character commit ID', 'Select an exact immutable object ID first')
+        for phrase in phrases:
+            self.assertTrue(any(phrase in text for text in strings), phrase)
 
     def test_a_command_the_product_only_prints_is_found_by_its_lead_or_its_option_alone(self):
         """No table of the product's names the program: `kubectl` is neither run nor an option of the parser."""
