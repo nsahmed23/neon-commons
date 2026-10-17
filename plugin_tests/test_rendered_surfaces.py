@@ -2294,8 +2294,8 @@ def value_escapes(node, parents):
 
 @functools.lru_cache(maxsize=None)
 def file_reach(source, filename):
-    """FileReach for one module: its functions (qualified name, name, whether a property getter) and classes (qualified name, name, bases,
-    methods); what each function and the module body refer to (Ref: kind, name, the route conditions around it); what the module imports;
+    """FileReach for one module: its functions (qualified name, name, whether a property getter) and classes (qualified name, name, bases as
+    they are written, methods); what each function and the module body refer to (Ref: kind, name, the route conditions around it); what the module imports;
     and the route conditions around every node, by position. Cached by source and file name."""
     tree = ast.parse(source)
     parents = {child: node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)}
@@ -2328,6 +2328,21 @@ def file_reach(source, filename):
                 names.append(node.name)
         return '.'.join(reversed(names))
 
+    def base_ref(item):
+        """A base of a class as it is written: ('name', 'X'); ('module', ('a', ('b', 'X'))) for a.b.X; ('by name', 'X') for an attribute of
+        something that is not a name; None for what is not a name at all. A subscript (Generic[T], Base[int]) is the class it subscripts."""
+        if isinstance(item, ast.Subscript):
+            item = item.value
+        if isinstance(item, ast.Name):
+            return ('name', item.id)
+        if not isinstance(item, ast.Attribute):
+            return None
+        chain, root = [], item
+        while isinstance(root, ast.Attribute):
+            chain.append(root.attr)
+            root = root.value
+        return ('module', (root.id, tuple(reversed(chain)))) if isinstance(root, ast.Name) else ('by name', item.attr)
+
     definitions, classes = [], []
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -2336,8 +2351,7 @@ def file_reach(source, filename):
                               for item in node.decorator_list)
             definitions.append((qualified(node), node.name, is_property))
         elif isinstance(node, ast.ClassDef):
-            bases = tuple(item.id if isinstance(item, ast.Name) else item.attr for item in node.bases
-                          if isinstance(item, (ast.Name, ast.Attribute)))
+            bases = tuple(ref for ref in (base_ref(item) for item in node.bases) if ref)
             classes.append((qualified(node), node.name, bases, tuple(
                 (member.name, qualified(member)) for member in node.body if isinstance(member, (ast.FunctionDef, ast.AsyncFunctionDef)))))
     guards_by_position, refs = {}, {}
@@ -2454,20 +2468,92 @@ class ReachGraph:
                     self.properties[simple].add((name, qualname))
             for qualname, simple, bases, methods in reach.classes:
                 self.classes[simple][(name, qualname)] = (bases, dict(methods))
-        self.cache, self.edge_cache = {}, {}
+        self.cache, self.edge_cache, self.base_cache, self.ancestor_cache = {}, {}, {}, {}
+
+    def named_classes(self, file, name, trail=()):
+        """(keys, known): the classes of the product that a plain name stands for in a file, by the classes the file defines and the names it
+        imports (a name that another module only re-exports is followed). known is False when the file does not say, a name it neither
+        defines nor imports, and the caller then falls back on every class of that name, by name alone. A builtin, and a name that comes
+        from outside the product, stand for no class of the product."""
+        defined = {key for key in self.classes.get(name, {}) if key[0] == file}
+        if defined:
+            return defined, True
+        items = self.files[file].imports.get(name, ())
+        if not items:
+            return set(), hasattr(builtins, name)
+        keys, known = set(), True
+        for item in items:
+            if item[0] == 'from' and item[1] in self.modules and (file, name) not in trail:
+                found, said = self.named_classes(self.modules[item[1]], item[2], trail + ((file, name),))
+                keys |= found
+                known = known and said
+        return keys, known
+
+    def module_classes(self, file, root, chain):
+        """(keys, known) for a base written as a chain on an imported name, a.b.X: the class X of the module that a.b names, by the imports of
+        the file. A chain on a module of the standard library, or of another package, stands for no class of the product."""
+        items = self.files[file].imports.get(root, ())
+        if not items:
+            return set(), False
+        keys, known = set(), True
+        for item in items:
+            prefix = item[1] if item[0] == 'import' else item[1] + '.' + item[2]
+            if prefix.split('.')[0] != PACKAGE.name:
+                continue
+            module = '.'.join([prefix] + list(chain[:-1]))
+            if module in self.modules:
+                found, said = self.named_classes(self.modules[module], chain[-1])
+                keys |= found
+                known = known and said
+            else:
+                known = False
+        return keys, known
+
+    def base_classes(self, file, base):
+        """(resolved, fallback): the classes a base written in a file stands for, found by the file's own definitions and imports; and, when
+        they do not say, every class of that simple name anywhere in the product, which is an edge by name and never an exact one."""
+        if (file, base) not in self.base_cache:
+            kind, name = base
+            if kind == 'name':
+                keys, known, simple = *self.named_classes(file, name), name
+            elif kind == 'module':
+                keys, known, simple = *self.module_classes(file, name[0], name[1]), name[1][-1]
+            else:
+                keys, known, simple = set(), False, name
+            self.base_cache[(file, base)] = (keys, set() if known else set(self.classes.get(simple, {})) - keys)
+        return self.base_cache[(file, base)]
+
+    def ancestors(self, key):
+        """{class key: exact} for the bases of a class, their bases and so on, not the class itself. Exact when every link was found by the
+        definitions and imports of the file that names the base, not by the name alone."""
+        if key not in self.ancestor_cache:
+            found, todo = {}, [(key, True)]
+            while todo:
+                current, exact = todo.pop()
+                for base in self.classes.get(current[1].split('.')[-1], {}).get(current, ((), {}))[0]:
+                    resolved, fallback = self.base_classes(current[0], base)
+                    for target, link in [(item, exact) for item in sorted(resolved)] + [(item, False) for item in sorted(fallback)]:
+                        if target != key and (target not in found or (link and not found[target])):
+                            found[target] = link
+                            todo.append((target, link))
+            self.ancestor_cache[key] = found
+        return self.ancestor_cache[key]
+
+    def inits_of(self, keys, exact_start=True):
+        """(exact, loose): the __init__, __new__, __post_init__ and __call__ of these classes and of their bases. What a base gives is exact
+        when the class is (exact_start) and every link to it was resolved by the file that names it; a base found by its name alone gives
+        edges by name."""
+        exact, loose = set(), set()
+        for key in keys:
+            for target, link in [(key, True)] + sorted(self.ancestors(key).items()):
+                methods = self.classes[target[1].split('.')[-1]][target][1]
+                (exact if exact_start and link else loose).update((target[0], qualname) for method, qualname in methods.items()
+                                                                   if method in INIT_METHODS)
+        return exact, loose
 
     def inits(self, simple, only_file=None):
-        """The __init__, __new__, __post_init__ and __call__ of the classes with that name, and of their bases."""
-        found, todo, seen = set(), [key for key in self.classes.get(simple, {}) if only_file in (None, key[0])], set()
-        while todo:
-            key = todo.pop()
-            if key in seen:
-                continue
-            seen.add(key)
-            bases, methods = self.classes[key[1].split('.')[-1]][key]
-            found |= {(key[0], qualname) for method, qualname in methods.items() if method in INIT_METHODS}
-            todo += [base_key for base in bases for base_key in self.classes.get(base, {})]
-        return found
+        """(exact, loose) for the classes with that name (in one file, when only_file is given): see inits_of."""
+        return self.inits_of([key for key in self.classes.get(simple, {}) if only_file in (None, key[0])])
 
     def resolve(self, file, ref):
         """(exact targets, by-name targets) of a reference made in a file."""
@@ -2483,10 +2569,14 @@ class ReachGraph:
                         exact.add((self.modules[module], '<module>'))
                     continue
                 if module in self.modules:
-                    exact |= self.inits(member, self.modules[module]) | {(self.modules[module], member), (self.modules[module], '<module>')}
+                    inherited, by_name = self.inits_of(self.named_classes(self.modules[module], member)[0])
+                    exact |= inherited | {(self.modules[module], member), (self.modules[module], '<module>')}
+                    loose |= by_name
                 if module + '.' + member in self.modules:
                     exact.add((self.modules[module + '.' + member], '<module>'))
-            exact |= {target for target in self.by_name.get(ref.name, ()) if target[0] == file} | self.inits(ref.name, file)
+            inherited, by_name = self.inits(ref.name, file)
+            exact |= {target for target in self.by_name.get(ref.name, ()) if target[0] == file} | inherited
+            loose |= by_name
         elif ref.kind == 'module':
             root, chain = ref.name
             for item in imports.get(root, ()):
@@ -2494,11 +2584,13 @@ class ReachGraph:
                 for count in range(len(chain)):                      # the longest prefix of the chain that is a module of the product
                     module = '.'.join([prefix] + list(chain[:count]))
                     if module in self.modules:
-                        exact |= {(self.modules[module], chain[count])} | self.inits(chain[count], self.modules[module])
+                        inherited, by_name = self.inits(chain[count], self.modules[module])
+                        exact |= {(self.modules[module], chain[count])} | inherited
+                        loose |= by_name
             if not exact:
-                loose = set(self.by_name.get(chain[-1], ())) | self.inits(chain[-1])
+                loose |= set(self.by_name.get(chain[-1], ())) | set().union(*self.inits(chain[-1]))
         elif ref.kind in ('call', 'value'):
-            loose = set(self.by_name.get(ref.name, ())) | self.inits(ref.name)
+            loose = set(self.by_name.get(ref.name, ())) | set().union(*self.inits(ref.name))
         elif ref.kind == 'property':
             loose = set(self.properties.get(ref.name, ()))
         elif ref.kind == 'with':
@@ -2508,16 +2600,10 @@ class ReachGraph:
                 exact.add((self.modules[ref.name], '<module>'))
         elif ref.kind == 'super':
             attribute, owner = ref.name
-            todo, seen = ([(file, owner)] if owner else []), set()
-            while todo:
-                owner_key = todo.pop()
-                for base in self.classes.get(owner_key[1].split('.')[-1], {}).get(owner_key, ((), {}))[0]:
-                    for base_key, (_, methods) in self.classes.get(base, {}).items():
-                        if base_key not in seen:
-                            seen.add(base_key)
-                            todo.append(base_key)
-                            if attribute in methods:
-                                exact.add((base_key[0], methods[attribute]))
+            for ancestor, link in sorted(self.ancestors((file, owner)).items()) if owner else ():
+                methods = self.classes[ancestor[1].split('.')[-1]][ancestor][1]
+                if attribute in methods:
+                    (exact if link else loose).add((ancestor[0], methods[attribute]))
         self.cache[key] = (exact & self.functions, loose & self.functions)
         return self.cache[key]
 
@@ -4584,6 +4670,61 @@ class ReachTests(unittest.TestCase):
         self.assertEqual(found[('workbench_tui.py', 'terminal_session')], 'exact')
         sources = self.mutated('from .workbench_tui import Workspace\nWorkspace("x")')                 # a class made: its __init__ runs
         self.assertEqual(self.new_reaches(sources, 'doctor'), {('workbench_tui.py', 'Workspace.__init__'): 'exact'})
+
+    def test_a_base_class_is_the_class_that_the_file_naming_it_defines_or_imports(self):
+        """Two modules may each define a class with the same name: windows_directory and windows_terminal both define _Win32, the storage
+        classes derive from the first and only NativeConsole makes the second. A base is resolved through the definitions and imports of the
+        file that names it, and only then is an edge exact; a name that nothing resolves is an edge by name, never an exact one."""
+        base = 'class Base:\n    def __init__(self):\n        pass\n'
+        missing = 'class Missing:\n    def __init__(self):\n        pass\n'
+        child = '\n\nclass Child(%s):\n    pass\n\n\ndef make():\n    return Child()\n'
+        sub = '\n\nclass Child(%s):\n    def __init__(self):\n        super().__init__()\n'
+        one, two = {('one.py', 'Base.__init__')}, {('two.py', 'Base.__init__')}
+        both = {('one.py', 'Missing.__init__'), ('two.py', 'Missing.__init__')}
+        for label, user, extra, function, expected_exact, expected_name in (
+                ('imported by its name', 'from .one import Base' + child % 'Base', {}, 'make', one, set()),
+                ('imported under an alias', 'from .two import Base as Root' + child % 'Root', {}, 'make', two, set()),
+                ('an attribute of a module imported from the package', 'from . import one' + child % 'one.Base', {}, 'make', one, set()),
+                ('an attribute of a module imported under an alias', 'import intune_iac.two as second' + child % 'second.Base', {}, 'make', two, set()),
+                ('an attribute of the package imported whole', 'import intune_iac.one' + child % 'intune_iac.one.Base', {}, 'make', one, set()),
+                ('a subscripted base', 'from .two import Base' + child % 'Base[int]', {}, 'make', two, set()),
+                ('defined in the file itself', base + child % 'Base', {}, 'make', {('user.py', 'Base.__init__')}, set()),
+                ('a base of a base, in another module', 'from .mid import Mid' + child % 'Mid',
+                 {'mid.py': 'from .two import Base\n\n\nclass Mid(Base):\n    pass\n'}, 'make', two, set()),
+                ('a class that another module only re-exports', 'from .mid import Base' + child % 'Base',
+                 {'mid.py': 'from .two import Base\n'}, 'make', two, set()),
+                ('a base from outside the product', 'import threading' + child % 'threading.Thread',
+                 {'one.py': 'class Thread:\n    def __init__(self):\n        pass\n'}, 'make', set(), set()),
+                ('a name that nothing resolves', child % 'Missing', {'one.py': missing, 'two.py': missing}, 'make', set(), both),
+                ('an attribute of a name that is not imported', child % 'service.Missing', {'one.py': missing, 'two.py': missing}, 'make',
+                 set(), both),
+                ('super() through an imported base', 'from .one import Base' + sub % 'Base', {}, 'Child.__init__', one, set()),
+                ('super() through a base that nothing resolves', sub % 'Missing', {'one.py': missing, 'two.py': missing}, 'Child.__init__',
+                 set(), both),
+                ('the class itself imported and made (control)', 'from .one import Base\n\n\ndef make():\n    return Base()\n', {}, 'make',
+                 one | {('one.py', '<module>')}, set())):
+            with self.subTest(label):
+                graph = ReachGraph({'one.py': base, 'two.py': base, **extra, 'user.py': user})
+                edges = graph.edges(('user.py', function))
+                self.assertEqual({target for target, _, exact in edges if exact}, expected_exact)
+                self.assertEqual({target for target, _, exact in edges if not exact}, expected_name)
+
+    def test_the_storage_classes_do_not_inherit_the_loader_of_the_console(self):
+        """windows_storage._Win32Storage, windows_observer_credentials._Win32Credentials and what derives from them inherit windows_directory's
+        _Win32, which loads kernel32 for directory and file calls. windows_terminal._Win32 is the console's, and nothing but NativeConsole
+        makes it. With the console's loader a terminal site no machine leaf reaches it along direct names."""
+        graph = ReachGraph()
+        console = ('windows_terminal.py', '_Win32.__init__')
+        for file, simple in (('windows_storage.py', '_Win32Storage'), ('windows_observer_credentials.py', '_Win32Credentials'),
+                             ('windows_sqlite.py', '_Win32Snapshot'), ('windows_capture.py', '_NativeAPI'), ('windows_workbench.py', '_NativeAPI')):
+            with self.subTest(simple):
+                exact, loose = graph.inits(simple, file)
+                self.assertIn(('windows_directory.py', '_Win32.__init__'), exact)
+                self.assertNotIn(console, exact | loose)
+        self.assertEqual(graph.inits('NativeConsole', 'windows_terminal.py'), ({('windows_terminal.py', 'NativeConsole.__init__')}, set()))
+        listed = {**OUTPUT_SITES, console + ('ctypes.WinDLL',): (1, 'workbench workspace', '')}
+        found = machine_reaches(listed=listed)
+        self.assertEqual(sorted(leaf for (leaf, holder), (kind, _) in found.items() if holder == console and kind == 'exact'), [])
 
     def test_code_behind_a_route_condition_the_leaf_fails_is_not_run_by_it(self):
         for label, snippet in (('the command is another', 'if args.command == "workbench":\n    from .workbench import run_terminal\n'
