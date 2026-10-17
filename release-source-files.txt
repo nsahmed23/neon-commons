@@ -1050,6 +1050,7 @@ plugin_tests/test_stack_input.py
 plugin_tests/test_start_goal.py
 plugin_tests/test_start_paths.py
 plugin_tests/test_start_root.py
+plugin_tests/test_start_standin.py
 plugin_tests/test_start_steps.py
 plugin_tests/test_start_unknown.py
 plugin_tests/test_start_verdict_last.py
