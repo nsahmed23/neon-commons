@@ -94,6 +94,11 @@ def logical_rows(lines):
     return rows + ([held.strip()] if held else [])
 
 
+def is_path_stand_in(token):
+    """DIRECTORY, ROOT, ID or PATH alone or at the start of a path: the stand-ins for a path."""
+    return token in STAND_INS or any(token.startswith(word + '/') for word in STAND_INS)
+
+
 def is_stand_in(token):
     """An operand that is a fill-in template: every member of the product's shared set (entry.FILL_IN_TEMPLATES), alone or at the
     start of a path (DIRECTORY/store, NEW_SESSION.json)."""
@@ -107,7 +112,11 @@ def stand_in_operands(lines):
     command is a row that starts with the program name, or the program name inside a sentence up to the sentence's end; the
     workspace's own :repository-entry command is read the same way."""
     found = []
+    goal = False
     for row in logical_rows(lines):
+        # the goal block prints readiness.py's recorded steps, whose own placeholders (TENANT_ID, POLICY, NEW_DIR ...) are a separate
+        # package: there the reader looks for the four stand-ins for a path only
+        goal = goal or row.startswith('GOAL READINESS')
         commands = [row] if row.startswith('intune-iac ') else row.split('intune-iac ')[1:]
         commands += re.findall(r':repository-entry\s+(.*)', row)
         for command in commands:
@@ -116,7 +125,7 @@ def stand_in_operands(lines):
                 tokens = shlex.split(command)
             except ValueError:
                 tokens = command.split()
-            found += [token for token in tokens if is_stand_in(token)]
+            found += [token for token in tokens if (is_path_stand_in(token) if goal else is_stand_in(token))]
     return found
 
 

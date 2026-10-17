@@ -1023,6 +1023,7 @@ def start_lines(value, width, goal=None, goal_hint=False):
         lines += _flow(action, width, prefix, ' ' * len(prefix), commands=True)
     lines.append('MISSING')
     for note in value['missing']:
+        note = placeholder_words(note) if has_fill_in(note) else note        # a command with a placeholder is words on a screen
         for index, part in enumerate(word_wrap(without_stand_in(note) if hidden else note, width - 4)):
             lines.append(('  - ' if index == 0 else '    ') + part)
     if value.get('skipped_links'):
