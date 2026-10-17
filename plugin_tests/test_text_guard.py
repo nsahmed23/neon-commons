@@ -389,6 +389,9 @@ class PortabilityTests(unittest.TestCase):
                   'sys.path.insert(0, os.path.dirname(sys.argv[1]))\n'
                   'for name, fd in (("stdout", 1), ("stderr", 2)):\n'
                   '    setattr(sys, name, io.TextIOWrapper(os.fdopen(os.dup(fd), "wb"), encoding="utf-8", newline="\\r\\n", write_through=True))\n'
+                  # A sitecustomize on PYTHONPATH (the seamed gate's clock) may already have loaded pathlib (importlib.abc does,
+                  # in Python 3.12), which would hide the planted module; drop it so that the launcher's own import finds it.
+                  'sys.modules.pop("pathlib", None)\n'
                   'runpy.run_path(sys.argv[1], run_name="__main__")\n')
         done = subprocess.run([sys.executable, '-B', '-c', driver, str(launcher)], capture_output=True, cwd=str(self.base))
         self.assertNotEqual(done.returncode, 0)
